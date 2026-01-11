@@ -39,16 +39,16 @@ New-Item -ItemType SymbolicLink `
 
 ## Available Prompts
 
-### `#spec-interview`
+### `/spec-interview`
 
 Deep dive interview for creating comprehensive specifications.
 
 **Usage:**
 
 ```
-#spec-interview @SPEC.md
-#spec-interview authentication system
-#spec-interview @components/Button.tsx
+/spec-interview @SPEC.md
+/spec-interview authentication system
+/spec-interview @components/Button.tsx
 ```
 
 **What it does:**
@@ -57,6 +57,49 @@ Deep dive interview for creating comprehensive specifications.
 - Questions are independent within each batch
 - Continues until complete understanding
 - Synthesizes into comprehensive spec document
+
+### `/code-review`
+
+Comprehensive review of code changes against project guidelines in AGENTS.md.
+
+**Usage:**
+
+```
+/code-review @src/components/Button.tsx
+/code-review Review my last commit
+/code-review @src/api/*.ts Check API changes
+```
+
+**What it does:**
+
+1. Reads project guidelines from AGENTS.md
+2. Reviews code against those specific guidelines
+3. Reports violations by category and severity
+4. Provides specific file/line references
+5. Suggests fixes aligned with AGENTS.md
+
+**Requirements:**
+
+- AGENTS.md file in project root
+- File should contain project conventions and guidelines
+
+### `/agents-check`
+
+Strict compliance validation against AGENTS.md (violations only).
+
+**Usage:**
+
+```
+/agents-check @src/modified-file.ts
+/agents-check Validate staged changes
+```
+
+**Output:**
+
+- Blocking issues (must fix)
+- Warnings (should fix)
+- Recommendations (nice to have)
+- Pass/Fail status
 
 ## Adding New Prompts
 

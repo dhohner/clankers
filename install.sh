@@ -63,10 +63,15 @@ for prompt_file in "$PROMPTS_DIR"/*.prompt.md; do
     if [ -f "$prompt_file" ]; then
         # Extract name from frontmatter if possible
         name=$(grep "^name:" "$prompt_file" | sed 's/name: *//' || basename "$prompt_file" .prompt.md)
-        echo "  #$name"
+        echo "  /$name"
     fi
 done
 echo ""
 echo "Usage in VS Code Copilot Chat:"
-echo "  #spec-interview @SPEC.md"
-echo "  #spec-interview database design"
+echo "  /spec-interview @SPEC.md"
+echo "  /spec-interview database design"
+echo "  /code-review @src/components/Button.tsx"
+echo "  /code-review Review my last commit"
+echo "  /code-review @src/api/*.ts Check API changes"
+echo "  /agents-check @src/modified-file.ts"
+echo "  /agents-check Validate staged changes"
