@@ -26,7 +26,7 @@ case "$(uname -s)" in
 esac
 
 # Create copilot prompts directory if it doesn't exist
-COPILOT_PROMPTS_DIR="$VSCODE_USER_DIR/copilot/prompts"
+COPILOT_PROMPTS_DIR="$VSCODE_USER_DIR/prompts"
 mkdir -p "$COPILOT_PROMPTS_DIR"
 
 echo "Installing Copilot prompts..."

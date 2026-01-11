@@ -1,6 +1,6 @@
 ---
 agent: agent
-name: si
+name: spec-interview
 description: Deep dive interview for specifications
 ---
 
