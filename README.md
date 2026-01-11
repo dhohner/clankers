@@ -7,7 +7,7 @@ Global prompt library for GitHub Copilot in VS Code.
 ### Quick Install (macOS/Linux)
 
 ```bash
-git clone https://github.com/yourusername/copilot-prompts.git ~/copilot-prompts
+git clone https://github.com/dhohner/copilot.git ~/copilot-prompts
 cd ~/copilot-prompts
 chmod +x install.sh
 ./install.sh
@@ -101,6 +101,53 @@ Strict compliance validation against AGENTS.md (violations only).
 - Recommendations (nice to have)
 - Pass/Fail status
 
+### `#commit-msg`
+
+Generate a commit message following project template for staged changes.
+
+**Usage:**
+
+```
+#commit-msg
+#commit-msg Generate for ticket AUTH-789
+```
+
+**Template:**
+
+```
+feat|chore|fix|refactor: ${commit message}
+
+#body
+Changes done
+
+Issue: ${Jira Ticket Number}
+```
+
+**What it does:**
+
+1. Analyzes staged changes
+2. Determines correct commit type
+3. Writes meaningful subject (50-72 chars)
+4. Generates detailed body
+5. Includes Jira ticket placeholder/number
+
+**Types:**
+
+- `feat`: New feature
+- `fix`: Bug fix
+- `chore`: Maintenance, deps, configs
+- `refactor`: Code restructuring
+
+### `#commit-split`
+
+Suggest how to split staged changes into multiple logical commits.
+
+**Usage:**
+
+```
+#commit-split
+```
+
 ## Adding New Prompts
 
 1. Create a new `.prompt.md` file in the `prompts/` directory
@@ -116,7 +163,7 @@ Your prompt instructions here...
 ```
 
 3. Run `./install.sh` to update symlinks
-4. Use with `#your-prompt-name` in Copilot Chat
+4. Use with `/your-prompt-name` in Copilot Chat
 
 ## Updating Prompts
 
@@ -136,6 +183,6 @@ Feel free to submit PRs with new useful prompts!
 ## Tips
 
 - Keep prompts focused on a single purpose
-- Use descriptive `name` values (they become the `#command`)
+- Use descriptive `name` values (they become the `/command`)
 - Test prompts before committing
 - Document usage examples in this README
