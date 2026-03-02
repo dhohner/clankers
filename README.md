@@ -83,6 +83,26 @@ Comprehensive review of code changes against project guidelines in AGENTS.md.
 - AGENTS.md file in project root
 - File should contain project conventions and guidelines
 
+### `/simplify`
+
+Reviews your recently changed files for code reuse, quality, and efficiency issues, then fixes them.
+
+**Usage:**
+
+```
+/simplify
+/simplify focus on memory efficiency
+/simplify simplify staged files after this bug fix
+```
+
+**What it does:**
+
+1. Analyzes staged files (or latest commit if nothing is staged)
+2. Loads AGENTS.md rules and general best practices
+3. Spawns three parallel review agents (reuse, quality, efficiency)
+4. Aggregates findings and applies behavior-preserving cleanup fixes
+5. Reports applied changes and any manual follow-ups
+
 ### `/agents-check`
 
 Strict compliance validation against AGENTS.md (violations only).
