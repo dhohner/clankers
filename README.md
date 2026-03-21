@@ -94,7 +94,7 @@ Reviews your recently changed files for code reuse, quality, and efficiency issu
 5. Auto-applies high/medium confidence + safe fixes; lists risky or low-confidence items for manual review
 6. Reports applied changes, skipped items with reasons, and rollback instructions
 
-### `#commit-msg`
+### `/commit-msg`
 
 Generate a commit message following project template for staged changes.
 
@@ -131,7 +131,7 @@ Issue: ${Jira Ticket Number}
 - `chore`: Maintenance, deps, configs
 - `refactor`: Code restructuring
 
-### `#commit-split`
+### `/commit-split`
 
 Suggest how to split staged changes into multiple logical commits.
 

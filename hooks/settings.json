@@ -6,6 +6,13 @@
         "command": "~/.copilot/hooks/pre-tool-use/block-package-managers.sh",
         "timeout": 5
       }
+    ],
+    "PostToolUse": [
+      {
+        "type": "command",
+        "command": "~/.copilot/hooks/post-tool-use/lint-and-format.sh",
+        "timeout": 120
+      }
     ]
   }
 }
