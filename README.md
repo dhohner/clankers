@@ -64,12 +64,14 @@ New-Item -ItemType SymbolicLink `
 Current bundled hook scripts:
 
 - `pre-tool-use/block-package-managers.sh`: blocks `npm` and `npx` terminal commands and tells Copilot to use `pnpm` or `pnpm dlx` instead
+- `post-tool-use/lint-and-format.sh`: runs `pnpm format` and `pnpm lint` after code-changing tools and provides feedback to Copilot if they fail
 
 The current hook configuration registers:
 
 - `PreToolUse`: `~/.copilot/hooks/pre-tool-use/block-package-managers.sh`
+- `PostToolUse`: `~/.copilot/hooks/post-tool-use/lint-and-format.sh`
 
-The hook script uses `jq` to parse Copilot hook payloads, so make sure `jq` is available on your machine.
+The scripts use `jq` to parse Copilot hook payloads, so make sure `jq` is available on your machine.
 
 ## Available Prompts
 
