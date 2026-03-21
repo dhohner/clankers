@@ -1,0 +1,11 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "type": "command",
+        "command": "~/.copilot/hooks/pre-tool-use/block-package-managers.sh",
+        "timeout": 5
+      }
+    ]
+  }
+}

@@ -1,6 +1,6 @@
-# Copilot Prompts
+# Copilot Prompts and Hooks
 
-Global prompt library for GitHub Copilot in VS Code.
+Global prompt library and hook set for GitHub Copilot in VS Code.
 
 ## Installation
 
@@ -11,6 +11,26 @@ git clone https://github.com/dhohner/copilot.git ~/copilot-prompts
 cd ~/copilot-prompts
 chmod +x install.sh
 ./install.sh
+```
+
+This installs both prompts and hooks by default.
+
+### Install Options
+
+```bash
+./install.sh --prompts      # install prompts only
+./install.sh --hooks        # install hooks only
+./install.sh --prompts --hooks
+./install.sh --help
+```
+
+Short flags are also available:
+
+```bash
+./install.sh -p
+./install.sh -k
+./install.sh -a
+./install.sh -h
 ```
 
 ### Manual Installation
@@ -37,55 +57,25 @@ New-Item -ItemType SymbolicLink `
   -Target "$HOME\copilot-prompts\prompts\spec-interview.prompt.md"
 ```
 
+### Hooks Installation
+
+`./install.sh --hooks` creates a single symlink from `~/.copilot/hooks` to this repo's `hooks/` directory. Copilot then loads hook configuration from `hooks/settings.json`.
+
+Current bundled hook scripts:
+
+- `pre-tool-use/block-package-managers.sh`: blocks `npm` and `npx` terminal commands and tells Copilot to use `pnpm` or `pnpm dlx` instead
+
+The current hook configuration registers:
+
+- `PreToolUse`: `~/.copilot/hooks/pre-tool-use/block-package-managers.sh`
+
+The hook script uses `jq` to parse Copilot hook payloads, so make sure `jq` is available on your machine.
+
 ## Available Prompts
-
-### `/spec-interview`
-
-Deep dive interview for creating comprehensive specifications.
-
-**Usage:**
-
-```
-/spec-interview @SPEC.md
-/spec-interview authentication system
-/spec-interview @components/Button.tsx
-```
-
-**What it does:**
-
-- Asks batched, non-obvious questions about implementation, UX, tradeoffs
-- Questions are independent within each batch
-- Continues until complete understanding
-- Synthesizes into comprehensive spec document
-
-### `/code-review`
-
-Comprehensive review of code changes against project guidelines in AGENTS.md.
-
-**Usage:**
-
-```
-/code-review @src/components/Button.tsx
-/code-review Review my last commit
-/code-review @src/api/*.ts Check API changes
-```
-
-**What it does:**
-
-1. Reads project guidelines from AGENTS.md
-2. Reviews code against those specific guidelines
-3. Reports violations by category and severity
-4. Provides specific file/line references
-5. Suggests fixes aligned with AGENTS.md
-
-**Requirements:**
-
-- AGENTS.md file in project root
-- File should contain project conventions and guidelines
 
 ### `/simplify`
 
-Reviews your recently changed files for code reuse, quality, and efficiency issues, then fixes them.
+Reviews your recently changed files for code reuse, quality, and efficiency issues, then fixes them. Changes are left unstaged so you can review with `git diff`.
 
 **Usage:**
 
@@ -97,29 +87,12 @@ Reviews your recently changed files for code reuse, quality, and efficiency issu
 
 **What it does:**
 
-1. Analyzes staged files (or latest commit if nothing is staged)
-2. Loads AGENTS.md rules and general best practices
-3. Spawns three parallel review agents (reuse, quality, efficiency)
-4. Aggregates findings and applies behavior-preserving cleanup fixes
-5. Reports applied changes and any manual follow-ups
-
-### `/agents-check`
-
-Strict compliance validation against AGENTS.md (violations only).
-
-**Usage:**
-
-```
-/agents-check @src/modified-file.ts
-/agents-check Validate staged changes
-```
-
-**Output:**
-
-- Blocking issues (must fix)
-- Warnings (should fix)
-- Recommendations (nice to have)
-- Pass/Fail status
+1. Determines scope (user-specified files → staged changes → latest commit), filters out binary/generated/vendor files, and confirms if >15 files
+2. Loads project rules from `AGENTS.md`, `.github/copilot-instructions.md`, `CLAUDE.md`, or `.cursorrules` (first found)
+3. Spawns three parallel review agents — Code Reuse, Code Quality, Efficiency — each returning structured findings with confidence and risk levels
+4. Deduplicates findings, resolves conflicts between agents, and filters by confidence/risk
+5. Auto-applies high/medium confidence + safe fixes; lists risky or low-confidence items for manual review
+6. Reports applied changes, skipped items with reasons, and rollback instructions
 
 ### `#commit-msg`
 
@@ -189,20 +162,14 @@ Your prompt instructions here...
 
 Since these are symlinked, any changes you make to files in `prompts/` are immediately available in VS Code. No need to reinstall!
 
+## Updating Hooks
+
+Hooks are also symlinked, so edits under `hooks/` are picked up from `~/.copilot/hooks` immediately. Re-run `./install.sh --hooks` only if you need to recreate the symlink.
+
 ## Uninstall
 
 ```bash
 rm ~/Library/Application\ Support/Code/User/copilot/prompts/*.prompt.md  # macOS
 rm ~/.config/Code/User/copilot/prompts/*.prompt.md  # Linux
+rm ~/.copilot/hooks  # remove global hooks symlink
 ```
-
-## Contributing
-
-Feel free to submit PRs with new useful prompts!
-
-## Tips
-
-- Keep prompts focused on a single purpose
-- Use descriptive `name` values (they become the `/command`)
-- Test prompts before committing
-- Document usage examples in this README
