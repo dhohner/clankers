@@ -109,6 +109,23 @@ link_path() {
 COPILOT_PROMPTS_DIR="$VSCODE_USER_DIR/prompts"
 INSTALLED_ANYTHING=false
 
+describe_prompt() {
+    case "$1" in
+        commit-msg.prompt.md)
+            echo "generate a commit message for staged changes"
+            ;;
+        commit-split.prompt.md)
+            echo "suggest how to split staged changes into logical commits"
+            ;;
+        next-best-thing.prompt.md)
+            echo "recommend the single highest-leverage addition to the current project"
+            ;;
+        *)
+            echo "custom prompt"
+            ;;
+    esac
+}
+
 install_prompts() {
     mkdir -p "$COPILOT_PROMPTS_DIR"
 
@@ -121,6 +138,16 @@ install_prompts() {
             filename=$(basename "$prompt_file")
             target="$COPILOT_PROMPTS_DIR/$filename"
             link_path "$prompt_file" "$target"
+        fi
+    done
+
+    echo ""
+    echo "Bundled prompts:"
+    for prompt_file in "$PROMPTS_DIR"/*.prompt.md; do
+        if [ -f "$prompt_file" ]; then
+            filename=$(basename "$prompt_file")
+            prompt_name="/${filename%.prompt.md}"
+            echo "  - $prompt_name: $(describe_prompt "$filename")"
         fi
     done
 

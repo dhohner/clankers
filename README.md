@@ -74,6 +74,7 @@ Add new skills by creating a new folder under `skills/` with a `SKILL.md` file. 
 
 - `/commit-msg`: generate a commit message following the project template
 - `/commit-split`: suggest how to split staged changes into multiple logical commits
+- `/next-best-thing`: recommend the single highest-leverage addition to the current project, backed by repo evidence
 
 ### `/commit-msg`
 
@@ -82,8 +83,8 @@ Generate a commit message following project template for staged changes.
 **Usage:**
 
 ```
-#commit-msg
-#commit-msg Generate for ticket AUTH-789
+/commit-msg
+/commit-msg Generate for ticket AUTH-789
 ```
 
 **Template:**
@@ -118,9 +119,27 @@ Suggest how to split staged changes into multiple logical commits.
 
 **Usage:**
 
+```text
+/commit-split
 ```
-#commit-split
+
+### `/next-best-thing`
+
+Analyze the current repository and recommend the single smartest, most innovative, and most impactful addition to make next.
+
+**Usage:**
+
+```text
+/next-best-thing
 ```
+
+**What it does:**
+
+1. Reads the repository structure and key project files
+2. Grounds the recommendation in concrete repo evidence
+3. Compares a small set of plausible additions
+4. Selects one accretive, feasible, high-leverage idea
+5. Returns the recommendation with evidence, alternatives considered, and calibrated confidence
 
 ## Adding New Prompts
 
