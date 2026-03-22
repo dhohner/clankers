@@ -1,10 +1,10 @@
-# Copilot Prompts and Hooks
+# Copilot Prompts, Hooks, and Skills
 
-Global prompt library and hook set for GitHub Copilot in VS Code.
+Global prompt, hook, and skill library for GitHub Copilot in VS Code.
 
 ## Installation
 
-### Quick Install (macOS/Linux)
+### Quick Install (macOS)
 
 ```bash
 git clone https://github.com/dhohner/copilot.git ~/copilot-prompts
@@ -13,14 +13,15 @@ chmod +x install.sh
 ./install.sh
 ```
 
-This installs both prompts and hooks by default.
+This installs prompts, hooks, and skills by default.
 
 ### Install Options
 
 ```bash
 ./install.sh --prompts      # install prompts only
 ./install.sh --hooks        # install hooks only
-./install.sh --prompts --hooks
+./install.sh --skills       # install skills only
+./install.sh --prompts --hooks --skills
 ./install.sh --help
 ```
 
@@ -29,6 +30,7 @@ Short flags are also available:
 ```bash
 ./install.sh -p
 ./install.sh -k
+./install.sh -s
 ./install.sh -a
 ./install.sh -h
 ```
@@ -40,21 +42,6 @@ Short flags are also available:
 ```bash
 ln -s ~/copilot-prompts/prompts/*.prompt.md \
   ~/Library/Application\ Support/Code/User/copilot/prompts/
-```
-
-#### Linux
-
-```bash
-ln -s ~/copilot-prompts/prompts/*.prompt.md \
-  ~/.config/Code/User/copilot/prompts/
-```
-
-#### Windows (PowerShell as Administrator)
-
-```powershell
-New-Item -ItemType SymbolicLink `
-  -Path "$env:APPDATA\Code\User\copilot\prompts\spec-interview.prompt.md" `
-  -Target "$HOME\copilot-prompts\prompts\spec-interview.prompt.md"
 ```
 
 ### Hooks Installation
@@ -73,28 +60,20 @@ The current hook configuration registers:
 
 The scripts use `jq` to parse Copilot hook payloads, so make sure `jq` is available on your machine.
 
-## Available Prompts
+### Skills Installation
 
-### `/simplify`
+`./install.sh --skills` creates a symlink from `~/.copilot/skills` to this repo's `skills/` directory. Copilot then loads each skill from its bundled `SKILL.md` file.
 
-Reviews your recently changed files for code reuse, quality, and efficiency issues, then fixes them. Changes are left unstaged so you can review with `git diff`.
+Current bundled skills:
 
-**Usage:**
+- `simplify`: applies safe, behavior-preserving cleanup edits to existing code and reports what was changed versus left manual
 
-```
-/simplify
-/simplify focus on memory efficiency
-/simplify simplify staged files after this bug fix
-```
+Add new skills by creating a new folder under `skills/` with a `SKILL.md` file. Re-run `./install.sh --skills` after adding or renaming skills to refresh the symlink.
 
-**What it does:**
+### Available Prompts
 
-1. Determines scope (user-specified files → staged changes → latest commit), filters out binary/generated/vendor files, and confirms if >15 files
-2. Loads project rules from `AGENTS.md`, `.github/copilot-instructions.md`, `CLAUDE.md`, or `.cursorrules` (first found)
-3. Spawns three parallel review agents — Code Reuse, Code Quality, Efficiency — each returning structured findings with confidence and risk levels
-4. Deduplicates findings, resolves conflicts between agents, and filters by confidence/risk
-5. Auto-applies high/medium confidence + safe fixes; lists risky or low-confidence items for manual review
-6. Reports applied changes, skipped items with reasons, and rollback instructions
+- `/commit-msg`: generate a commit message following the project template
+- `/commit-split`: suggest how to split staged changes into multiple logical commits
 
 ### `/commit-msg`
 
@@ -109,7 +88,7 @@ Generate a commit message following project template for staged changes.
 
 **Template:**
 
-```
+```bash
 feat|chore|fix|refactor: ${commit message}
 
 #body
@@ -172,6 +151,6 @@ Hooks are also symlinked, so edits under `hooks/` are picked up from `~/.copilot
 
 ```bash
 rm ~/Library/Application\ Support/Code/User/copilot/prompts/*.prompt.md  # macOS
-rm ~/.config/Code/User/copilot/prompts/*.prompt.md  # Linux
 rm ~/.copilot/hooks  # remove global hooks symlink
+rm ~/.copilot/skills  # remove global skills symlink
 ```

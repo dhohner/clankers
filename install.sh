@@ -4,32 +4,37 @@ set -euo pipefail
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROMPTS_DIR="$SCRIPT_DIR/prompts"
 HOOKS_DIR="$SCRIPT_DIR/hooks"
+SKILLS_DIR="$SCRIPT_DIR/skills"
 COPILOT_HOME_DIR="$HOME/.copilot"
 COPILOT_HOOKS_DIR="$COPILOT_HOME_DIR/hooks"
+COPILOT_SKILLS_DIR="$COPILOT_HOME_DIR/skills"
 
 print_help() {
     cat <<EOF2
 Usage: ./install.sh [options]
 
-Install Copilot prompts, hooks, or both.
+Install Copilot prompts, hooks, skills, or any combination.
 
 Options:
   -p, --prompts   Install prompts only
   -k, --hooks     Install hooks only
-  -a, --all       Install prompts and hooks
+  -s, --skills    Install skills only
+  -a, --all       Install prompts, hooks, and skills
   -h, --help      Show this help message
-      help        Show this help message
+  help            Show this help message
 
 Examples:
   ./install.sh
   ./install.sh --prompts
   ./install.sh -k
-  ./install.sh --prompts --hooks
+  ./install.sh --skills
+  ./install.sh --prompts --hooks --skills
 EOF2
 }
 
 INSTALL_PROMPTS=false
 INSTALL_HOOKS=false
+INSTALL_SKILLS=false
 HAS_SELECTION=false
 
 while [[ $# -gt 0 ]]; do
@@ -42,9 +47,14 @@ while [[ $# -gt 0 ]]; do
             INSTALL_HOOKS=true
             HAS_SELECTION=true
             ;;
+        -s|--skills)
+            INSTALL_SKILLS=true
+            HAS_SELECTION=true
+            ;;
         -a|--all)
             INSTALL_PROMPTS=true
             INSTALL_HOOKS=true
+            INSTALL_SKILLS=true
             HAS_SELECTION=true
             ;;
         -h|--help|help)
@@ -64,23 +74,15 @@ done
 if [ "$HAS_SELECTION" = false ]; then
     INSTALL_PROMPTS=true
     INSTALL_HOOKS=true
+    INSTALL_SKILLS=true
 fi
 
-case "$(uname -s)" in
-    Darwin*)
-        VSCODE_USER_DIR="$HOME/Library/Application Support/Code/User"
-        ;;
-    Linux*)
-        VSCODE_USER_DIR="$HOME/.config/Code/User"
-        ;;
-    MINGW*|MSYS*|CYGWIN*)
-        VSCODE_USER_DIR="$APPDATA/Code/User"
-        ;;
-    *)
-        echo "Unsupported operating system"
-        exit 1
-        ;;
-esac
+if [[ "$(uname -s)" != Darwin* ]]; then
+    echo "Unsupported operating system"
+    exit 1
+fi
+
+VSCODE_USER_DIR="$HOME/Library/Application Support/Code/User"
 
 link_path() {
     local source="$1"
@@ -152,6 +154,29 @@ install_hooks() {
     INSTALLED_ANYTHING=true
 }
 
+install_skills() {
+    if [ ! -d "$SKILLS_DIR" ]; then
+        echo "Skills directory not found: $SKILLS_DIR"
+        exit 1
+    fi
+
+    mkdir -p "$COPILOT_HOME_DIR"
+
+    echo "Installing Copilot skills..."
+    echo "Target: $COPILOT_SKILLS_DIR"
+    echo ""
+
+    link_path "$SKILLS_DIR" "$COPILOT_SKILLS_DIR"
+
+    echo "Bundled skills:"
+    find "$SKILLS_DIR" -type f -name "SKILL.md" | sort | while read -r skill_file; do
+        skill_name=$(basename "$(dirname "$skill_file")")
+        echo "  - $skill_name"
+    done
+
+    INSTALLED_ANYTHING=true
+}
+
 if [ "$INSTALL_PROMPTS" = true ]; then
     install_prompts
 fi
@@ -161,6 +186,13 @@ if [ "$INSTALL_HOOKS" = true ]; then
         echo ""
     fi
     install_hooks
+fi
+
+if [ "$INSTALL_SKILLS" = true ]; then
+    if [ "$INSTALL_PROMPTS" = true ] || [ "$INSTALL_HOOKS" = true ]; then
+        echo ""
+    fi
+    install_skills
 fi
 
 if [ "$INSTALLED_ANYTHING" = true ]; then
