@@ -1,0 +1,12 @@
+{
+  "name": "next-best-thing",
+  "version": "0.1.0",
+  "description": "Recommend the single highest-leverage next addition to the current repository.",
+  "commands": "./next-best-thing.md",
+  "author": {
+    "name": "dhohner"
+  },
+  "repository": "https://github.com/dhohner/copilot",
+  "license": "MIT",
+  "keywords": ["planning", "analysis", "roadmap"]
+}

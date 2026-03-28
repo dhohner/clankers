@@ -1,0 +1,12 @@
+{
+  "name": "commit-msg",
+  "version": "0.1.0",
+  "description": "Generate a commit message for staged changes.",
+  "commands": "./commit-msg.md",
+  "author": {
+    "name": "dhohner"
+  },
+  "repository": "https://github.com/dhohner/copilot",
+  "license": "MIT",
+  "keywords": ["git", "commit", "workflow"]
+}

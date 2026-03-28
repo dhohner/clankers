@@ -1,0 +1,11 @@
+{
+  "name": "simplify",
+  "version": "0.1.0",
+  "description": "Apply safe, behavior-preserving cleanup edits to existing code.",
+  "author": {
+    "name": "dhohner"
+  },
+  "repository": "https://github.com/dhohner/copilot",
+  "license": "MIT",
+  "keywords": ["refactor", "quality", "cleanup"]
+}

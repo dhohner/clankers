@@ -1,0 +1,11 @@
+{
+  "name": "block-package-managers",
+  "version": "0.1.0",
+  "description": "Block npm and npx terminal commands and redirect usage toward pnpm.",
+  "author": {
+    "name": "dhohner"
+  },
+  "repository": "https://github.com/dhohner/copilot",
+  "license": "MIT",
+  "keywords": ["hooks", "pnpm", "guardrails"]
+}

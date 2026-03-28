@@ -1,175 +1,88 @@
-# Copilot Prompts, Hooks, and Skills
+# Copilot Plugin Marketplace
 
-Global prompt, hook, and skill library for GitHub Copilot in VS Code.
+Claude-style agent plugin marketplace for GitHub Copilot and Claude Code.
 
-## Installation
+The repository now follows the Anthropic marketplace pattern:
 
-### Quick Install (macOS)
+- `.claude-plugin/marketplace.json` defines the marketplace catalog
+- `plugins/` contains first-party plugins maintained in this repository
+- `external_plugins/` is reserved for future third-party or partner plugins
 
-```bash
-git clone https://github.com/dhohner/copilot.git ~/copilot-prompts
-cd ~/copilot-prompts
-chmod +x install.sh
-./install.sh
-```
+VS Code Copilot can consume Claude-format plugins and marketplaces, so this layout is intentionally Claude-first while remaining compatible with the VS Code agent plugins preview.
 
-This installs prompts, hooks, and skills by default.
+Each installable unit now maps to its own plugin so commands, skills, and hooks can be installed independently.
 
-### Install Options
-
-```bash
-./install.sh --prompts      # install prompts only
-./install.sh --hooks        # install hooks only
-./install.sh --skills       # install skills only
-./install.sh --prompts --hooks --skills
-./install.sh --help
-```
-
-Short flags are also available:
-
-```bash
-./install.sh -p
-./install.sh -k
-./install.sh -s
-./install.sh -a
-./install.sh -h
-```
-
-### Manual Installation
-
-#### macOS
-
-```bash
-ln -s ~/copilot-prompts/prompts/*.prompt.md \
-  ~/Library/Application\ Support/Code/User/copilot/prompts/
-```
-
-### Hooks Installation
-
-`./install.sh --hooks` creates a single symlink from `~/.copilot/hooks` to this repo's `hooks/` directory. Copilot then loads hook configuration from `hooks/settings.json`.
-
-Current bundled hook scripts:
-
-- `pre-tool-use/block-package-managers.sh`: blocks `npm` and `npx` terminal commands and tells Copilot to use `pnpm` or `pnpm dlx` instead
-- `post-tool-use/lint-and-format.sh`: runs `pnpm format` and `pnpm lint` after code-changing tools and provides feedback to Copilot if they fail
-
-The current hook configuration registers:
-
-- `PreToolUse`: `~/.copilot/hooks/pre-tool-use/block-package-managers.sh`
-- `PostToolUse`: `~/.copilot/hooks/post-tool-use/lint-and-format.sh`
-
-The scripts use `jq` to parse Copilot hook payloads, so make sure `jq` is available on your machine.
-
-### Skills Installation
-
-`./install.sh --skills` creates a symlink from `~/.copilot/skills` to this repo's `skills/` directory. Copilot then loads each skill from its bundled `SKILL.md` file.
-
-Current bundled skills:
-
-- `simplify`: applies safe, behavior-preserving cleanup edits to existing code and reports what was changed versus left manual
-
-Add new skills by creating a new folder under `skills/` with a `SKILL.md` file. Re-run `./install.sh --skills` after adding or renaming skills to refresh the symlink.
-
-### Available Prompts
-
-- `/commit-msg`: generate a commit message following the project template
-- `/commit-split`: suggest how to split staged changes into multiple logical commits
-- `/next-best-thing`: recommend the single highest-leverage addition to the current project, backed by repo evidence
-
-### `/commit-msg`
-
-Generate a commit message following project template for staged changes.
-
-**Usage:**
-
-```
-/commit-msg
-/commit-msg Generate for ticket AUTH-789
-```
-
-**Template:**
-
-```bash
-feat|chore|fix|refactor: ${commit message}
-
-#body
-Changes done
-
-Issue: ${Jira Ticket Number}
-```
-
-**What it does:**
-
-1. Analyzes staged changes
-2. Determines correct commit type
-3. Writes meaningful subject (50-72 chars)
-4. Generates detailed body
-5. Includes Jira ticket placeholder/number
-
-**Types:**
-
-- `feat`: New feature
-- `fix`: Bug fix
-- `chore`: Maintenance, deps, configs
-- `refactor`: Code restructuring
-
-### `/commit-split`
-
-Suggest how to split staged changes into multiple logical commits.
-
-**Usage:**
+## Structure
 
 ```text
-/commit-split
+.
+├── .claude-plugin/
+│   └── marketplace.json
+├── plugins/
+│   ├── block-package-managers/
+│   ├── commit-msg/
+│   ├── commit-split/
+│   ├── lint-and-format/
+│   ├── next-best-thing/
+│   └── simplify/
+└── external_plugins/
 ```
 
-### `/next-best-thing`
+## Included Plugins
 
-Analyze the current repository and recommend the single smartest, most innovative, and most impactful addition to make next.
+- `commit-msg`: install only the commit-message command
+- `commit-split`: install only the commit-splitting command
+- `next-best-thing`: install only the repo-prioritization command
+- `simplify`: install only the simplify skill
+- `block-package-managers`: install only the `PreToolUse` package-manager guardrail hook
+- `lint-and-format`: install only the `PostToolUse` formatting and linting hook
 
-**Usage:**
+## Use With Claude Code
 
-```text
-/next-best-thing
-```
+### Add the marketplace
 
-**What it does:**
-
-1. Reads the repository structure and key project files
-2. Grounds the recommendation in concrete repo evidence
-3. Compares a small set of plausible additions
-4. Selects one accretive, feasible, high-leverage idea
-5. Returns the recommendation with evidence, alternatives considered, and calibrated confidence
-
-## Adding New Prompts
-
-1. Create a new `.prompt.md` file in the `prompts/` directory
-2. Use this template:
-
-```yaml
----
-agent: agent
-name: your-prompt-name
-description: Brief description
----
-Your prompt instructions here...
-```
-
-3. Run `./install.sh` to update symlinks
-4. Use with `/your-prompt-name` in Copilot Chat
-
-## Updating Prompts
-
-Since these are symlinked, any changes you make to files in `prompts/` are immediately available in VS Code. No need to reinstall!
-
-## Updating Hooks
-
-Hooks are also symlinked, so edits under `hooks/` are picked up from `~/.copilot/hooks` immediately. Re-run `./install.sh --hooks` only if you need to recreate the symlink.
-
-## Uninstall
+From a local clone:
 
 ```bash
-rm ~/Library/Application\ Support/Code/User/copilot/prompts/*.prompt.md  # macOS
-rm ~/.copilot/hooks  # remove global hooks symlink
-rm ~/.copilot/skills  # remove global skills symlink
+/plugin marketplace add /absolute/path/to/copilot
 ```
+
+From GitHub:
+
+```bash
+/plugin marketplace add dhohner/copilot
+```
+
+### Install a plugin
+
+```bash
+/plugin install commit-msg@dhohner-copilot
+/plugin install commit-split@dhohner-copilot
+/plugin install next-best-thing@dhohner-copilot
+/plugin install simplify@dhohner-copilot
+/plugin install block-package-managers@dhohner-copilot
+/plugin install lint-and-format@dhohner-copilot
+```
+
+## Use With VS Code Copilot
+
+VS Code auto-detects Claude-format plugins and marketplaces.
+
+### Add this repository as a marketplace
+
+In user or workspace settings:
+
+```json
+{
+  "chat.plugins.marketplaces": [
+    "dhohner/copilot",
+    "file:///absolute/path/to/copilot"
+  ]
+}
+```
+
+### Notes for VS Code compatibility
+
+- Claude-format `hooks/hooks.json` is supported by VS Code agent plugins
+- VS Code expands `${CLAUDE_PLUGIN_ROOT}` in Claude-format hook commands at runtime
+- For hook plugins, guard script execution inside the shell because the current preview can trigger extra hook invocations where `CLAUDE_PLUGIN_ROOT` is unset; without that guard VS Code can show warnings such as `bash: /scripts/<name>.sh: No such file or directory` even though the real hook run succeeds

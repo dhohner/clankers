@@ -1,0 +1,12 @@
+{
+  "name": "commit-split",
+  "version": "0.1.0",
+  "description": "Suggest how to split staged changes into multiple logical commits.",
+  "commands": "./commit-split.md",
+  "author": {
+    "name": "dhohner"
+  },
+  "repository": "https://github.com/dhohner/copilot",
+  "license": "MIT",
+  "keywords": ["git", "commit", "planning"]
+}

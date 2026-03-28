@@ -1,0 +1,55 @@
+{
+  "name": "dhohner-copilot",
+  "owner": {
+    "name": "dhohner"
+  },
+  "metadata": {
+    "description": "First-party Claude-format plugins published as individually installable commands, skills, and hooks.",
+    "version": "0.1.0",
+    "pluginRoot": "./plugins"
+  },
+  "plugins": [
+    {
+      "name": "commit-msg",
+      "source": "commit-msg",
+      "description": "Generate a commit message for staged changes.",
+      "category": "productivity",
+      "tags": ["official", "git", "commit"]
+    },
+    {
+      "name": "commit-split",
+      "source": "commit-split",
+      "description": "Suggest how to split staged changes into multiple logical commits.",
+      "category": "productivity",
+      "tags": ["official", "git", "commit"]
+    },
+    {
+      "name": "next-best-thing",
+      "source": "next-best-thing",
+      "description": "Recommend the single highest-leverage next addition to the current repository.",
+      "category": "productivity",
+      "tags": ["official", "planning", "analysis"]
+    },
+    {
+      "name": "simplify",
+      "source": "simplify",
+      "description": "Apply safe, behavior-preserving cleanup edits to existing code.",
+      "category": "development",
+      "tags": ["official", "refactor", "quality"]
+    },
+    {
+      "name": "block-package-managers",
+      "source": "block-package-managers",
+      "description": "Block npm and npx terminal commands and redirect usage toward pnpm.",
+      "category": "development",
+      "tags": ["official", "hooks", "pnpm"]
+    },
+    {
+      "name": "lint-and-format",
+      "source": "lint-and-format",
+      "description": "Run pnpm format and pnpm lint after code-changing tools when package scripts exist.",
+      "category": "development",
+      "tags": ["official", "hooks", "quality"]
+    }
+  ]
+}
