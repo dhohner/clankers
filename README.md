@@ -23,13 +23,21 @@ My personal collection of Claude-format plugins for GitHub Copilot, Claude Code,
 This repository supports two integration styles:
 
 - Plugin marketplace installation for Claude Code and VS Code Copilot
-- Direct skill symlinking for the Codex app during local development
+- Direct skill and hook installation for the Codex app during local development
 
-Use the marketplace flow when you want installable Claude-format plugins. Use `install.sh` when you want the currently present repo skills to show up in Codex immediately.
+Use the marketplace flow when you want installable Claude-format plugins. Use `install.sh` when you want the currently present repo skills to show up in Codex immediately and the repo hook plugins to be installed into Codex's global hooks file.
 
 ### Codex App
 
-The helper script symlinks every skill found under `plugins/*/skills/*/SKILL.md` into your Codex skills directory.
+The helper script does two things:
+
+- symlinks every skill found under `plugins/*/skills/*/SKILL.md` into your Codex skills directory
+- merges every hook plugin found under `plugins/*/hooks/hooks.json` into a Codex-compatible global hooks file at `~/.codex/hooks.json`
+
+Current hook plugins installed into Codex are:
+
+- `block-package-managers` for `PreToolUse`
+- `lint-and-format` for `PostToolUse`
 
 Install the current repo skills into the default Codex home:
 
@@ -49,11 +57,23 @@ List the skills the script currently detects:
 ./install.sh --list-skills
 ```
 
+List the hook plugins the script currently detects:
+
+```bash
+./install.sh --list-hooks
+```
+
 Use a custom Codex home or explicit skills directory:
 
 ```bash
 CODEX_HOME=/tmp/codex ./install.sh
 CODEX_SKILLS_DIR=/absolute/path/to/skills ./install.sh
+```
+
+Use a custom hooks file path:
+
+```bash
+CODEX_HOOKS_FILE=/absolute/path/to/hooks.json ./install.sh
 ```
 
 If a destination path already exists and you want to replace it, use:
@@ -62,7 +82,19 @@ If a destination path already exists and you want to replace it, use:
 ./install.sh --force
 ```
 
-By default the script is conservative: it updates existing symlinks, skips non-symlink collisions, and prints the marketplace setup options after it finishes.
+By default the script is conservative:
+
+- it updates existing skill symlinks when they already point somewhere else
+- it skips non-symlink skill collisions unless `--force` is used
+- it refuses to replace an existing Codex hooks file unless `--force` is used
+- when `--force` replaces an existing hooks file, it first writes a timestamped backup next to it
+
+Important Codex hook notes:
+
+- Codex hooks require `codex_hooks = true` under `[features]` in `~/.codex/config.toml`
+- the generated `~/.codex/hooks.json` uses absolute paths into this repository clone
+- if you move or rename this clone, rerun `./install.sh` so the hook commands point at the new location
+- current Codex `PreToolUse` and `PostToolUse` matcher behavior is limited to `Bash`
 
 ### Claude Code
 
