@@ -1,6 +1,6 @@
 # Copilot Plugins
 
-My personal directory of Claude-format plugins for GitHub Copilot and Claude Code.
+My personal collection of Claude-format plugins for GitHub Copilot, Claude Code, and Codex app skill development.
 
 > **⚠️ Important:** Make sure you trust a plugin before installing, updating, or using it. Plugins in this repository can include prompts, skills, hooks, and shell scripts that run on your machine. Review each plugin's README and source before use.
 
@@ -20,7 +20,49 @@ My personal directory of Claude-format plugins for GitHub Copilot and Claude Cod
 
 ## Installation
 
-Plugins can be installed from this marketplace through Claude Code's plugin system. The same Claude-format marketplace layout is also compatible with the VS Code Copilot agent plugins preview.
+This repository supports two integration styles:
+
+- Plugin marketplace installation for Claude Code and VS Code Copilot
+- Direct skill symlinking for the Codex app during local development
+
+Use the marketplace flow when you want installable Claude-format plugins. Use `install.sh` when you want the currently present repo skills to show up in Codex immediately.
+
+### Codex App
+
+The helper script symlinks every skill found under `plugins/*/skills/*/SKILL.md` into your Codex skills directory.
+
+Install the current repo skills into the default Codex home:
+
+```bash
+./install.sh
+```
+
+Preview the links without changing anything:
+
+```bash
+./install.sh --dry-run
+```
+
+List the skills the script currently detects:
+
+```bash
+./install.sh --list-skills
+```
+
+Use a custom Codex home or explicit skills directory:
+
+```bash
+CODEX_HOME=/tmp/codex ./install.sh
+CODEX_SKILLS_DIR=/absolute/path/to/skills ./install.sh
+```
+
+If a destination path already exists and you want to replace it, use:
+
+```bash
+./install.sh --force
+```
+
+By default the script is conservative: it updates existing symlinks, skips non-symlink collisions, and prints the marketplace setup options after it finishes.
 
 ### Claude Code
 
