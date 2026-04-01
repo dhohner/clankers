@@ -1,0 +1,33 @@
+{
+  "name": "next-best-thing",
+  "version": "0.1.0",
+  "description": "Recommend the single highest-leverage next addition to the current repository.",
+  "author": {
+    "name": "dhohner",
+    "url": "https://github.com/dhohner"
+  },
+  "homepage": "https://github.com/dhohner/copilot/tree/main/plugins/next-best-thing",
+  "repository": "https://github.com/dhohner/copilot",
+  "license": "MIT",
+  "keywords": [
+    "planning",
+    "analysis",
+    "roadmap"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Next Best Thing",
+    "shortDescription": "Evidence-backed next-step recommendation skill.",
+    "longDescription": "Inspect the current repository and recommend one high-leverage improvement with concrete rationale.",
+    "developerName": "dhohner",
+    "category": "Productivity",
+    "capabilities": [
+      "Read"
+    ],
+    "defaultPrompt": [
+      "Use Next Best Thing to recommend the best next improvement for this repo.",
+      "Inspect this repository and tell me the single highest-leverage next step."
+    ],
+    "brandColor": "#0F766E"
+  }
+}

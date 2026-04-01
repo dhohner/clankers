@@ -1,0 +1,34 @@
+{
+  "name": "simplify",
+  "version": "0.1.0",
+  "description": "Apply safe, behavior-preserving cleanup edits to existing code.",
+  "author": {
+    "name": "dhohner",
+    "url": "https://github.com/dhohner"
+  },
+  "homepage": "https://github.com/dhohner/copilot/tree/main/plugins/simplify",
+  "repository": "https://github.com/dhohner/copilot",
+  "license": "MIT",
+  "keywords": [
+    "refactor",
+    "quality",
+    "cleanup"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Simplify",
+    "shortDescription": "Safe cleanup and simplification skill.",
+    "longDescription": "Apply small, behavior-preserving refactors that improve readability and reduce unnecessary complexity.",
+    "developerName": "dhohner",
+    "category": "Development",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Use Simplify to clean up this code without changing behavior.",
+      "Refactor these staged changes for readability and less duplication."
+    ],
+    "brandColor": "#7C3AED"
+  }
+}

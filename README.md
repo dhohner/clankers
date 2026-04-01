@@ -1,17 +1,18 @@
 # Copilot Plugins
 
-My personal collection of Claude-format plugins for GitHub Copilot in Visual Studio Code and Codex app skill development.
+My personal collection of installable plugins for GitHub Copilot in Visual Studio Code, Claude Code, and Codex.
 
 Tools:
 
 - GitHub Copilot in Visual Studio Code
 - Claude Code (untested)
-- Codex (untested)
+- Codex app and CLI
 
 > **⚠️ Important:** Make sure you trust a plugin before installing, updating, or using it. Plugins in this repository can include prompts, skills, hooks, and shell scripts that run on your machine. Review each plugin's README and source before use.
 
 ## Structure
 
+- **`/.agents/plugins/marketplace.json`** - Codex plugin marketplace catalog for this repository
 - **`/.claude-plugin/marketplace.json`** - Marketplace catalog metadata for this repository
 - **`/plugins`** - plugins developed and maintained in this repository
 
@@ -27,10 +28,25 @@ Tools:
 
 This repository supports two integration styles:
 
-- Plugin marketplace installation for Claude Code and VS Code Copilot
+- Plugin marketplace installation for Codex, Claude Code, and VS Code Copilot
 - Direct skill and hook installation for the Codex app during local development
 
-Use the marketplace flow when you want installable Claude-format plugins for GitHub Copilot in Visual Studio Code, and likely Claude Code as well. Use `install.sh` when you want the current repo skills to show up in Codex immediately and the repo hook plugins to be installed into Codex's global hooks file.
+Use the marketplace flow when you want installable plugins in Codex or Claude-format plugins for GitHub Copilot in Visual Studio Code. Use `install.sh` when you want the current repo skills to show up in Codex immediately and the repo hook plugins to be installed into Codex's global hooks file.
+
+### Codex Plugin Directory
+
+This repo now includes a repo-scoped Codex marketplace at [`.agents/plugins/marketplace.json`](./.agents/plugins/marketplace.json).
+
+The following plugins are packaged with native Codex manifests and can be installed from the Codex plugin directory when this repo is open:
+
+- `commit-tools`
+- `next-best-thing`
+- `simplify`
+
+The two hook-only utilities still use the direct install flow below for Codex:
+
+- `block-package-managers`
+- `lint-and-format`
 
 ### Codex App
 
@@ -159,10 +175,12 @@ claude plugin validate /absolute/path/to/copilot
 All current plugins are first-party. To add a new plugin:
 
 1. Create a new directory under `plugins/<plugin-name>`.
-2. Add `.claude-plugin/plugin.json`.
-3. Add the plugin assets it needs, such as a skill, hook, MCP config, or helper script.
-4. Add a `README.md` that explains what the plugin does and how to use it.
-5. Register the plugin in `/.claude-plugin/marketplace.json`.
+2. Add `.claude-plugin/plugin.json` for Claude/Copilot compatibility.
+3. Add `.codex-plugin/plugin.json` when the plugin should be installable from the Codex plugin directory.
+4. Add the plugin assets it needs, such as a skill, hook, MCP config, or helper script.
+5. Add a `README.md` that explains what the plugin does and how to use it.
+6. Register the plugin in `/.claude-plugin/marketplace.json`.
+7. Register the plugin in `/.agents/plugins/marketplace.json` when it should appear in Codex.
 
 Existing plugins in `plugins/` are the best reference implementations for new additions.
 
@@ -172,8 +190,10 @@ Each plugin in this repository is packaged as a small, focused installable unit,
 
 ```text
 plugin-name/
+├── .codex-plugin/
+│   └── plugin.json      # Codex plugin metadata (optional, required for Codex marketplace)
 ├── .claude-plugin/
-│   └── plugin.json      # Plugin metadata (required)
+│   └── plugin.json      # Claude/Copilot plugin metadata (optional, required for Claude marketplace)
 ├── README.md            # Plugin documentation
 ├── skills/
 │   └── skill-name/
@@ -193,6 +213,7 @@ This repository is licensed under MIT. See [LICENSE](./LICENSE).
 
 ## Documentation
 
+- Root Codex marketplace catalog: [`.agents/plugins/marketplace.json`](./.agents/plugins/marketplace.json)
 - Root marketplace catalog: [`.claude-plugin/marketplace.json`](./.claude-plugin/marketplace.json)
 - Codex setup helper: [`install.sh`](./install.sh)
 - Plugin-specific usage and behavior: [`plugins/`](./plugins)
