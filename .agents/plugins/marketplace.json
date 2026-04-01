@@ -17,10 +17,10 @@
       "category": "Productivity"
     },
     {
-      "name": "next-best-thing",
+      "name": "project-advisor",
       "source": {
         "source": "local",
-        "path": "./plugins/next-best-thing"
+        "path": "./plugins/project-advisor"
       },
       "policy": {
         "installation": "AVAILABLE",
@@ -29,10 +29,10 @@
       "category": "Productivity"
     },
     {
-      "name": "simplify",
+      "name": "refactor-tools",
       "source": {
         "source": "local",
-        "path": "./plugins/simplify"
+        "path": "./plugins/refactor-tools"
       },
       "policy": {
         "installation": "AVAILABLE",

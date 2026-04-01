@@ -1,0 +1,33 @@
+{
+  "name": "project-advisor",
+  "version": "0.1.0",
+  "description": "Project analysis skills for recommending the highest-leverage next addition to the current repository.",
+  "author": {
+    "name": "dhohner",
+    "url": "https://github.com/dhohner"
+  },
+  "homepage": "https://github.com/dhohner/copilot/tree/main/plugins/project-advisor",
+  "repository": "https://github.com/dhohner/copilot",
+  "license": "MIT",
+  "keywords": [
+    "planning",
+    "analysis",
+    "roadmap"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Project Advisor",
+    "shortDescription": "Repository planning and roadmap skills.",
+    "longDescription": "Packages project analysis workflows, starting with the next-best-thing skill for high-leverage recommendations.",
+    "developerName": "dhohner",
+    "category": "Productivity",
+    "capabilities": [
+      "Read"
+    ],
+    "defaultPrompt": [
+      "Use the next-best-thing skill to recommend the best next improvement for this repo.",
+      "Inspect this repository and tell me the single highest-leverage next step."
+    ],
+    "brandColor": "#0F766E"
+  }
+}

@@ -17,16 +17,16 @@
       "tags": ["official", "git", "commit"]
     },
     {
-      "name": "next-best-thing",
-      "source": "next-best-thing",
-      "description": "Recommend the single highest-leverage next addition to the current repository.",
+      "name": "project-advisor",
+      "source": "project-advisor",
+      "description": "Project analysis skills for recommending the highest-leverage next addition to the current repository.",
       "category": "productivity",
       "tags": ["official", "planning", "analysis"]
     },
     {
-      "name": "simplify",
-      "source": "simplify",
-      "description": "Apply safe, behavior-preserving cleanup edits to existing code.",
+      "name": "refactor-tools",
+      "source": "refactor-tools",
+      "description": "Refactoring and cleanup skills for safe, behavior-preserving code improvements.",
       "category": "development",
       "tags": ["official", "refactor", "quality"]
     },

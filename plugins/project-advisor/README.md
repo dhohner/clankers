@@ -1,10 +1,10 @@
-# Next Best Thing Plugin
+# Project Advisor Plugin
 
-Recommends the single highest-leverage next improvement for the current repository using concrete repository evidence.
+Packages repository planning and recommendation workflows grounded in concrete repository evidence.
 
 ## What It Does
 
-Copilot uses this user-invoked skill to identify one worthwhile next step instead of giving generic product advice. Produces a recommendation with:
+The included `next-best-thing` skill identifies one worthwhile next step instead of giving generic product advice. It returns:
 
 - Evidence gathered from the current repository structure and files
 - A clear explanation of why this improvement matters now
@@ -22,6 +22,10 @@ Copilot uses this user-invoked skill to identify one worthwhile next step instea
 Copilot will inspect the repository and return a single recommendation with rationale, evidence, impact, and confidence.
 
 ## Learn More
+
+Current bundled skill:
+
+- `next-best-thing`
 
 See [the skill definition](./skills/next-best-thing/SKILL.md) for the exact response structure.
 

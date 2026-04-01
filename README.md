@@ -19,8 +19,8 @@ Tools:
 ## Included Plugins
 
 - **`commit-tools`** - Bundles `message` and `split` skills for staged commit workflows
-- **`next-best-thing`** - Recommends the single highest-leverage next improvement for the current repository
-- **`simplify`** - Applies safe, behavior-preserving cleanup guidance for existing code
+- **`project-advisor`** - Packages repository planning skills, including `next-best-thing`
+- **`refactor-tools`** - Packages safe cleanup and refactor skills, including `simplify`
 - **`block-package-managers`** - Blocks `npm` and `npx` terminal usage and redirects to `pnpm`
 - **`lint-and-format`** - Runs `pnpm format` and `pnpm lint` after code-changing tools when scripts exist
 
@@ -40,8 +40,8 @@ This repo now includes a repo-scoped Codex marketplace at [`.agents/plugins/mark
 The following plugins are packaged with native Codex manifests and can be installed from the Codex plugin directory when this repo is open:
 
 - `commit-tools`
-- `next-best-thing`
-- `simplify`
+- `project-advisor`
+- `refactor-tools`
 
 The two hook-only utilities still use the direct install flow below for Codex:
 
@@ -144,8 +144,8 @@ Install a plugin:
 Available plugin names:
 
 - `commit-tools`
-- `next-best-thing`
-- `simplify`
+- `project-advisor`
+- `refactor-tools`
 - `block-package-managers`
 - `lint-and-format`
 

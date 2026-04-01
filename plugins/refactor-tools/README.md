@@ -1,10 +1,10 @@
-# Simplify Plugin
+# Refactor Tools Plugin
 
-Applies safe, behavior-preserving cleanup guidance for existing code so refactors stay small, reviewable, and low risk.
+Packages safe, behavior-preserving cleanup and refactor workflows for existing code.
 
 ## What It Does
 
-Copilot or Codex can use this skill for cleanup and simplification requests. It improves existing code with:
+The included `simplify` skill handles cleanup and simplification requests. It improves existing code with:
 
 - Better readability and maintainability
 - Reduced duplication and unnecessary complexity
@@ -22,6 +22,10 @@ Copilot or Codex can use this skill for cleanup and simplification requests. It 
 The agent will focus on safe cleanup work and avoid broad rewrites or semantic changes unless explicitly requested.
 
 ## Learn More
+
+Current bundled skill:
+
+- `simplify`
 
 See [the skill definition](./skills/simplify/SKILL.md) for the full workflow and decision rules.
 
