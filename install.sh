@@ -3,12 +3,10 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CODEX_HOME_DIR="${CODEX_HOME:-$HOME/.codex}"
-CODEX_SKILLS_DIR="${CODEX_SKILLS_DIR:-$CODEX_HOME_DIR/skills}"
 CODEX_HOOKS_FILE="${CODEX_HOOKS_FILE:-$CODEX_HOME_DIR/hooks.json}"
 CODEX_CONFIG_FILE="$CODEX_HOME_DIR/config.toml"
 
 DRY_RUN=0
-LIST_SKILLS=0
 LIST_HOOKS=0
 FORCE=0
 
@@ -38,42 +36,29 @@ usage() {
   cat <<EOF
 Usage: $(basename "$0") [options]
 
-Symlink repository skills into the Codex app skills directory and generate a
-Codex-compatible merged hooks file from repo hook plugins.
+Generate a Codex-compatible merged hooks file from repo hook plugins.
 
 Options:
   --dry-run       Show what would be changed without writing anything.
-  --list-skills   Print detected skills and exit.
   --list-hooks    Print detected hook plugins and exit.
-  --force         Replace an existing non-symlink skill destination and replace
-                  an existing hooks file after creating a backup.
+  --force         Replace an existing hooks file after creating a backup.
   --help          Show this help text.
 
 Environment overrides:
   CODEX_HOME         Base Codex home directory. Default: $HOME/.codex
-  CODEX_SKILLS_DIR   Explicit Codex skills directory.
   CODEX_HOOKS_FILE   Explicit Codex hooks file path.
 
 Examples:
   ./install.sh
   ./install.sh --dry-run
-  ./install.sh --list-skills
   ./install.sh --list-hooks
   CODEX_HOME=/tmp/codex ./install.sh
-  CODEX_SKILLS_DIR=/custom/skills CODEX_HOOKS_FILE=/custom/hooks.json ./install.sh --force
+  CODEX_HOOKS_FILE=/custom/hooks.json ./install.sh --force
 
 Notes:
-  - Skills are discovered from plugins/*/skills/*/SKILL.md.
-  - Skill link names come from the skills/* directory name, not the parent plugin name.
   - Hook plugins are discovered from plugins/*/hooks/hooks.json.
   - Codex hooks require [features] codex_hooks = true in ~/.codex/config.toml.
 EOF
-}
-
-discover_skill_dirs() {
-  find "$SCRIPT_DIR/plugins" -type f -path '*/skills/*/SKILL.md' | sort | while IFS= read -r skill_md; do
-    dirname "$skill_md"
-  done
 }
 
 discover_hook_files() {
@@ -114,28 +99,6 @@ print_item() {
   printf '  %b-%b %s\n' "$color" "$RESET" "$message"
 }
 
-list_skills() {
-  local skill_dirs skill_dir
-
-  skill_dirs=()
-  while IFS= read -r skill_dir; do
-    skill_dirs+=("$skill_dir")
-  done < <(discover_skill_dirs)
-
-  if [[ ${#skill_dirs[@]} -eq 0 ]]; then
-    print_header "Skills"
-    print_item "No skills found under $SCRIPT_DIR/plugins."
-    print_kv "Destination" "$CODEX_SKILLS_DIR"
-    return
-  fi
-
-  print_header "Skills"
-  for skill_dir in "${skill_dirs[@]}"; do
-    print_item "$(basename "$skill_dir") -> $skill_dir"
-  done
-  print_kv "Destination" "$CODEX_SKILLS_DIR"
-}
-
 list_hooks() {
   local hook_files hook_file plugin_dir plugin_name events
 
@@ -161,58 +124,6 @@ list_hooks() {
     print_item "$plugin_name [$events] -> $hook_file"
   done
   print_kv "Destination" "$CODEX_HOOKS_FILE"
-}
-
-link_skill() {
-  local skill_dir="$1"
-  local skill_name link_path current_target
-
-  skill_name="$(basename "$skill_dir")"
-  link_path="$CODEX_SKILLS_DIR/$skill_name"
-
-  if [[ -L "$link_path" ]]; then
-    current_target="$(readlink "$link_path")"
-    if [[ "$current_target" == "$skill_dir" ]]; then
-      print_item "Skill already linked: $link_path"
-      return 2
-    fi
-
-    if [[ $DRY_RUN -eq 1 ]]; then
-      print_item "Would update skill link: $link_path -> $skill_dir"
-      return 1
-    fi
-
-    rm "$link_path"
-    ln -s "$skill_dir" "$link_path"
-    print_item "Updated skill link: $link_path -> $skill_dir"
-    return 1
-  fi
-
-  if [[ -e "$link_path" ]]; then
-    if [[ $FORCE -eq 0 ]]; then
-      printf '  - Skipped skill path (existing non-symlink): %s\n' "$link_path" >&2
-      return 3
-    fi
-
-    if [[ $DRY_RUN -eq 1 ]]; then
-      print_item "Would replace skill path: $link_path -> $skill_dir"
-      return 1
-    fi
-
-    rm -rf "$link_path"
-    ln -s "$skill_dir" "$link_path"
-    print_item "Replaced skill path: $link_path -> $skill_dir"
-    return 1
-  fi
-
-  if [[ $DRY_RUN -eq 1 ]]; then
-    print_item "Would link skill: $link_path -> $skill_dir"
-    return 0
-  fi
-
-  ln -s "$skill_dir" "$link_path"
-  print_item "Linked skill: $link_path -> $skill_dir"
-  return 0
 }
 
 hook_feature_enabled() {
@@ -363,9 +274,6 @@ while [[ $# -gt 0 ]]; do
     --dry-run)
       DRY_RUN=1
       ;;
-    --list-skills)
-      LIST_SKILLS=1
-      ;;
     --list-hooks)
       LIST_HOOKS=1
       ;;
@@ -387,15 +295,7 @@ done
 
 init_colors
 
-if [[ $LIST_SKILLS -eq 1 || $LIST_HOOKS -eq 1 ]]; then
-  if [[ $LIST_SKILLS -eq 1 ]]; then
-    list_skills
-  fi
-
-  if [[ $LIST_SKILLS -eq 1 && $LIST_HOOKS -eq 1 ]]; then
-    echo
-  fi
-
+if [[ $LIST_HOOKS -eq 1 ]]; then
   if [[ $LIST_HOOKS -eq 1 ]]; then
     list_hooks
   fi
@@ -403,25 +303,18 @@ if [[ $LIST_SKILLS -eq 1 || $LIST_HOOKS -eq 1 ]]; then
   exit 0
 fi
 
-skill_dirs=()
-while IFS= read -r skill_dir; do
-  skill_dirs+=("$skill_dir")
-done < <(discover_skill_dirs)
-
 hook_files=()
 while IFS= read -r hook_file; do
   hook_files+=("$hook_file")
 done < <(discover_hook_files)
 
-if [[ ${#skill_dirs[@]} -eq 0 && ${#hook_files[@]} -eq 0 ]]; then
+if [[ ${#hook_files[@]} -eq 0 ]]; then
   print_header "Codex Install"
-  print_item "No skills or hook plugins were found under $SCRIPT_DIR/plugins."
+  print_item "No hook plugins were found under $SCRIPT_DIR/plugins."
   exit 0
 fi
 
-if [[ ${#hook_files[@]} -gt 0 ]]; then
-  require_jq
-fi
+require_jq
 
 temp_dir="$(mktemp -d "${TMPDIR:-/tmp}/copilot-install.XXXXXX")"
 cleanup() {
@@ -430,9 +323,7 @@ cleanup() {
 trap cleanup EXIT
 
 merged_hooks_file="$temp_dir/generated-hooks.json"
-if [[ ${#hook_files[@]} -gt 0 ]]; then
-  generate_merged_hooks_json "$merged_hooks_file" "$temp_dir"
-fi
+generate_merged_hooks_json "$merged_hooks_file" "$temp_dir"
 
 if [[ ${#hook_files[@]} -gt 0 && -e "$CODEX_HOOKS_FILE" && $FORCE -eq 0 && $DRY_RUN -eq 0 ]]; then
   echo "Hooks file already exists: $CODEX_HOOKS_FILE" >&2
@@ -440,87 +331,47 @@ if [[ ${#hook_files[@]} -gt 0 && -e "$CODEX_HOOKS_FILE" && $FORCE -eq 0 && $DRY_
   exit 1
 fi
 
-if [[ $DRY_RUN -eq 0 && ${#skill_dirs[@]} -gt 0 ]]; then
-  mkdir -p "$CODEX_SKILLS_DIR"
-fi
-
-created=0
-updated=0
-skipped=0
-
 print_header "Codex Install"
-
-if [[ ${#skill_dirs[@]} -gt 0 ]]; then
-  print_header ""
-  print_header "Skill Actions"
-fi
-
-for skill_dir in "${skill_dirs[@]}"; do
-  if link_skill "$skill_dir"; then
-    created=$((created + 1))
-  else
-    case $? in
-      1)
-        updated=$((updated + 1))
-        ;;
-      2|3)
-        skipped=$((skipped + 1))
-        ;;
-    esac
-  fi
-done
 
 hooks_written=0
 hooks_skipped=0
 hooks_previewed=0
 
-if [[ ${#hook_files[@]} -gt 0 ]]; then
-  print_header ""
-  print_header "Hook Actions"
-  if install_hooks "$merged_hooks_file" "${#hook_files[@]}"; then
-    hooks_written=1
-  else
-    case $? in
-      2)
-        hooks_previewed=1
-        ;;
-      3)
-        hooks_skipped=1
-        ;;
-      *)
-        exit 1
-        ;;
-    esac
-  fi
+print_header ""
+print_header "Hook Actions"
+if install_hooks "$merged_hooks_file" "${#hook_files[@]}"; then
+  hooks_written=1
+else
+  case $? in
+    2)
+      hooks_previewed=1
+      ;;
+    3)
+      hooks_skipped=1
+      ;;
+    *)
+      exit 1
+      ;;
+  esac
 fi
 
 print_header ""
 print_header "Summary"
 if [[ $DRY_RUN -eq 1 ]]; then
-  print_kv "Skills dir" "$CODEX_SKILLS_DIR (dry run)"
+  print_kv "Hooks file" "$CODEX_HOOKS_FILE (dry run)"
 else
-  print_kv "Skills dir" "$CODEX_SKILLS_DIR"
+  print_kv "Hooks file" "$CODEX_HOOKS_FILE"
 fi
-print_kv "Skills found" "${#skill_dirs[@]}"
-print_kv "Skills result" "${created} new, ${updated} updated, ${skipped} skipped"
+print_kv "Hook plugins" "${#hook_files[@]}"
+if [[ $hooks_written -eq 1 ]]; then
+  print_kv "Hooks result" "wrote merged hooks file"
+elif [[ $hooks_previewed -eq 1 ]]; then
+  print_kv "Hooks result" "previewed merged hooks file"
+elif [[ $hooks_skipped -eq 1 ]]; then
+  print_kv "Hooks result" "skipped because --force is required"
+fi
 
-if [[ ${#hook_files[@]} -gt 0 ]]; then
-  if [[ $DRY_RUN -eq 1 ]]; then
-    print_kv "Hooks file" "$CODEX_HOOKS_FILE (dry run)"
-  else
-    print_kv "Hooks file" "$CODEX_HOOKS_FILE"
-  fi
-  print_kv "Hook plugins" "${#hook_files[@]}"
-  if [[ $hooks_written -eq 1 ]]; then
-    print_kv "Hooks result" "wrote merged hooks file"
-  elif [[ $hooks_previewed -eq 1 ]]; then
-    print_kv "Hooks result" "previewed merged hooks file"
-  elif [[ $hooks_skipped -eq 1 ]]; then
-    print_kv "Hooks result" "skipped because --force is required"
-  fi
-
-  if ! hook_feature_enabled; then
-    print_header ""
-    print_hook_feature_warning
-  fi
+if ! hook_feature_enabled; then
+  print_header ""
+  print_hook_feature_warning
 fi

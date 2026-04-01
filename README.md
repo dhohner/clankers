@@ -2,21 +2,29 @@
 
 My personal collection of installable plugins for GitHub Copilot in Visual Studio Code, Claude Code, and Codex.
 
+> **⚠️ Important:** Make sure you trust a plugin before installing, updating, or using it. Plugins in this repository can include prompts, skills, hooks, and shell scripts that run on your machine. Review each plugin's README and source before use.
+
 Tools:
 
 - GitHub Copilot in Visual Studio Code
 - Claude Code (untested)
-- Codex app and CLI
-
-> **⚠️ Important:** Make sure you trust a plugin before installing, updating, or using it. Plugins in this repository can include prompts, skills, hooks, and shell scripts that run on your machine. Review each plugin's README and source before use.
+- Codex App
 
 ## Structure
 
-- **`/.agents/plugins/marketplace.json`** - Codex plugin marketplace catalog for this repository
-- **`/.claude-plugin/marketplace.json`** - Marketplace catalog metadata for this repository
+- **`/.agents/plugins/marketplace.json`** - Codex App marketplace catalog for this repository
+- **`/.claude-plugin/marketplace.json`** - Claude-format marketplace catalog used by Claude Code and VS Code agent plugins
 - **`/plugins`** - plugins developed and maintained in this repository
 
 ## Included Plugins
+
+### Available in Codex App Marketplace
+
+- **`commit-tools`** - Bundles `message` and `split` skills for staged commit workflows
+- **`project-advisor`** - Packages repository planning skills, including `next-best-thing`
+- **`refactor-tools`** - Packages safe cleanup and refactor skills, including `simplify`
+
+### Available in Claude-Format Marketplaces
 
 - **`commit-tools`** - Bundles `message` and `split` skills for staged commit workflows
 - **`project-advisor`** - Packages repository planning skills, including `next-best-thing`
@@ -24,106 +32,81 @@ Tools:
 - **`block-package-managers`** - Blocks `npm` and `npx` terminal usage and redirects to `pnpm`
 - **`lint-and-format`** - Runs `pnpm format` and `pnpm lint` after code-changing tools when scripts exist
 
-## Installation
-
-This repository supports two integration styles:
-
-- Plugin marketplace installation for Codex, Claude Code, and VS Code Copilot
-- Direct skill and hook installation for the Codex app during local development
-
-Use the marketplace flow when you want installable plugins in Codex or Claude-format plugins for GitHub Copilot in Visual Studio Code. Use `install.sh` when you want the current repo skills to show up in Codex immediately and the repo hook plugins to be installed into Codex's global hooks file.
-
-### Codex Plugin Directory
-
-This repo now includes a repo-scoped Codex marketplace at [`.agents/plugins/marketplace.json`](./.agents/plugins/marketplace.json).
-
-The following plugins are packaged with native Codex manifests and can be installed from the Codex plugin directory when this repo is open:
-
-- `commit-tools`
-- `project-advisor`
-- `refactor-tools`
-
-The two hook-only utilities still use the direct install flow below for Codex:
-
-- `block-package-managers`
-- `lint-and-format`
+## Getting Started
 
 ### Codex App
 
-The helper script does two things:
+This repository includes a repo-scoped Codex marketplace at [`.agents/plugins/marketplace.json`](./.agents/plugins/marketplace.json).
 
-- symlinks every skill found under `plugins/*/skills/*/SKILL.md` into your Codex skills directory
-- merges every hook plugin found under `plugins/*/hooks/hooks.json` into a Codex-compatible global hooks file at `~/.codex/hooks.json`
+To use it in Codex App:
 
-Skills are linked by their `skills/<name>/` directory names. For example, the `commit-tools` plugin currently installs the `message` and `split` skills.
+1. Clone this repository locally.
+2. Open the repository in Codex App.
+3. Open the plugin directory and look for the marketplace labeled `dhohner/copilot`.
+4. Install one of the Codex-native plugins:
+   - `commit-tools`
+   - `project-advisor`
+   - `refactor-tools`
+5. Start using the plugin from chat.
 
-Current hook plugins installed into Codex are:
+Example prompts after install:
 
-- `block-package-managers` for `PreToolUse`
-- `lint-and-format` for `PostToolUse`
-
-Install the current repo skills into the default Codex home:
-
-```bash
-./install.sh
+```text
+Use Commit Tools to draft a commit message for my staged changes.
+Use the next-best-thing skill to recommend the best next improvement for this repo.
+Use the simplify skill to clean up this code without changing behavior.
 ```
 
-Preview the links without changing anything:
+Notes:
 
-```bash
-./install.sh --dry-run
+- The Codex marketplace in this repo currently exposes the plugins that have native `.codex-plugin/plugin.json` manifests.
+- The hook-focused utilities in this repo are not currently listed in the Codex marketplace catalog.
+
+### Visual Studio Code + GitHub Copilot
+
+VS Code agent plugins are currently in preview. Start with the official docs:
+
+- [Agent plugins in VS Code](https://code.visualstudio.com/docs/copilot/customization/agent-plugins)
+- [Customize AI in Visual Studio Code](https://code.visualstudio.com/docs/copilot/customization/overview)
+
+1. Enable agent plugins in VS Code:
+
+```json
+{
+  "chat.plugins.enabled": true
+}
 ```
 
-List the skills the script currently detects:
+2. Add this repository as a marketplace in your `settings.json`:
 
-```bash
-./install.sh --list-skills
+```json
+{
+  "chat.plugins.marketplaces": [
+    "github/awesome-copilot",
+    "github/copilot-plugins",
+    "dhohner/copilot" // or: "file:///absolute/path/to/copilot"
+  ]
+}
 ```
 
-List the hook plugins the script currently detects:
+3. Open the Extensions view and search for `@agentPlugins`.
+4. Find plugins from the `dhohner/copilot` marketplace and install what you want.
+5. Open Copilot Chat and use the installed plugin skills or prompts.
 
-```bash
-./install.sh --list-hooks
+Example usage:
+
+```text
+/message
+/split
+/next-best-thing
+Simplify this component without changing behavior.
 ```
-
-Use a custom Codex home or explicit skills directory:
-
-```bash
-CODEX_HOME=/tmp/codex ./install.sh
-CODEX_SKILLS_DIR=/absolute/path/to/skills ./install.sh
-```
-
-Use a custom hooks file path:
-
-```bash
-CODEX_HOOKS_FILE=/absolute/path/to/hooks.json ./install.sh
-```
-
-If a destination path already exists and you want to replace it, use:
-
-```bash
-./install.sh --force
-```
-
-By default the script is conservative:
-
-- it updates existing skill symlinks when they already point somewhere else
-- it skips non-symlink skill collisions unless `--force` is used
-- it refuses to replace an existing Codex hooks file unless `--force` is used
-- when `--force` replaces an existing hooks file, it first writes a timestamped backup next to it
-
-Important Codex hook notes:
-
-- Codex hooks require `codex_hooks = true` under `[features]` in `~/.codex/config.toml`
-- the generated `~/.codex/hooks.json` uses absolute paths into this repository clone
-- if you move or rename this clone, rerun `./install.sh` so the hook commands point at the new location
-- current Codex `PreToolUse` and `PostToolUse` matcher behavior is limited to `Bash`
 
 ### Claude Code
 
-The plugin marketplace layout in this repository is intended to be compatible with Claude Code, including skill and hook packaging, but it is currently untested here.
+This repository also ships a Claude-format marketplace at [`.claude-plugin/marketplace.json`](./.claude-plugin/marketplace.json).
 
-Add the marketplace:
+Add the marketplace from a local checkout:
 
 ```bash
 /plugin marketplace add /absolute/path/to/copilot
@@ -138,62 +121,44 @@ Or add it from GitHub:
 Install a plugin:
 
 ```bash
-/plugin install {plugin-name}@dhohner-copilot
+/plugin install commit-tools@dhohner-copilot
 ```
 
-Available plugin names:
+Browse interactively:
 
-- `commit-tools`
-- `project-advisor`
-- `refactor-tools`
-- `block-package-managers`
-- `lint-and-format`
-
-### VS Code Copilot
-
-Register this repository as a marketplace in settings:
-
-```json
-{
-  "chat.plugins.marketplaces": [
-    "dhohner/copilot",
-    "file:///absolute/path/to/copilot"
-  ]
-}
+```text
+/plugin > Discover
 ```
 
-Validate the marketplace locally when Claude Code is available:
+Example installs:
 
 ```bash
-claude plugin validate /absolute/path/to/copilot
+/plugin install commit-tools@dhohner-copilot
+/plugin install project-advisor@dhohner-copilot
+/plugin install refactor-tools@dhohner-copilot
+/plugin install block-package-managers@dhohner-copilot
+/plugin install lint-and-format@dhohner-copilot
 ```
 
-## Contributing
+Example usage after install:
 
-### Internal Plugins
-
-All current plugins are first-party. To add a new plugin:
-
-1. Create a new directory under `plugins/<plugin-name>`.
-2. Add `.claude-plugin/plugin.json` for Claude/Copilot compatibility.
-3. Add `.codex-plugin/plugin.json` when the plugin should be installable from the Codex plugin directory.
-4. Add the plugin assets it needs, such as a skill, hook, MCP config, or helper script.
-5. Add a `README.md` that explains what the plugin does and how to use it.
-6. Register the plugin in `/.claude-plugin/marketplace.json`.
-7. Register the plugin in `/.agents/plugins/marketplace.json` when it should appear in Codex.
-
-Existing plugins in `plugins/` are the best reference implementations for new additions.
+```text
+/message
+/split
+/next-best-thing
+Simplify the files touched by the last commit without changing behavior.
+```
 
 ## Plugin Structure
 
-Each plugin in this repository is packaged as a small, focused installable unit, usually centered on a single skill or hook.
+Each plugin in this repository is packaged as a small, focused installable unit.
 
 ```text
 plugin-name/
 ├── .codex-plugin/
-│   └── plugin.json      # Codex plugin metadata (optional, required for Codex marketplace)
+│   └── plugin.json      # Codex metadata (optional, required for Codex marketplace)
 ├── .claude-plugin/
-│   └── plugin.json      # Claude/Copilot plugin metadata (optional, required for Claude marketplace)
+│   └── plugin.json      # Claude-format metadata (required for Claude/VS Code marketplaces)
 ├── README.md            # Plugin documentation
 ├── skills/
 │   └── skill-name/
@@ -205,7 +170,7 @@ plugin-name/
     └── script.sh        # Hook implementation or helper script (optional)
 ```
 
-Legacy `commands/*.md` files still work in some tools, but this repository now uses `skills/<name>/SKILL.md` as the default format for user-invoked slash commands and model-readable skills.
+Legacy `commands/*.md` files still work in some tools, but this repository uses `skills/<name>/SKILL.md` as the default format for reusable skills.
 
 ## License
 
@@ -213,7 +178,6 @@ This repository is licensed under MIT. See [LICENSE](./LICENSE).
 
 ## Documentation
 
-- Root Codex marketplace catalog: [`.agents/plugins/marketplace.json`](./.agents/plugins/marketplace.json)
-- Root marketplace catalog: [`.claude-plugin/marketplace.json`](./.claude-plugin/marketplace.json)
-- Codex setup helper: [`install.sh`](./install.sh)
+- Codex marketplace catalog: [`.agents/plugins/marketplace.json`](./.agents/plugins/marketplace.json)
+- Claude-format marketplace catalog: [`.claude-plugin/marketplace.json`](./.claude-plugin/marketplace.json)
 - Plugin-specific usage and behavior: [`plugins/`](./plugins)
