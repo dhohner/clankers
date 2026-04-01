@@ -1,7 +1,7 @@
 {
   "name": "lint-and-format",
   "version": "0.1.0",
-  "description": "Run pnpm format and pnpm lint after code-changing tools when package scripts exist.",
+  "description": "Run pnpm format and pnpm lint when the agent finishes a coding turn and package scripts exist.",
   "author": {
     "name": "dhohner"
   },

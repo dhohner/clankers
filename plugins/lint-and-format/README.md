@@ -1,15 +1,16 @@
 # Lint and Format Plugin
 
-Runs formatting and linting automatically after code edits when the workspace exposes matching `pnpm` scripts.
+Runs formatting and linting automatically when the agent finishes a coding turn and the workspace exposes matching `pnpm` scripts.
 
 ## What It Does
 
-This hook runs after code-changing tools and keeps edited projects tidy by:
+This hook runs on VS Code's `Stop` lifecycle event and keeps edited projects tidy by:
 
-- Detecting when a code-editing tool has modified the workspace
+- Waiting until the agent is done coding before running checks
+- Exiting early when `git status` shows no changed `js`, `jsx`, `ts`, or `tsx` files
 - Running `pnpm format` when a `format` script exists
 - Running `pnpm lint` when a `lint` script exists
-- Returning actionable error context when formatting or linting fails
+- Returning a final warning message when formatting or linting fails
 
 ## Usage
 
@@ -19,7 +20,7 @@ This hook runs after code-changing tools and keeps edited projects tidy by:
 "Rename this API route and update the tests"
 ```
 
-The agent will run the available `pnpm format` and `pnpm lint` scripts after making code changes in a compatible workspace.
+The agent will run the available `pnpm format` and `pnpm lint` scripts once the turn is ending, instead of after each intermediate edit.
 
 ## Learn More
 

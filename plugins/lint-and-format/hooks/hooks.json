@@ -1,6 +1,6 @@
 {
   "hooks": {
-    "PostToolUse": [
+    "Stop": [
       {
         "type": "command",
         "command": "bash -lc 'if [ -n \"${CLAUDE_PLUGIN_ROOT:-}\" ] && [ -f \"${CLAUDE_PLUGIN_ROOT}/scripts/lint-and-format.sh\" ]; then exec bash \"${CLAUDE_PLUGIN_ROOT}/scripts/lint-and-format.sh\"; fi'",

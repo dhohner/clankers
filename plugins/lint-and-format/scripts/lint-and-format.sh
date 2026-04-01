@@ -2,76 +2,69 @@
 set -euo pipefail
 
 INPUT="$(cat)"
+readonly MAX_OUTPUT_CHARS=3000
+readonly RELEVANT_FILE_GLOBS=('*.js' '*.jsx' '*.ts' '*.tsx')
 
-json_continue() {
+continue_and_exit() {
   echo '{"continue":true}'
+  exit 0
 }
 
-json_with_context() {
-  local context="$1"
+json_with_system_message() {
+  local message="$1"
   jq -n \
-    --arg context "$context" \
+    --arg message "$message" \
     '{
       continue: true,
-      hookSpecificOutput: {
-        hookEventName: "PostToolUse",
-        additionalContext: $context
-      }
+      systemMessage: $message
     }'
 }
 
 truncate_output() {
   local content="$1"
-  local max_chars=3000
 
-  if [ "${#content}" -le "$max_chars" ]; then
+  if [ "${#content}" -le "$MAX_OUTPUT_CHARS" ]; then
     printf '%s' "$content"
     return
   fi
 
-  printf '%s\n\n[truncated]' "${content:0:max_chars}"
+  printf '%s\n\n[truncated]' "${content:0:MAX_OUTPUT_CHARS}"
 }
 
-is_code_change_tool() {
-  case "$1" in
-    apply_patch|applyPatch|create_file|createFile|editFiles|replaceStringInFile|writeFile|replace_string_in_file|write_file)
-      return 0
-      ;;
-    *)
-      return 1
-      ;;
-  esac
+git_has_relevant_changes() {
+  local repo_root
+
+  if ! repo_root="$(git -C "$WORKSPACE_CWD" rev-parse --show-toplevel 2>/dev/null)"; then
+    return 0
+  fi
+
+  [ -n "$(git -C "$repo_root" status --short --untracked-files=all -- "${RELEVANT_FILE_GLOBS[@]}" 2>/dev/null)" ]
 }
 
-TOOL_NAME="$(printf '%s' "$INPUT" | jq -r '.tool_name // empty')"
 WORKSPACE_CWD="$(printf '%s' "$INPUT" | jq -r '.cwd // empty')"
 
-if ! is_code_change_tool "$TOOL_NAME"; then
-  json_continue
-  exit 0
-fi
-
 if [ -z "$WORKSPACE_CWD" ] || [ ! -d "$WORKSPACE_CWD" ]; then
-  json_continue
-  exit 0
+  continue_and_exit
 fi
 
 PACKAGE_JSON="$WORKSPACE_CWD/package.json"
 if [ ! -f "$PACKAGE_JSON" ]; then
-  json_continue
-  exit 0
+  continue_and_exit
 fi
 
 FORMAT_SCRIPT="$(jq -r '.scripts.format // empty' "$PACKAGE_JSON")"
 LINT_SCRIPT="$(jq -r '.scripts.lint // empty' "$PACKAGE_JSON")"
 
 if [ -z "$FORMAT_SCRIPT" ] && [ -z "$LINT_SCRIPT" ]; then
-  json_continue
-  exit 0
+  continue_and_exit
+fi
+
+if ! git_has_relevant_changes; then
+  continue_and_exit
 fi
 
 if ! command -v pnpm >/dev/null 2>&1; then
-  json_with_context "PostToolUse skipped in $WORKSPACE_CWD because pnpm is not installed."
+  json_with_system_message "Lint/format skipped in $WORKSPACE_CWD because pnpm is not installed."
   exit 0
 fi
 
@@ -95,12 +88,11 @@ if [ -n "$LINT_SCRIPT" ]; then
 fi
 
 if [ "$format_failed" = false ] && [ "$lint_failed" = false ]; then
-  json_continue
-  exit 0
+  continue_and_exit
 fi
 
 context_lines=()
-context_lines+=("PostToolUse ran after the code-change tool \"$TOOL_NAME\" in $WORKSPACE_CWD.")
+context_lines+=("Stop ran at the end of the agent response in $WORKSPACE_CWD.")
 
 if [ "$format_failed" = true ]; then
   context_lines+=("")
@@ -114,4 +106,4 @@ if [ "$lint_failed" = true ]; then
   context_lines+=("$(truncate_output "$lint_output")")
 fi
 
-json_with_context "$(printf '%s\n' "${context_lines[@]}")"
+json_with_system_message "$(printf '%s\n' "${context_lines[@]}")"

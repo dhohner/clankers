@@ -30,7 +30,7 @@ Tools:
 - **`project-advisor`** - Packages repository planning skills, including `next-best-thing`
 - **`refactor-tools`** - Packages safe cleanup and refactor skills, including `simplify`
 - **`block-package-managers`** - Blocks `npm` and `npx` terminal usage and redirects to `pnpm`
-- **`lint-and-format`** - Runs `pnpm format` and `pnpm lint` after code-changing tools when scripts exist
+- **`lint-and-format`** - Runs `pnpm format` and `pnpm lint` when the agent finishes a coding turn and scripts exist
 
 ## Getting Started
 
