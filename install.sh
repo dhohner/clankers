@@ -64,6 +64,7 @@ Examples:
 
 Notes:
   - Skills are discovered from plugins/*/skills/*/SKILL.md.
+  - Skill link names come from the skills/* directory name, not the parent plugin name.
   - Hook plugins are discovered from plugins/*/hooks/hooks.json.
   - Codex hooks require [features] codex_hooks = true in ~/.codex/config.toml.
 EOF

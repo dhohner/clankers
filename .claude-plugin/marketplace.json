@@ -4,22 +4,15 @@
     "name": "dhohner"
   },
   "metadata": {
-    "description": "First-party Claude-format plugins published as individually installable commands, skills, and hooks.",
+    "description": "First-party Claude-format plugins published as individually installable skills and hooks.",
     "version": "0.1.0",
     "pluginRoot": "./plugins"
   },
   "plugins": [
     {
-      "name": "commit-msg",
-      "source": "commit-msg",
-      "description": "Generate a commit message for staged changes.",
-      "category": "productivity",
-      "tags": ["official", "git", "commit"]
-    },
-    {
-      "name": "commit-split",
-      "source": "commit-split",
-      "description": "Suggest how to split staged changes into multiple logical commits.",
+      "name": "commit-tools",
+      "source": "commit-tools",
+      "description": "Commit workflow skills for generating commit messages and splitting staged changes into logical commits.",
       "category": "productivity",
       "tags": ["official", "git", "commit"]
     },

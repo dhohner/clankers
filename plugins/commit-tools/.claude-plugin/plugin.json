@@ -1,8 +1,7 @@
 {
-  "name": "commit-msg",
+  "name": "commit-tools",
   "version": "0.1.0",
-  "description": "Generate a commit message for staged changes.",
-  "commands": "./commit-msg.md",
+  "description": "Commit workflow skills for generating commit messages and splitting staged changes into logical commits.",
   "author": {
     "name": "dhohner"
   },

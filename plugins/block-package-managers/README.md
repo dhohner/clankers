@@ -4,7 +4,7 @@ Prevents `npm` and `npx` usage during agent terminal work and redirects commands
 
 ## What It Does
 
-Claude automatically uses this hook before terminal commands run. Enforces a package-manager policy with:
+This hook runs before terminal commands and enforces a package-manager policy with:
 
 - Blocking `npm` commands before they execute
 - Blocking `npx` commands and suggesting `pnpm` alternatives
@@ -19,7 +19,7 @@ Claude automatically uses this hook before terminal commands run. Enforces a pac
 "Use npx create-vite@latest demo"
 ```
 
-Claude will stop the command and suggest the equivalent `pnpm`, `pnpm exec`, or `pnpm dlx` invocation.
+The agent will stop the command and suggest the equivalent `pnpm`, `pnpm exec`, or `pnpm dlx` invocation.
 
 ## Learn More
 

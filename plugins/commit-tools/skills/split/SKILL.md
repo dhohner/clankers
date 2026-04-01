@@ -1,5 +1,8 @@
 ---
+name: split
 description: Suggest how to split staged changes into multiple logical commits.
+disable-model-invocation: true
+allowed-tools: Bash, Read, Grep, Glob
 ---
 
 # Commit Split

@@ -4,7 +4,7 @@ Applies safe, behavior-preserving cleanup guidance for existing code so refactor
 
 ## What It Does
 
-Claude automatically uses this skill for cleanup and simplification requests. Improves existing code with:
+Copilot or Codex can use this skill for cleanup and simplification requests. It improves existing code with:
 
 - Better readability and maintainability
 - Reduced duplication and unnecessary complexity
@@ -19,7 +19,7 @@ Claude automatically uses this skill for cleanup and simplification requests. Im
 "Refactor these staged changes for readability and less duplication"
 ```
 
-Claude will focus on safe cleanup work and avoid broad rewrites or semantic changes unless explicitly requested.
+The agent will focus on safe cleanup work and avoid broad rewrites or semantic changes unless explicitly requested.
 
 ## Learn More
 

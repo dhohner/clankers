@@ -1,5 +1,8 @@
 ---
+name: next-best-thing
 description: Identify the single highest-leverage next addition to the current project, grounded in repository evidence.
+disable-model-invocation: true
+allowed-tools: Bash, Read, Grep, Glob
 ---
 
 # Next Best Thing

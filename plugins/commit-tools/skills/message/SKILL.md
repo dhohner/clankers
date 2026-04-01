@@ -1,6 +1,9 @@
 ---
+name: message
 description: Generate a commit message for staged changes.
 argument-hint: "[extra guidance or ticket number]"
+disable-model-invocation: true
+allowed-tools: Bash, Read, Grep, Glob
 ---
 
 # Commit Message
@@ -14,6 +17,12 @@ Changes done
 
 Issue: ${Jira Ticket Number}
 ```
+
+## Arguments
+
+The user invoked this skill with:
+
+`$ARGUMENTS`
 
 ## Instructions
 

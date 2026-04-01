@@ -4,7 +4,7 @@ Recommends the single highest-leverage next improvement for the current reposito
 
 ## What It Does
 
-Claude uses this slash command to identify one worthwhile next step instead of giving generic product advice. Produces a recommendation with:
+Copilot uses this user-invoked skill to identify one worthwhile next step instead of giving generic product advice. Produces a recommendation with:
 
 - Evidence gathered from the current repository structure and files
 - A clear explanation of why this improvement matters now
@@ -19,11 +19,11 @@ Claude uses this slash command to identify one worthwhile next step instead of g
 "Use /next-best-thing when you want one evidence-backed roadmap idea"
 ```
 
-Claude will inspect the repository and return a single recommendation with rationale, evidence, impact, and confidence.
+Copilot will inspect the repository and return a single recommendation with rationale, evidence, impact, and confidence.
 
 ## Learn More
 
-See [the command definition](./next-best-thing.md) for the exact response structure.
+See [the skill definition](./skills/next-best-thing/SKILL.md) for the exact response structure.
 
 ## Authors
 

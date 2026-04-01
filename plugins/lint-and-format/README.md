@@ -4,7 +4,7 @@ Runs formatting and linting automatically after code edits when the workspace ex
 
 ## What It Does
 
-Claude automatically uses this hook after code-changing tools. Keeps edited projects tidy by:
+This hook runs after code-changing tools and keeps edited projects tidy by:
 
 - Detecting when a code-editing tool has modified the workspace
 - Running `pnpm format` when a `format` script exists
@@ -19,7 +19,7 @@ Claude automatically uses this hook after code-changing tools. Keeps edited proj
 "Rename this API route and update the tests"
 ```
 
-Claude will run the available `pnpm format` and `pnpm lint` scripts after making code changes in a compatible workspace.
+The agent will run the available `pnpm format` and `pnpm lint` scripts after making code changes in a compatible workspace.
 
 ## Learn More
 
