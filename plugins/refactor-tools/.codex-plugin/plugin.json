@@ -29,6 +29,8 @@
       "Use the simplify skill to clean up this code without changing behavior.",
       "Refactor these staged changes for readability and less duplication."
     ],
-    "brandColor": "#7C3AED"
+    "brandColor": "#7C3AED",
+    "composerIcon": "./assets/icon.png",
+    "logo": "./assets/logo.png"
   }
 }

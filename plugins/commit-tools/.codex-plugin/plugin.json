@@ -29,6 +29,8 @@
       "Use Commit Tools to draft a commit message for my staged changes.",
       "Use Commit Tools to split these staged changes into logical commits."
     ],
-    "brandColor": "#2563EB"
+    "brandColor": "#2563EB",
+    "composerIcon": "./assets/icon.png",
+    "logo": "./assets/logo.png"
   }
 }
