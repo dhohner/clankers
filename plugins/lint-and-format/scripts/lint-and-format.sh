@@ -20,6 +20,17 @@ json_with_system_message() {
     }'
 }
 
+skip_missing_dependency() {
+  local dependency="$1"
+  if [ "$dependency" = "jq" ]; then
+    echo '{"continue":true,"systemMessage":"Lint/format skipped because jq is not installed."}'
+    exit 0
+  fi
+
+  json_with_system_message "Lint/format skipped in $WORKSPACE_CWD because $dependency is not installed."
+  exit 0
+}
+
 truncate_output() {
   local content="$1"
 
@@ -41,6 +52,11 @@ git_has_relevant_changes() {
   [ -n "$(git -C "$repo_root" status --short --untracked-files=all -- "${RELEVANT_FILE_GLOBS[@]}" 2>/dev/null)" ]
 }
 
+if ! command -v jq >/dev/null 2>&1; then
+  WORKSPACE_CWD="the current workspace"
+  skip_missing_dependency "jq"
+fi
+
 WORKSPACE_CWD="$(printf '%s' "$INPUT" | jq -r '.cwd // empty')"
 
 if [ -z "$WORKSPACE_CWD" ] || [ ! -d "$WORKSPACE_CWD" ]; then
@@ -59,13 +75,16 @@ if [ -z "$FORMAT_SCRIPT" ] && [ -z "$LINT_SCRIPT" ]; then
   continue_and_exit
 fi
 
+if ! command -v git >/dev/null 2>&1; then
+  skip_missing_dependency "git"
+fi
+
 if ! git_has_relevant_changes; then
   continue_and_exit
 fi
 
 if ! command -v pnpm >/dev/null 2>&1; then
-  json_with_system_message "Lint/format skipped in $WORKSPACE_CWD because pnpm is not installed."
-  exit 0
+  skip_missing_dependency "pnpm"
 fi
 
 cd "$WORKSPACE_CWD"

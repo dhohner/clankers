@@ -2,6 +2,11 @@
 set -euo pipefail
 
 INPUT=$(cat)
+
+if ! command -v jq >/dev/null 2>&1; then
+  exit 0
+fi
+
 TOOL_NAME=$(printf '%s' "$INPUT" | jq -r '.tool_name // ""')
 COMMAND_CWD=$(printf '%s' "$INPUT" | jq -r '.cwd // .tool_input.cwd // .tool_input.working_directory // ""')
 
