@@ -1,0 +1,37 @@
+{
+  "name": "caveman-mode",
+  "version": "0.1.0",
+  "description": "Switch reply style between normal caveman, ultra caveman, and off.",
+  "author": {
+    "name": "dhohner",
+    "url": "https://github.com/dhohner"
+  },
+  "homepage": "https://github.com/dhohner/ai-forge/tree/main/plugins/caveman-mode",
+  "repository": "https://github.com/dhohner/ai-forge",
+  "license": "MIT",
+  "keywords": [
+    "caveman",
+    "style",
+    "writing"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Caveman Mode",
+    "shortDescription": "Switch between normal, ultra, and off.",
+    "longDescription": "Adds quick style-switch skills for concise caveman replies, stronger ultra compression, or turning the style off.",
+    "developerName": "dhohner",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Use caveman-mode:ultra for shorter replies in this chat.",
+      "Use caveman-mode:normal for concise replies without heavy compression.",
+      "Use caveman-mode:off and reply normally again."
+    ],
+    "brandColor": "#A16207",
+    "composerIcon": "./assets/icon.png",
+    "logo": "./assets/logo.png"
+  }
+}

@@ -316,7 +316,7 @@ fi
 
 require_jq
 
-temp_dir="$(mktemp -d "${TMPDIR:-/tmp}/copilot-install.XXXXXX")"
+temp_dir="$(mktemp -d "${TMPDIR:-/tmp}/ai-forge-install.XXXXXX")"
 cleanup() {
   rm -rf "$temp_dir"
 }

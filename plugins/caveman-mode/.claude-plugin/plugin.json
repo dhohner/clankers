@@ -1,0 +1,11 @@
+{
+  "name": "caveman-mode",
+  "version": "0.1.0",
+  "description": "Inject switchable caveman-mode instructions and provide normal, ultra, and off skills.",
+  "author": {
+    "name": "dhohner"
+  },
+  "repository": "https://github.com/dhohner/ai-forge",
+  "license": "MIT",
+  "keywords": ["hooks", "mode", "skill"]
+}

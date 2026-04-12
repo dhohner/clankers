@@ -1,5 +1,5 @@
 {
-  "name": "dhohner-copilot",
+  "name": "ai-forge",
   "owner": {
     "name": "dhohner"
   },
@@ -14,35 +14,42 @@
       "source": "commit-tools",
       "description": "Commit workflow skills for generating commit messages and splitting staged changes into logical commits.",
       "category": "productivity",
-      "tags": ["official", "git", "commit"]
+      "tags": ["git", "commit"]
     },
     {
       "name": "project-advisor",
       "source": "project-advisor",
       "description": "Project analysis skills for recommending the highest-leverage next addition to the current repository.",
       "category": "productivity",
-      "tags": ["official", "planning", "analysis"]
+      "tags": ["planning", "analysis"]
     },
     {
       "name": "refactor-tools",
       "source": "refactor-tools",
       "description": "Refactoring and cleanup skills for safe, behavior-preserving code improvements.",
       "category": "development",
-      "tags": ["official", "refactor", "quality"]
+      "tags": ["refactor", "quality"]
     },
     {
       "name": "block-package-managers",
       "source": "block-package-managers",
       "description": "Block npm and npx terminal commands and redirect usage toward pnpm.",
       "category": "development",
-      "tags": ["official", "hooks", "pnpm"]
+      "tags": ["hooks", "pnpm"]
     },
     {
       "name": "lint-and-format",
       "source": "lint-and-format",
       "description": "Run pnpm format and pnpm lint after code-changing tools when package scripts exist.",
       "category": "development",
-      "tags": ["official", "hooks", "quality"]
+      "tags": ["hooks", "quality"]
+    },
+    {
+      "name": "caveman-mode",
+      "source": "caveman-mode",
+      "description": "Inject switchable caveman-mode instructions and provide normal, ultra, and off skills.",
+      "category": "development",
+      "tags": ["hooks", "mode"]
     }
   ]
 }

@@ -1,6 +1,6 @@
-# Copilot Plugins
+# AI Forge
 
-My personal collection of installable plugins for GitHub Copilot in Visual Studio Code, Claude Code, and Codex.
+My personal collection of installable plugins for GitHub Copilot in Visual Studio Code, Claude Code, and Codex, published as AI Forge.
 
 > **⚠️ Important:** Make sure you trust a plugin before installing, updating, or using it. Plugins in this repository can include prompts, skills, hooks, and shell scripts that run on your machine. Review each plugin's README and source before use.
 
@@ -23,6 +23,7 @@ Tools:
 - **`commit-tools`** - Bundles `message` and `split` skills for staged commit workflows
 - **`project-advisor`** - Packages repository planning skills, including `next-best-thing`
 - **`refactor-tools`** - Packages safe cleanup and refactor skills, including `simplify`
+- **`caveman-mode`** - Adds `normal`, `ultra`, and `off` skills for shorter or normal replies, inspired by [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman)
 
 ### Available in Claude-Format Marketplaces
 
@@ -31,6 +32,7 @@ Tools:
 - **`refactor-tools`** - Packages safe cleanup and refactor skills, including `simplify`
 - **`block-package-managers`** - Blocks `npm` and `npx` terminal usage and redirects to `pnpm`
 - **`lint-and-format`** - Runs `pnpm format` and `pnpm lint` when the agent finishes a coding turn and scripts exist
+- **`caveman-mode`** - Injects switchable caveman-mode instructions and adds `normal`, `ultra`, and `off` skills, inspired by [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman)
 
 ## Getting Started
 
@@ -42,11 +44,12 @@ To use it in Codex App:
 
 1. Clone this repository locally.
 2. Open the repository in Codex App.
-3. Open the plugin directory and look for the marketplace labeled `dhohner/copilot`.
+3. Open the plugin directory and look for the marketplace labeled `dhohner/ai-forge`.
 4. Install one of the Codex-native plugins:
    - `commit-tools`
    - `project-advisor`
    - `refactor-tools`
+   - `caveman-mode`
 5. Start using the plugin from chat.
 
 Example prompts after install:
@@ -55,12 +58,13 @@ Example prompts after install:
 Use Commit Tools to draft a commit message for my staged changes.
 Use the next-best-thing skill to recommend the best next improvement for this repo.
 Use the simplify skill to clean up this code without changing behavior.
+Use caveman-mode:ultra for shorter replies in this chat.
 ```
 
 Notes:
 
 - The Codex marketplace in this repo currently exposes the plugins that have native `.codex-plugin/plugin.json` manifests.
-- The hook-focused utilities in this repo are not currently listed in the Codex marketplace catalog.
+- In Codex, `caveman-mode` exposes the skills; the session-start hook behavior is for Claude-format hosts.
 
 ### Visual Studio Code + GitHub Copilot
 
@@ -84,13 +88,13 @@ VS Code agent plugins are currently in preview. Start with the official docs:
   "chat.plugins.marketplaces": [
     "github/awesome-copilot",
     "github/copilot-plugins",
-    "dhohner/copilot" // or: "file:///absolute/path/to/copilot"
+    "dhohner/ai-forge" // or: "file:///absolute/path/to/ai-forge"
   ]
 }
 ```
 
 3. Open the Extensions view and search for `@agentPlugins`.
-4. Find plugins from the `dhohner/copilot` marketplace and install what you want.
+4. Find plugins from the `dhohner/ai-forge` marketplace and install what you want.
 5. Open Copilot Chat and use the installed plugin skills or prompts.
 
 Example usage:
@@ -99,6 +103,7 @@ Example usage:
 /message
 /split
 /next-best-thing
+/caveman-mode:ultra
 Simplify this component without changing behavior.
 ```
 
@@ -109,19 +114,19 @@ This repository also ships a Claude-format marketplace at [`.claude-plugin/marke
 Add the marketplace from a local checkout:
 
 ```bash
-/plugin marketplace add /absolute/path/to/copilot
+/plugin marketplace add /absolute/path/to/ai-forge
 ```
 
 Or add it from GitHub:
 
 ```bash
-/plugin marketplace add dhohner/copilot
+/plugin marketplace add dhohner/ai-forge
 ```
 
 Install a plugin:
 
 ```bash
-/plugin install commit-tools@dhohner-copilot
+/plugin install commit-tools@dhohner-ai-forge
 ```
 
 Browse interactively:
@@ -133,11 +138,12 @@ Browse interactively:
 Example installs:
 
 ```bash
-/plugin install commit-tools@dhohner-copilot
-/plugin install project-advisor@dhohner-copilot
-/plugin install refactor-tools@dhohner-copilot
-/plugin install block-package-managers@dhohner-copilot
-/plugin install lint-and-format@dhohner-copilot
+/plugin install commit-tools@dhohner-ai-forge
+/plugin install project-advisor@dhohner-ai-forge
+/plugin install refactor-tools@dhohner-ai-forge
+/plugin install block-package-managers@dhohner-ai-forge
+/plugin install lint-and-format@dhohner-ai-forge
+/plugin install caveman-mode@dhohner-ai-forge
 ```
 
 Example usage after install:
