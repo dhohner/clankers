@@ -8,15 +8,10 @@ allowed-tools: Bash, Read, Grep, Glob
 
 # Commit Message
 
-Analyze the staged changes and generate a commit message following this exact template:
+Analyze the staged changes and generate a `git commit` command that preserves this commit message structure:
 
-```text
-feat|chore|fix|refactor: ${commit message}
-
-Changes done
-
-Issue: ${Jira Ticket Number}
-```
+- subject: `feat|chore|fix|refactor: ${commit message}`
+- body paragraph: concise summary of what changed and why as bullet points
 
 ## Arguments
 
@@ -42,13 +37,14 @@ Style flags:
    - lowercase start
    - no trailing period
    - imperative mood
-4. Generate a concise body that focuses on what changed and why.
+4. Generate a concise body paragraph that focuses on what changed and why.
 5. Use the provided arguments as extra guidance when they help, but treat `caveman` and `ultra` as style controls rather than user-facing content.
 6. Default to normal professional commit style unless one of the caveman style flags is explicitly present in `$ARGUMENTS`.
 7. If `caveman` is present, keep the commit message terse and direct.
 8. If `ultra` is present, use compressed caveman wording for the commit subject and body while keeping the result clear and still following the required template.
-9. Leave `Issue: ${Jira Ticket Number}` as a placeholder unless the ticket is explicitly provided or can be inferred with high confidence from the branch name.
+9. Return a shell-ready `git commit` command using repeated `-m` flags so the message can be pasted directly into a terminal.
+10. Escape any double quotes or other shell-sensitive characters when needed so the command is safe to paste in `zsh` or `bash`.
 
 ## Output Format
 
-Return only the commit message in a fenced code block, ready to paste.
+Return only the ready to copy `git commit` command in a formatted code block, with no Markdown fences, labels, or extra commentary.

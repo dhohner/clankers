@@ -2,7 +2,7 @@
 
 Makes replies shorter and more direct with caveman-style wording.
 
-It also includes quick mode switches so you can turn the style up, tone it down, or turn it off in chat.
+It includes one quick mode-switch skill so you can switch between normal caveman, ultra caveman, or off in chat.
 
 ## Modes
 
@@ -10,17 +10,23 @@ It also includes quick mode switches so you can turn the style up, tone it down,
 - `ultra` - maximum compression, very few words
 - `off` - normal replies again
 
-## Skills
+## Skill
 
-- `/caveman-mode:normal`
-- `/caveman-mode:ultra`
-- `/caveman-mode:off`
+- `/caveman-mode:mode`
 
 ## Behavior
 
-- Starts each session in caveman mode by default
-- Keeps code, commit messages, and security-sensitive writing in normal style
+- Starts each session in ultra caveman mode by default
+- Keeps ultra caveman active every response until the user says `stop caveman` or `normal mode`
+- Keeps code and commit messages unchanged
+- Uses clear normal wording for security-sensitive writing or high-risk confirmations, then resumes caveman
 - Lets you switch style in chat without changing project files
+
+Example prompts:
+
+- `Use caveman-mode:mode for shorter replies in this chat.`
+- `Use caveman-mode:mode with normal caveman mode.`
+- `Use caveman-mode:mode and turn it off.`
 
 ## Credits
 

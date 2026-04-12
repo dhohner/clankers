@@ -2,7 +2,7 @@
 
 Provides two user-invoked commit workflow skills for staged changes:
 
-- `message` generates a structured commit message
+- `message` generates a paste-ready `git commit` command
 - `split` suggests how to break staged changes into smaller logical commits
 
 Optional args: ticket, hint, `caveman`, `ultra`.
@@ -11,7 +11,7 @@ Optional args: ticket, hint, `caveman`, `ultra`.
 
 ### `message`
 
-Turns staged diffs into a ready-to-paste commit message with the expected structure.
+Turns staged diffs into a ready-to-paste `git commit` command with the expected message structure.
 
 Usage:
 

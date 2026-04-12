@@ -23,7 +23,7 @@ Tools:
 - **`commit-tools`** - Bundles `message` and `split` skills for staged commit workflows
 - **`project-advisor`** - Packages repository planning skills, including `next-best-thing`
 - **`refactor-tools`** - Packages safe cleanup and refactor skills, including `simplify`
-- **`caveman-mode`** - Adds `normal`, `ultra`, and `off` skills for shorter or normal replies, inspired by [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman)
+- **`caveman-mode`** - Adds `normal`, `ultra`, and `off` caveman modes with ultra default, inspired by [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman)
 
 ### Available in Claude-Format Marketplaces
 
@@ -32,7 +32,7 @@ Tools:
 - **`refactor-tools`** - Packages safe cleanup and refactor skills, including `simplify`
 - **`block-package-managers`** - Blocks `npm` and `npx` terminal usage and redirects to `pnpm`
 - **`lint-and-format`** - Runs `pnpm format` and `pnpm lint` when the agent finishes a coding turn and scripts exist
-- **`caveman-mode`** - Injects switchable caveman-mode instructions and adds `normal`, `ultra`, and `off` skills, inspired by [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman)
+- **`caveman-mode`** - Injects ultra-by-default caveman-mode instructions and adds `normal`, `ultra`, and `off` switching, inspired by [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman)
 
 ## Getting Started
 
@@ -58,7 +58,7 @@ Example prompts after install:
 Use Commit Tools to draft a commit message for my staged changes.
 Use the next-best-thing skill to recommend the best next improvement for this repo.
 Use the simplify skill to clean up this code without changing behavior.
-Use caveman-mode:ultra for shorter replies in this chat.
+Use caveman-mode:mode for shorter replies in this chat.
 ```
 
 Notes:
@@ -103,7 +103,7 @@ Example usage:
 /message
 /split
 /next-best-thing
-/caveman-mode:ultra
+/caveman-mode:mode
 Simplify this component without changing behavior.
 ```
 

@@ -1,7 +1,7 @@
 {
   "name": "caveman-mode",
   "version": "0.1.0",
-  "description": "Inject switchable caveman-mode instructions and provide normal, ultra, and off skills.",
+  "description": "Inject ultra-by-default caveman-mode instructions and provide one skill for normal, ultra, or off.",
   "author": {
     "name": "dhohner"
   },

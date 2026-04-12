@@ -1,7 +1,7 @@
 {
   "name": "caveman-mode",
   "version": "0.1.0",
-  "description": "Switch reply style between normal caveman, ultra caveman, and off.",
+  "description": "Keep replies in caveman mode with ultra default, plus normal and off switching.",
   "author": {
     "name": "dhohner",
     "url": "https://github.com/dhohner"
@@ -17,8 +17,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Caveman Mode",
-    "shortDescription": "Switch between normal, ultra, and off.",
-    "longDescription": "Adds quick style-switch skills for concise caveman replies, stronger ultra compression, or turning the style off.",
+    "shortDescription": "Makes replies shorter and more direct.",
+    "longDescription": "Adds one style-switch skill that defaults to ultra caveman replies and can switch to normal caveman or off.",
     "developerName": "dhohner",
     "category": "Productivity",
     "capabilities": [
@@ -26,9 +26,9 @@
       "Write"
     ],
     "defaultPrompt": [
-      "Use caveman-mode:ultra for shorter replies in this chat.",
-      "Use caveman-mode:normal for concise replies without heavy compression.",
-      "Use caveman-mode:off and reply normally again."
+      "Use caveman-mode:mode for shorter replies in this chat.",
+      "Use caveman-mode:mode with normal caveman mode.",
+      "Use caveman-mode:mode and reply normally again."
     ],
     "brandColor": "#A16207",
     "composerIcon": "./assets/icon.png",

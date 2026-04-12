@@ -47,7 +47,7 @@
     {
       "name": "caveman-mode",
       "source": "caveman-mode",
-      "description": "Inject switchable caveman-mode instructions and provide normal, ultra, and off skills.",
+      "description": "Inject ultra-by-default caveman-mode instructions and provide normal, ultra, and off switching.",
       "category": "development",
       "tags": ["hooks", "mode"]
     }
