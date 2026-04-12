@@ -1,7 +1,7 @@
 ---
 name: message
-description: Generate a commit message for staged changes.
-argument-hint: "[extra guidance or ticket number]"
+description: Generate a commit message for staged changes. Optional args: ticket, hint, `caveman`, or `ultra`.
+argument-hint: "[hint | ticket | caveman | ultra]"
 disable-model-invocation: true
 allowed-tools: Bash, Read, Grep, Glob
 ---
@@ -24,6 +24,11 @@ The user invoked this skill with:
 
 `$ARGUMENTS`
 
+Style flags:
+
+- `caveman`
+- `ultra`
+
 ## Instructions
 
 1. Analyze the staged changes to understand what was modified.
@@ -38,8 +43,11 @@ The user invoked this skill with:
    - no trailing period
    - imperative mood
 4. Generate a concise body that focuses on what changed and why.
-5. Use the provided arguments as extra guidance when they help.
-6. Leave `Issue: ${Jira Ticket Number}` as a placeholder unless the ticket is explicitly provided or can be inferred with high confidence from the branch name.
+5. Use the provided arguments as extra guidance when they help, but treat `caveman` and `ultra` as style controls rather than user-facing content.
+6. Default to normal professional commit style unless one of the caveman style flags is explicitly present in `$ARGUMENTS`.
+7. If `caveman` is present, keep the commit message terse and direct.
+8. If `ultra` is present, use compressed caveman wording for the commit subject and body while keeping the result clear and still following the required template.
+9. Leave `Issue: ${Jira Ticket Number}` as a placeholder unless the ticket is explicitly provided or can be inferred with high confidence from the branch name.
 
 ## Output Format
 
