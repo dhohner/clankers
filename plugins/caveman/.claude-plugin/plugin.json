@@ -1,0 +1,11 @@
+{
+  "name": "caveman",
+  "version": "0.2.0",
+  "description": "Provide a concise-response skill for VS Code and other Claude-format hosts.",
+  "author": {
+    "name": "dhohner"
+  },
+  "repository": "https://github.com/dhohner/ai-forge",
+  "license": "MIT",
+  "keywords": ["skill", "style", "concise"]
+}

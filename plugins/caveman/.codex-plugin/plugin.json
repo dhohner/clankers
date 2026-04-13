@@ -1,0 +1,30 @@
+{
+  "name": "caveman",
+  "version": "0.2.0",
+  "description": "Skill-based concise-response controls with normal, ultra, and off modes.",
+  "author": {
+    "name": "dhohner",
+    "url": "https://github.com/dhohner"
+  },
+  "homepage": "https://github.com/dhohner/ai-forge/tree/main/plugins/caveman",
+  "repository": "https://github.com/dhohner/ai-forge",
+  "license": "MIT",
+  "keywords": ["concise", "caveman", "style", "writing"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Caveman",
+    "shortDescription": "Makes replies shorter and easier to scan.",
+    "longDescription": "Adds the `toggle` skill for switching between ultra, normal, and off concise-response modes.",
+    "developerName": "dhohner",
+    "category": "Productivity",
+    "capabilities": ["Read", "Write"],
+    "defaultPrompt": [
+      "Use caveman:toggle for shorter replies in this chat.",
+      "Use caveman:toggle with normal concise mode.",
+      "Use caveman:toggle and turn concise mode off."
+    ],
+    "brandColor": "#A16207",
+    "composerIcon": "./assets/icon.png",
+    "logo": "./assets/logo.png"
+  }
+}

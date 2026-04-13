@@ -5,7 +5,7 @@
   },
   "metadata": {
     "description": "First-party Claude-format plugins published as individually installable skills and hooks.",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "pluginRoot": "./plugins"
   },
   "plugins": [
@@ -45,11 +45,11 @@
       "tags": ["hooks", "quality"]
     },
     {
-      "name": "caveman-mode",
-      "source": "caveman-mode",
-      "description": "Inject ultra-by-default caveman-mode instructions and provide normal, ultra, and off switching.",
+      "name": "caveman",
+      "source": "caveman",
+      "description": "Provide a concise-response skill for VS Code and other Claude-format hosts.",
       "category": "development",
-      "tags": ["hooks", "mode"]
+      "tags": ["skill", "style"]
     }
   ]
 }

@@ -1,5 +1,5 @@
 {
-  "name": "dhohner-ai-forge",
+  "name": "AI Forge",
   "interface": {
     "displayName": "dhohner/ai-forge"
   },
@@ -41,10 +41,10 @@
       "category": "Development"
     },
     {
-      "name": "caveman-mode",
+      "name": "caveman",
       "source": {
         "source": "local",
-        "path": "./plugins/caveman-mode"
+        "path": "./plugins/caveman"
       },
       "policy": {
         "installation": "AVAILABLE",

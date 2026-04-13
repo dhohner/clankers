@@ -23,7 +23,7 @@ Tools:
 - **`commit-tools`** - Bundles `message` and `split` skills for staged commit workflows
 - **`project-advisor`** - Packages repository planning skills, including `next-best-thing`
 - **`refactor-tools`** - Packages safe cleanup and refactor skills, including `simplify`
-- **`caveman-mode`** - Adds `normal`, `ultra`, and `off` caveman modes with ultra default, inspired by [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman)
+- **`caveman`** - Packages the `toggle` skill for concise-response control with `normal`, `ultra`, and `off` modes, inspired by [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman)
 
 ### Available in Claude-Format Marketplaces
 
@@ -32,7 +32,7 @@ Tools:
 - **`refactor-tools`** - Packages safe cleanup and refactor skills, including `simplify`
 - **`block-package-managers`** - Blocks `npm` and `npx` terminal usage and redirects to `pnpm`
 - **`lint-and-format`** - Runs `pnpm format` and `pnpm lint` when the agent finishes a coding turn and scripts exist
-- **`caveman-mode`** - Injects ultra-by-default caveman-mode instructions and adds `normal`, `ultra`, and `off` switching, inspired by [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman)
+- **`caveman`** - Provides the `toggle` skill for concise GitHub Copilot chat in VS Code, inspired by [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman)
 
 ## Getting Started
 
@@ -49,7 +49,7 @@ To use it in Codex App:
    - `commit-tools`
    - `project-advisor`
    - `refactor-tools`
-   - `caveman-mode`
+   - `caveman`
 5. Start using the plugin from chat.
 
 Example prompts after install:
@@ -64,13 +64,15 @@ Use caveman-mode:mode for shorter replies in this chat.
 Notes:
 
 - The Codex marketplace in this repo currently exposes the plugins that have native `.codex-plugin/plugin.json` manifests.
-- In Codex, `caveman-mode` exposes the skills; the session-start hook behavior is for Claude-format hosts.
+- In Codex, `caveman` is skill-based and no longer relies on a startup hook.
 
 ### Visual Studio Code + GitHub Copilot
 
 VS Code agent plugins are currently in preview. Start with the official docs:
 
 - [Agent plugins in VS Code](https://code.visualstudio.com/docs/copilot/customization/agent-plugins)
+- [Agent skills in VS Code](https://code.visualstudio.com/docs/copilot/customization/agent-skills)
+- [Custom instructions in VS Code](https://code.visualstudio.com/docs/copilot/customization/custom-instructions)
 - [Customize AI in Visual Studio Code](https://code.visualstudio.com/docs/copilot/customization/overview)
 
 1. Enable agent plugins in VS Code:
@@ -95,17 +97,7 @@ VS Code agent plugins are currently in preview. Start with the official docs:
 
 3. Open the Extensions view and search for `@agentPlugins`.
 4. Find plugins from the `dhohner/ai-forge` marketplace and install what you want.
-5. Open Copilot Chat and use the installed plugin skills or prompts.
-
-Example usage:
-
-```text
-/message
-/split
-/next-best-thing
-/caveman-mode:mode
-Simplify this component without changing behavior.
-```
+5. Open Copilot Chat and use the installed plugin skills.
 
 ### Claude Code
 
@@ -144,15 +136,6 @@ Example installs:
 /plugin install block-package-managers@dhohner-ai-forge
 /plugin install lint-and-format@dhohner-ai-forge
 /plugin install caveman-mode@dhohner-ai-forge
-```
-
-Example usage after install:
-
-```text
-/message
-/split
-/next-best-thing
-Simplify the files touched by the last commit without changing behavior.
 ```
 
 ## Plugin Structure
