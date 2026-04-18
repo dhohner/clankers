@@ -1,33 +1,33 @@
 # Caveman
 
-Makes replies shorter and easier to scan.
+Makes replies ultra-short and easier to scan.
 
 ## Use
 
 Run:
 
 ```text
-/caveman:toggle [ultra|normal|off]
+/caveman:toggle [ultra|off]
 ```
 
 If no mode is passed, it defaults to `ultra`.
+`normal` still works as a compatibility alias for `off`.
 
 ## Modes
 
-- `ultra` - maximum compression
-- `normal` - short, readable fragments
+- `ultra` - maximum compression, fragments and arrows
 - `off` - normal prose
 
 ## Notes
 
 - Applies to the current conversation.
-- Does not rewrite code blocks, commands, file paths, exact error text, or commit messages.
+- `ultra` persists until disabled.
+- Does not rewrite code blocks, commands, file paths, exact error text, or other copy-paste-sensitive output.
 
 ## Examples
 
 ```text
 /caveman:toggle
-/caveman:toggle normal
 /caveman:toggle off
 ```
 

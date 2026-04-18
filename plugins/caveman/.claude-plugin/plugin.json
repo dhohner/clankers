@@ -1,7 +1,7 @@
 {
   "name": "caveman",
   "version": "0.2.0",
-  "description": "Provide a concise-response skill for VS Code and other Claude-format hosts.",
+  "description": "Toggle ultra-compressed response mode on or off in VS Code and other Claude-format hosts.",
   "author": {
     "name": "dhohner"
   },

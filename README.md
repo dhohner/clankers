@@ -23,7 +23,7 @@ Tools:
 - **`commit-tools`** - Bundles `message` and `split` skills for staged commit workflows
 - **`project-advisor`** - Packages repository planning skills, including `next-best-thing`
 - **`refactor-tools`** - Packages safe cleanup and refactor skills, including `simplify`
-- **`caveman`** - Packages the `toggle` skill for concise-response control with `normal`, `ultra`, and `off` modes, inspired by [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman)
+- **`caveman`** - Packages the `toggle` skill for ultra-focused concise-response control with `ultra` and `off` modes, inspired by [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman)
 
 ### Available in Claude-Format Marketplaces
 
@@ -32,7 +32,7 @@ Tools:
 - **`refactor-tools`** - Packages safe cleanup and refactor skills, including `simplify`
 - **`block-package-managers`** - Blocks `npm` and `npx` terminal usage and redirects to `pnpm`
 - **`lint-and-format`** - Runs `pnpm format` and `pnpm lint` when the agent finishes a coding turn and scripts exist
-- **`caveman`** - Provides the `toggle` skill for concise GitHub Copilot chat in VS Code, inspired by [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman)
+- **`caveman`** - Provides the `toggle` skill for ultra-focused concise GitHub Copilot chat in VS Code, inspired by [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman)
 
 ## Getting Started
 
@@ -58,7 +58,7 @@ Example prompts after install:
 Use Commit Tools to draft a commit message for my staged changes.
 Use the next-best-thing skill to recommend the best next improvement for this repo.
 Use the simplify skill to clean up this code without changing behavior.
-Use caveman-mode:mode for shorter replies in this chat.
+Use caveman:toggle for ultra-short replies in this chat.
 ```
 
 Notes:
@@ -118,7 +118,7 @@ Or add it from GitHub:
 Install a plugin:
 
 ```bash
-/plugin install commit-tools@dhohner-ai-forge
+/plugin install refactor-tools@dhohner-ai-forge
 ```
 
 Browse interactively:

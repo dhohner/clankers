@@ -10,13 +10,6 @@
   },
   "plugins": [
     {
-      "name": "commit-tools",
-      "source": "commit-tools",
-      "description": "Commit workflow skills for generating commit messages and splitting staged changes into logical commits.",
-      "category": "productivity",
-      "tags": ["git", "commit"]
-    },
-    {
       "name": "project-advisor",
       "source": "project-advisor",
       "description": "Project analysis skills for recommending the highest-leverage next addition to the current repository.",

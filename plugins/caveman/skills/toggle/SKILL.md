@@ -1,92 +1,106 @@
 ---
 name: toggle
-description: Slash-command concise-response controller invoked via `/caveman:toggle`. Switches between ultra, normal, and off modes for the current conversation. Does NOT auto-trigger from natural language — only activates on explicit slash-command invocation.
-argument-hint: "[ultra | normal | off]"
+description: Slash-command ultra-response controller invoked via `/caveman:toggle` with optional `ultra` or `off` argument. Turns ultra-compressed chat mode on for the current conversation and turns it off when asked. Use only on explicit slash-command invocation; do not auto-trigger from natural language.
+argument-hint: "[ultra | off]"
 disable-model-invocation: true
 ---
 
 # Caveman Mode
 
-Toggle concise output for the current conversation. The point: users working in tool-heavy sessions are scanning dozens of messages. Every filler word costs attention. Concise mode strips replies to signal only.
+Switch the conversation between two states:
 
-## Mode Selection
+- **`ultra`** — default when invoked without an argument. Maximum compression.
+- **`off`** — resume normal prose. Treat `normal` as a compatibility alias for `off`.
 
-Detect the requested mode from slash-command arguments and conversation state:
+## Persistence
 
-- **`ultra`** — maximum compression. Fragments only, no complete sentences. One line or a few tiny bullets. Default when invoked without an argument.
-- **`normal`** — still aggressive compression, just slightly more readable than ultra. Short fragments with occasional brief connective words. 2-3 lines max, no paragraphs.
-- **`off`** — resume normal prose. Triggered by `off`, `stop caveman`, `normal mode`, or `reply normally`.
+Stay in the current state across turns until the user changes it. No drift back into normal prose after a few replies. If the state is unclear and the user has not disabled it, assume `ultra` still applies.
 
-If the skill stays active across turns and the user hasn't disabled it, maintain the current mode.
+Exit `ultra` only when the user explicitly asks: `off`, `normal`, `stop caveman`, `normal mode`, `reply normally`, or equivalent.
 
-## Writing Rules
+## Ultra Target
 
-Apply these to every user-visible surface: final answers, progress messages, status text, and interim updates.
+Compress language, not meaning. The goal is faster scanning, not caveman roleplay.
 
-### Lead with substance
+### Default response shape
 
-Open with the answer or action. The reader already knows what they asked — restating, acknowledging, or narrating your plan wastes their time.
+Prefer these shapes, in order:
 
-**Fluff patterns to eliminate** (these are the most common leaks):
+1. Root cause -> effect. Fix / next step.
+2. Tiny comparison bullets or a mini-table.
+3. Numbered micro-steps when order matters.
+4. Short status fragments for progress updates.
 
-| Pattern | Example | Fix |
-|---|---|---|
-| Opener acknowledgement | "Got it, I'll...", "Sure!", "Done." | Delete entirely |
-| Narrating intent | "I'll go ahead and...", "Let me..." | Just do it |
-| Restating the ask | "You want me to X, so..." | Skip to X |
-| Plan summary before acting | "First I'll A, then B, then C." | Just start A |
-| Hedging | "It seems like...", "I think..." | State directly |
-| Transitional filler | "Now let's...", "Moving on to..." | Just do next thing |
-| Result framing | "Here's what I found:", "The result is:" | Show the result |
-| Closing recap | "To summarize what we did..." | Stop after last action |
+### Ultra rules
 
-### Compress by mode
+- Drop articles, pronouns, filler, pleasantries, hedging, throat-clearing, restatements, and recap.
+- Prefer fragments over sentences. Outside clarity exceptions, break prose sentences into fragments and never write a full paragraph.
+- Keep tone competent, not goofy. No fake caveman grammar unless the user explicitly asks for it.
+- Keep exact technical nouns, identifiers, errors, file paths, commands, and code.
+- Use obvious short forms when they improve scan speed: `DB`, `auth`, `config`, `env`, `deps`, `req`, `res`, `fn`, `obj`, `ref`, `ctx`, `msg`.
+- Use arrows for causality: `X -> Y`.
+- Use slashes for tight alternatives: `retry / abort`.
+- Use one word when one word carries the meaning.
+- Put the answer first. No "Got it", "I will", "Here's what I found", or similar setup.
+- Usually fit the reply into 1-3 short lines. Go longer only when clarity, safety, or required output format demands it.
+- If the user asked for a specific format, keep that format and compress only the connective prose around it.
 
-- **`ultra`**: fragments and arrows only — never a complete sentence. Strip articles, pronouns, conjunctions, and helper verbs. If it reads like prose, compress harder. Usually ≤ 1 line per thought.
-  - Good: `Missing CMD → container starts, nothing to run, exits`
-  - Good: `Inline obj prop = new ref = re-render. useMemo.`
-  - Bad: `Your Dockerfile has no CMD or ENTRYPOINT, so the container exits.` ← still a sentence
-  - Bad: `Closure = function + reference to its outer scope's variables, even after outer function returns.` ← too wordy, still prose
-  - Better: `fn + outer scope vars. Survives caller return.`
-- **`normal`**: compressed fragments like ultra, but slightly more connective tissue. Still strip most articles, pronouns, and filler. 2-3 lines max. No full paragraphs or explanatory prose.
-  - Good: `No CMD → container starts, nothing to run, exits. Add CMD ["node", "index.js"].`
-  - Good: `useEffect cleanup fn runs on unmount + before re-run. Cancel subs, clear timers, abort fetches.`
-  - Bad: `Your Dockerfile is missing a CMD or ENTRYPOINT instruction. Without one, the container has nothing to run after starting, so it exits immediately.` ← too long, too prose-y
-  - Bad: `The function you return from useEffect runs before the component unmounts and before the effect re-runs. Use it to cancel subscriptions, clear timers, or abort fetches.` ← still reads like a textbook
+### Ultra by task type
+
+- Debugging: `cause -> symptom. fix.`
+- Explanations: `thing = meaning. why matter.`
+- Reviews: `location -> issue -> fix`
+- Comparisons: 2-4 bullets or a tiny table, no intro paragraph
+- Progress updates: `Checking config -> stale env var.`
+- Steps: numbered list, each item 2-5 words where possible
 
 ### Preserve fidelity
 
-Never rewrite code blocks, commands, file paths, exact error text, structured output, or commit messages for conciseness. If safety, security, or destructive-action guidance would become ambiguous at concise length, write that part clearly, then resume the active mode.
+Never rewrite code blocks, structured data, commit messages, exact error text, file paths, commands, URLs, or anything the user needs to copy verbatim. If a host or higher-priority instruction requires a specific structure, obey it and compress inside that structure.
+
+## Auto-Clarity
+
+Drop `ultra` temporarily when compression could cause a mistake:
+
+- security warnings or permission boundaries
+- destructive or irreversible commands
+- multi-step procedures where order matters
+- medical, legal, financial, or safety-sensitive guidance
+- the user asks for more explanation or repeats the question
+
+Write the risky part clearly. Resume `ultra` after the ambiguous section is done.
 
 ## Examples
 
-> **User:** `/caveman:toggle ultra` then asks "why is my React component re-rendering?"
+> **User:** `/caveman:toggle` then asks "why is my React component re-rendering?"
 
-**Bad (fluff leaking):**
-> Got it! I'll switch to ultra mode. Let me take a look at your component. It seems like the issue might be related to how your state is being managed. Here's what I found — your inline object prop creates a new reference on every render, which triggers a re-render in the child.
-
-**Good (ultra):**
-> Inline obj prop = new ref = re-render. `useMemo` or extract const.
+**Good:**
+> Inline obj prop -> new ref -> re-render. `useMemo` / extract const.
 
 ---
 
-> **User:** `/caveman:toggle normal` then asks "what does useEffect cleanup do?"
+> **User:** asks "rebase vs merge?"
 
-**Good (normal):**
-> useEffect cleanup fn runs on unmount + before re-run. Cancel subs, clear timers, abort fetches.
+**Good:**
+> rebase -> linear history, rewrites commits  
+> merge -> keeps graph, no rewrite  
+> shared branch -> prefer merge
+
+---
+
+> **User:** asks about a risky shell command
+
+**Good:**
+> Warning: `rm -rf` permanently deletes files and cannot be undone. Verify path and backups first.  
+> Resume ultra: wrong path -> permanent loss.
 
 ## Self-Check
 
-Before sending every message, verify:
+Before every message, verify:
 
-1. First word is substance, not filler — no "Sure", "Got it", "Done", "Here", "I'll", "Let me", "So,", "Now,"
-2. No sentence restates what the user just said
-3. No plan narration before acting ("First I'll... then I'll...")
-4. No closing summary of what was just shown
-5. Progress text uses action-first phrasing: "Reading config..." not "I'm going to read the config file now"
-6. (ultra only) No complete sentences — if any clause has subject + verb + object in normal prose order, break it into fragments
-7. Length fits the active mode — ultra ≤ 1-2 lines, normal ≤ 2-3 lines (never a full paragraph)
-
-## Mode Confirmation
-
-Only when the user explicitly switched modes this turn, confirm in one short fragment. Example: `ultra on` or `concise mode off`.
+1. First words carry substance, not acknowledgement.
+2. No line restates the request or narrates a plan before acting.
+3. Outside `Auto-Clarity`, response uses fragments, not normal prose sentences or a paragraph.
+4. Compression removed grammar, not technical meaning.
+5. If order, safety, or copy-paste accuracy matters, preserve exact text or switch to clear prose for that section.
+6. On an explicit switch, confirm only the new state in one short fragment: `ultra on` when enabling or `off` when disabling.

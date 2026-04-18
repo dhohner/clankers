@@ -1,7 +1,7 @@
 {
   "name": "caveman",
   "version": "0.2.0",
-  "description": "Skill-based concise-response controls with normal, ultra, and off modes.",
+  "description": "Ultra-focused concise-response control with ultra and off modes.",
   "author": {
     "name": "dhohner",
     "url": "https://github.com/dhohner"
@@ -13,15 +13,15 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Caveman",
-    "shortDescription": "Makes replies shorter and easier to scan.",
-    "longDescription": "Adds the `toggle` skill for switching between ultra, normal, and off concise-response modes.",
+    "shortDescription": "Makes replies ultra-short and easier to scan.",
+    "longDescription": "Adds the `toggle` skill for turning ultra-compressed chat mode on or off.",
     "developerName": "dhohner",
     "category": "Productivity",
     "capabilities": ["Read", "Write"],
     "defaultPrompt": [
-      "Use caveman:toggle for shorter replies in this chat.",
-      "Use caveman:toggle with normal concise mode.",
-      "Use caveman:toggle and turn concise mode off."
+      "Use caveman:toggle for ultra-short replies in this chat.",
+      "Enable caveman:toggle for ultra-short progress updates while coding in this chat.",
+      "Use caveman:toggle off and reply normally again."
     ],
     "brandColor": "#A16207",
     "composerIcon": "./assets/icon.png",
