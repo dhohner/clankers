@@ -1,6 +1,6 @@
-# AI Forge
+# Clankers
 
-My personal collection of installable plugins for GitHub Copilot in Visual Studio Code, Claude Code, and Codex, published as AI Forge.
+My personal collection of installable plugins for GitHub Copilot in Visual Studio Code, Claude Code, and Codex, published as Clankers.
 
 > **⚠️ Important:** Make sure you trust a plugin before installing, updating, or using it. Plugins in this repository can include prompts, skills, hooks, and shell scripts that run on your machine. Review each plugin's README and source before use.
 
@@ -44,9 +44,8 @@ To use it in Codex App:
 
 1. Clone this repository locally.
 2. Open the repository in Codex App.
-3. Open the plugin directory and look for the marketplace labeled `dhohner/ai-forge`.
+3. Open the plugin directory and look for the marketplace labeled `dhohner/clankers`.
 4. Install one of the Codex-native plugins:
-   - `commit-tools`
    - `project-advisor`
    - `refactor-tools`
    - `caveman`
@@ -55,7 +54,6 @@ To use it in Codex App:
 Example prompts after install:
 
 ```text
-Use Commit Tools to draft a commit message for my staged changes.
 Use the next-best-thing skill to recommend the best next improvement for this repo.
 Use the simplify skill to clean up this code without changing behavior.
 Use caveman:toggle for ultra-short replies in this chat.
@@ -90,13 +88,13 @@ VS Code agent plugins are currently in preview. Start with the official docs:
   "chat.plugins.marketplaces": [
     "github/awesome-copilot",
     "github/copilot-plugins",
-    "dhohner/ai-forge" // or: "file:///absolute/path/to/ai-forge"
+    "dhohner/clankers" // or: "file:///absolute/path/to/clankers"
   ]
 }
 ```
 
 3. Open the Extensions view and search for `@agentPlugins`.
-4. Find plugins from the `dhohner/ai-forge` marketplace and install what you want.
+4. Find plugins from the `dhohner/clankers` marketplace and install what you want.
 5. Open Copilot Chat and use the installed plugin skills.
 
 ### Claude Code
@@ -106,19 +104,19 @@ This repository also ships a Claude-format marketplace at [`.claude-plugin/marke
 Add the marketplace from a local checkout:
 
 ```bash
-/plugin marketplace add /absolute/path/to/ai-forge
+/plugin marketplace add /absolute/path/to/clankers
 ```
 
 Or add it from GitHub:
 
 ```bash
-/plugin marketplace add dhohner/ai-forge
+/plugin marketplace add dhohner/clankers
 ```
 
 Install a plugin:
 
 ```bash
-/plugin install refactor-tools@dhohner-ai-forge
+/plugin install refactor-tools@dhohner-clankers
 ```
 
 Browse interactively:
@@ -130,12 +128,12 @@ Browse interactively:
 Example installs:
 
 ```bash
-/plugin install commit-tools@dhohner-ai-forge
-/plugin install project-advisor@dhohner-ai-forge
-/plugin install refactor-tools@dhohner-ai-forge
-/plugin install block-package-managers@dhohner-ai-forge
-/plugin install lint-and-format@dhohner-ai-forge
-/plugin install caveman-mode@dhohner-ai-forge
+/plugin install commit-tools@dhohner-clankers
+/plugin install project-advisor@dhohner-clankers
+/plugin install refactor-tools@dhohner-clankers
+/plugin install block-package-managers@dhohner-clankers
+/plugin install lint-and-format@dhohner-clankers
+/plugin install caveman-mode@dhohner-clankers
 ```
 
 ## Plugin Structure

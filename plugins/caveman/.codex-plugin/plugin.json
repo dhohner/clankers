@@ -1,6 +1,6 @@
 {
   "name": "caveman",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Ultra-focused concise-response control with ultra and off modes.",
   "author": {
     "name": "dhohner",
@@ -14,14 +14,14 @@
   "interface": {
     "displayName": "Caveman",
     "shortDescription": "Makes replies ultra-short and easier to scan.",
-    "longDescription": "Adds the `toggle` skill for turning ultra-compressed chat mode on or off.",
+    "longDescription": "Adds the `toggle` skill for switching this chat into ultra-compressed reply mode when you want terse debugging, review, or progress updates.",
     "developerName": "dhohner",
     "category": "Productivity",
     "capabilities": ["Read", "Write"],
     "defaultPrompt": [
-      "Use caveman:toggle for ultra-short replies in this chat.",
-      "Enable caveman:toggle for ultra-short progress updates while coding in this chat.",
-      "Use caveman:toggle off and reply normally again."
+      "/caveman:toggle then explain why this test is failing in 2 short lines.",
+      "/caveman:toggle and review these staged changes with only blockers and fixes.",
+      "/caveman:toggle off then restate the last answer in normal prose."
     ],
     "brandColor": "#A16207",
     "composerIcon": "./assets/icon.png",

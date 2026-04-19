@@ -1,7 +1,7 @@
 {
   "name": "caveman",
-  "version": "0.2.0",
-  "description": "Toggle ultra-compressed response mode on or off in VS Code and other Claude-format hosts.",
+  "version": "0.2.1",
+  "description": "Enable ultra-compressed response mode in VS Code and other Claude-format hosts, including answering an inline task in the same slash-command message.",
   "author": {
     "name": "dhohner"
   },

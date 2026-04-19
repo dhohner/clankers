@@ -10,8 +10,12 @@ Run:
 /caveman:toggle [ultra|off]
 ```
 
-If no mode is passed, it defaults to `ultra`.
-`normal` still works as a compatibility alias for `off`.
+Include the first task in the same message:
+
+```text
+/caveman:toggle why is this component re-rendering?
+/caveman:toggle off explain that again in normal prose
+```
 
 ## Modes
 
@@ -28,6 +32,7 @@ If no mode is passed, it defaults to `ultra`.
 
 ```text
 /caveman:toggle
+/caveman:toggle why did my test fail?
 /caveman:toggle off
 ```
 

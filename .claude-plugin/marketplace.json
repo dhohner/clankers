@@ -1,11 +1,11 @@
 {
-  "name": "ai-forge",
+  "name": "clankers",
   "owner": {
     "name": "dhohner"
   },
   "metadata": {
     "description": "First-party Claude-format plugins published as individually installable skills and hooks.",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "pluginRoot": "./plugins"
   },
   "plugins": [

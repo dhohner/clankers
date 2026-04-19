@@ -1,7 +1,7 @@
 {
-  "name": "ai-forge",
+  "name": "clankers",
   "interface": {
-    "displayName": "dhohner/ai-forge"
+    "displayName": "dhohner/clankers"
   },
   "plugins": [
     {

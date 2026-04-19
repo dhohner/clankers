@@ -1,7 +1,7 @@
 ---
 name: toggle
-description: Slash-command ultra-response controller invoked via `/caveman:toggle` with optional `ultra` or `off` argument. Turns ultra-compressed chat mode on for the current conversation and turns it off when asked. Use only on explicit slash-command invocation; do not auto-trigger from natural language.
-argument-hint: "[ultra | off]"
+description: Slash-command response-mode switch invoked via `/caveman:toggle`. Enable ultra-compressed replies for the current conversation, optionally answer an inline task in the same message, or disable the mode with `off`. Use only on explicit slash-command invocation; do not auto-trigger from natural language.
+argument-hint: "[task to answer tersely, or `off` to disable]"
 disable-model-invocation: true
 ---
 
@@ -11,6 +11,19 @@ Switch the conversation between two states:
 
 - **`ultra`** — default when invoked without an argument. Maximum compression.
 - **`off`** — resume normal prose. Treat `normal` as a compatibility alias for `off`.
+
+## Invocation Handling
+
+Interpret slash-command text this way:
+
+- No extra text -> enable `ultra` and confirm with `ultra on`.
+- `off` or `normal` only -> disable and confirm with `off`.
+- `ultra` only -> enable and confirm with `ultra on`.
+- Any other extra text -> enable `ultra` and answer that text immediately in `ultra` mode.
+- `ultra` followed by more text -> enable `ultra` and answer the remaining text immediately in `ultra` mode.
+- `off` or `normal` followed by more text -> disable and answer the remaining text in normal prose.
+
+Do not reply with usage instructions, available modes, or activation help unless the user explicitly asks how the command works.
 
 ## Persistence
 
@@ -75,13 +88,31 @@ Write the risky part clearly. Resume `ultra` after the ambiguous section is done
 > **User:** `/caveman:toggle` then asks "why is my React component re-rendering?"
 
 **Good:**
+
 > Inline obj prop -> new ref -> re-render. `useMemo` / extract const.
+
+---
+
+> **User:** `/caveman:toggle why is my React component re-rendering?`
+
+**Good:**
+
+> Inline obj prop -> new ref -> re-render. `useMemo` / extract const.
+
+---
+
+> **User:** `/caveman:toggle off explain that again`
+
+**Good:**
+
+> The short version is that your component receives a new object reference on every render, so React treats the prop as changed and re-renders.
 
 ---
 
 > **User:** asks "rebase vs merge?"
 
 **Good:**
+
 > rebase -> linear history, rewrites commits  
 > merge -> keeps graph, no rewrite  
 > shared branch -> prefer merge
@@ -91,6 +122,7 @@ Write the risky part clearly. Resume `ultra` after the ambiguous section is done
 > **User:** asks about a risky shell command
 
 **Good:**
+
 > Warning: `rm -rf` permanently deletes files and cannot be undone. Verify path and backups first.  
 > Resume ultra: wrong path -> permanent loss.
 
