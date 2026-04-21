@@ -1,33 +1,44 @@
 # Project Advisor Plugin
 
-Packages repository planning and recommendation workflows grounded in concrete repository evidence.
+Packages product-planning workflows grounded in repository evidence.
 
 ## What It Does
 
-The included `next-best-thing` skill identifies one worthwhile next step instead of giving generic product advice. It returns:
+This plugin currently bundles three connected skills:
 
-- Evidence gathered from the current repository structure and files
-- A clear explanation of why this improvement matters now
-- Alternatives considered before choosing the recommendation
-- A concrete outline of what the addition could look like
+- `next-best-thing` identifies the single highest-leverage next product addition and presents it as a crisp Senior Product Manager recommendation.
+- `write-a-prd` turns a feature idea into a structured English PRD through user interview, codebase exploration, and an automatic review loop.
+- `prd-to-issues` converts an approved PRD into German Jira-ready vertical-slice work items using the bundled Jira template and example ticket.
+
+Together they support a natural workflow from product bet to approved PRD to implementation-ready work items.
 
 ## Usage
 
 ```text
 "/next-best-thing"
-"Run /next-best-thing on this repo"
-"Use /next-best-thing when you want one evidence-backed roadmap idea"
+"Write a PRD for this feature idea"
+"Break this PRD into Jira-ready work items"
 ```
 
-Copilot will inspect the repository and return a single recommendation with rationale, evidence, impact, and confidence.
+Example prompts:
+
+- "Inspect this repository and tell me the single highest-leverage next step."
+- "Help me write a PRD for delegated approvals."
+- "Convert this PRD into Jira-ready vertical slices."
 
 ## Learn More
 
-Current bundled skill:
+Bundled skills:
 
 - `next-best-thing`
+- `write-a-prd`
+- `prd-to-issues`
 
-See [the skill definition](./skills/next-best-thing/SKILL.md) for the exact response structure.
+Skill documentation:
+
+- [next-best-thing](./skills/next-best-thing/README.md)
+- [write-a-prd](./skills/write-a-prd/README.md)
+- [prd-to-issues](./skills/prd-to-issues/README.md)
 
 ## Authors
 

@@ -20,15 +20,13 @@ Tools:
 
 ### Available in Codex App Marketplace
 
-- **`commit-tools`** - Bundles `message` and `split` skills for staged commit workflows
-- **`project-advisor`** - Packages repository planning skills, including `next-best-thing`
+- **`project-advisor`** - Packages product-planning skills, including `next-best-thing`, `write-a-prd`, and `prd-to-issues`
 - **`refactor-tools`** - Packages safe cleanup and refactor skills, including `simplify`
 - **`caveman`** - Packages the `toggle` skill for ultra-focused concise-response control with `ultra` and `off` modes, inspired by [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman)
 
 ### Available in Claude-Format Marketplaces
 
-- **`commit-tools`** - Bundles `message` and `split` skills for staged commit workflows
-- **`project-advisor`** - Packages repository planning skills, including `next-best-thing`
+- **`project-advisor`** - Packages product-planning skills, including `next-best-thing`, `write-a-prd`, and `prd-to-issues`
 - **`refactor-tools`** - Packages safe cleanup and refactor skills, including `simplify`
 - **`block-package-managers`** - Blocks `npm` and `npx` terminal usage and redirects to `pnpm`
 - **`lint-and-format`** - Runs `pnpm format` and `pnpm lint` when the agent finishes a coding turn and scripts exist
@@ -55,6 +53,8 @@ Example prompts after install:
 
 ```text
 Use the next-best-thing skill to recommend the best next improvement for this repo.
+Help me write a PRD for this feature idea.
+Break this PRD into Jira-ready work items.
 Use the simplify skill to clean up this code without changing behavior.
 Use caveman:toggle for ultra-short replies in this chat.
 ```
@@ -128,12 +128,11 @@ Browse interactively:
 Example installs:
 
 ```bash
-/plugin install commit-tools@dhohner-clankers
 /plugin install project-advisor@dhohner-clankers
 /plugin install refactor-tools@dhohner-clankers
 /plugin install block-package-managers@dhohner-clankers
 /plugin install lint-and-format@dhohner-clankers
-/plugin install caveman-mode@dhohner-clankers
+/plugin install caveman@dhohner-clankers
 ```
 
 ## Plugin Structure

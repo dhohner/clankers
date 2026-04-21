@@ -1,24 +1,25 @@
 {
   "name": "project-advisor",
-  "version": "0.1.0",
-  "description": "Project analysis skills for recommending the highest-leverage next addition to the current repository.",
+  "version": "0.2.0",
+  "description": "Project planning skills for recommending what to build next, writing PRDs, and turning approved PRDs into Jira-ready work items.",
   "author": {
     "name": "dhohner",
     "url": "https://github.com/dhohner"
   },
-  "homepage": "https://github.com/dhohner/ai-forge/tree/main/plugins/project-advisor",
-  "repository": "https://github.com/dhohner/ai-forge",
+  "homepage": "https://github.com/dhohner/clankers/tree/main/plugins/project-advisor",
+  "repository": "https://github.com/dhohner/clankers",
   "license": "MIT",
   "keywords": [
     "planning",
-    "analysis",
+    "prd",
+    "jira",
     "roadmap"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Project Advisor",
-    "shortDescription": "Repository planning and roadmap skills.",
-    "longDescription": "Packages project analysis workflows, starting with the next-best-thing skill for high-leverage recommendations.",
+    "shortDescription": "Product planning and PRD workflow skills.",
+    "longDescription": "Packages a project-advice workflow that moves from identifying the best next product bet to writing a PRD and slicing it into Jira-ready work items.",
     "developerName": "dhohner",
     "category": "Productivity",
     "capabilities": [
@@ -26,7 +27,8 @@
     ],
     "defaultPrompt": [
       "Use the next-best-thing skill to recommend the best next improvement for this repo.",
-      "Inspect this repository and tell me the single highest-leverage next step."
+      "Help me write a PRD for this feature idea using the write-a-prd skill.",
+      "Break this PRD into Jira-ready vertical slices with the prd-to-issues skill."
     ],
     "brandColor": "#0F766E",
     "composerIcon": "./assets/icon.png",

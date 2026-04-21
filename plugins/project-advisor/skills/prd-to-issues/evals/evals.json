@@ -1,0 +1,41 @@
+{
+  "skill_name": "prd-to-issues",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Convert the PRD in plugins/project-advisor/skills/prd-to-issues/evals/inputs/prd-order-history.md into Jira-ready vertical-slice action items. Assume the slice breakdown is approved and write the markdown files directly.",
+      "expected_output": "Generated action items use outcome-oriented scenarios and avoid implementation-task wording such as file, endpoint, schema, component, or method changes.",
+      "files": [
+        "plugins/project-advisor/skills/prd-to-issues/evals/inputs/prd-order-history.md"
+      ],
+      "expectations": [
+        "At least one generated action item covers chronological order history with user-visible summary fields and a first-time empty state.",
+        "At least one generated action item covers invoice access together with auditable access and retryable recovery.",
+        "The generated action items describe desired outcomes and constraints rather than instructing developers to add specific endpoints, schemas, tables, components, or methods.",
+        "All ticket content — titles, user stories, scenario names, scenario text, note labels (Was umgesetzt werden soll, Blockiert durch, Technische Hinweise, Annahmen, Abhängigkeiten, Risiken, Offene Fragen), and note content — is written in German. No English labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' appear.",
+        "Note entries that carry no real information (e.g. 'Keine', 'Offen', 'Nicht vorhanden') are omitted entirely rather than included as placeholder entries.",
+        "Scenario text does not contain filler adjectives like nahtlos, robust, umfassend, zuverlässig, eindeutig, or sichergestellt.",
+        "Scenarios use first-person perspective (ich befinde mich, ich klicke, ich sehe) rather than third-person (der Nutzer, der Kunde befindet sich).",
+        "Technische Hinweise only contain non-obvious information — no tech stack, standard auth rules, or other things a senior dev would assume."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Convert the PRD in plugins/project-advisor/skills/prd-to-issues/evals/inputs/prd-delegated-approvals.md into Jira-ready vertical-slice action items. Assume the slice breakdown is approved and write the markdown files directly.",
+      "expected_output": "Generated action items describe user-visible behavior, constraints, and verifiable outcomes instead of prescribing implementation steps across layers.",
+      "files": [
+        "plugins/project-advisor/skills/prd-to-issues/evals/inputs/prd-delegated-approvals.md"
+      ],
+      "expectations": [
+        "At least one generated action item covers delegation setup with eligibility checks and clear validation feedback.",
+        "At least one generated action item covers automatic delegated routing during the active window and automatic return to the original approver afterward.",
+        "The generated action items describe behavior, ownership, and audit outcomes without prescribing specific APIs, schemas, tables, services, or UI components to change.",
+        "All ticket content — titles, user stories, scenario names, scenario text, note labels (Was umgesetzt werden soll, Blockiert durch, Technische Hinweise, Annahmen, Abhängigkeiten, Risiken, Offene Fragen), and note content — is written in German. No English labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' appear.",
+        "Note entries that carry no real information (e.g. 'Keine', 'Offen', 'Nicht vorhanden') are omitted entirely rather than included as placeholder entries.",
+        "Scenario text does not contain filler adjectives like nahtlos, robust, umfassend, zuverlässig, eindeutig, or sichergestellt.",
+        "Scenarios use first-person perspective (ich befinde mich, ich klicke, ich sehe) rather than third-person (der Nutzer, der Kunde befindet sich).",
+        "Technische Hinweise only contain non-obvious information — no tech stack, standard auth rules, or other things a senior dev would assume."
+      ]
+    }
+  ]
+}

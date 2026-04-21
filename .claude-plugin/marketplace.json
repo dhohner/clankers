@@ -5,16 +5,16 @@
   },
   "metadata": {
     "description": "First-party Claude-format plugins published as individually installable skills and hooks.",
-    "version": "0.2.1",
+    "version": "0.2.2",
     "pluginRoot": "./plugins"
   },
   "plugins": [
     {
       "name": "project-advisor",
       "source": "project-advisor",
-      "description": "Project analysis skills for recommending the highest-leverage next addition to the current repository.",
+      "description": "Project planning skills for recommending what to build next, writing PRDs, and turning approved PRDs into Jira-ready work items.",
       "category": "productivity",
-      "tags": ["planning", "analysis"]
+      "tags": ["planning", "prd", "jira"]
     },
     {
       "name": "refactor-tools",
