@@ -17,7 +17,7 @@ The output should feel like it came from a strong Senior Product Manager:
 - persuasive enough to say out loud in a meeting or paste into Slack
 - specific about the user problem, the unlock, and why this is the best bet right now
 
-**Gathering user input**: Whenever you need answers from the user, prefer an interactive question tool when the current host exposes one. Many harnesses provide one (e.g. `vscode_askQuestions` in VS Code, or similar). If such a tool is available, use predefined options where sensible and allow multi-select when applicable. If no dedicated tool is exposed in the current run, do not wait for it; fall back to a concise numbered list or short forced-choice prompt in the chat.
+**Gathering user input**: Whenever you need answers from the user, prefer an interactive question tool over writing questions as plain chat messages. Many harnesses provide one (e.g. `vscode_askQuestions` in VS Code, or similar). If such a tool is available, use predefined options where sensible and allow multi-select when applicable. If no dedicated tool exists, fall back to a concise numbered list in the chat.
 
 If the intended audience or decision context is unclear and it would materially change the recommendation, ask a short round of questions. Otherwise default to speaking to a product and engineering leadership audience.
 
@@ -42,7 +42,7 @@ If the intended audience or decision context is unclear and it would materially 
 6. Be explicit about uncertainty when the evidence is incomplete.
 7. After presenting the recommendation, offer to turn it into a PRD using the `write-a-prd` skill. A recommendation on its own captures the _what_ and _why_ at a high level, but a PRD fleshes it out into something the team can refine and commit to.
 
-   Use the interactive question tool (if available) to ask the user whether they'd like to proceed. Offer predefined options such as "Yes, write a PRD for this" and "No, just the recommendation". If no interactive tool is exposed, ask the same question directly in chat and include a plain-text fallback such as `Reply "write the PRD" to continue.` If they agree, invoke the `write-a-prd` skill, passing the recommendation as initial context so the user doesn't have to repeat themselves. If they decline, confirm the recommendation and wrap up.
+   Use the interactive question tool (if available) to ask the user whether they'd like to proceed. Offer predefined options such as "Yes, write a PRD for this" and "No, just the recommendation". If they agree, invoke the `write-a-prd` skill, passing the recommendation as initial context so the user doesn't have to repeat themselves. If they decline, confirm the recommendation and wrap up.
 
 ## Output Format
 

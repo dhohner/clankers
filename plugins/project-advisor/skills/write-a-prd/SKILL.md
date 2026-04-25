@@ -5,7 +5,7 @@ description: Create a PRD through user interview, codebase exploration, and modu
 
 This skill will be invoked when the user wants to create a PRD. You may skip steps if you don't consider them necessary.
 
-**Gathering user input**: Whenever you need answers from the user, prefer an interactive question tool when the current host exposes one. Many harnesses provide one (e.g. `vscode_askQuestions` in VS Code, or similar). If such a tool is available, batch related questions into a single call, offer predefined options where sensible, and allow multi-select when applicable. If no dedicated tool is exposed in the current run, do not wait for it; fall back to a concise numbered list or short forced-choice prompt in the chat — but still keep rounds short (3-6 questions) so the user isn't overwhelmed.
+**Gathering user input**: Whenever you need answers from the user, prefer an interactive question tool over writing questions as plain chat messages. Many harnesses provide one (e.g. `vscode_askQuestions` in VS Code, or similar). If such a tool is available, batch related questions into a single call, offer predefined options where sensible, and allow multi-select when applicable. If no dedicated tool exists, fall back to a concise numbered list in the chat — but still keep rounds short (3-6 questions) so the user isn't overwhelmed.
 
 1. Collect the initial context from the user. Ask for:
    - A detailed description of the problem they want to solve
@@ -18,7 +18,7 @@ This skill will be invoked when the user wants to create a PRD. You may skip ste
 
 3. Interview the user relentlessly about every aspect of this plan until you reach a shared understanding. Walk down each branch of the design tree, resolving dependencies between decisions one-by-one.
 
-   Conduct each interview round as a focused batch of questions (use the interactive question tool when it is exposed). If not, ask the same batch in chat. After receiving answers, explore the codebase or think through implications before asking the next round. Aim for 3-6 questions per round rather than one massive list — this keeps each round digestible while still making progress.
+   Conduct each interview round as a focused batch of questions (use the interactive question tool if available). After receiving answers, explore the codebase or think through implications before asking the next round. Aim for 3-6 questions per round rather than one massive list — this keeps each round digestible while still making progress.
 
 4. Sketch out the major modules you will need to build or modify to complete the implementation. Actively look for opportunities to extract deep modules that can be tested in isolation.
 
@@ -26,8 +26,8 @@ A deep module (as opposed to a shallow module) is one which encapsulates a lot o
 
 Confirm the module design with the user:
 
-- Present the list of modules and ask whether it matches their expectations (offer "Looks good" / "Needs changes" as options if the tool supports it; otherwise ask for a short plain-text approval or requested edits).
-- Ask which modules they want tests written for (allow multi-select if the tool supports it; otherwise ask as a short list in chat).
+- Present the list of modules and ask whether it matches their expectations (offer "Looks good" / "Needs changes" as options if the tool supports it).
+- Ask which modules they want tests written for (allow multi-select if the tool supports it, otherwise ask as a list).
 
 5. Once you have a complete understanding of the problem and solution, use the template below to write the PRD. Save it as a markdown action item in the `action-items/` directory at the repo root.
 
@@ -66,14 +66,14 @@ The reviewer returns one of: `Approved` or `Issues Found` with a list.
 - Repeat until the reviewer returns `Approved`.
 - If the same disagreement persists for 3 iterations, or the loop exceeds 5 iterations, stop and ask the user how to proceed.
 
-8. After the automatic review loop passes, use the interactive question tool (if available) to ask the user to review the written PRD. Offer options such as "Looks good", "Needs changes", and "Let me review it first" so the user can respond quickly. If no interactive tool is exposed, ask the same question in chat and include an explicit fallback such as `Reply "looks good"` or `Reply "needs changes"`.
+8. After the automatic review loop passes, use the interactive question tool (if available) to ask the user to review the written PRD. Offer options such as "Looks good", "Needs changes", and "Let me review it first" so the user can respond quickly.
 
 - If the user requests changes, update the PRD and re-run the automatic review loop.
 - Only treat the PRD as ready once both the reviewer loop and the user review pass.
 
 9. Once the PRD is finalized, offer to break it into Jira-ready work items using the `prd-to-issues` skill. A PRD on its own captures the _what_ and _why_ but doesn't give the team grabbable tickets — the natural next step is slicing it into vertical issues.
 
-Use the interactive question tool (if available) to ask the user whether they'd like to proceed with issue breakdown now. Offer predefined options such as "Yes, break it into issues now" and "No, I'll do it later". If no interactive tool is exposed, ask the same question in chat and include an explicit fallback such as `Reply "break it into issues"` to continue. If they agree, invoke the `prd-to-issues` skill with the PRD file path. If they decline or want to do it later, confirm the PRD location and wrap up.
+Use the interactive question tool (if available) to ask the user whether they'd like to proceed with issue breakdown now. Offer predefined options such as "Yes, break it into issues now" and "No, I'll do it later". If they agree, invoke the `prd-to-issues` skill with the PRD file path. If they decline or want to do it later, confirm the PRD location and wrap up.
 
 <prd-template>
 

@@ -9,8 +9,6 @@ Break a PRD into independently-grabbable Jira-ready work items using vertical sl
 
 Write the resulting action items for experienced human developers. Describe desired product behavior, observable outcomes, constraints, and relevant context. Do not write them as step-by-step instructions for an autonomous coding agent.
 
-**Gathering user input**: Whenever you need answers from the user, prefer an interactive question tool when the current host exposes one. If such a tool is available, use predefined options where sensible and allow multi-select when applicable. If no dedicated tool is exposed in the current run, do not wait for it; fall back to a concise numbered list or short forced-choice prompt in the chat.
-
 ## Process
 
 ### 1. Locate the PRD
@@ -44,14 +42,14 @@ Present the proposed breakdown as a numbered list. For each slice, show:
 - **Blocked by**: which other slices (if any) must complete first
 - **User stories covered**: which user stories from the PRD this addresses
 
-Ask the user. Use the interactive question tool when it is exposed; otherwise ask the same review questions in chat:
+Ask the user:
 
 - Does the granularity feel right? (too coarse / too fine)
 - Are the dependency relationships correct?
 - Should any slices be merged or split further?
 - Are the correct slices marked as HITL and AFK?
 
-Iterate until the user approves the breakdown. If you are using plain chat instead of an interactive tool, make the approval path explicit with a short fallback such as `Reply "approved"` or describe the requested changes in one message.
+Iterate until the user approves the breakdown.
 
 If the user explicitly says the breakdown is already approved, or the prompt says to assume approval, skip this review loop and move directly to file creation.
 
