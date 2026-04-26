@@ -90,7 +90,7 @@ Read [references/review-checklist.md](references/review-checklist.md) and fix is
 
 The PRD should be coherent enough that later issue-splitting will not drift because of missing decisions, contradictions, or vague scope boundaries.
 
-If subagents are available, run a reviewer loop in a review-oriented subagent using the PRD file path and asking it to return either `Approved` or `Issues Found`. If subagents are not available, perform the same review inline yourself.
+If subagents are available, run a reviewer loop in a review-oriented subagent using the PRD file path and asking it to return either `Approved` or `Issues Found`. If subagents are not available, perform the same review inline yourself **with a fresh set of eyes**.
 
 The reviewer should approve unless there are substantive problems in completeness, consistency, clarity, decision quality, or scope that would cause bad issue decomposition or implementation drift.
 
