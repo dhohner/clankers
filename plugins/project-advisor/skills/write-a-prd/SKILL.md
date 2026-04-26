@@ -1,130 +1,112 @@
 ---
 name: write-a-prd
-description: Create a PRD through user interview, codebase exploration, and module design, then save as a Jira-ready action item. Use when user wants to write a PRD, create a product requirements document, or plan a new feature.
+description: "Interviews the user until the problem, constraints, tradeoffs, scope, and likely module boundaries are concrete, then produces a structured English PRD ready for issue-splitting. Use When: the user asks for a PRD, feature spec, or requirements doc; they describe a feature or product idea and want a written plan; they want to turn a conversation, thread, or rough brief into something the team can plan from; they ask how to structure a product proposal; they have a fuzzy idea and need help narrowing it into a Jira-ready document — even if they never use the word 'PRD'."
 ---
 
-This skill will be invoked when the user wants to create a PRD. You may skip steps if you don't consider them necessary.
+# Write a PRD
 
-**Gathering user input**: Whenever you need answers from the user, prefer an interactive question tool over writing questions as plain chat messages. Many harnesses provide one (e.g. `vscode_askQuestions` in VS Code, or similar). If such a tool is available, batch related questions into a single call, offer predefined options where sensible, and allow multi-select when applicable. If no dedicated tool exists, fall back to a concise numbered list in the chat — but still keep rounds short (3-6 questions) so the user isn't overwhelmed.
+Do not rush into a document. Reach shared understanding first, then capture that understanding in a PRD that can survive follow-up planning.
 
-1. Collect the initial context from the user. Ask for:
-   - A detailed description of the problem they want to solve
-   - Any potential ideas or constraints for solutions
-   - Target users / actors affected
+Treat the interview as the core work. Keep going until the major uncertainties are either resolved or explicitly recorded as open questions.
 
-   If the conversation already contains enough context (e.g. the user pasted a brief or description), extract what you can and only ask about gaps.
+## Operating principles
 
-2. Explore the repo to verify their assertions and understand the current state of the codebase.
+Whenever you need answers from the user, prefer an interactive question tool over plain chat questions. If such a tool exists, batch related questions into one round, offer predefined options where that speeds things up, and allow multi-select when useful. If no dedicated tool exists, fall back to a concise numbered list in the chat.
 
-3. Interview the user relentlessly about every aspect of this plan until you reach a shared understanding. Walk down each branch of the design tree, resolving dependencies between decisions one-by-one.
+Keep each interview round focused. Ask 3-6 sharp questions, synthesize what changed, inspect the repo or the implications of the answers, then ask the next round.
 
-   Conduct each interview round as a focused batch of questions (use the interactive question tool if available). After receiving answers, explore the codebase or think through implications before asking the next round. Aim for 3-6 questions per round rather than one massive list — this keeps each round digestible while still making progress.
+Inspect the repository before you get deep into the interview. Use it to verify what already exists, what terms and workflows recur, and what technical constraints the user may not have mentioned yet.
 
-4. Sketch out the major modules you will need to build or modify to complete the implementation. Actively look for opportunities to extract deep modules that can be tested in isolation.
+Do not assume the environment has Python, Node, or any other runtime beyond basic file editing and the tools already available.
 
-A deep module (as opposed to a shallow module) is one which encapsulates a lot of functionality in a simple, testable interface which rarely changes.
+## Process
 
-Confirm the module design with the user:
+### 1. Capture the seed context
 
-- Present the list of modules and ask whether it matches their expectations (offer "Looks good" / "Needs changes" as options if the tool supports it).
-- Ask which modules they want tests written for (allow multi-select if the tool supports it, otherwise ask as a list).
+Extract as much as you can from the current conversation before asking anything new. Start by filling gaps around:
 
-5. Once you have a complete understanding of the problem and solution, use the template below to write the PRD. Save it as a markdown action item in the `action-items/` directory at the repo root.
+- the problem to solve
+- the target users or actors
+- the desired outcome
+- known constraints, deadlines, or non-goals
 
-- File name: `action-items/PRD-<short-slug>.md` (e.g. `action-items/PRD-user-notifications.md`)
-- Include YAML frontmatter with `type: prd`, `status: draft`, and `created: <date>`
-- These action items serve as a basis for creating Jira issues in the project.
-- Always write the PRD in English. Do not switch to German even if downstream Jira stories or tickets are expected to be in German — that language conversion happens in the ticket-writing step.
-- Keep proper nouns, product names, established technical terms, and code identifiers as-is rather than translating them.
+If the idea is still fuzzy, say so explicitly and begin the interview rather than pretending the brief is already sufficient.
 
-6. After writing the PRD, do a quick self-review before asking anyone else to look at it.
+If the user provides an existing document, list of requirements, or detailed brief, extract the settled decisions from it first — do not re-interview about things they have already decided. Only probe the gaps.
 
-- Placeholder scan: remove any `TODO`, `TBD`, or obviously incomplete sections.
-- Internal consistency: make sure the Problem Statement, Solution, User Stories, Implementation Decisions, Testing Decisions, and Out of Scope sections do not contradict each other.
-- Scope check: make sure the PRD is focused enough to become a coherent set of Jira-ready work items rather than multiple unrelated initiatives.
-- Ambiguity check: make unclear requirements explicit if they could lead to different issue breakdowns or implementation outcomes.
+### 2. Explore the codebase
 
-Fix issues inline. Do not ask the user to review the PRD before this self-review is complete.
+Inspect the repository before the second serious interview round unless the workspace is empty or irrelevant.
 
-7. Run an automatic PRD review loop before handing the document to the user.
+Use the repo to answer questions like:
 
-Dispatch a general-purpose reviewer subagent with the PRD file path. The reviewer checks:
+- what already exists
+- what workflows or concepts are adjacent
+- what naming or architectural patterns recur
+- what implementation constraints the user may not have mentioned yet
 
-| Category         | What to Look For                                                                                      |
-| ---------------- | ----------------------------------------------------------------------------------------------------- |
-| Completeness     | Missing sections, placeholders, TODOs, shallow user-story coverage                                    |
-| Consistency      | Contradictions between problem, solution, decisions, and scope                                        |
-| Clarity          | Requirements ambiguous enough that issue slicing or implementation planning could drift               |
-| Decision Quality | Implementation and testing decisions concrete enough to guide follow-up work without prescribing code |
-| Scope            | Out-of-scope boundaries are explicit; no major unexplained scope creep                                |
+### 3. Run the relentless interview
 
-Only flag issues that would cause real problems in follow-up planning or ticket creation. Approve unless there are serious gaps that would lead to bad issue decomposition or implementation drift.
+Before the first serious interview round, read [references/interview-map.md](references/interview-map.md).
 
-The reviewer returns one of: `Approved` or `Issues Found` with a list.
+Use it as a map, not a script. Do not mechanically ask every question. Instead, use it to find the next unresolved decision that blocks shared understanding.
 
-- If the reviewer returns `Issues Found`, fix the PRD inline and re-dispatch the reviewer.
-- Repeat until the reviewer returns `Approved`.
-- If the same disagreement persists for 3 iterations, or the loop exceeds 5 iterations, stop and ask the user how to proceed.
+After each round:
 
-8. After the automatic review loop passes, use the interactive question tool (if available) to ask the user to review the written PRD. Offer options such as "Looks good", "Needs changes", and "Let me review it first" so the user can respond quickly.
+- summarize what is now confirmed
+- call out assumptions that are still provisional
+- identify the next decision cluster to resolve
+- think through implications before continuing
 
-- If the user requests changes, update the PRD and re-run the automatic review loop.
-- Only treat the PRD as ready once both the reviewer loop and the user review pass.
+Keep going until you can explain the feature in concrete terms across problem, users, behavior, constraints, scope boundaries, and testing intent without hand-waving.
 
-9. Once the PRD is finalized, offer to break it into Jira-ready work items using the `prd-to-issues` skill. A PRD on its own captures the _what_ and _why_ but doesn't give the team grabbable tickets — the natural next step is slicing it into vertical issues.
+### 4. Sketch the solution shape
 
-Use the interactive question tool (if available) to ask the user whether they'd like to proceed with issue breakdown now. Offer predefined options such as "Yes, break it into issues now" and "No, I'll do it later". If they agree, invoke the `prd-to-issues` skill with the PRD file path. If they decline or want to do it later, confirm the PRD location and wrap up.
+Once the problem is understood, sketch the major modules or capabilities that will likely be built or changed.
 
-<prd-template>
+Confirm the shape with the user:
 
-## Problem Statement
+- present the proposed modules or capability areas
+- ask whether the breakdown matches their expectations
+- ask which areas they expect strong automated test coverage for
 
-The problem that the user is facing, from the user's perspective.
+### 5. Draft the PRD file
 
-## Solution
+Before writing, read [references/prd-template.md](references/prd-template.md).
 
-The solution to the problem, from the user's perspective.
+Use this filename pattern: `action-items/PRD-<short-slug>.md`
 
-## User Stories
+Create the file directly from the bundled template structure.
 
-A LONG, numbered list of user stories. Each user story should be in the format of:
+Write the PRD in English. Keep proper nouns, product names, established technical terms, and code identifiers as-is rather than translating them.
 
-1. As an <actor>, I want a <feature>, so that <benefit>
+Do not include fragile implementation trivia such as exact file paths or code snippets unless the user explicitly asks for them.
 
-<user-story-example>
-1. As a mobile bank customer, I want to see balance on my accounts, so that I can make better informed decisions about my spending
-</user-story-example>
+When the PRD contains unresolved context, make it easy to audit. Use `Further Notes` to separate `Assumptions`, `Open Questions`, and `Rollout / Migration Notes` when those categories contain meaningful information. Omit empty subheadings rather than adding placeholders.
 
-This list of user stories should be extremely extensive and cover all aspects of the feature.
+### 6. Review and finalize
 
-## Implementation Decisions
+Read [references/review-checklist.md](references/review-checklist.md) and fix issues inline before asking anyone to review the PRD.
 
-A list of implementation decisions that were made. This can include:
+The PRD should be coherent enough that later issue-splitting will not drift because of missing decisions, contradictions, or vague scope boundaries.
 
-- The modules that will be built/modified
-- The interfaces of those modules that will be modified
-- Technical clarifications from the developer
-- Architectural decisions
-- Schema changes
-- API contracts
-- Specific interactions
+If subagents are available, run a reviewer loop in a review-oriented subagent using the PRD file path and asking it to return either `Approved` or `Issues Found`. If subagents are not available, perform the same review inline yourself.
 
-Do NOT include specific file paths or code snippets. They may end up being outdated very quickly.
+The reviewer should approve unless there are substantive problems in completeness, consistency, clarity, decision quality, or scope that would cause bad issue decomposition or implementation drift.
 
-## Testing Decisions
+- If the review finds issues, fix the PRD and review again.
+- If the same disagreement repeats 3 times, or the review loop exceeds 5 total passes, stop and ask the user how to proceed.
 
-A list of testing decisions that were made. Include:
+After the review loop passes, ask the user to review the PRD. If an interactive question tool exists, offer quick options such as `Looks good`, `Needs changes`, and `Let me review it first`.
 
-- A description of what makes a good test (only test external behavior, not implementation details)
-- Which modules will be tested
-- Prior art for the tests (i.e. similar types of tests in the codebase)
+If the user requests changes, update the PRD and rerun the review loop.
 
-## Out of Scope
+If user review is not possible in the current environment, do not pretend the PRD is fully approved. Leave it as draft pending user review, and explicitly record what still needs user confirmation.
 
-A description of the things that are out of scope for this PRD.
+Only treat the PRD as finished when both the review loop and the user review pass.
 
-## Further Notes
+### 7. Offer the next step
 
-Any further notes about the feature.
+Once the PRD is finalized, offer to break it into Jira-ready work items with the `prd-to-issues` skill.
 
-</prd-template>
+If the user agrees, invoke `prd-to-issues` with the PRD path. Otherwise, confirm the saved PRD location and stop.

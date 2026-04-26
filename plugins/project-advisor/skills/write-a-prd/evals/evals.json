@@ -1,0 +1,44 @@
+{
+  "skill_name": "write-a-prd",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Create a PRD for a PRD readiness scorecard feature in project-advisor. The users are maintainers reviewing draft PRDs before they are broken into issues. The feature should help them spot blocking gaps, summarize readiness, and recommend the next step. Constraints: keep the PRD in English, do not rely on Python or Node-based helpers, inspect the repo before drafting, and if some product choices are still unresolved, record them explicitly instead of inventing certainty. Write the final PRD as markdown.",
+      "expected_output": "A repo-grounded PRD that follows the bundled template shape, states scope boundaries clearly, and records unresolved product decisions instead of filling them with guesses.",
+      "files": [],
+      "expectations": [
+        "The output is a markdown PRD with the required sections Problem Statement, Solution, User Stories, Implementation Decisions, Testing Decisions, Out of Scope, and Further Notes.",
+        "The PRD grounds the proposal in the existing project-advisor skill workflow or adjacent repo concepts rather than describing the feature in isolation.",
+        "The PRD explicitly names unresolved questions, assumptions, or rollout concerns instead of presenting uncertain details as settled facts.",
+        "The PRD avoids brittle implementation trivia such as exact file paths or code snippets unless the prompt required them.",
+        "The module or capability breakdown is clear enough that a later issue-splitting step would not need to rediscover the feature shape."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Create a PRD for adding reusable interview presets to the write-a-prd skill, such as greenfield feature discovery, migration planning, and UX polish. The presets should change questioning strategy, not the PRD template itself. The users are product managers and engineers who want faster interviews without losing rigor. Constraints: the skill should still ask follow-up questions rather than run one static checklist, the PRD must stay in English, and the solution should reuse existing project-advisor patterns where that makes sense. Inspect the repo before drafting and write the final PRD as markdown.",
+      "expected_output": "A PRD that distinguishes scope, quality bar, and module boundaries while preserving the interview-first character of the skill.",
+      "files": [],
+      "expectations": [
+        "The PRD makes it clear that presets guide the interview but do not replace follow-up questioning or shared-understanding checkpoints.",
+        "The PRD identifies likely modules or capability areas for presets, selection logic, and testing intent without prescribing file-level implementation steps.",
+        "The PRD includes testing decisions focused on observable behavior, such as preset-specific questioning behavior or regression risks in the interview flow.",
+        "The PRD includes explicit out-of-scope boundaries so adjacent work like changing the PRD template or issue-splitting stays separated.",
+        "The output remains in English and reads like a planning document rather than an implementation checklist for an agent."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Create a PRD for PRD handoff notes that capture rollout risks, open follow-up questions, and ownership hints once a PRD is marked ready for issue splitting. The brief is intentionally incomplete: do not fabricate detailed workflow rules if they are not justified by the prompt or the repo. The users are maintainers handing work from PRD authoring into ticket creation. Inspect the repo, keep the PRD in English, and write the final PRD as markdown.",
+      "expected_output": "A PRD that handles an underspecified brief by making uncertainty explicit while still producing a coherent, reviewable feature proposal.",
+      "files": [],
+      "expectations": [
+        "The PRD stays coherent even though the brief is incomplete, with open questions or assumptions clearly separated from confirmed decisions.",
+        "The PRD explains the intended user-visible workflow for handoff notes rather than only listing internal implementation tasks.",
+        "The PRD includes a credible testing section that focuses on externally visible outcomes and risky transitions in the handoff flow.",
+        "The PRD avoids pretending that repo details or business rules exist when they were not supported by the prompt or repository context.",
+        "The PRD remains narrow enough to become a later issue-splitting input rather than expanding into several unrelated initiatives."
+      ]
+    }
+  ]
+}

@@ -8,10 +8,16 @@ This skill guides you through a collaborative PRD writing process:
 
 1. **Gather context** — asks for a detailed description of the problem and potential solutions
 2. **Explore the codebase** — verifies assertions and understands current state
-3. **Interview relentlessly** — walks down each branch of the design tree, resolving dependencies between decisions
+3. **Interview relentlessly** — keeps drilling until the user and model share the same understanding of the topic, constraints, and scope boundaries
 4. **Design modules** — sketches major modules to build or modify, looking for deep module extraction opportunities
 5. **Write the PRD** — produces a structured document and saves it as a Jira-ready action item
 6. **Self-review and auto-review** — runs an inline quality pass, then a reviewer subagent loop before handing the PRD back to the user
+
+## Bundled resources
+
+- `references/interview-map.md` keeps the interview focused on unresolved decision clusters rather than one giant questionnaire.
+- `references/prd-template.md` defines the PRD structure and section guidance.
+- `references/review-checklist.md` is used before both reviewer and user review.
 
 ## PRD Structure
 
@@ -25,14 +31,11 @@ The generated PRD includes:
 - **Out of Scope** — explicit boundaries
 - **Further Notes** — additional context
 
-Before the PRD is considered ready, the skill now performs an automatic review loop modeled on the `brainstorming` skill's document review flow: write the document, self-review it, dispatch a reviewer subagent, fix any blocking issues, and only then ask the user for final review.
+Before the PRD is considered ready, the skill performs an automatic review loop: write the document, self-review it, dispatch a reviewer subagent, fix any blocking issues, and only then ask the user for final review.
 
 ## Language
 
 The PRD is always written in English.
-
-- Do not switch to German even if downstream Jira stories or tickets are expected to be in German — that conversion happens in the ticket-writing step.
-- Keep proper nouns, product names, and established technical terms as-is rather than translating them.
 
 ## Usage
 
