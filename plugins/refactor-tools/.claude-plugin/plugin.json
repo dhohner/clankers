@@ -1,11 +1,14 @@
 {
   "name": "refactor-tools",
-  "version": "0.1.0",
   "description": "Refactoring and cleanup skills for safe, behavior-preserving code improvements.",
   "author": {
     "name": "dhohner"
   },
   "repository": "https://github.com/dhohner/ai-forge",
   "license": "MIT",
-  "keywords": ["refactor", "quality", "cleanup"]
+  "keywords": [
+    "refactor",
+    "quality",
+    "cleanup"
+  ]
 }

@@ -1,11 +1,15 @@
 {
   "name": "project-advisor",
-  "version": "0.2.0",
   "description": "Project planning skills for recommending what to build next, writing PRDs, and turning approved PRDs into Jira-ready work items.",
   "author": {
     "name": "dhohner"
   },
   "repository": "https://github.com/dhohner/clankers",
   "license": "MIT",
-  "keywords": ["planning", "prd", "jira", "roadmap"]
+  "keywords": [
+    "planning",
+    "prd",
+    "jira",
+    "roadmap"
+  ]
 }

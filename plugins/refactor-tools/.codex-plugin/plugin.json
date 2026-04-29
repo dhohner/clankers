@@ -1,6 +1,5 @@
 {
   "name": "refactor-tools",
-  "version": "0.1.0",
   "description": "Refactoring and cleanup skills for safe, behavior-preserving code improvements.",
   "author": {
     "name": "dhohner",

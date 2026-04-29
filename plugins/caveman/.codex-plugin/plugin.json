@@ -1,6 +1,5 @@
 {
   "name": "caveman",
-  "version": "0.2.1",
   "description": "Ultra-focused concise-response control with ultra and off modes.",
   "author": {
     "name": "dhohner",
@@ -9,7 +8,12 @@
   "homepage": "https://github.com/dhohner/ai-forge/tree/main/plugins/caveman",
   "repository": "https://github.com/dhohner/ai-forge",
   "license": "MIT",
-  "keywords": ["concise", "caveman", "style", "writing"],
+  "keywords": [
+    "concise",
+    "caveman",
+    "style",
+    "writing"
+  ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Caveman",
@@ -17,7 +21,10 @@
     "longDescription": "Adds the `toggle` skill for switching this chat into ultra-compressed reply mode when you want terse debugging, review, or progress updates.",
     "developerName": "dhohner",
     "category": "Productivity",
-    "capabilities": ["Read", "Write"],
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
     "defaultPrompt": [
       "/caveman:toggle then explain why this test is failing in 2 short lines.",
       "/caveman:toggle and review these staged changes with only blockers and fixes.",
