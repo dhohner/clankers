@@ -7,9 +7,5 @@
   "homepage": "https://github.com/dhohner/clankers/tree/main/plugins/block-fups",
   "repository": "https://github.com/dhohner/clankers",
   "license": "MIT",
-  "keywords": [
-    "hooks",
-    "security",
-    "environment"
-  ]
+  "keywords": ["hooks", "security", "environment"]
 }

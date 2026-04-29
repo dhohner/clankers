@@ -29,7 +29,7 @@ Tools:
 - **`project-advisor`** - Packages product-planning skills, including `next-best-thing`, `write-a-prd`, and `prd-to-issues`
 - **`refactor-tools`** - Packages safe cleanup and refactor skills, including `simplify`
 - **`block-package-managers`** - Blocks `npm` and `npx` terminal usage and redirects to `pnpm`
-- **`block-fups`** - Blocks terminal commands that try to print the current user environment
+- **`block-fups`** - Blocks terminal commands that try to print the current user environment or read common local credentials
 - **`lint-and-format`** - Runs `pnpm format` and `pnpm lint` when the agent finishes a coding turn and scripts exist
 - **`caveman`** - Provides the `toggle` skill for ultra-focused concise GitHub Copilot chat in VS Code, inspired by [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman)
 

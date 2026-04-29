@@ -5,6 +5,7 @@
   },
   "metadata": {
     "description": "First-party Claude-format plugins published as individually installable skills and hooks.",
+    "version": "0.2.2",
     "pluginRoot": "./plugins"
   },
   "plugins": [
@@ -13,31 +14,21 @@
       "source": "project-advisor",
       "description": "Project planning skills for recommending what to build next, writing PRDs, and turning approved PRDs into Jira-ready work items.",
       "category": "productivity",
-      "tags": [
-        "planning",
-        "prd",
-        "jira"
-      ]
+      "tags": ["planning", "prd", "jira"]
     },
     {
       "name": "refactor-tools",
       "source": "refactor-tools",
       "description": "Refactoring and cleanup skills for safe, behavior-preserving code improvements.",
       "category": "development",
-      "tags": [
-        "refactor",
-        "quality"
-      ]
+      "tags": ["refactor", "quality"]
     },
     {
       "name": "block-package-managers",
       "source": "block-package-managers",
       "description": "Block npm and npx terminal commands and redirect usage toward pnpm.",
       "category": "development",
-      "tags": [
-        "hooks",
-        "pnpm"
-      ]
+      "tags": ["hooks", "pnpm"]
     },
     {
       "name": "block-fups",
@@ -46,31 +37,21 @@
       "homepage": "https://github.com/dhohner/clankers/tree/main/plugins/block-fups",
       "repository": "https://github.com/dhohner/clankers",
       "category": "development",
-      "tags": [
-        "hooks",
-        "security",
-        "environment"
-      ]
+      "tags": ["hooks", "security", "environment"]
     },
     {
       "name": "lint-and-format",
       "source": "lint-and-format",
       "description": "Run pnpm format and pnpm lint after code-changing tools when package scripts exist.",
       "category": "development",
-      "tags": [
-        "hooks",
-        "quality"
-      ]
+      "tags": ["hooks", "quality"]
     },
     {
       "name": "caveman",
       "source": "caveman",
       "description": "Provide a concise-response skill for VS Code and other Claude-format hosts.",
       "category": "development",
-      "tags": [
-        "skill",
-        "style"
-      ]
+      "tags": ["skill", "style"]
     }
   ]
 }
