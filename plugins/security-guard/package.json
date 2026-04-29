@@ -1,0 +1,30 @@
+{
+  "name": "security-guard",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pi extension and Claude-format hook that block environment dumps and common local credential access.",
+  "keywords": [
+    "pi-package",
+    "security",
+    "guardrails",
+    "credentials",
+    "hooks"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "dhohner"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dhohner/clankers.git",
+    "directory": "plugins/security-guard"
+  },
+  "peerDependencies": {
+    "@mariozechner/pi-coding-agent": "*"
+  },
+  "pi": {
+    "extensions": [
+      "./extensions/block-fups.ts"
+    ]
+  }
+}

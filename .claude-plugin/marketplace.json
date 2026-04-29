@@ -5,7 +5,6 @@
   },
   "metadata": {
     "description": "First-party Claude-format plugins published as individually installable skills and hooks.",
-    "version": "0.2.2",
     "pluginRoot": "./plugins"
   },
   "plugins": [
@@ -31,10 +30,10 @@
       "tags": ["hooks", "pnpm"]
     },
     {
-      "name": "block-fups",
-      "source": "block-fups",
-      "description": "Block terminal commands that try to print the current user environment, including printenv, standalone env, export dumps, declare -x, and standalone set.",
-      "homepage": "https://github.com/dhohner/clankers/tree/main/plugins/block-fups",
+      "name": "security-guard",
+      "source": "security-guard",
+      "description": "Block terminal commands that try to print the current user environment or read common secrets, tokens, keys, credential stores, and shell history.",
+      "homepage": "https://github.com/dhohner/clankers/tree/main/plugins/security-guard",
       "repository": "https://github.com/dhohner/clankers",
       "category": "development",
       "tags": ["hooks", "security", "environment"]

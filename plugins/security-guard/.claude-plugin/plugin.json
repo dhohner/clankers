@@ -1,0 +1,11 @@
+{
+  "name": "security-guard",
+  "description": "Block terminal commands that try to print the current user environment or read common secrets, tokens, keys, credential stores, and shell history.",
+  "author": {
+    "name": "dhohner"
+  },
+  "homepage": "https://github.com/dhohner/clankers/tree/main/plugins/security-guard",
+  "repository": "https://github.com/dhohner/clankers",
+  "license": "MIT",
+  "keywords": ["hooks", "security", "environment"]
+}
