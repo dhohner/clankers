@@ -31,6 +31,13 @@
       "tags": ["hooks", "pnpm"]
     },
     {
+      "name": "block-fups",
+      "source": "block-fups",
+      "description": "Block terminal commands that try to print the current user environment.",
+      "category": "development",
+      "tags": ["hooks", "security", "environment"]
+    },
+    {
       "name": "lint-and-format",
       "source": "lint-and-format",
       "description": "Run pnpm format and pnpm lint after code-changing tools when package scripts exist.",

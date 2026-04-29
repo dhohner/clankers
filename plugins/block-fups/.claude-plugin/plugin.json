@@ -1,0 +1,11 @@
+{
+  "name": "block-fups",
+  "version": "0.1.0",
+  "description": "Block terminal commands that try to print the current user environment.",
+  "author": {
+    "name": "dhohner"
+  },
+  "repository": "https://github.com/dhohner/clankers",
+  "license": "MIT",
+  "keywords": ["hooks", "security", "environment"]
+}

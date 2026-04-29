@@ -29,6 +29,7 @@ Tools:
 - **`project-advisor`** - Packages product-planning skills, including `next-best-thing`, `write-a-prd`, and `prd-to-issues`
 - **`refactor-tools`** - Packages safe cleanup and refactor skills, including `simplify`
 - **`block-package-managers`** - Blocks `npm` and `npx` terminal usage and redirects to `pnpm`
+- **`block-fups`** - Blocks terminal commands that try to print the current user environment
 - **`lint-and-format`** - Runs `pnpm format` and `pnpm lint` when the agent finishes a coding turn and scripts exist
 - **`caveman`** - Provides the `toggle` skill for ultra-focused concise GitHub Copilot chat in VS Code, inspired by [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman)
 
@@ -131,6 +132,7 @@ Example installs:
 /plugin install project-advisor@dhohner-clankers
 /plugin install refactor-tools@dhohner-clankers
 /plugin install block-package-managers@dhohner-clankers
+/plugin install block-fups@dhohner-clankers
 /plugin install lint-and-format@dhohner-clankers
 /plugin install caveman@dhohner-clankers
 ```
