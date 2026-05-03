@@ -1,6 +1,8 @@
 # Clankers
 
-My personal collection of installable plugins for GitHub Copilot in Visual Studio Code, Claude Code, and Codex, published as Clankers.
+Clankers is a small collection of practical agent plugins for real coding work: tighter planning, safer terminal behavior, cleaner refactors, and faster, easier-to-scan chat.
+
+It is built for GitHub Copilot in Visual Studio Code, Claude Code, Codex App, and Pi Coding Agent.
 
 > **⚠️ Important:** Make sure you trust a plugin before installing, updating, or using it. Plugins in this repository can include prompts, skills, hooks, and shell scripts that run on your machine. Review each plugin's README and source before use.
 
@@ -51,21 +53,6 @@ To use it in Codex App:
    - `caveman`
 5. Start using the plugin from chat.
 
-Example prompts after install:
-
-```text
-Use the next-best-thing skill to recommend the best next improvement for this repo.
-Help me write a PRD for this feature idea.
-Break this PRD into Jira-ready work items.
-Use the simplify skill to clean up this code without changing behavior.
-Use caveman:toggle for ultra-short replies in this chat.
-```
-
-Notes:
-
-- The Codex marketplace in this repo currently exposes the plugins that have native `.codex-plugin/plugin.json` manifests.
-- In Codex, `caveman` is skill-based and no longer relies on a startup hook.
-
 ### Visual Studio Code + GitHub Copilot
 
 VS Code agent plugins are currently in preview. Start with the official docs:
@@ -103,13 +90,7 @@ VS Code agent plugins are currently in preview. Start with the official docs:
 
 This repository also ships a Claude-format marketplace at [`.claude-plugin/marketplace.json`](./.claude-plugin/marketplace.json).
 
-Add the marketplace from a local checkout:
-
-```bash
-/plugin marketplace add /absolute/path/to/clankers
-```
-
-Or add it from GitHub:
+Add the marketplace from Github:
 
 ```bash
 /plugin marketplace add dhohner/clankers
@@ -127,34 +108,54 @@ Browse interactively:
 /plugin > Discover
 ```
 
-Example installs:
-
-```bash
-/plugin install project-advisor@dhohner-clankers
-/plugin install refactor-tools@dhohner-clankers
-/plugin install block-package-managers@dhohner-clankers
-/plugin install security-guard@dhohner-clankers
-/plugin install lint-and-format@dhohner-clankers
-/plugin install caveman@dhohner-clankers
-```
-
 ### Pi Coding Agent
 
-Pi packages can be installed from a local checkout. The `security-guard` plugin includes a Pi extension that blocks risky `bash` and `read` tool calls before they execute:
+Pi support in this repository is aimed at making local coding sessions safer and easier to steer.
+
+Available Pi extensions:
+
+- **`security-guard`** - blocks risky `bash`, `read`, and user shell commands that try to print env data or read common local credentials
+- **`block-package-managers`** - blocks `npm` and `npx` in Pi `bash` tool calls and user shell commands, and points the agent toward `pnpm`
+- **`caveman`** - adds a session-level response mode for ultra-short, scan-friendly replies
+
+Install the full Pi bundle from this repo:
+
+```bash
+pi install ./
+```
+
+For project-local installation that writes to `.pi/settings.json`:
+
+```bash
+pi install -l ./
+```
+
+Install individual Pi plugins from a local checkout:
 
 ```bash
 pi install ./plugins/security-guard
+pi install ./plugins/block-package-managers
+pi install ./plugins/caveman
 ```
 
 For project-local installation that writes to `.pi/settings.json`:
 
 ```bash
 pi install -l ./plugins/security-guard
+pi install -l ./plugins/block-package-managers
+pi install -l ./plugins/caveman
+```
+
+## Tests
+
+```bash
+pnpm install
+pnpm test
 ```
 
 ## Plugin Structure
 
-Each plugin in this repository is packaged as a small, focused installable unit.
+Each plugin in this repository is packaged as a small, focused installable unit. The goal is simple: install just the behavior you want, in the host you already use.
 
 ```text
 plugin-name/
@@ -162,7 +163,10 @@ plugin-name/
 │   └── plugin.json      # Codex metadata (optional, required for Codex marketplace)
 ├── .claude-plugin/
 │   └── plugin.json      # Claude-format metadata (required for Claude/VS Code marketplaces)
+├── package.json         # Pi package manifest (optional, required for direct Pi install)
 ├── README.md            # Plugin documentation
+├── extensions/
+│   └── plugin.ts        # Pi extension entrypoint (optional)
 ├── skills/
 │   └── skill-name/
 │       └── SKILL.md     # Skill definition (optional, preferred)
@@ -172,8 +176,6 @@ plugin-name/
 └── scripts/
     └── script.sh        # Hook implementation or helper script (optional)
 ```
-
-Legacy `commands/*.md` files still work in some tools, but this repository uses `skills/<name>/SKILL.md` as the default format for reusable skills.
 
 ## License
 
