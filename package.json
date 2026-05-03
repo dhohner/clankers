@@ -1,0 +1,42 @@
+{
+  "name": "clankers",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Codex plugin collection.",
+  "keywords": [
+    "pi-package"
+  ],
+  "scripts": {
+    "test": "pnpm test:shell && pnpm test:unit",
+    "test:shell": "bats test/*.bats",
+    "test:unit": "vitest run"
+  },
+  "devDependencies": {
+    "bats": "^1.13.0",
+    "vitest": "^4.1.5"
+  },
+  "peerDependencies": {
+    "@mariozechner/pi-coding-agent": "*"
+  },
+  "pi": {
+    "extensions": [
+      "./plugins/security-guard/extensions/block-fups.ts",
+      "./plugins/block-package-managers/extensions/block-package-managers.ts",
+      "./plugins/caveman/extensions/caveman.ts"
+    ]
+  },
+  "files": [
+    "README.md",
+    "LICENSE",
+    "plugins/security-guard/extensions/**",
+    "plugins/security-guard/package.json",
+    "plugins/security-guard/README.md",
+    "plugins/block-package-managers/extensions/**",
+    "plugins/block-package-managers/package.json",
+    "plugins/block-package-managers/README.md",
+    "plugins/caveman/extensions/**",
+    "plugins/caveman/package.json",
+    "plugins/caveman/README.md"
+  ],
+  "packageManager": "pnpm@10.33.2"
+}
