@@ -1,0 +1,35 @@
+{
+  "name": "caveman",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pi extension for toggleable ultra-compressed response mode.",
+  "keywords": [
+    "pi-package",
+    "caveman",
+    "concise",
+    "style"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "dhohner"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dhohner/clankers.git",
+    "directory": "plugins/caveman"
+  },
+  "peerDependencies": {
+    "@mariozechner/pi-coding-agent": "*"
+  },
+  "pi": {
+    "extensions": [
+      "./extensions/caveman.ts"
+    ]
+  },
+  "files": [
+    "README.md",
+    "extensions/**",
+    "package.json",
+    "LICENSE"
+  ]
+}

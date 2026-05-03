@@ -2,20 +2,24 @@
 
 Makes replies ultra-short and easier to scan.
 
-## Use
+## Pi usage
 
-Run:
+This plugin now exposes a Pi extension, not a Pi skill. Toggling it updates the session system prompt directly, without sending a message to the agent.
 
-```text
-/caveman:toggle [ultra|off]
-```
-
-Include the first task in the same message:
+Install/load the package, then use:
 
 ```text
-/caveman:toggle why is this component re-rendering?
-/caveman:toggle off explain that again in normal prose
+/caveman
+/caveman on
+/caveman off
+/caveman status
 ```
+
+A status-bar indicator appears while `ultra` mode is active.
+
+## Other hosts
+
+The `skills/toggle/SKILL.md` file is still kept for hosts that consume skills directly. Pi uses `extensions/caveman-instructions.md` instead.
 
 ## Modes
 
@@ -24,16 +28,8 @@ Include the first task in the same message:
 
 ## Notes
 
-- Applies to the current conversation.
+- Applies to the current Pi session.
 - `ultra` persists until disabled.
 - Does not rewrite code blocks, commands, file paths, exact error text, or other copy-paste-sensitive output.
-
-## Examples
-
-```text
-/caveman:toggle
-/caveman:toggle why did my test fail?
-/caveman:toggle off
-```
 
 Inspired by [caveman](https://github.com/JuliusBrussee/caveman) by [Julius Brussee](https://github.com/JuliusBrussee).
