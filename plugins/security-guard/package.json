@@ -26,5 +26,11 @@
     "extensions": [
       "./extensions/block-fups.ts"
     ]
-  }
+  },
+  "files": [
+    "README.md",
+    "extensions/**",
+    "package.json",
+    "LICENSE"
+  ]
 }
