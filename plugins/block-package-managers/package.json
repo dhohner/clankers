@@ -1,0 +1,35 @@
+{
+  "name": "block-package-managers",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pi extension and Claude-format hook that block npm and npx terminal usage and redirect to pnpm.",
+  "keywords": [
+    "pi-package",
+    "pnpm",
+    "guardrails",
+    "hooks"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "dhohner"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dhohner/clankers.git",
+    "directory": "plugins/block-package-managers"
+  },
+  "peerDependencies": {
+    "@mariozechner/pi-coding-agent": "*"
+  },
+  "pi": {
+    "extensions": [
+      "./extensions/block-package-managers.ts"
+    ]
+  },
+  "files": [
+    "README.md",
+    "extensions/**",
+    "package.json",
+    "LICENSE"
+  ]
+}

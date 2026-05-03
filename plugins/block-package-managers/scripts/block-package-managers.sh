@@ -80,15 +80,19 @@ extract_simple_npx_invocation() {
 }
 
 if printf '%s\n' "$COMMAND" | grep -qE '^npm([[:space:]]|$)'; then
-  echo "Blocked: use pnpm instead of npm" >&2
+  NPM_REMAINDER=$(printf '%s' "${COMMAND#npm}" | sed -E 's/^[[:space:]]+//')
+  if [ -n "$NPM_REMAINDER" ]; then
+    echo "Blocked: use pnpm $NPM_REMAINDER instead of $COMMAND" >&2
+  else
+    echo "Blocked: use pnpm instead of $COMMAND" >&2
+  fi
   exit 2
 fi
 
 if printf '%s\n' "$COMMAND" | grep -qE '^npx([[:space:]]|$)'; then
   if extract_simple_npx_invocation; then
-    if printf '%s\n' "$NPX_BINARY" | grep -q '/'; then
-      REPLACEMENT="pnpm dlx $NPX_REMAINDER"
-    elif has_local_node_binary "$NPX_BINARY" "$COMMAND_CWD" || is_likely_project_binary "$NPX_BINARY"; then
+    if ! printf '%s\n' "$NPX_BINARY" | grep -q '/' && \
+      (has_local_node_binary "$NPX_BINARY" "$COMMAND_CWD" || is_likely_project_binary "$NPX_BINARY"); then
       REPLACEMENT="pnpm exec $NPX_REMAINDER"
     else
       REPLACEMENT="pnpm dlx $NPX_REMAINDER"
