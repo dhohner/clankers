@@ -3,8 +3,8 @@
 bats_require_minimum_version 1.5.0
 
 setup() {
-  REPO_ROOT="$(cd "$BATS_TEST_DIRNAME/.." && pwd)"
-  SCRIPT="$REPO_ROOT/plugins/block-package-managers/scripts/block-package-managers.sh"
+  PACKAGE_ROOT="$(cd "$BATS_TEST_DIRNAME/.." && pwd)"
+  SCRIPT="$PACKAGE_ROOT/scripts/block-package-managers.sh"
 }
 
 run_hook() {
@@ -13,7 +13,7 @@ run_hook() {
 
 payload_for_command() {
   local command="$1"
-  local cwd="${2:-$REPO_ROOT}"
+  local cwd="${2:-$PACKAGE_ROOT}"
 
   jq -nc --arg command "$command" --arg cwd "$cwd" '{
     tool_name: "Bash",

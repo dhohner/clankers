@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Pi extension and Claude-format hook that block environment dumps and common local credential access.",
+  "type": "module",
   "keywords": [
     "pi-package",
     "security",
@@ -19,17 +20,31 @@
     "url": "https://github.com/dhohner/clankers.git",
     "directory": "plugins/security-guard"
   },
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "pnpm run clean && tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "check": "pnpm test && tsc --noEmit"
+  },
   "peerDependencies": {
     "@mariozechner/pi-coding-agent": "*"
   },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.5"
+  },
   "pi": {
     "extensions": [
-      "./extensions/block-fups.ts"
+      "./src/index.ts"
     ]
   },
   "files": [
     "README.md",
-    "extensions/**",
+    "src/**",
+    "tsconfig.json",
+    "tsconfig.build.json",
     "package.json",
     "LICENSE"
   ]

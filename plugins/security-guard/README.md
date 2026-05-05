@@ -62,12 +62,12 @@ pi install -l ./plugins/security-guard
 For one-off testing without installing:
 
 ```bash
-pi -e ./plugins/security-guard/extensions/block-fups.ts
+pi -e ./plugins/security-guard/src/index.ts
 ```
 
 ## Learn More
 
-See [the hook script](./scripts/block-fups.sh), [hook registration](./hooks/hooks.json), [Pi extension](./extensions/block-fups.ts), and [Pi package manifest](./package.json) for implementation details.
+See [the hook script](./scripts/block-fups.sh), [hook registration](./hooks/hooks.json), [Pi extension](./src/index.ts), and [Pi package manifest](./package.json) for implementation details.
 
 ## Authors
 

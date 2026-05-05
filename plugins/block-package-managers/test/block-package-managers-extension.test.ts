@@ -2,7 +2,7 @@ import { chmodSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import blockPackageManagers from "../plugins/block-package-managers/extensions/block-package-managers";
+import blockPackageManagers from "../extensions/block-package-managers";
 
 type Handler = (event: Record<string, unknown>, ctx: { cwd?: string }) => unknown;
 

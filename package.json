@@ -7,12 +7,9 @@
     "pi-package"
   ],
   "scripts": {
-    "test": "pnpm test:shell && pnpm test:unit",
-    "test:shell": "bats test/*.bats",
-    "test:unit": "vitest run"
+    "test": "pnpm -r --if-present test"
   },
   "devDependencies": {
-    "bats": "^1.13.0",
     "vitest": "^4.1.5"
   },
   "peerDependencies": {

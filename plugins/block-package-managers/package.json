@@ -18,8 +18,17 @@
     "url": "https://github.com/dhohner/clankers.git",
     "directory": "plugins/block-package-managers"
   },
+  "scripts": {
+    "test": "pnpm test:shell && pnpm test:unit",
+    "test:shell": "pnpm dlx bats test/*.bats",
+    "test:unit": "pnpm exec vitest run"
+  },
   "peerDependencies": {
     "@mariozechner/pi-coding-agent": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "vitest": "^4.1.5"
   },
   "pi": {
     "extensions": [
@@ -29,6 +38,7 @@
   "files": [
     "README.md",
     "extensions/**",
+    "scripts/**",
     "package.json",
     "LICENSE"
   ]
