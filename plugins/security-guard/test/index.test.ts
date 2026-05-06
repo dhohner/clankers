@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import extension from "@/src/index.js";
+import extension from "@/index.js";
 
 function makeMockPi() {
   return { on: vi.fn() };

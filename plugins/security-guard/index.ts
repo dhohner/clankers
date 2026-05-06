@@ -1,7 +1,7 @@
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
-import { getString, getToolInput, normalizeToolName } from "./events.ts";
-import { evaluateText } from "./policy.ts";
-import { BLOCK_REASON, type ToolCallEvent, type UserBashEvent } from "./types.ts";
+import { getString, getToolInput, normalizeToolName } from "./lib/events.ts";
+import { evaluateText } from "./lib/policy.ts";
+import { BLOCK_REASON, type ToolCallEvent, type UserBashEvent } from "./lib/types.ts";
 
 const TOOL_INPUT_KEYS: Readonly<Record<string, readonly string[]>> = {
   bash: ["command"],
@@ -41,4 +41,4 @@ export default function securityGuard(pi: ExtensionAPI) {
   });
 }
 
-export { BLOCK_REASON, evaluateText, isBlockedText } from "./policy.ts";
+export { BLOCK_REASON, evaluateText, isBlockedText } from "./lib/policy.ts";

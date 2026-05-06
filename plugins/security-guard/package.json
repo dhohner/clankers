@@ -39,12 +39,13 @@
   },
   "pi": {
     "extensions": [
-      "./src/index.ts"
+      "./index.ts"
     ]
   },
   "files": [
     "README.md",
-    "src/**",
+    "index.ts",
+    "lib/**",
     "tsconfig.json",
     "tsconfig.build.json",
     "package.json",

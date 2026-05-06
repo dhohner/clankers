@@ -13,5 +13,5 @@
     },
     "types": ["node", "vitest"]
   },
-  "include": ["src/**/*.ts", "test/**/*.ts"]
+  "include": ["index.ts", "lib/**/*.ts", "test/**/*.ts"]
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getString, getToolInput, normalizeToolName } from "@/src/events.js";
+import { getString, getToolInput, normalizeToolName } from "@/lib/events.js";
 
 describe("event helpers", () => {
   it("normalizes tool names", () => {
