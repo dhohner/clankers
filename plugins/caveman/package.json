@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Pi extension for toggleable ultra-compressed response mode.",
+  "type": "module",
   "keywords": [
     "pi-package",
     "caveman",
@@ -18,17 +19,30 @@
     "url": "https://github.com/dhohner/clankers.git",
     "directory": "plugins/caveman"
   },
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "pnpm run clean && tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "check": "pnpm run typecheck"
+  },
   "peerDependencies": {
     "@mariozechner/pi-coding-agent": "*"
   },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "typescript": "^6.0.3"
+  },
   "pi": {
     "extensions": [
-      "./extensions/caveman.ts"
+      "./index.ts"
     ]
   },
   "files": [
     "README.md",
-    "extensions/**",
+    "index.ts",
+    "lib/**",
+    "tsconfig.json",
+    "tsconfig.build.json",
     "package.json",
     "LICENSE"
   ]

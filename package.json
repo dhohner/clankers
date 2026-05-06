@@ -17,9 +17,9 @@
   },
   "pi": {
     "extensions": [
-      "./plugins/security-guard/extensions/block-fups.ts",
+      "./plugins/security-guard/index.ts",
       "./plugins/block-package-managers/extensions/block-package-managers.ts",
-      "./plugins/caveman/extensions/caveman.ts"
+      "./plugins/caveman/index.ts"
     ]
   },
   "files": [
@@ -31,7 +31,8 @@
     "plugins/block-package-managers/extensions/**",
     "plugins/block-package-managers/package.json",
     "plugins/block-package-managers/README.md",
-    "plugins/caveman/extensions/**",
+    "plugins/caveman/index.ts",
+    "plugins/caveman/src/**",
     "plugins/caveman/package.json",
     "plugins/caveman/README.md"
   ],

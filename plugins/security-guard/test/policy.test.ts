@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isBlockedText, evaluateText, BLOCK_REASON } from "@/lib/policy.js";
+import { isBlockedText, evaluateText, BLOCK_REASON } from "../lib/policy.js";
 
 describe("security policy", () => {
   it.each([

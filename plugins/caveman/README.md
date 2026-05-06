@@ -19,7 +19,7 @@ A status-bar indicator appears while `ultra` mode is active.
 
 ## Other hosts
 
-The `skills/toggle/SKILL.md` file is still kept for hosts that consume skills directly. Pi uses `extensions/caveman-instructions.md` instead.
+The `skills/toggle/SKILL.md` file is still kept for hosts that consume skills directly. Pi uses `lib/prompts/caveman-instructions.md` instead.
 
 ## Modes
 

@@ -8,7 +8,7 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "rewriteRelativeImportExtensions": true,
-    "types": ["node", "vitest"]
+    "types": ["node"]
   },
-  "include": ["index.ts", "lib/**/*.ts", "test/**/*.ts"]
+  "include": ["index.ts", "lib/**/*.ts"]
 }
