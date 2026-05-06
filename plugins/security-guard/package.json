@@ -24,8 +24,10 @@
     "clean": "rm -rf dist",
     "build": "pnpm run clean && tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "check": "pnpm test && tsc --noEmit"
+    "test": "pnpm test:shell && pnpm test:unit",
+    "test:shell": "pnpm dlx bats test/*.bats",
+    "test:unit": "pnpm exec vitest run",
+    "check": "pnpm test && pnpm run typecheck"
   },
   "peerDependencies": {
     "@mariozechner/pi-coding-agent": "*"

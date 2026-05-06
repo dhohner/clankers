@@ -3,8 +3,8 @@
 bats_require_minimum_version 1.5.0
 
 setup() {
-  REPO_ROOT="$(cd "$BATS_TEST_DIRNAME/.." && pwd)"
-  SCRIPT="$REPO_ROOT/plugins/security-guard/scripts/block-fups.sh"
+  PLUGIN_ROOT="$(cd "$BATS_TEST_DIRNAME/.." && pwd)"
+  SCRIPT="$PLUGIN_ROOT/scripts/block-fups.sh"
 }
 
 run_hook() {
