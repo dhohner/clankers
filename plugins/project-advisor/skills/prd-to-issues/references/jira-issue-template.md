@@ -37,7 +37,7 @@ Als <span style="color:#ff8c00"><persona></span> m&ouml;chte ich <span style="co
 
 <ul>
 <li><b>Was umgesetzt werden soll:</b> Kompakte Beschreibung dieses vertikalen Schnitts. Beschreibe das gew&uuml;nschte End-to-End-Verhalten, das erwartete Ergebnis und wichtige Randbedingungen. Verweise auf relevante Abschnitte des &uuml;bergeordneten PRD, statt Inhalte zu duplizieren. Kein schrittweiser Implementierungsplan.</li>
-<li><b>Blockiert durch:</b> Keine &ndash; kann sofort begonnen werden</li>
+<li><b>Blockiert durch:</b> <Titel oder Dateiname des erforderlichen Vorg&auml;nger-Slices></li>
 <li><b>Technische Hinweise:</b> Optional. Nur essentiellen Kontext, Schnittstellen oder nicht-offensichtliche Randbedingungen festhalten, die einem erfahrenen Entwickler bei der Umsetzung helfen. Keine Aufgabenlisten oder Agent-Anweisungen.</li>
 <li><b>Annahmen:</b>
 <ul>
@@ -78,7 +78,7 @@ Als <span style="color:#ff8c00"><persona></span> m&ouml;chte ich <span style="co
 - Use one dashed scenario panel per acceptance criterion or tightly related scenario.
 - Scenario titles should be short and outcome-oriented.
 - Use `#27ae60` or `#16a085` for `Dann` and `#f39c12` or `#27ae60` for `Und`, depending on context.
-- Always include the notes panel. Within the notes, include only entries that carry real information. Omit entries entirely rather than writing `Keine` — if a slice has no risks, do not include a "Risiken" entry. "Was umgesetzt werden soll" and "Blockiert durch" should always be present; all other entries (Technische Hinweise, Annahmen, Abhängigkeiten, Risiken, Offene Fragen) are optional.
+- Always include the notes panel. Within the notes, include only entries that carry real information. Omit entries entirely rather than writing `Keine` — if a slice has no risks, do not include a "Risiken" entry. `Was umgesetzt werden soll` should always be present. `Blockiert durch` should appear only when a real prerequisite slice exists; omit it for slices that can start immediately. All other entries (Technische Hinweise, Annahmen, Abhängigkeiten, Risiken, Offene Fragen) are optional.
 - Do not create checkbox lists for acceptance criteria.
 - Write for experienced human developers, not for autonomous agents.
 - Prefer statements about user-visible behavior, system responses, data outcomes, and constraints over instructions about which files, classes, layers, or methods to change.

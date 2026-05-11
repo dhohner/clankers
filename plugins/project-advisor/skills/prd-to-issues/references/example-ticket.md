@@ -92,6 +92,5 @@ Als <span style="color:#ff8c00">Nutzer der B2B-Anwenderverwaltung</span> m&ouml;
 
 <ul>
 <li><b>Was umgesetzt werden soll:</b> Paginierung hat keinen Einfluss auf den Export &mdash; Export basiert auf gesamtem gefiltertem Resultset.</li>
-<li><b>Blockiert durch:</b> Keine &ndash; kann sofort begonnen werden</li>
 </ul>
 ```

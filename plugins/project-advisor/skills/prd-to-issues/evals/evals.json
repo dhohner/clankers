@@ -11,9 +11,10 @@
       "expectations": [
         "At least one generated action item covers chronological order history with user-visible summary fields and a first-time empty state.",
         "At least one generated action item covers invoice access together with auditable access and retryable recovery.",
+        "At least one generated action item preserves the PRD's ownership boundary that only the authenticated customer can access their own order history and invoice links.",
         "The generated action items describe desired outcomes and constraints rather than instructing developers to add specific endpoints, schemas, tables, components, or methods.",
-        "All ticket content — titles, user stories, scenario names, scenario text, note labels (Was umgesetzt werden soll, Blockiert durch, Technische Hinweise, Annahmen, Abhängigkeiten, Risiken, Offene Fragen), and note content — is written in German. No English labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' appear.",
-        "Note entries that carry no real information (e.g. 'Keine', 'Offen', 'Nicht vorhanden') are omitted entirely rather than included as placeholder entries.",
+        "All ticket content is written in German. No English labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' appear.",
+        "Note entries that carry no real information are omitted entirely rather than included as placeholder entries. In particular, slices without prerequisites omit `Blockiert durch` instead of using placeholders such as `Keine`.",
         "Scenario text does not contain filler adjectives like nahtlos, robust, umfassend, zuverlässig, eindeutig, or sichergestellt.",
         "Scenarios use first-person perspective (ich befinde mich, ich klicke, ich sehe) rather than third-person (der Nutzer, der Kunde befindet sich).",
         "Technische Hinweise only contain non-obvious information — no tech stack, standard auth rules, or other things a senior dev would assume."
@@ -29,12 +30,52 @@
       "expectations": [
         "At least one generated action item covers delegation setup with eligibility checks and clear validation feedback.",
         "At least one generated action item covers automatic delegated routing during the active window and automatic return to the original approver afterward.",
+        "At least one generated action item preserves a compliance-facing view of delegation history without requiring database access.",
         "The generated action items describe behavior, ownership, and audit outcomes without prescribing specific APIs, schemas, tables, services, or UI components to change.",
-        "All ticket content — titles, user stories, scenario names, scenario text, note labels (Was umgesetzt werden soll, Blockiert durch, Technische Hinweise, Annahmen, Abhängigkeiten, Risiken, Offene Fragen), and note content — is written in German. No English labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' appear.",
-        "Note entries that carry no real information (e.g. 'Keine', 'Offen', 'Nicht vorhanden') are omitted entirely rather than included as placeholder entries.",
+        "All ticket content is written in German. No English labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' appear.",
+        "Note entries that carry no real information are omitted entirely rather than included as placeholder entries. In particular, slices without prerequisites omit `Blockiert durch` instead of using placeholders such as `Keine`.",
         "Scenario text does not contain filler adjectives like nahtlos, robust, umfassend, zuverlässig, eindeutig, or sichergestellt.",
         "Scenarios use first-person perspective (ich befinde mich, ich klicke, ich sehe) rather than third-person (der Nutzer, der Kunde befindet sich).",
         "Technische Hinweise only contain non-obvious information — no tech stack, standard auth rules, or other things a senior dev would assume."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Use fast mode. Convert the feature brief in plugins/project-advisor/skills/prd-to-issues/evals/inputs/brief-saved-views.md into Jira-ready vertical-slice action items. Do not ask for a PRD. Assume the provided brief is sufficient unless one missing decision would materially change the slices, and write the markdown files directly.",
+      "expected_output": "Generated action items turn a non-PRD feature brief into lean, Jira-ready vertical slices without inventing a separate discovery or foundation phase.",
+      "files": [
+        "plugins/project-advisor/skills/prd-to-issues/evals/inputs/brief-saved-views.md"
+      ],
+      "expectations": [
+        "At least one generated action item covers saving a filtered view with a user-defined name and making it available from the existing people list workflow.",
+        "At least one generated action item covers reusing a saved view later, including clear handling when filter definitions are no longer valid.",
+        "The generated issue set does not introduce a generic discovery, PRD-writing, or architecture-foundation slice; it goes straight to product-facing work items.",
+        "The generated action items describe user-visible behavior and constraints rather than prescribing specific APIs, schemas, tables, services, components, or methods to change.",
+        "The generated action items do not invent additional product rules that are absent from the brief, such as naming validation, duplicate-name handling, sharing behavior, quotas, or special permission exceptions, unless they are clearly framed as assumptions or open questions.",
+        "The generated action items preserve that saved views are personal and not shared with other users.",
+        "All ticket content is written in German. No English labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' appear.",
+        "Note entries that carry no real information are omitted entirely rather than included as placeholder entries. In particular, slices without prerequisites omit `Blockiert durch` instead of using placeholders such as `Keine`.",
+        "Scenario text does not contain filler adjectives like nahtlos, robust, umfassend, zuverlässig, eindeutig, or sichergestellt.",
+        "Scenarios use first-person perspective (ich befinde mich, ich klicke, ich sehe) rather than third-person (der Nutzer, der Kunde befindet sich)."
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Use fast mode. Start from the thin feature brief in plugins/project-advisor/skills/prd-to-issues/evals/inputs/brief-filter-presets-thin.md. Do not ask for a PRD. If a missing decision materially changes the slice breakdown, ask the smallest useful follow-up question before creating files. Otherwise write Jira-ready vertical-slice action items directly and keep unresolved product detail as assumptions or open questions instead of inventing it.",
+      "expected_output": "Generated output handles a thin brief cautiously: it either asks one tight clarification question when a missing decision changes slice shape, or it produces lean action items that defer unresolved product rules instead of silently inventing them.",
+      "files": [
+        "plugins/project-advisor/skills/prd-to-issues/evals/inputs/brief-filter-presets-thin.md"
+      ],
+      "expectations": [
+        "The result either asks a small clarification about a missing decision that materially changes the slice breakdown, or it creates action items while surfacing unresolved decisions as Annahmen or Offene Fragen instead of treating them as settled requirements.",
+        "If action items are created, at least one generated action item covers getting back to recurring filter configurations faster from the existing Personenliste workflow.",
+        "The generated issue set does not introduce a generic discovery, PRD-writing, or architecture-foundation slice just to compensate for the thin brief.",
+        "The generated action items do not invent unsupported product rules such as personal-versus-shared ownership, rename or delete behavior, quotas, duplicate-name handling, validation rules, or special permission exceptions unless they are clearly framed as assumptions or open questions.",
+        "The generated action items describe user-visible behavior and constraints rather than prescribing specific APIs, schemas, tables, services, components, or methods to change.",
+        "The generated action items preserve the thin brief's explicit scope constraints: the existing listen/filter experience is extended rather than replaced, and the first version is for internal users.",
+        "All ticket content is written in German. No English labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' appear.",
+        "Note entries that carry no real information are omitted entirely rather than included as placeholder entries. In particular, slices without prerequisites omit `Blockiert durch` instead of using placeholders such as `Keine`.",
+        "Scenario text does not contain filler adjectives like nahtlos, robust, umfassend, zuverlässig, eindeutig, or sichergestellt."
       ]
     }
   ]

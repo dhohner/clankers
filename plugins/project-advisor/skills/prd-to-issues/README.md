@@ -9,9 +9,9 @@ The generated items are written for experienced developers. They describe desire
 This skill converts a PRD into a set of Jira-ready markdown files:
 
 1. **Locate the PRD** — reads the PRD from a workspace file or asks the user
-2. **Explore the codebase** — understands the current state of the code (optional)
-3. **Draft vertical slices** — breaks the PRD into thin end-to-end tracer-bullet slices, each demoable on its own
-4. **Quiz the user** — presents the breakdown for review, iterates until approved
+2. **Explore the codebase** — verifies the current workflow, terminology, and constraints before splitting work
+3. **Draft vertical slices** — breaks the PRD or feature brief into thin end-to-end tracer-bullet slices, each demoable on its own
+4. **Review only what matters** — runs a full approval loop in `default` mode and a minimal clarification loop in `fast` mode
 5. **Create Jira-ready markdown files** — writes one file per slice into `action-items/jira-issues/`
 
 ## Output Format
@@ -35,6 +35,17 @@ Each generated file uses Jira-compatible HTML panels:
 
 - `references/jira-issue-template.md` contains the authoritative Jira-compatible HTML template and formatting rules.
 - `references/example-ticket.md` contains a fully worked sample ticket that demonstrates the expected phrasing and level of detail.
+- `references/fast-mode-intake.md` keeps `fast` mode from turning into a full PRD interview.
+- `references/slice-design-checklist.md` defines what counts as a strong vertical slice and how to handle dependencies.
+- `references/ticket-writing-checklist.md` keeps ticket tone, scenario phrasing, and note density consistent.
+
+## File Structure
+
+The skill keeps all guidance inside the skill directory so it packages cleanly:
+
+- `SKILL.md` handles triggering, mode selection, and the high-level process.
+- `references/` holds the durable guidance for intake, slice design, writing rules, and the Jira HTML template.
+- `evals/` contains realistic prompts and expectations for regression checks.
 
 ## Author
 
