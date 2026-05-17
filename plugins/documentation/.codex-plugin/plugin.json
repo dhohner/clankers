@@ -1,0 +1,35 @@
+{
+  "name": "documentation",
+  "description": "Agent skill that provides expert technical writing capabilities for software documentation, following the Diátaxis framework.",
+  "author": {
+    "name": "dhohner",
+    "url": "https://github.com/dhohner"
+  },
+  "homepage": "https://github.com/dhohner/clankers/tree/main/plugins/documentation",
+  "repository": "https://github.com/dhohner/clankers",
+  "license": "MIT",
+  "keywords": [
+    "documentation",
+    "diataxis",
+    "writing",
+    "technical-writing"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Documentation",
+    "shortDescription": "Diátaxis-guided technical writing skill.",
+    "longDescription": "Packages a documentation workflow for planning and writing tutorials, how-to guides, reference material, and explanations using the Diátaxis framework.",
+    "developerName": "dhohner",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Use the writer skill to help me plan documentation for this feature.",
+      "Draft a Diátaxis-style how-to guide for this workflow.",
+      "Review this documentation outline and classify it as tutorial, how-to, reference, or explanation."
+    ],
+    "brandColor": "#2563EB"
+  }
+}

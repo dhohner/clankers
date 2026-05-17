@@ -51,6 +51,15 @@
       "description": "Provide a concise-response skill for VS Code and other Claude-format hosts.",
       "category": "development",
       "tags": ["skill", "style"]
+    },
+    {
+      "name": "documentation",
+      "source": "documentation",
+      "description": "Agent skill that provides expert technical writing capabilities for software documentation, following the Diátaxis framework.",
+      "homepage": "https://github.com/dhohner/clankers/tree/main/plugins/documentation",
+      "repository": "https://github.com/dhohner/clankers",
+      "category": "development",
+      "tags": ["skill", "documentation", "diátaxis"]
     }
   ]
 }

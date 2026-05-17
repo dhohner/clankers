@@ -1,0 +1,10 @@
+{
+  "name": "documentation",
+  "description": "Agent skill that provides expert technical writing capabilities for software documentation, following the Diátaxis framework.",
+  "author": {
+    "name": "dhohner"
+  },
+  "repository": "https://github.com/dhohner/clankers",
+  "license": "MIT",
+  "keywords": ["skill", "style", "concise", "documentation", "diátaxis"]
+}

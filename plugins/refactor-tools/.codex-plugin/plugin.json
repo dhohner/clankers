@@ -5,8 +5,8 @@
     "name": "dhohner",
     "url": "https://github.com/dhohner"
   },
-  "homepage": "https://github.com/dhohner/ai-forge/tree/main/plugins/refactor-tools",
-  "repository": "https://github.com/dhohner/ai-forge",
+  "homepage": "https://github.com/dhohner/clankers/tree/main/plugins/refactor-tools",
+  "repository": "https://github.com/dhohner/clankers",
   "license": "MIT",
   "keywords": [
     "refactor",

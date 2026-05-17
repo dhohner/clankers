@@ -2,67 +2,54 @@
 
 Clankers is a small collection of practical agent plugins for real coding work: tighter planning, safer terminal behavior, cleaner refactors, and faster, easier-to-scan chat.
 
-It is built for GitHub Copilot in Visual Studio Code, Claude Code, Codex App, and Pi Coding Agent.
-
-> **⚠️ Important:** Make sure you trust a plugin before installing, updating, or using it. Plugins in this repository can include prompts, skills, hooks, and shell scripts that run on your machine. Review each plugin's README and source before use.
-
-Tools:
+It targets four hosts today:
 
 - GitHub Copilot in Visual Studio Code
-- Claude Code (untested)
+- Claude Code
 - Codex App
 - Pi Coding Agent
 
-## Structure
+> **⚠️ Important:** Review each plugin before you install it. Plugins in this repository can include prompts, skills, hooks, and shell scripts that run on your machine.
 
-- **`/.agents/plugins/marketplace.json`** - Codex App marketplace catalog for this repository
-- **`/.claude-plugin/marketplace.json`** - Claude-format marketplace catalog used by Claude Code and VS Code agent plugins
-- **`/plugins`** - plugins developed and maintained in this repository
+## What You Can Install
 
-## Included Plugins
+The repository packages small, focused plugins instead of one large bundle. Which plugins you can use depends on the host.
 
-### Available in Codex App Marketplace
+### Claude-Format Marketplaces
 
-- **`project-advisor`** - Packages product-planning skills, including `next-best-thing`, `write-a-prd`, and `prd-to-issues`
-- **`refactor-tools`** - Packages safe cleanup and refactor skills, including `simplify`
-- **`caveman`** - Packages the `toggle` skill for ultra-focused concise-response control with `ultra` and `off` modes, inspired by [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman)
+- `project-advisor` for PRDs, issue slicing, and planning workflows
+- `refactor-tools` for safe cleanup and simplification work
+- `block-package-managers` to block `npm` and `npx` and steer agents toward `pnpm`
+- `security-guard` to block environment dumps and common credential reads
+- `lint-and-format` to run lint and format hooks at the end of coding turns
+- `caveman` for ultra-concise chat behavior
 
-### Available in Claude-Format Marketplaces
+### Codex App Marketplace
 
-- **`project-advisor`** - Packages product-planning skills, including `next-best-thing`, `write-a-prd`, and `prd-to-issues`
-- **`refactor-tools`** - Packages safe cleanup and refactor skills, including `simplify`
-- **`block-package-managers`** - Blocks `npm` and `npx` terminal usage and redirects to `pnpm`
-- **`security-guard`** - Blocks tool calls that try to print the current user environment or read common local credentials
-- **`lint-and-format`** - Runs `pnpm format` and `pnpm lint` when the agent finishes a coding turn and scripts exist
-- **`caveman`** - Provides the `toggle` skill for ultra-focused concise GitHub Copilot chat in VS Code, inspired by [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman)
+- `project-advisor`
+- `refactor-tools`
+- `caveman`
 
-## Getting Started
+### Pi Coding Agent
 
-### Codex App
+- `security-guard`
+- `block-package-managers`
+- `caveman`
 
-This repository includes a repo-scoped Codex marketplace at [`.agents/plugins/marketplace.json`](./.agents/plugins/marketplace.json).
+See the plugin directories in [plugins](./plugins) for usage details and host-specific behavior.
 
-To use it in Codex App:
-
-1. Clone this repository locally.
-2. Open the repository in Codex App.
-3. Open the plugin directory and look for the marketplace labeled `dhohner/clankers`.
-4. Install one of the Codex-native plugins:
-   - `project-advisor`
-   - `refactor-tools`
-   - `caveman`
-5. Start using the plugin from chat.
+## Install
 
 ### Visual Studio Code + GitHub Copilot
 
-VS Code agent plugins are currently in preview. Start with the official docs:
+VS Code agent plugins are currently in preview. If you have not used them before, start with the official docs:
 
 - [Agent plugins in VS Code](https://code.visualstudio.com/docs/copilot/customization/agent-plugins)
 - [Agent skills in VS Code](https://code.visualstudio.com/docs/copilot/customization/agent-skills)
 - [Custom instructions in VS Code](https://code.visualstudio.com/docs/copilot/customization/custom-instructions)
 - [Customize AI in Visual Studio Code](https://code.visualstudio.com/docs/copilot/customization/overview)
 
-1. Enable agent plugins in VS Code:
+1. Enable agent plugins in `settings.json`:
 
 ```json
 {
@@ -70,27 +57,29 @@ VS Code agent plugins are currently in preview. Start with the official docs:
 }
 ```
 
-2. Add this repository as a marketplace in your `settings.json`:
+2. Add this repository as a marketplace:
 
 ```json
 {
   "chat.plugins.marketplaces": [
     "github/awesome-copilot",
     "github/copilot-plugins",
-    "dhohner/clankers" // or: "file:///absolute/path/to/clankers"
+    "dhohner/clankers"
   ]
 }
 ```
 
+If you are working from a local checkout instead of GitHub, use `file:///absolute/path/to/clankers`.
+
 3. Open the Extensions view and search for `@agentPlugins`.
-4. Find plugins from the `dhohner/clankers` marketplace and install what you want.
-5. Open Copilot Chat and use the installed plugin skills.
+4. Install the plugin you want from the `dhohner/clankers` marketplace.
+5. Open Copilot Chat and use the installed skills or hooks.
 
 ### Claude Code
 
-This repository also ships a Claude-format marketplace at [`.claude-plugin/marketplace.json`](./.claude-plugin/marketplace.json).
+This repository ships a Claude-format marketplace at [`.claude-plugin/marketplace.json`](./.claude-plugin/marketplace.json).
 
-Add the marketplace from Github:
+Add the marketplace:
 
 ```bash
 /plugin marketplace add dhohner/clankers
@@ -108,15 +97,19 @@ Browse interactively:
 /plugin > Discover
 ```
 
+### Codex App
+
+This repository includes a repo-scoped Codex marketplace at [`.agents/plugins/marketplace.json`](./.agents/plugins/marketplace.json).
+
+1. Clone this repository locally.
+2. Open the repository in Codex App.
+3. Open the plugin directory and look for the marketplace labeled `dhohner/clankers`.
+4. Install one of the Codex-native plugins.
+5. Start using it from chat.
+
 ### Pi Coding Agent
 
-Pi support in this repository is aimed at making local coding sessions safer and easier to steer.
-
-Available Pi extensions:
-
-- **`security-guard`** - blocks risky `bash`, `read`, and user shell commands that try to print env data or read common local credentials
-- **`block-package-managers`** - blocks `npm` and `npx` in Pi `bash` tool calls and user shell commands, and points the agent toward `pnpm`
-- **`caveman`** - adds a session-level response mode for ultra-short, scan-friendly replies
+Pi support is aimed at making local coding sessions safer and easier to steer.
 
 Install the full Pi bundle from this repo:
 
@@ -146,43 +139,43 @@ pi install -l ./plugins/block-package-managers
 pi install -l ./plugins/caveman
 ```
 
-## Tests
+## Repository Layout
+
+- [`.agents/plugins/marketplace.json`](./.agents/plugins/marketplace.json) is the Codex App marketplace catalog
+- [`.claude-plugin/marketplace.json`](./.claude-plugin/marketplace.json) is the Claude-format marketplace catalog used by Claude Code and VS Code agent plugins
+- [`plugins/`](./plugins) contains the installable plugin packages
+
+Each plugin is a small installable unit. A typical layout looks like this:
+
+```text
+plugin-name/
+├── .codex-plugin/
+│   └── plugin.json      # Codex metadata when the plugin ships in Codex marketplaces
+├── .claude-plugin/
+│   └── plugin.json      # Claude-format metadata for Claude/VS Code marketplaces
+├── package.json         # Pi package manifest when direct Pi install is supported
+├── README.md            # Plugin documentation
+├── extensions/
+│   └── plugin.ts        # Pi extension entrypoint
+├── skills/
+│   └── skill-name/
+│       └── SKILL.md     # Skill definition
+├── hooks/
+│   └── hooks.json       # Hook registration
+├── .mcp.json            # MCP server configuration
+└── scripts/
+    └── script.sh        # Hook implementation or helper script
+```
+
+## Development
+
+Install dependencies and run the test suite with:
 
 ```bash
 pnpm install
 pnpm test
 ```
 
-## Plugin Structure
-
-Each plugin in this repository is packaged as a small, focused installable unit. The goal is simple: install just the behavior you want, in the host you already use.
-
-```text
-plugin-name/
-├── .codex-plugin/
-│   └── plugin.json      # Codex metadata (optional, required for Codex marketplace)
-├── .claude-plugin/
-│   └── plugin.json      # Claude-format metadata (required for Claude/VS Code marketplaces)
-├── package.json         # Pi package manifest (optional, required for direct Pi install)
-├── README.md            # Plugin documentation
-├── extensions/
-│   └── plugin.ts        # Pi extension entrypoint (optional)
-├── skills/
-│   └── skill-name/
-│       └── SKILL.md     # Skill definition (optional, preferred)
-├── hooks/
-│   └── hooks.json       # Hook registration (optional)
-├── .mcp.json            # MCP server configuration (optional)
-└── scripts/
-    └── script.sh        # Hook implementation or helper script (optional)
-```
-
 ## License
 
-This repository is licensed under MIT. See [LICENSE](./LICENSE).
-
-## Documentation
-
-- Codex marketplace catalog: [`.agents/plugins/marketplace.json`](./.agents/plugins/marketplace.json)
-- Claude-format marketplace catalog: [`.claude-plugin/marketplace.json`](./.claude-plugin/marketplace.json)
-- Plugin-specific usage and behavior: [`plugins/`](./plugins)
+Clankers is licensed under MIT. See [LICENSE](./LICENSE).
