@@ -1,6 +1,6 @@
 ---
 name: writer
-description: "Plans, rewrites, and expands project documentation in Markdown with a clear, compact, framework-docs tone inspired by Vue. Use when the user asks for a README, guide, API reference, architecture note, migration doc, onboarding doc, contributing guide, or wants code and existing project files turned into documentation. Also use this skill when the user asks to improve documentation structure, examples, terminology, or tone, even if they never explicitly say 'documentation.'"
+description: "Plans, rewrites, and expands project documentation in Markdown with a clear, compact, framework-docs tone. Use when the user asks for a README, guide, API reference, architecture note, migration doc, onboarding doc, contributing guide, or wants code and existing project files turned into documentation. Also use this skill when the user asks to improve documentation structure, examples, terminology, or tone, even if they never explicitly say 'documentation.'"
 ---
 
 # Writer
@@ -42,7 +42,7 @@ If one of these is missing but you can infer it from the repo, do that. If it re
 
 ## Writing style
 
-Aim for a tone similar to strong framework documentation such as Vue's docs:
+Aim for a tone similar to strong framework documentation:
 
 - lead with the answer, recommendation, or purpose
 - explain the "why" close to the "what"

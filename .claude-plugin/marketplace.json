@@ -55,11 +55,11 @@
     {
       "name": "documentation",
       "source": "documentation",
-      "description": "Agent skill that provides expert technical writing capabilities for software documentation, following the Diátaxis framework.",
+      "description": "Markdown documentation skill for README files, guides, reference docs, and architecture notes.",
       "homepage": "https://github.com/dhohner/clankers/tree/main/plugins/documentation",
       "repository": "https://github.com/dhohner/clankers",
       "category": "development",
-      "tags": ["skill", "documentation", "diátaxis"]
+      "tags": ["skill", "documentation", "markdown", "readme"]
     }
   ]
 }

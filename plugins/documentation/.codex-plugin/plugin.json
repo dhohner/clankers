@@ -1,6 +1,6 @@
 {
   "name": "documentation",
-  "description": "Agent skill that provides expert technical writing capabilities for software documentation, following the Diátaxis framework.",
+  "description": "Markdown documentation skill for README files, guides, reference docs, and architecture notes.",
   "author": {
     "name": "dhohner",
     "url": "https://github.com/dhohner"
@@ -17,8 +17,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Documentation",
-    "shortDescription": "Diátaxis-guided technical writing skill.",
-    "longDescription": "Packages a documentation workflow for planning and writing tutorials, how-to guides, reference material, and explanations using the Diátaxis framework.",
+    "shortDescription": "Write clearer project documentation in Markdown.",
+    "longDescription": "Packages a repo-first documentation workflow for README files, how-to guides, reference pages, migration notes, and architecture docs in a clear, compact style.",
     "developerName": "dhohner",
     "category": "Productivity",
     "capabilities": [
@@ -26,9 +26,9 @@
       "Write"
     ],
     "defaultPrompt": [
-      "Use the writer skill to help me plan documentation for this feature.",
-      "Draft a Diátaxis-style how-to guide for this workflow.",
-      "Review this documentation outline and classify it as tutorial, how-to, reference, or explanation."
+      "Use the writer skill to rewrite this README so the setup steps are easier to scan.",
+      "Draft a how-to guide for this workflow from the repo files.",
+      "Turn this code and config into a short API reference page."
     ],
     "brandColor": "#2563EB"
   }

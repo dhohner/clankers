@@ -19,6 +19,7 @@ The repository packages small, focused plugins instead of one large bundle. Whic
 
 - `project-advisor` for PRDs, issue slicing, and planning workflows
 - `refactor-tools` for safe cleanup and simplification work
+- `documentation` for README files, guides, reference docs, and other project documentation
 - `block-package-managers` to block `npm` and `npx` and steer agents toward `pnpm`
 - `security-guard` to block environment dumps and common credential reads
 - `lint-and-format` to run lint and format hooks at the end of coding turns
@@ -28,6 +29,7 @@ The repository packages small, focused plugins instead of one large bundle. Whic
 
 - `project-advisor`
 - `refactor-tools`
+- `documentation`
 - `caveman`
 
 ### Pi Coding Agent
