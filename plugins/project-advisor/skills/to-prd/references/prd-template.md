@@ -2,6 +2,8 @@
 
 Use this structure for every generated PRD.
 
+This template is only for the PRD. When the user explicitly requested `with debug`, keep agent-made interpretation notes, deviations from the brief, tradeoffs between plausible approaches, and user confirmation items in the companion `implementation-notes.html` file instead of mixing them into settled product requirements.
+
 The file should live at `action-items/PRD-<short-slug>.md` and start with this frontmatter:
 
 ```yaml
@@ -57,6 +59,8 @@ This can include:
 
 Prefer stable decisions over brittle detail. Avoid exact file paths and code snippets unless the user explicitly wants them.
 
+If a point is mainly about how you interpreted ambiguity or why you departed from the brief, summarize the settled consequence here and, when the user requested `with debug`, put the meta-explanation in the companion notes file.
+
 ### Testing Decisions
 
 Capture what good verification looks like.
@@ -95,4 +99,5 @@ Omit subheadings that would be empty.
 - Prefer concrete language over strategic filler.
 - Make uncertainty explicit when a decision is still open.
 - Separate assumptions, open questions, and rollout or migration concerns instead of mixing them into settled decisions.
+- Keep the PRD focused on product and execution decisions; use the companion notes file for interpretation deltas and review caveats only when the user requested `with debug`.
 - Keep the document focused enough to decompose into coherent Jira-ready work items.

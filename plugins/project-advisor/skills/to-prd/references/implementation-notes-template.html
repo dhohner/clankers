@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Implementation Notes · PRD-&lt;short-slug&gt;</title>
+    <style>
+      /* ── tokens ── */
+      :root {
+        --page: #f5f0e8;
+        --surface: #fdfaf4;
+        --ink: #1c1917;
+        --muted: #78716c;
+        --line: #e2d9c8;
+        --shadow: rgba(41, 30, 15, 0.07);
+
+        /* section palette */
+        --c-decision: #3b5bdb; /* indigo  */
+        --c-deviation: #b45309; /* amber   */
+        --c-tradeoff: #2d6a4f; /* sage    */
+        --c-question: #c0392b; /* coral   */
+
+        --c-decision-bg: #eef2ff;
+        --c-deviation-bg: #fffbeb;
+        --c-tradeoff-bg: #f0fdf4;
+        --c-question-bg: #fff5f5;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Georgia", serif;
+        font-size: 16px;
+        line-height: 1.65;
+        background-color: var(--page);
+        background-image: radial-gradient(
+          ellipse 80% 40% at 50% -10%,
+          #e8dfc8 0%,
+          transparent 70%
+        );
+        color: var(--ink);
+        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* ── layout ── */
+      .wrap {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 48px 24px 80px;
+      }
+
+      /* ── page header ── */
+      .page-header {
+        margin-bottom: 36px;
+      }
+
+      .page-header .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: ui-monospace, "SF Mono", monospace;
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 100px;
+        padding: 4px 12px;
+        margin-bottom: 16px;
+      }
+
+      .page-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+        color: var(--ink);
+        margin-bottom: 10px;
+      }
+
+      .page-header .subtitle {
+        font-size: 0.975rem;
+        color: var(--muted);
+        max-width: 580px;
+      }
+
+      .meta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid var(--line);
+      }
+
+      .meta-item {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .meta-item .label {
+        font-family: ui-monospace, "SF Mono", monospace;
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+      }
+
+      .meta-item .value {
+        font-size: 0.9rem;
+        color: var(--ink);
+        font-weight: 500;
+      }
+
+      /* ── divider ── */
+      .divider {
+        height: 1px;
+        background: var(--line);
+        margin: 32px 0;
+      }
+
+      /* ── section card ── */
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow:
+          0 2px 8px var(--shadow),
+          0 1px 2px var(--shadow);
+        margin-bottom: 20px;
+      }
+
+      .card-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 18px 22px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .card-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        font-size: 16px;
+      }
+
+      .card-head h2 {
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        flex: 1;
+      }
+
+      .card-head .hint-inline {
+        font-size: 0.8rem;
+        color: var(--muted);
+        font-weight: 400;
+        font-family: ui-sans-serif, system-ui, sans-serif;
+        font-style: italic;
+      }
+
+      .card-body {
+        padding: 0;
+      }
+
+      /* ── entry rows ── */
+      .entry {
+        display: grid;
+        grid-template-columns: 110px 1fr;
+        gap: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .entry:last-child {
+        border-bottom: none;
+      }
+
+      .entry-label {
+        padding: 14px 16px;
+        border-right: 1px solid var(--line);
+        font-family: ui-monospace, "SF Mono", monospace;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        display: flex;
+        align-items: flex-start;
+        padding-top: 17px;
+      }
+
+      .entry-value {
+        padding: 14px 18px;
+        font-size: 0.9rem;
+        color: var(--ink);
+        font-family: ui-sans-serif, system-ui, sans-serif;
+      }
+
+      .entry-value em {
+        color: var(--muted);
+        font-style: italic;
+      }
+
+      /* ── section-specific colors ── */
+      /* Design Decisions */
+      .decision .card-head {
+        background: var(--c-decision-bg);
+      }
+      .decision .card-icon {
+        background: #dde4ff;
+        color: var(--c-decision);
+      }
+      .decision .card-head h2 {
+        color: var(--c-decision);
+      }
+      .decision .entry-label {
+        color: var(--c-decision);
+        background: #f5f7ff;
+      }
+
+      /* Deviations */
+      .deviation .card-head {
+        background: var(--c-deviation-bg);
+      }
+      .deviation .card-icon {
+        background: #fde68a;
+        color: var(--c-deviation);
+      }
+      .deviation .card-head h2 {
+        color: var(--c-deviation);
+      }
+      .deviation .entry-label {
+        color: var(--c-deviation);
+        background: #fffdf5;
+      }
+
+      /* Tradeoffs */
+      .tradeoff .card-head {
+        background: var(--c-tradeoff-bg);
+      }
+      .tradeoff .card-icon {
+        background: #d1fae5;
+        color: var(--c-tradeoff);
+      }
+      .tradeoff .card-head h2 {
+        color: var(--c-tradeoff);
+      }
+      .tradeoff .entry-label {
+        color: var(--c-tradeoff);
+        background: #f5fdf9;
+      }
+
+      /* Open Questions */
+      .question .card-head {
+        background: var(--c-question-bg);
+      }
+      .question .card-icon {
+        background: #fee2e2;
+        color: var(--c-question);
+      }
+      .question .card-head h2 {
+        color: var(--c-question);
+      }
+      .question .entry-label {
+        color: var(--c-question);
+        background: #fff8f8;
+      }
+
+      /* ── footer ── */
+      .page-footer {
+        margin-top: 48px;
+        padding-top: 20px;
+        border-top: 1px solid var(--line);
+        font-family: ui-sans-serif, system-ui, sans-serif;
+        font-size: 0.78rem;
+        color: var(--muted);
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      @media (max-width: 600px) {
+        .entry {
+          grid-template-columns: 1fr;
+        }
+        .entry-label {
+          border-right: none;
+          border-bottom: 1px solid var(--line);
+          padding-bottom: 6px;
+        }
+        .wrap {
+          padding: 28px 16px 60px;
+        }
+        .page-header h1 {
+          font-size: 1.5rem;
+        }
+      }
+
+      @media print {
+        body {
+          background: white;
+        }
+        .card {
+          box-shadow: none;
+          border-color: #ccc;
+        }
+        .page-header .eyebrow {
+          border-color: #ccc;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <!-- ── page header ── -->
+      <header class="page-header">
+        <div class="eyebrow">
+          <svg
+            width="11"
+            height="11"
+            viewBox="0 0 12 12"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M6 1L7.5 4.5H11L8.25 6.75L9.25 10.5L6 8.25L2.75 10.5L3.75 6.75L1 4.5H4.5L6 1Z"
+              fill="currentColor"
+            />
+          </svg>
+          PRD companion · with debug
+        </div>
+        <h1>Implementation Notes</h1>
+        <p class="subtitle">
+          How the PRD was interpreted, where it diverges from the brief, and
+          what still needs confirmation before implementation starts.
+        </p>
+        <div class="meta-row">
+          <div class="meta-item">
+            <span class="label">PRD</span>
+            <span class="value">PRD-&lt;short-slug&gt;</span>
+          </div>
+          <div class="meta-item">
+            <span class="label">Date</span>
+            <span class="value">&lt;YYYY-MM-DD&gt;</span>
+          </div>
+          <div class="meta-item">
+            <span class="label">Author</span>
+            <span class="value">&lt;agent / author&gt;</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- ── Design Decisions ── -->
+      <div class="card decision">
+        <div class="card-head">
+          <div class="card-icon" aria-hidden="true">⚙</div>
+          <h2>Design Decisions</h2>
+          <span class="hint-inline"
+            >Choices made where the brief or repo context was ambiguous</span
+          >
+        </div>
+        <div class="card-body">
+          <div class="entry">
+            <div class="entry-label">Decision</div>
+            <div class="entry-value"><em>[the choice that was made]</em></div>
+          </div>
+          <div class="entry">
+            <div class="entry-label">Why</div>
+            <div class="entry-value">
+              <em>[reason — what made this the right call]</em>
+            </div>
+          </div>
+          <div class="entry">
+            <div class="entry-label">PRD impact</div>
+            <div class="entry-value">
+              <em>[what changed or was scoped in the document as a result]</em>
+            </div>
+          </div>
+
+          <!-- repeat block above for each additional decision -->
+        </div>
+      </div>
+
+      <!-- ── Deviations ── -->
+      <div class="card deviation">
+        <div class="card-head">
+          <div class="card-icon" aria-hidden="true">↗</div>
+          <h2>Deviations</h2>
+          <span class="hint-inline"
+            >Intentional departures from the brief, stated assumptions, or repo
+            patterns</span
+          >
+        </div>
+        <div class="card-body">
+          <div class="entry">
+            <div class="entry-label">Deviation</div>
+            <div class="entry-value">
+              <em>[what differs from the brief or nearby pattern]</em>
+            </div>
+          </div>
+          <div class="entry">
+            <div class="entry-label">Why</div>
+            <div class="entry-value"><em>[reason for the departure]</em></div>
+          </div>
+          <div class="entry">
+            <div class="entry-label">User check</div>
+            <div class="entry-value">
+              <em>[what the user should confirm or override]</em>
+            </div>
+          </div>
+
+          <!-- repeat block above for each additional deviation -->
+        </div>
+      </div>
+
+      <!-- ── Tradeoffs ── -->
+      <div class="card tradeoff">
+        <div class="card-head">
+          <div class="card-icon" aria-hidden="true">⇄</div>
+          <h2>Tradeoffs</h2>
+          <span class="hint-inline"
+            >Alternatives considered and why the chosen path won</span
+          >
+        </div>
+        <div class="card-body">
+          <div class="entry">
+            <div class="entry-label">Picked</div>
+            <div class="entry-value"><em>[the chosen approach]</em></div>
+          </div>
+          <div class="entry">
+            <div class="entry-label">Instead of</div>
+            <div class="entry-value">
+              <em>[the alternative that was set aside]</em>
+            </div>
+          </div>
+          <div class="entry">
+            <div class="entry-label">Reason</div>
+            <div class="entry-value"><em>[what tipped the balance]</em></div>
+          </div>
+
+          <!-- repeat block above for each additional tradeoff -->
+        </div>
+      </div>
+
+      <!-- ── Open Questions ── -->
+      <div class="card question">
+        <div class="card-head">
+          <div class="card-icon" aria-hidden="true">?</div>
+          <h2>Open Questions</h2>
+          <span class="hint-inline"
+            >Must be confirmed or resolved before implementation starts</span
+          >
+        </div>
+        <div class="card-body">
+          <div class="entry">
+            <div class="entry-label">Question</div>
+            <div class="entry-value">
+              <em>[what still needs an answer or decision]</em>
+            </div>
+          </div>
+          <div class="entry">
+            <div class="entry-label">Why it matters</div>
+            <div class="entry-value">
+              <em
+                >[impact on scope, sequencing, or a downstream design
+                choice]</em
+              >
+            </div>
+          </div>
+
+          <!-- repeat block above for each additional open question -->
+        </div>
+      </div>
+
+      <footer class="page-footer">
+        <span>Generated by to-prd skill · with debug mode</span>
+        <span
+          >Replace all <em>italic placeholder text</em> with real notes before
+          sharing.</span
+        >
+      </footer>
+    </div>
+  </body>
+</html>

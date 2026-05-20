@@ -7,6 +7,8 @@ description: "Interviews the user until the problem, constraints, tradeoffs, sco
 
 Do not rush into a document. Reach shared understanding first, then capture that understanding in a PRD that can survive follow-up planning.
 
+Keep the PRD focused on stable planning decisions. Only produce the companion implementation notes file when the user explicitly includes the phrase `with debug`. Without that exact toggle phrase, keep interpretation notes internal and do not create the extra artifact.
+
 Treat the interview as the core work. Keep going until the major uncertainties are either resolved or explicitly recorded as open questions.
 
 ## Operating principles
@@ -18,6 +20,8 @@ Keep each interview round focused. Ask 3-6 sharp questions, synthesize what chan
 Inspect the repository before you get deep into the interview. Use it to verify what already exists, what terms and workflows recur, and what technical constraints the user may not have mentioned yet.
 
 Do not assume the environment has Python, Node, or any other runtime beyond basic file editing and the tools already available.
+
+Maintain a running list of interpretation notes as you work. Every time you resolve ambiguity, reject a plausible alternative, or intentionally narrow or expand the brief, record it for yourself so you can either use it in the final notes file when the user said `with debug` or fold only the necessary settled decisions into the PRD when they did not.
 
 ## Process
 
@@ -70,13 +74,15 @@ Confirm the shape with the user:
 - ask whether the breakdown matches their expectations
 - ask which areas they expect strong automated test coverage for
 
-### 5. Draft the PRD file
+### 5. Draft the PRD and, when `with debug` is present, the implementation notes file
 
-Before writing, read [references/prd-template.md](references/prd-template.md).
+Before writing, read [references/prd-template.md](references/prd-template.md). Read [references/implementation-notes-template.html](references/implementation-notes-template.html) only if the user explicitly included the phrase `with debug`.
 
-Use this filename pattern: `action-items/PRD-<short-slug>.md`
+Use this filename pattern for the PRD: `action-items/PRD-<short-slug>.md`
 
-Create the file directly from the bundled template structure.
+Only when the user explicitly said `with debug`, create a companion file named `implementation-notes.html` alongside the PRD. If that exact filename would collide with unrelated notes already in the workspace, append the same short slug and tell the user which path you used.
+
+Always create the PRD directly from the bundled template structure. Create the notes file from its bundled template only when the user said `with debug`.
 
 Write the PRD in English. Keep proper nouns, product names, established technical terms, and code identifiers as-is rather than translating them.
 
@@ -84,29 +90,42 @@ Do not include fragile implementation trivia such as exact file paths or code sn
 
 When the PRD contains unresolved context, make it easy to audit. Use `Further Notes` to separate `Assumptions`, `Open Questions`, and `Rollout / Migration Notes` when those categories contain meaningful information. Omit empty subheadings rather than adding placeholders.
 
+When the user said `with debug`, the companion notes file should explain anything the user should know about how the PRD was interpreted or where it diverges from the brief. Always include these sections:
+
+- `Design Decisions` - choices you made because the input or repo context was ambiguous
+- `Deviations` - intentional departures from the user's input, stated assumptions, or nearby repo patterns, with reasons
+- `Tradeoffs` - alternatives you considered and why the chosen path won
+- `Open Questions` - things the user should confirm, revise, or supply before implementation
+
+Keep each note short and auditable: what changed, why, and how it affects the PRD or next step. If a section has nothing material, say so briefly instead of leaving it blank.
+
+If the user did not say `with debug`, do not mention the notes file, do not create it, and do not hold user approval hostage on an artifact they did not ask to enable. Also do not surface the `with debug` toggle mechanism itself anywhere in the PRD — it is an internal skill feature, not a product decision, and it must not appear in open questions, implementation decisions, or any other section of the output document.
+
 ### 6. Review and finalize
 
-Read [references/review-checklist.md](references/review-checklist.md) and fix issues inline before asking anyone to review the PRD.
+Read [references/review-checklist.md](references/review-checklist.md) and fix issues inline before asking anyone to review the PRD. Apply the notes-file checks only when the user said `with debug`.
 
 The PRD should be coherent enough that later issue-splitting will not drift because of missing decisions, contradictions, or vague scope boundaries.
 
-If subagents are available, run a reviewer loop in a review-oriented subagent using the PRD file path and asking it to return either `Approved` or `Issues Found`. If subagents are not available, perform the same review inline yourself **with a fresh set of eyes**.
+If subagents are available, run a reviewer loop in a review-oriented subagent using the PRD file path and, when the request included `with debug`, the notes file path, and ask it to return either `Approved` or `Issues Found`. If subagents are not available, perform the same review inline yourself **with a fresh set of eyes**.
 
 The reviewer should approve unless there are substantive problems in completeness, consistency, clarity, decision quality, or scope that would cause bad issue decomposition or implementation drift.
+
+When the request included `with debug`, the reviewer should also reject the pair if the notes file omits a material ambiguity, contradiction, deviation, tradeoff, or user confirmation that would change how the PRD is read.
 
 - If the review finds issues, fix the PRD and review again.
 - If the same disagreement repeats 3 times, or the review loop exceeds 5 total passes, stop and ask the user how to proceed.
 
-After the review loop passes, ask the user to review the PRD. If an interactive question tool exists, offer quick options such as `Looks good`, `Needs changes`, and `Let me review it first`.
+After the review loop passes, ask the user to review the PRD and, when present, the implementation notes. If an interactive question tool exists, offer quick options such as `Looks good`, `Needs changes`, and `Let me review it first`.
 
 If the user requests changes, update the PRD and rerun the review loop.
 
-If user review is not possible in the current environment, do not pretend the PRD is fully approved. Leave it as draft pending user review, and explicitly record what still needs user confirmation.
+If user review is not possible in the current environment, do not pretend the output is fully approved. Leave it as draft pending user review, and explicitly record what still needs user confirmation.
 
-Only treat the PRD as finished when both the review loop and the user review pass.
+Only treat the output as finished when the review loop and the user review pass for the PRD, plus the notes companion when the request included `with debug`.
 
 ### 7. Offer the next step
 
 Once the PRD is finalized, offer to break it into Jira-ready work items with the `to-issues` skill.
 
-If the user agrees, invoke `to-issues` with the PRD path. Otherwise, confirm the saved PRD location and stop.
+If the user agrees, invoke `to-issues` with the PRD path. Otherwise, confirm the saved PRD location and, when applicable, the implementation notes location, then stop.

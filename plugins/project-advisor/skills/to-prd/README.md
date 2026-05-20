@@ -1,49 +1,49 @@
 # Write a PRD
 
-Create a Product Requirements Document through structured user interview, codebase exploration, and module design — then save it as a Jira-ready action item.
+Turns a rough idea or partial brief into a structured Product Requirements Document through a focused interview, codebase exploration, and module design — then saves it as a PRD file.
 
-## What It Does
+## How it works
 
-This skill guides you through a collaborative PRD writing process:
+The skill treats the interview as the main work. It keeps asking until the problem, users, scope, constraints, and module shape are all concrete. Only then does it write.
 
-1. **Gather context** — asks for a detailed description of the problem and potential solutions
-2. **Explore the codebase** — verifies assertions and understands current state
-3. **Interview relentlessly** — keeps drilling until the user and model share the same understanding of the topic, constraints, and scope boundaries
-4. **Design modules** — sketches major modules to build or modify, looking for deep module extraction opportunities
-5. **Write the PRD** — produces a structured document and saves it as a Jira-ready action item
-6. **Self-review and auto-review** — runs an inline quality pass, then a reviewer subagent loop before handing the PRD back to the user
+1. **Capture seed context** — extracts what is already known from the conversation before asking anything new
+2. **Explore the codebase** — verifies existing patterns, naming, and constraints that the brief may not mention
+3. **Run the interview** — drills into unresolved decision clusters, round by round, until shared understanding is solid
+4. **Sketch the solution shape** — proposes the major modules or capability areas and confirms them with the user
+5. **Draft the PRD** — produces a structured document from the bundled template
+6. **Review loop** — self-reviews inline, then dispatches a reviewer subagent to catch completeness, consistency, and scope issues before asking the user
 
-## Bundled resources
+## PRD structure
 
-- `references/interview-map.md` keeps the interview focused on unresolved decision clusters rather than one giant questionnaire.
-- `references/prd-template.md` defines the PRD structure and section guidance.
-- `references/review-checklist.md` is used before both reviewer and user review.
-
-## PRD Structure
-
-The generated PRD includes:
+Every generated PRD includes these sections:
 
 - **Problem Statement** — the problem from the user's perspective
-- **Solution** — the proposed solution from the user's perspective
-- **User Stories** — extensive list covering all aspects of the feature
-- **Implementation Decisions** — modules, interfaces, architecture, schema changes, API contracts
-- **Testing Decisions** — what to test, how, and prior art in the codebase
+- **Solution** — the proposed approach
+- **User Stories** — broad coverage across all relevant actors and scenarios
+- **Implementation Decisions** — modules, interfaces, schema changes, API contracts
+- **Testing Decisions** — what to test, how, and relevant prior art in the codebase
 - **Out of Scope** — explicit boundaries
-- **Further Notes** — additional context
+- **Further Notes** — assumptions, open questions, and rollout notes (populated only when there is material to include)
 
-Before the PRD is considered ready, the skill performs an automatic review loop: write the document, self-review it, dispatch a reviewer subagent, fix any blocking issues, and only then ask the user for final review.
+## Bundled references
 
-## Language
-
-The PRD is always written in English.
+- `references/interview-map.md` — decision clusters used to guide the interview
+- `references/prd-template.md` — section structure and writing guidance
+- `references/review-checklist.md` — quality criteria applied before user review
 
 ## Usage
 
 ```text
 "Write a PRD for this new feature"
-"Help me create a product requirements document"
-"I need to plan a new feature — let's write a PRD"
+"Help me plan this — let's do a PRD"
+"I need a product requirements document for X"
 ```
+
+Once the PRD is approved, the skill offers to break it into Jira-ready work items using the `to-issues` skill.
+
+## Language
+
+PRDs are always written in English.
 
 ## Author
 
