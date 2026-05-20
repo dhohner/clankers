@@ -25,9 +25,9 @@
       "Read"
     ],
     "defaultPrompt": [
-      "Use the next-best-thing skill to recommend the best next improvement for this repo.",
-      "Help me write a PRD for this feature idea using the write-a-prd skill.",
-      "Break this PRD into Jira-ready vertical slices with the prd-to-issues skill."
+      "Use the next-thing skill to recommend the best next improvement for this repo.",
+      "Help me write a PRD for this feature idea using the to-prd skill.",
+      "Break this PRD into Jira-ready vertical slices with the to-issues skill."
     ],
     "brandColor": "#0F766E",
     "composerIcon": "./assets/icon.png",

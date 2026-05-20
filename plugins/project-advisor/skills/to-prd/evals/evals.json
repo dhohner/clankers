@@ -1,5 +1,5 @@
 {
-  "skill_name": "write-a-prd",
+  "skill_name": "to-prd",
   "evals": [
     {
       "id": 1,
@@ -16,7 +16,7 @@
     },
     {
       "id": 2,
-      "prompt": "Create a PRD for adding reusable interview presets to the write-a-prd skill, such as greenfield feature discovery, migration planning, and UX polish. The presets should change questioning strategy, not the PRD template itself. The users are product managers and engineers who want faster interviews without losing rigor. Constraints: the skill should still ask follow-up questions rather than run one static checklist, the PRD must stay in English, and the solution should reuse existing project-advisor patterns where that makes sense. Inspect the repo before drafting and write the final PRD as markdown.",
+      "prompt": "Create a PRD for adding reusable interview presets to the to-prd skill, such as greenfield feature discovery, migration planning, and UX polish. The presets should change questioning strategy, not the PRD template itself. The users are product managers and engineers who want faster interviews without losing rigor. Constraints: the skill should still ask follow-up questions rather than run one static checklist, the PRD must stay in English, and the solution should reuse existing project-advisor patterns where that makes sense. Inspect the repo before drafting and write the final PRD as markdown.",
       "expected_output": "A PRD that distinguishes scope, quality bar, and module boundaries while preserving the interview-first character of the skill.",
       "files": [],
       "expectations": [

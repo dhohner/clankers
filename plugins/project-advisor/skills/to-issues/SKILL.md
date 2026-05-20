@@ -1,5 +1,5 @@
 ---
-name: prd-to-issues
+name: to-issues
 description: Break a PRD or feature brief into independently-grabbable Jira-ready work items using tracer-bullet vertical slices. Use this skill whenever the user wants to convert a PRD to issues, break a spec into work items, create Jira tickets, derive implementation tickets from a feature description, or move from planning prose to engineer-facing slices, even if they do not say "vertical slice" or "PRD". The output should still describe desired behavior, outcomes, and constraints for experienced developers rather than prescribing layer-by-layer implementation steps.
 argument-hint: "[default|fast]"
 ---
@@ -17,7 +17,7 @@ Interpret the first argument as the mode. Valid values are `default` and `fast`.
 - `default`: Start from a full PRD. Locate or request the PRD, decompose it into vertical slices, review the breakdown with the user, then create Jira-ready files.
 - `fast`: Start directly from the user's input. Do not require, request, or synthesize a full PRD. Extract the feature goal, users or actors, expected behavior, constraints, dependencies, and known non-goals from the conversation and any referenced files, then create Jira action items from that context.
 
-In `fast` mode, query only missing information that materially changes the action items. If non-obvious pieces of information are missing, use the interactive `ask_question` tool like the `write-a-prd` skill does. Batch related questions into one round, offer predefined options when useful, and fall back to concise chat questions only if no interactive question tool exists. Do not interview for a complete PRD; resolve only the gaps needed to make the Jira items coherent and actionable. Assume obvious defaults and record them in the ticket only when they matter. Do not invent product rules, validation behavior, error handling, or edge cases just to make the tickets feel complete.
+In `fast` mode, query only missing information that materially changes the action items. If non-obvious pieces of information are missing, use the interactive `ask_question` tool like the `to-prd` skill does. Batch related questions into one round, offer predefined options when useful, and fall back to concise chat questions only if no interactive question tool exists. Do not interview for a complete PRD; resolve only the gaps needed to make the Jira items coherent and actionable. Assume obvious defaults and record them in the ticket only when they matter. Do not invent product rules, validation behavior, error handling, or edge cases just to make the tickets feel complete.
 
 Before the first serious question round in `fast` mode, read [references/fast-mode-intake.md](./references/fast-mode-intake.md).
 

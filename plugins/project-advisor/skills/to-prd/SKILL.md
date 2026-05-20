@@ -1,5 +1,5 @@
 ---
-name: write-a-prd
+name: to-prd
 description: "Interviews the user until the problem, constraints, tradeoffs, scope, and likely module boundaries are concrete, then produces a structured English PRD ready for issue-splitting. Use When: the user asks for a PRD, feature spec, or requirements doc; they describe a feature or product idea and want a written plan; they want to turn a conversation, thread, or rough brief into something the team can plan from; they ask how to structure a product proposal; they have a fuzzy idea and need help narrowing it into a Jira-ready document — even if they never use the word 'PRD'."
 ---
 
@@ -107,6 +107,6 @@ Only treat the PRD as finished when both the review loop and the user review pas
 
 ### 7. Offer the next step
 
-Once the PRD is finalized, offer to break it into Jira-ready work items with the `prd-to-issues` skill.
+Once the PRD is finalized, offer to break it into Jira-ready work items with the `to-issues` skill.
 
-If the user agrees, invoke `prd-to-issues` with the PRD path. Otherwise, confirm the saved PRD location and stop.
+If the user agrees, invoke `to-issues` with the PRD path. Otherwise, confirm the saved PRD location and stop.

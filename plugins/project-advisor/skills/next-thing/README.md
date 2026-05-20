@@ -1,4 +1,4 @@
-# next-best-thing
+# next-thing
 
 Identify the single most valuable next addition to the current project and present it like a Senior Product Manager's recommendation.
 
@@ -16,4 +16,4 @@ The recommendation stays evidence-backed, but the delivery is intentionally more
 
 ## Usage
 
-Run `/next-best-thing` in Claude Code or compatible plugin hosts to get a tailored recommendation for any project.
+Run `/next-thing` in Claude Code or compatible plugin hosts to get a tailored recommendation for any project.

@@ -1,12 +1,12 @@
 {
-  "skill_name": "prd-to-issues",
+  "skill_name": "to-issues",
   "evals": [
     {
       "id": 1,
-      "prompt": "Convert the PRD in plugins/project-advisor/skills/prd-to-issues/evals/inputs/prd-order-history.md into Jira-ready vertical-slice action items. Assume the slice breakdown is approved and write the markdown files directly.",
+      "prompt": "Convert the PRD in plugins/project-advisor/skills/to-issues/evals/inputs/prd-order-history.md into Jira-ready vertical-slice action items. Assume the slice breakdown is approved and write the markdown files directly.",
       "expected_output": "Generated action items use outcome-oriented scenarios and avoid implementation-task wording such as file, endpoint, schema, component, or method changes.",
       "files": [
-        "plugins/project-advisor/skills/prd-to-issues/evals/inputs/prd-order-history.md"
+        "plugins/project-advisor/skills/to-issues/evals/inputs/prd-order-history.md"
       ],
       "expectations": [
         "At least one generated action item covers chronological order history with user-visible summary fields and a first-time empty state.",
@@ -22,10 +22,10 @@
     },
     {
       "id": 2,
-      "prompt": "Convert the PRD in plugins/project-advisor/skills/prd-to-issues/evals/inputs/prd-delegated-approvals.md into Jira-ready vertical-slice action items. Assume the slice breakdown is approved and write the markdown files directly.",
+      "prompt": "Convert the PRD in plugins/project-advisor/skills/to-issues/evals/inputs/prd-delegated-approvals.md into Jira-ready vertical-slice action items. Assume the slice breakdown is approved and write the markdown files directly.",
       "expected_output": "Generated action items describe user-visible behavior, constraints, and verifiable outcomes instead of prescribing implementation steps across layers.",
       "files": [
-        "plugins/project-advisor/skills/prd-to-issues/evals/inputs/prd-delegated-approvals.md"
+        "plugins/project-advisor/skills/to-issues/evals/inputs/prd-delegated-approvals.md"
       ],
       "expectations": [
         "At least one generated action item covers delegation setup with eligibility checks and clear validation feedback.",
@@ -41,10 +41,10 @@
     },
     {
       "id": 3,
-      "prompt": "Use fast mode. Convert the feature brief in plugins/project-advisor/skills/prd-to-issues/evals/inputs/brief-saved-views.md into Jira-ready vertical-slice action items. Do not ask for a PRD. Assume the provided brief is sufficient unless one missing decision would materially change the slices, and write the markdown files directly.",
+      "prompt": "Use fast mode. Convert the feature brief in plugins/project-advisor/skills/to-issues/evals/inputs/brief-saved-views.md into Jira-ready vertical-slice action items. Do not ask for a PRD. Assume the provided brief is sufficient unless one missing decision would materially change the slices, and write the markdown files directly.",
       "expected_output": "Generated action items turn a non-PRD feature brief into lean, Jira-ready vertical slices without inventing a separate discovery or foundation phase.",
       "files": [
-        "plugins/project-advisor/skills/prd-to-issues/evals/inputs/brief-saved-views.md"
+        "plugins/project-advisor/skills/to-issues/evals/inputs/brief-saved-views.md"
       ],
       "expectations": [
         "At least one generated action item covers saving a filtered view with a user-defined name and making it available from the existing people list workflow.",
@@ -61,10 +61,10 @@
     },
     {
       "id": 4,
-      "prompt": "Use fast mode. Start from the thin feature brief in plugins/project-advisor/skills/prd-to-issues/evals/inputs/brief-filter-presets-thin.md. Do not ask for a PRD. If a missing decision materially changes the slice breakdown, ask the smallest useful follow-up question before creating files. Otherwise write Jira-ready vertical-slice action items directly and keep unresolved product detail as assumptions or open questions instead of inventing it.",
+      "prompt": "Use fast mode. Start from the thin feature brief in plugins/project-advisor/skills/to-issues/evals/inputs/brief-filter-presets-thin.md. Do not ask for a PRD. If a missing decision materially changes the slice breakdown, ask the smallest useful follow-up question before creating files. Otherwise write Jira-ready vertical-slice action items directly and keep unresolved product detail as assumptions or open questions instead of inventing it.",
       "expected_output": "Generated output handles a thin brief cautiously: it either asks one tight clarification question when a missing decision changes slice shape, or it produces lean action items that defer unresolved product rules instead of silently inventing them.",
       "files": [
-        "plugins/project-advisor/skills/prd-to-issues/evals/inputs/brief-filter-presets-thin.md"
+        "plugins/project-advisor/skills/to-issues/evals/inputs/brief-filter-presets-thin.md"
       ],
       "expectations": [
         "The result either asks a small clarification about a missing decision that materially changes the slice breakdown, or it creates action items while surfacing unresolved decisions as Annahmen or Offene Fragen instead of treating them as settled requirements.",

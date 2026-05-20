@@ -1,5 +1,5 @@
 ---
-name: next-best-thing
+name: next-thing
 description: Identify the single highest-leverage next addition to the current project and present it as a crisp, evidence-backed product recommendation in the voice of a Senior Product Manager. Use this whenever the user asks what to build next, what opportunity to prioritize, what the strongest product bet is, or wants a recommendation that feels like an elevator pitch rather than an implementation plan.
 disable-model-invocation: true
 ---
@@ -40,9 +40,9 @@ If the intended audience or decision context is unclear and it would materially 
 4. Pick one. Choose based on user value, strategic fit, feasibility, and narrative clarity. The recommendation should win because it is the strongest bet right now, not because it was the first thing that came to mind.
 5. Explain why now in terms of momentum: what this unlocks next, what pain it removes, or what decision it de-risks.
 6. Be explicit about uncertainty when the evidence is incomplete.
-7. After presenting the recommendation, offer to turn it into a PRD using the `write-a-prd` skill. A recommendation on its own captures the _what_ and _why_ at a high level, but a PRD fleshes it out into something the team can refine and commit to.
+7. After presenting the recommendation, offer to turn it into a PRD using the `to-prd` skill. A recommendation on its own captures the _what_ and _why_ at a high level, but a PRD fleshes it out into something the team can refine and commit to.
 
-   Use the interactive question tool (if available) to ask the user whether they'd like to proceed. Offer predefined options such as "Yes, write a PRD for this" and "No, just the recommendation". If they agree, invoke the `write-a-prd` skill, passing the recommendation as initial context so the user doesn't have to repeat themselves. If they decline, confirm the recommendation and wrap up.
+   Use the interactive question tool (if available) to ask the user whether they'd like to proceed. Offer predefined options such as "Yes, write a PRD for this" and "No, just the recommendation". If they agree, invoke the `to-prd` skill, passing the recommendation as initial context so the user doesn't have to repeat themselves. If they decline, confirm the recommendation and wrap up.
 
 ## Output Format
 
