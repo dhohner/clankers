@@ -1,0 +1,38 @@
+{
+  "skill_name": "simplify",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Simplify the staged changes in src/api/user-service.ts. I only touched the fetchUserProfile function and one small parsing branch. Clean that area up for readability and duplication, but leave the rest of the file alone unless you need a tiny helper or import adjustment to keep the refactor coherent.",
+      "expected_output": "The cleanup stays within the changed function or directly adjacent code needed for correctness, and unrelated functions in the file are left unchanged or only mentioned in the report.",
+      "files": [],
+      "expectations": [
+        "The final diff restores the shared readString helper for first_name, last_name, or birthday parsing inside fetchUserProfile.",
+        "The final diff restores the shared formatDisplayName helper instead of keeping inline display-name branching inside fetchUserProfile.",
+        "The final diff does not modify listUserEmails or describeUser."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Please refactor the latest commit in src/cache/store.ts. I changed two methods in the cache adapter. Improve the touched methods, but do not sweep the whole file for style issues unless a shared helper that those methods already use should be tightened up too.",
+      "expected_output": "The skill maps the changed hunks to the touched methods, applies safe simplifications there, and avoids unrelated whole-file cleanup.",
+      "files": [],
+      "expectations": [
+        "The final diff simplifies getMany without modifying get or clear.",
+        "The final diff removes repeated Date.now() checks or duplicate expiry handling inside getMany.",
+        "The final diff simplifies setMany by reusing the existing set path or a single shared expiry computation."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Clean up the staged diff in src/components/Table.tsx and src/components/Table.test.tsx. Focus on the render branch and the matching updated test case. If you notice other questionable code elsewhere in those files, report it but keep the edits scoped to the changed parts unless I explicitly ask for a broader pass.",
+      "expected_output": "Edits stay anchored to the changed render logic and matching test updates, with unrelated opportunities reported instead of rewritten.",
+      "files": [],
+      "expectations": [
+        "The final diff removes the duplicated table-shell wrapper logic from the loading and empty-state branches.",
+        "The final diff updates Table.test.tsx to match the chosen render cleanup.",
+        "The final diff does not modify renderCell or the table body rendering path."
+      ]
+    }
+  ]
+}

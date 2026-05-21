@@ -1,6 +1,6 @@
 ---
 name: simplify
-description: Apply safe, behavior-preserving cleanup edits to existing code by selecting a scope, reviewing for duplication, readability, and meaningful efficiency issues, then summarizing what was changed versus left manual. Use this skill whenever the user asks to simplify, clean up, refactor, streamline, de-duplicate, polish, or make existing code more maintainable, readable, or efficient, especially for staged changes, the latest commit, or explicitly named files after a feature or bug fix, even if they do not explicitly say "simplify." Also use it when the user wants safe cleanup with edits plus a structured report of risky follow-ups. Do not use it for review-only requests, debugging, new feature work, or broad architectural redesign.
+description: Apply safe, behavior-preserving cleanup edits to existing code by selecting a scope, focusing by default on the smallest enclosing changed region within that scope, reviewing for duplication, readability, and meaningful efficiency issues, then summarizing what was changed versus left manual. Use this skill whenever the user asks to simplify, clean up, refactor, streamline, de-duplicate, polish, or make existing code more maintainable, readable, or efficient, especially for staged changes, the latest commit, or explicitly named files after a feature or bug fix, even if they do not explicitly say "simplify." Also use it when the user wants safe cleanup with edits plus a structured report of risky follow-ups. Do not use it for review-only requests, debugging, new feature work, or broad architectural redesign.
 ---
 
 # Simplify Changed Code
@@ -14,7 +14,7 @@ The job is not just to review. The job is to identify safe simplifications, appl
 - Reduce duplication and repeated literals where abstraction improves clarity.
 - Improve readability, structure, and maintainability.
 - Remove avoidable inefficiencies that matter in practice.
-- Keep the scope tight to the selected files.
+- Keep the scope tight to the smallest enclosing changed region within the selected files unless the user explicitly asks for a broader pass.
 - Preserve behavior, public APIs, and the user's momentum.
 
 ## When not to use this skill
@@ -31,6 +31,7 @@ Do not use this skill when the user primarily wants:
 Before doing any cleanup, determine:
 
 - Whether the user specified files, directories, a commit, or a revision range.
+- Whether the user explicitly wants only the changed regions or a broader whole-file pass. Default to changed regions.
 - Whether the user gave focus guidance such as readability, memory efficiency, or duplication.
 - Whether the repo defines enforceable conventions in a project rules file.
 
@@ -60,6 +61,18 @@ If no eligible files remain, respond with exactly:
 
 If more than 15 files remain, list them and ask the user to confirm before proceeding. Offer to narrow the scope to a directory or smaller file set.
 
+### Step 1.5 - Determine the smallest enclosing changed region in each file
+
+Default to the smallest enclosing changed region that supports a coherent simplification.
+
+1. Derive a diff for the selected scope.
+2. For each hunk, map it to the smallest enclosing changed region, usually a function, method, class member, test case, or local block.
+3. Use that region as the default edit boundary.
+4. Only widen beyond that region when required for correctness, such as touching a directly shared helper, import, type, or adjacent duplicated branch.
+5. If the user explicitly asks for a whole-file cleanup, honor that request and say so in the report.
+
+If you cannot determine the smallest enclosing changed regions from git metadata or supplied context, ask the user whether to use the current diff, a specific revision range, or a whole-file pass.
+
 ### Step 2 - Load project rules
 
 Look for project rules in this order:
@@ -77,16 +90,22 @@ If no rules file exists, continue with language-idiomatic conventions and normal
 
 ### Step 3 - Run three focused review passes in parallel
 
-Read the full content of every target file unless a file is so large that using a diff is materially more practical.
+Read enough of every target file to understand the changed regions safely. Use the full file when the surrounding context is needed, but keep findings and edits anchored to the smallest enclosing changed regions unless the user asked for a broader pass.
 
 Then run exactly three review passes in parallel using the same input package for each pass.
 
 Shared input for every pass:
 
-- The full content of each target file, or the diff for very large files.
+- The smallest-enclosing-changed-region map for each target file, plus whatever surrounding file context is needed to reason safely.
 - The extracted project rules, or `none found - use general best practices`.
 - The user's focus guidance, if any.
 - The instruction to return a markdown list of findings using the required format below, or an empty list if nothing meaningful is found.
+
+Scope rule for every pass:
+
+- Prefer findings inside the changed regions.
+- Allow adjacent findings only when they directly support a safe cleanup of the changed code.
+- Do not propose unrelated whole-file tidy-ups just because they are visible.
 
 Required finding format:
 
@@ -151,6 +170,7 @@ After the three passes complete:
 3. Detect contradictory suggestions. If two ideas conflict, prefer the smaller and safer change.
 4. If a conflict cannot be resolved safely, leave it unchanged and record both suggestions for the user.
 5. Prioritize items that match the user's focus guidance.
+6. Drop unrelated whole-file findings unless the user explicitly requested a broader cleanup.
 
 Apply this filter before editing:
 
@@ -164,6 +184,7 @@ Apply this filter before editing:
 When editing:
 
 - Prefer small, targeted refactors over broad rewrites.
+- Default to editing only the smallest enclosing changed regions, plus the minimal adjacent code needed to keep the result coherent.
 - Do not change public APIs, exports, function signatures, or intended behavior unless the user explicitly asked for that.
 - Do not remove or rewrite tests. If test code has issues, report them in `LEFT UNCHANGED` instead.
 - Keep all resulting changes unstaged so the user can inspect them.
@@ -176,6 +197,7 @@ Use this exact section structure:
 **SCOPE**
 
 - Source: staged changes | last commit | user-specified scope
+- Edit scope: smallest enclosing changed regions | widened for correctness | whole-file by user request
 - Files processed: N
 - Files skipped: N (with reasons if any were filtered)
 - Project rules: `filename` | none found
@@ -212,4 +234,5 @@ If no meaningful improvements are found, respond with exactly:
 - Behavior preservation matters more than elegance.
 - Do not force abstractions where a small amount of repetition is clearer.
 - Make the user's review easy: few files touched, clear diffs, low-risk edits.
+- Treat untouched parts of the same file as out of scope by default. Mention them in `LEFT UNCHANGED` if they are worth noting, but do not edit them unless they directly support the smallest enclosing changed region.
 - When the user gave focus guidance, resolve those items first even if other safe cleanups also exist.
