@@ -39,13 +39,15 @@ Als <span style="color:#ff8c00">angemeldeter Bestandskunde</span> m&ouml;chte ic
 <p dir="auto"><b>Hinweise</b></p>
 </div>
 
-<p dir="auto"><b>Was umgesetzt werden soll:</b> Kunden k&ouml;nnen Rechnungs-PDFs aus der Bestellhistorie und der Bestelldetailansicht &ouml;ffnen, wenn eine Rechnung verf&uuml;gbar ist. Ist noch keine Rechnung vorhanden, wird dies verst&auml;ndlich kommuniziert statt stillschweigend zu scheitern.</p>
-<p dir="auto"><b>Blockiert durch:</b> Slice Bestellhistorie-Browsing verf&uuml;gbar</p>
-<p dir="auto"><b>Technische Hinweise:</b> Fokus auf benutzersichtbaren Zugriff, Autorisierungsgrenzen, Nachvollziehbarkeit und wiederholbare Fehlerbehandlung. Speicher- und Transportdetails als Implementierungsentscheidung behandeln, sofern das PRD keine harte Vorgabe macht.</p>
-<p dir="auto"><b>Annahmen:</b> Rechnungsdokumente existieren bereits f&uuml;r berechtigte Bestellungen und k&ouml;nnen auf Anfrage abgerufen werden.</p>
-<p dir="auto"><b>Abh&auml;ngigkeiten:</b> Authentifizierter Kundenkontext, Pr&uuml;fung der Bestellzugeh&ouml;rigkeit, Rechnungsdokumentquelle und Compliance-Protokollierung.</p>
-<p dir="auto"><b>Risiken:</b> Fehlerhafte oder mehrdeutige Rechnungslinks k&ouml;nnten das falsche Dokument anzeigen oder Supportkontakte erzeugen statt sie zu reduzieren.</p>
-<p dir="auto"><b>Offene Fragen:</b> Sollen Rechnungszugriffe nur erfolgreiche &Ouml;ffnungen oder auch abgelehnte und fehlgeschlagene Versuche erfassen?</p>
+<ul>
+<li><b>Was umgesetzt werden soll:</b> Kunden k&ouml;nnen Rechnungs-PDFs aus der Bestellhistorie und der Bestelldetailansicht &ouml;ffnen, wenn eine Rechnung verf&uuml;gbar ist. Ist noch keine Rechnung vorhanden, wird dies verst&auml;ndlich kommuniziert statt stillschweigend zu scheitern.</li>
+<li><b>Blockiert durch:</b> Slice Bestellhistorie-Browsing verf&uuml;gbar</li>
+<li><b>Technische Hinweise:</b> Fokus auf benutzersichtbaren Zugriff, Autorisierungsgrenzen, Nachvollziehbarkeit und wiederholbare Fehlerbehandlung. Speicher- und Transportdetails als Implementierungsentscheidung behandeln, sofern das PRD keine harte Vorgabe macht.</li>
+<li><b>Annahmen:</b> Rechnungsdokumente existieren bereits f&uuml;r berechtigte Bestellungen und k&ouml;nnen auf Anfrage abgerufen werden.</li>
+<li><b>Abh&auml;ngigkeiten:</b> Authentifizierter Kundenkontext, Pr&uuml;fung der Bestellzugeh&ouml;rigkeit, Rechnungsdokumentquelle und Compliance-Protokollierung.</li>
+<li><b>Risiken:</b> Fehlerhafte oder mehrdeutige Rechnungslinks k&ouml;nnten das falsche Dokument anzeigen oder Supportkontakte erzeugen statt sie zu reduzieren.</li>
+<li><b>Offene Fragen:</b> Sollen Rechnungszugriffe nur erfolgreiche &Ouml;ffnungen oder auch abgelehnte und fehlgeschlagene Versuche erfassen?</li>
+</ul>
 ```
 
 ---

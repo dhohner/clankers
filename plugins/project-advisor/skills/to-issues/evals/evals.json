@@ -14,7 +14,7 @@
         "At least one generated action item preserves the PRD's ownership boundary that only the authenticated customer can access their own order history and invoice links.",
         "The generated action items describe desired outcomes and constraints rather than instructing developers to add specific endpoints, schemas, tables, components, or methods.",
         "All ticket content is written in German. No English labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' appear.",
-        "Note entries that carry no real information are omitted entirely rather than included as placeholder entries. In particular, slices without prerequisites omit `Blockiert durch` instead of using placeholders such as `Keine`.",
+        "The Hinweise section follows the note structure from references/jira-issue-template.md: the panel header is followed by a `<ul>` with one `<li>` per included entry, and note entries with no real information are omitted instead of using placeholders such as `Keine`.",
         "Scenario text does not contain filler adjectives like nahtlos, robust, umfassend, zuverlässig, eindeutig, or sichergestellt.",
         "Scenarios use first-person perspective (ich befinde mich, ich klicke, ich sehe) rather than third-person (der Nutzer, der Kunde befindet sich).",
         "Technische Hinweise only contain non-obvious information — no tech stack, standard auth rules, or other things a senior dev would assume."
@@ -33,7 +33,7 @@
         "At least one generated action item preserves a compliance-facing view of delegation history without requiring database access.",
         "The generated action items describe behavior, ownership, and audit outcomes without prescribing specific APIs, schemas, tables, services, or UI components to change.",
         "All ticket content is written in German. No English labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' appear.",
-        "Note entries that carry no real information are omitted entirely rather than included as placeholder entries. In particular, slices without prerequisites omit `Blockiert durch` instead of using placeholders such as `Keine`.",
+        "The Hinweise section follows the note structure from references/jira-issue-template.md: the panel header is followed by a `<ul>` with one `<li>` per included entry, and note entries with no real information are omitted instead of using placeholders such as `Keine`.",
         "Scenario text does not contain filler adjectives like nahtlos, robust, umfassend, zuverlässig, eindeutig, or sichergestellt.",
         "Scenarios use first-person perspective (ich befinde mich, ich klicke, ich sehe) rather than third-person (der Nutzer, der Kunde befindet sich).",
         "Technische Hinweise only contain non-obvious information — no tech stack, standard auth rules, or other things a senior dev would assume."
@@ -54,7 +54,7 @@
         "The generated action items do not invent additional product rules that are absent from the brief, such as naming validation, duplicate-name handling, sharing behavior, quotas, or special permission exceptions, unless they are clearly framed as assumptions or open questions.",
         "The generated action items preserve that saved views are personal and not shared with other users.",
         "All ticket content is written in German. No English labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' appear.",
-        "Note entries that carry no real information are omitted entirely rather than included as placeholder entries. In particular, slices without prerequisites omit `Blockiert durch` instead of using placeholders such as `Keine`.",
+        "The Hinweise section follows the note structure from references/jira-issue-template.md: the panel header is followed by a `<ul>` with one `<li>` per included entry, and note entries with no real information are omitted instead of using placeholders such as `Keine`.",
         "Scenario text does not contain filler adjectives like nahtlos, robust, umfassend, zuverlässig, eindeutig, or sichergestellt.",
         "Scenarios use first-person perspective (ich befinde mich, ich klicke, ich sehe) rather than third-person (der Nutzer, der Kunde befindet sich)."
       ]
@@ -74,7 +74,7 @@
         "The generated action items describe user-visible behavior and constraints rather than prescribing specific APIs, schemas, tables, services, components, or methods to change.",
         "The generated action items preserve the thin brief's explicit scope constraints: the existing listen/filter experience is extended rather than replaced, and the first version is for internal users.",
         "All ticket content is written in German. No English labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' appear.",
-        "Note entries that carry no real information are omitted entirely rather than included as placeholder entries. In particular, slices without prerequisites omit `Blockiert durch` instead of using placeholders such as `Keine`.",
+        "The Hinweise section follows the note structure from references/jira-issue-template.md: the panel header is followed by a `<ul>` with one `<li>` per included entry, and note entries with no real information are omitted instead of using placeholders such as `Keine`.",
         "Scenario text does not contain filler adjectives like nahtlos, robust, umfassend, zuverlässig, eindeutig, or sichergestellt."
       ]
     }

@@ -17,7 +17,7 @@ Interpret the first argument as the mode. Valid values are `default` and `fast`.
 - `default`: Start from a full PRD. Locate or request the PRD, decompose it into vertical slices, review the breakdown with the user, then create Jira-ready files.
 - `fast`: Start directly from the user's input. Do not require, request, or synthesize a full PRD. Extract the feature goal, users or actors, expected behavior, constraints, dependencies, and known non-goals from the conversation and any referenced files, then create Jira action items from that context.
 
-In `fast` mode, query only missing information that materially changes the action items. If non-obvious pieces of information are missing, use the interactive `ask_question` tool like the `to-prd` skill does. Batch related questions into one round, offer predefined options when useful, and fall back to concise chat questions only if no interactive question tool exists. Do not interview for a complete PRD; resolve only the gaps needed to make the Jira items coherent and actionable. Assume obvious defaults and record them in the ticket only when they matter. Do not invent product rules, validation behavior, error handling, or edge cases just to make the tickets feel complete.
+In `fast` mode, query only missing information that materially changes the action items. If non-obvious pieces of information are missing, use the interactive `ask_question` tool like the `to-prd` skill does. Batch related questions into one round, offer predefined options when useful, and fall back to concise chat questions only if no interactive question tool exists. Do not interview for a complete PRD; resolve only the gaps needed to make the Jira items coherent and actionable. Only assume defaults that do not change the slice shape, ownership model, rollout model, or visible workflow. If a plausible answer would change which slices exist, whether the work is personal versus shared, whether the feature extends an existing surface versus adds a new one, or whether behavior is manual versus automatic, do not quietly pick a favorite interpretation. Ask, or record the uncertainty as an assumption or open question when the ticket can still stay stable without deciding it. Do not invent product rules, validation behavior, error handling, or edge cases just to make the tickets feel complete.
 
 Before the first serious question round in `fast` mode, read [references/fast-mode-intake.md](./references/fast-mode-intake.md).
 
@@ -35,6 +35,8 @@ Extract settled facts before asking anything new. If the user already gave the a
 
 If a potentially important behavior is not specified, do not quietly promote it into a requirement. Either leave it out, ask about it if it would materially change the slices, or record it as an assumption or open question.
 
+Treat these as decomposition-changing ambiguities in `fast` mode unless the source already settles them: personal versus shared ownership, who receives the first usable version, whether the work extends an existing workflow versus creating a new management surface, whether behavior is automatic versus user-triggered, and whether unresolved invalid-state handling needs its own slice. If one of these choices would materially reshape the ticket set, stop and clarify instead of drafting tickets around one interpretation.
+
 ### 2. Explore the codebase
 
 Inspect the repository before drafting slices unless the workspace is empty or clearly unrelated. Use it to verify product terms, existing workflows, system boundaries, and non-obvious constraints that should affect the issue breakdown.
@@ -49,7 +51,7 @@ Before proposing the breakdown, read [references/slice-design-checklist.md](./re
 
 ### 4. Quiz the user
 
-In `fast` mode, skip this review loop unless the source input leaves multiple plausible slice breakdowns and choosing the wrong one would materially change the Jira files. If the breakdown itself is ambiguous, ask the smallest useful set of questions with `ask_question`, then continue to file creation.
+In `fast` mode, skip this review loop unless the source input leaves multiple plausible slice breakdowns and choosing the wrong one would materially change the Jira files. If the breakdown itself is ambiguous, ask the smallest useful set of questions with `ask_question`, then continue to file creation. If interactive clarification is not possible in the current context, stop after surfacing the blocking question instead of inventing a ticket set around one unconfirmed answer.
 
 In `default` mode, use the full review loop:
 
@@ -77,7 +79,7 @@ For each approved slice, create a markdown file that the user can copy into Jira
 
 Each file must describe the slice in terms of expected behavior and business or product outcome. Assume the reader is an experienced developer who can determine the implementation details. Avoid decomposing the work into prescriptive layer-by-layer instructions or agent-style execution steps.
 
-If the PRD contains suggested solution details such as APIs, tables, schemas, services, UI components, jobs, or other implementation ideas, treat them as context rather than as instructions to copy into the action item. Only keep such details when they are necessary constraints or dependencies.
+If the PRD contains suggested solution details such as APIs, tables, schemas, services, UI components, jobs, view names, or other implementation ideas, treat them as context rather than as instructions to copy into the action item. Translate them into user-visible behavior or domain constraints before writing the ticket. Do not repeat architecture nouns such as workflow engines, notification services, assignment APIs, tables, React screens, list/detail view labels, or similar implementation surfaces in titles, user stories, scenarios, or `Was umgesetzt werden soll` unless the term is itself the user-visible product surface. Only keep such details under `Technische Hinweise` when omitting them would hide a real non-obvious integration constraint.
 
 Especially in `fast` mode, prefer fidelity to the source over false completeness. Do not add acceptance criteria for naming rules, deduplication behavior, permission nuances, recovery flows, or other product details unless the source context, repo evidence, or explicit user answers support them.
 
@@ -93,7 +95,7 @@ The markdown file should use Jira-compatible raw HTML blocks and must follow the
 
 Unless the user requests another location, create the files in a `action-items/jira-issues/` directory in the workspace.
 
-Create files in dependency order so later files can reference earlier slice titles or filenames in the `Blockiert durch` field when a real prerequisite slice exists. If a slice can start immediately, omit `Blockiert durch` instead of writing a placeholder such as `Keine`.
+Create files in dependency order so later files can reference earlier slice titles or filenames in the `Blockiert durch` entry when the template calls for it.
 
 Use a predictable filename pattern such as `01-short-slice-title.md`, `02-next-slice-title.md`, and so on.
 
@@ -102,6 +104,7 @@ If the PRD does not already provide the user story in `Als ... moechte ich ... d
 Acceptance criteria must be expressed as named scenarios inside dashed panels, not as a plain checklist.
 Acceptance criteria should describe externally verifiable behavior, outcomes, and constraints rather than internal implementation steps.
 Scenarios must not reference internal code artifacts such as class names, service names, method signatures, enum constants, configuration keys, or database table and column names. When the PRD names such identifiers, translate them into observable behavior or domain-level language before writing the scenario.
+Write every scenario line from a participant's point of view. Prefer `ich sehe`, `ich erhalte`, `ich wähle`, `ich öffne`, `ich befinde mich`, and similar first-person phrasing over generic statements about `der Genehmiger`, `die Anfrage`, or `es wird`.
 
 Use the rewrite test from [references/ticket-writing-checklist.md](./references/ticket-writing-checklist.md) before finalizing each slice.
 
@@ -111,4 +114,4 @@ The output of this skill is the set of markdown files, not the Jira tickets them
 
 ### Language: German throughout
 
-All generated ticket content must be written in German. This applies to titles, user stories, scenario names, scenario body text, note labels, and note content. The only exceptions are proper nouns, technical terms with no established German equivalent, and code identifiers. The Gherkin keywords (`Angenommen`, `Wenn`, `Dann`, `Und`) and the user story frame (`Als`, `möchte ich`, `damit`) are already German in the template; the rest of the ticket must match.
+All generated ticket content must be written in German. This applies to titles, user stories, scenario names, scenario body text, note labels, and note content. The only exceptions are proper nouns, technical terms with no established German equivalent, and code identifiers. Translate common business and product jargon such as `Business Unit`, `Owner`, `Reviewer`, `In-Product`, `Detail View`, or `List View` when a natural German phrasing exists. The Gherkin keywords (`Angenommen`, `Wenn`, `Dann`, `Und`) and the user story frame (`Als`, `möchte ich`, `damit`) are already German in the template; the rest of the ticket must match.
