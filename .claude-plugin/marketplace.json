@@ -60,6 +60,15 @@
       "repository": "https://github.com/dhohner/clankers",
       "category": "development",
       "tags": ["skill", "documentation", "markdown", "readme"]
+    },
+    {
+      "name": "crap",
+      "source": "crap",
+      "description": "Change Risk Anti Patterns analysis for codebases, diffs, and feature work.",
+      "homepage": "https://github.com/dhohner/clankers/tree/main/plugins/crap",
+      "repository": "https://github.com/dhohner/clankers",
+      "category": "development",
+      "tags": ["skill", "risk", "review", "quality", "anti-patterns"]
     }
   ]
 }

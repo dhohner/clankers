@@ -1,0 +1,10 @@
+{
+  "name": "crap",
+  "description": "Change Risk Anti Patterns analysis for codebases, diffs, and feature work.",
+  "author": {
+    "name": "dhohner"
+  },
+  "repository": "https://github.com/dhohner/clankers",
+  "license": "MIT",
+  "keywords": ["skill", "risk", "review", "quality", "anti-patterns"]
+}

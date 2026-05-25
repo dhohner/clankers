@@ -1,0 +1,41 @@
+{
+  "skill_name": "analyze-crap",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Before I consolidate ticket-writing guidance across the project-advisor skills, run a CRAP analysis focused on plugins/project-advisor/skills and tell me what I should de-risk first.",
+      "expected_output": "A focused report on cross-skill authority, handoff, packaging, and verification risks tied to the project-advisor skill files and references.",
+      "files": [],
+      "expectations": [
+        "Uses the CRAP report structure with an executive summary and findings.",
+        "Keeps the analysis focused on plugins/project-advisor/skills rather than drifting into unrelated repo areas.",
+        "Identifies a concrete contract, authority, packaging, or verification risk inside the project-advisor skill surface.",
+        "Recommends one specific first mitigation tied to the project-advisor skill scope."
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "I want to tighten the security-guard policy around blocked follow-ups. Run a CRAP analysis focused on plugins/security-guard and tell me which risks I need to de-risk before changing policy behavior.",
+      "expected_output": "A module-scoped report that names risky policy, event, test, and rollout boundaries inside security-guard rather than drifting into a repo-wide review.",
+      "files": [],
+      "expectations": [
+        "Uses the CRAP report structure with an executive summary and findings.",
+        "Keeps the analysis centered on plugins/security-guard instead of broad repo packaging concerns.",
+        "Names a policy-parity, host-coverage, or verification-boundary risk directly related to tightening blocked follow-ups.",
+        "Recommends a concrete first mitigation such as freezing a contract or adding shared fixtures for blocked and allowed cases."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Give me a bounded repo-level CRAP analysis for this monorepo and tell me the safest first hardening move for future plugin work.",
+      "expected_output": "A bounded repository-level report that samples the highest-signal plugin surfaces, cites evidence, and prioritizes a small number of concrete change-risk findings.",
+      "files": [],
+      "expectations": [
+        "Uses the CRAP report structure with an executive summary and findings.",
+        "Starts from shared plugin inventory, packaging, registration, installer, or verification surfaces for future plugin work.",
+        "Recommends one repo-level validator, manifest, or release gate as the first hardening move.",
+        "Keeps the headline findings bounded to a small set instead of expanding into a broad plugin-by-plugin audit."
+      ]
+    }
+  ]
+}
