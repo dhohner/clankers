@@ -36,9 +36,10 @@ from pathlib import Path
 from typing import Iterable
 
 CODE_EXTENSIONS = {
-    ".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs",
-    ".py", ".rb", ".go", ".java", ".kt", ".kts", ".cs",
-    ".php", ".rs", ".swift", ".c", ".cc", ".cpp", ".h", ".hpp",
+    ".java",
+    ".js", ".jsx", ".mjs", ".cjs",
+    ".ts", ".tsx",
+    ".py",
 }
 IGNORE_DIRS = {".git", "node_modules", "dist", "build", "coverage", ".next", "target", "vendor", "__pycache__"}
 DEFAULT_MAX_FILE_SIZE = 1_000_000
@@ -63,14 +64,11 @@ GENERATED_FILE_PATTERNS = (
     "*.gen.*",
     "*.min.js",
     "*.bundle.js",
-    "*.pb.go",
     "*_pb2.py",
-    "*.designer.cs",
 )
 
-BRANCH_RE = re.compile(r"\b(if|else\s+if|for|while|case|catch|except|elif|when|guard|switch|match|default)\b|&&|\|\||\?")
+JS_TS_BRANCH_RE = re.compile(r"\b(if|else\s+if|for|while|case|catch|switch|default)\b|&&|\|\||\?")
 JAVA_BRANCH_RE = re.compile(r"\b(if|else\s+if|for|while|case|catch|switch|default)\b|&&|\|\||\?")
-KOTLIN_BRANCH_RE = re.compile(r"\b(if|else\s+if|for|while|catch|when)\b|&&|\|\||\?")
 PY_BRANCH_RE = re.compile(r"\b(if|for|while|except|elif|match|case)\b")
 FUNC_RE = re.compile(r"\b(function\s+\w+|def\s+\w+|class\s+\w+|[A-Za-z_$][\w$]*\s*[:=]\s*(?:async\s*)?\([^)]*\)\s*=>|(?:public|private|protected|static|async|export|final|open|override|func)\s+[^\n{;=]+\()")
 IMPORT_RE = re.compile(r"(?:import\s+.*?\s+from\s+['\"]([^'\"]+)|import\s+['\"]([^'\"]+)|require\(['\"]([^'\"]+)['\"]\)|from\s+([\w.]+)\s+import|^\s*import\s+([A-Za-z_][\w.]*))", re.MULTILINE)
@@ -98,25 +96,12 @@ class FileMetric:
 
 
 LANGUAGES_BY_EXTENSION = {
-    ".c": "C",
-    ".cc": "C++",
     ".cjs": "JavaScript",
-    ".cpp": "C++",
-    ".cs": "C#",
-    ".go": "Go",
-    ".h": "C/C++ Header",
-    ".hpp": "C++ Header",
     ".java": "Java",
     ".js": "JavaScript",
     ".jsx": "JavaScript React",
-    ".kt": "Kotlin",
-    ".kts": "Kotlin",
     ".mjs": "JavaScript",
-    ".php": "PHP",
     ".py": "Python",
-    ".rb": "Ruby",
-    ".rs": "Rust",
-    ".swift": "Swift",
     ".ts": "TypeScript",
     ".tsx": "TypeScript React",
 }
@@ -388,11 +373,9 @@ class PythonMetricVisitor(ast.NodeVisitor):
 def branch_regex(path: Path) -> re.Pattern[str]:
     if path.suffix == ".java":
         return JAVA_BRANCH_RE
-    if path.suffix in {".kt", ".kts"}:
-        return KOTLIN_BRANCH_RE
     if path.suffix == ".py":
         return PY_BRANCH_RE
-    return BRANCH_RE
+    return JS_TS_BRANCH_RE
 
 
 def imports_in(scanned: str) -> set[str]:
