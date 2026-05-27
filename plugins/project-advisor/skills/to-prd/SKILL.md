@@ -17,7 +17,9 @@ Whenever you need answers from the user, prefer an interactive question tool ove
 
 Keep each interview round focused. Ask 3-6 sharp questions, synthesize what changed, inspect the repo or the implications of the answers, then ask the next round.
 
-Inspect the repository before you get deep into the interview. Use it to verify what already exists, what terms and workflows recur, and what technical constraints the user may not have mentioned yet.
+Inspect the repository before you get deep into the interview. Use it to verify what already exists, what terms and workflows recur, what domain documentation already says, and what technical constraints the user may not have mentioned yet.
+
+Use domain documentation to sharpen language and catch contradictions, not to turn the session into a documentation-maintenance detour.
 
 Do not assume the environment has Python, Node, or any other runtime beyond basic file editing and the tools already available.
 
@@ -49,6 +51,16 @@ Use the repo to answer questions like:
 - what naming or architectural patterns recur
 - what implementation constraints the user may not have mentioned yet
 
+During the interview and solution sketch, challenge the feature idea against existing domain documentation and code evidence when that helps resolve the current planning decision.
+
+Prioritize terminology, boundary, and behavior conflicts that would change the PRD.
+
+When the user uses a vague or overloaded term, propose a precise canonical term and ask for confirmation.
+
+When boundaries between concepts are still fuzzy, pressure-test them with one or two concrete scenarios instead of staying abstract.
+
+If a terminology or policy conflict suggests follow-up documentation work, mention it as a possible follow-up only after the PRD is stable. Do not turn this skill into a documentation-writing workflow.
+
 ### 3. Run the relentless interview
 
 Before the first serious interview round, read [references/interview-map.md](references/interview-map.md).
@@ -59,6 +71,7 @@ After each round:
 
 - summarize what is now confirmed
 - call out assumptions that are still provisional
+- note any terminology or durable decision mismatch that still affects scope, naming, or behavior
 - identify the next decision cluster to resolve
 - think through implications before continuing
 
@@ -87,6 +100,8 @@ Always create the PRD directly from the bundled template structure. Create the n
 Write the PRD in English. Keep proper nouns, product names, established technical terms, and code identifiers as-is rather than translating them.
 
 Do not include fragile implementation trivia such as exact file paths or code snippets unless the user explicitly asks for them.
+
+Do not include process commentary about the interview loop, offline execution, missing reviewer interaction, or other agent-environment constraints inside the PRD. Keep the document focused on the product plan itself. If that meta context matters, keep it internal or place it in the companion notes file only when the user said `with debug`.
 
 When the PRD contains unresolved context, make it easy to audit. Use `Further Notes` to separate `Assumptions`, `Open Questions`, and `Rollout / Migration Notes` when those categories contain meaningful information. Omit empty subheadings rather than adding placeholders.
 
@@ -121,6 +136,8 @@ After the review loop passes, ask the user to review the PRD and, when present, 
 If the user requests changes, update the PRD and rerun the review loop.
 
 If user review is not possible in the current environment, do not pretend the output is fully approved. Leave it as draft pending user review, and explicitly record what still needs user confirmation.
+
+Record the unresolved product decisions themselves, not the mechanics of why review did not happen. The PRD can stay in draft status without narrating the missing review loop inside the document.
 
 Only treat the output as finished when the review loop and the user review pass for the PRD, plus the notes companion when the request included `with debug`.
 

@@ -47,7 +47,7 @@ Cover the full feature surface, including:
 
 ### Implementation Decisions
 
-Record the key technical and product decisions that shape execution.
+Record the key technical and product decisions that shape execution. Use canonical terminology from existing or newly approved context documentation when that terminology affects shared understanding of the plan.
 
 This can include:
 
@@ -56,6 +56,7 @@ This can include:
 - architecture choices
 - schema or API implications
 - clarifications that remove ambiguity for later planning
+- ADR-worthy decisions that were identified during planning, unless the user approved creating separate ADRs and the rationale now lives there
 
 Prefer stable decisions over brittle detail. Avoid exact file paths and code snippets unless the user explicitly wants them.
 

@@ -4,11 +4,11 @@ Turns a rough idea or partial brief into a structured Product Requirements Docum
 
 ## How it works
 
-The skill treats the interview as the main work. It keeps asking until the problem, users, scope, constraints, and module shape are all concrete. Only then does it write.
+The skill treats the interview as the main work. It keeps asking until the problem, users, scope, constraints, and module shape are all concrete. It uses code and domain docs to sharpen the brief, but keeps the PRD as the main deliverable. Only then does it write.
 
 1. **Capture seed context** — extracts what is already known from the conversation before asking anything new
-2. **Explore the codebase** — verifies existing patterns, naming, and constraints that the brief may not mention
-3. **Run the interview** — drills into unresolved decision clusters, round by round, until shared understanding is solid
+2. **Explore the codebase** — verifies existing patterns, naming, domain documentation, durable decisions, and constraints that the brief may not mention
+3. **Run the interview** — drills into unresolved decision clusters, challenges ambiguous terminology against docs and code, pressure-tests fuzzy boundaries with concrete scenarios, and keeps documentation follow-ups secondary to the PRD
 4. **Sketch the solution shape** — proposes the major modules or capability areas and confirms them with the user
 5. **Draft the PRD** — produces a structured document from the bundled template
 6. **Review loop** — self-reviews inline, then dispatches a reviewer subagent to catch completeness, consistency, and scope issues before asking the user
