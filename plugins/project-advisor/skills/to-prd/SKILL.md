@@ -1,6 +1,6 @@
 ---
 name: to-prd
-description: "Interviews the user until the problem, constraints, tradeoffs, scope, and likely module boundaries are concrete, then produces a structured English PRD ready for issue-splitting. Use When: the user asks for a PRD, feature spec, or requirements doc; they describe a feature or product idea and want a written plan; they want to turn a conversation, thread, or rough brief into something the team can plan from; they ask how to structure a product proposal; they have a fuzzy idea and need help narrowing it into a Jira-ready document — even if they never use the word 'PRD'."
+description: "Interviews the user until the problem, constraints, tradeoffs, scope, and likely module boundaries are concrete, then saves a styled HTML PRD for human review and later issue-splitting. Use When: the user asks for a PRD, feature spec, requirements doc, planning brief, or wants to turn a fuzzy idea, conversation, draft, or rough product proposal into something the team can review and plan from — even if they never say 'PRD'."
 ---
 
 # Write a PRD
@@ -89,21 +89,21 @@ Confirm the shape with the user:
 
 ### 5. Draft the PRD and, when `with debug` is present, the implementation notes file
 
-Before writing, read [references/prd-template.md](references/prd-template.md). Read [references/implementation-notes-template.html](references/implementation-notes-template.html) only if the user explicitly included the phrase `with debug`.
+Before writing, read [references/prd-template.html](references/prd-template.html). Read [references/implementation-notes-template.html](references/implementation-notes-template.html) only if the user explicitly included the phrase `with debug`.
 
-Use this filename pattern for the PRD: `action-items/PRD-<short-slug>.md`
+Use this filename pattern for the PRD: `action-items/PRD-<short-slug>.html`
 
 Only when the user explicitly said `with debug`, create a companion file named `implementation-notes.html` alongside the PRD. If that exact filename would collide with unrelated notes already in the workspace, append the same short slug and tell the user which path you used.
 
-Always create the PRD directly from the bundled template structure. Create the notes file from its bundled template only when the user said `with debug`.
+Always create the PRD directly from the bundled HTML template structure. Preserve the inline CSS and semantic layout so the PRD is pleasant to read in a browser and easy to scan during review. Create the notes file from its bundled template only when the user said `with debug`.
 
-Write the PRD in English. Keep proper nouns, product names, established technical terms, and code identifiers as-is rather than translating them.
+Write the PRD in English. Keep proper nouns, product names, established technical terms, and code identifiers as-is rather than translating them. Escape user-provided text as needed so the HTML stays valid and does not accidentally execute markup.
 
 Do not include fragile implementation trivia such as exact file paths or code snippets unless the user explicitly asks for them.
 
 Do not include process commentary about the interview loop, offline execution, missing reviewer interaction, or other agent-environment constraints inside the PRD. Keep the document focused on the product plan itself. If that meta context matters, keep it internal or place it in the companion notes file only when the user said `with debug`.
 
-When the PRD contains unresolved context, make it easy to audit. Use `Further Notes` to separate `Assumptions`, `Open Questions`, and `Rollout / Migration Notes` when those categories contain meaningful information. Omit empty subheadings rather than adding placeholders.
+When the PRD contains unresolved context, make it easy to audit. Use the `Further Notes` section to separate `Assumptions`, `Open Questions`, and `Rollout / Migration Notes` when those categories contain meaningful information. Omit empty cards or subsections rather than adding placeholders.
 
 When the user said `with debug`, the companion notes file should explain anything the user should know about how the PRD was interpreted or where it diverges from the brief. Always include these sections:
 
@@ -131,9 +131,11 @@ When the request included `with debug`, the reviewer should also reject the pair
 - If the review finds issues, fix the PRD and review again.
 - If the same disagreement repeats 3 times, or the review loop exceeds 5 total passes, stop and ask the user how to proceed.
 
-After the review loop passes, ask the user to review the PRD and, when present, the implementation notes. If an interactive question tool exists, offer quick options such as `Looks good`, `Needs changes`, and `Let me review it first`.
+After the review loop passes, make the generated PRD easy for the user to review. Prefer the environment's browser or file-preview tool when one is available. If no such tool is available, or opening the file requires approval that is not granted, provide the PRD path and keep going.
 
-If the user requests changes, update the PRD and rerun the review loop.
+Then ask the user to review the PRD and, when present, the implementation notes. If an interactive question tool exists, offer quick options such as `Accepted`, `Needs changes`, and `Let me review it first`.
+
+If the user requests changes, update the PRD and rerun the review loop, then make the updated HTML file available for review again before asking for acceptance.
 
 If user review is not possible in the current environment, do not pretend the output is fully approved. Leave it as draft pending user review, and explicitly record what still needs user confirmation.
 
@@ -141,8 +143,10 @@ Record the unresolved product decisions themselves, not the mechanics of why rev
 
 Only treat the output as finished when the review loop and the user review pass for the PRD, plus the notes companion when the request included `with debug`.
 
-### 7. Offer the next step
+### 7. Offer the issue handoff
 
-Once the PRD is finalized, offer to break it into Jira-ready work items with the `to-issues` skill.
+Once the PRD is finalized and the user marks the human review as accepted, offer to break it into Jira-ready work items with the `to-issues` skill.
 
-If the user agrees, invoke `to-issues` with the PRD path. Otherwise, confirm the saved PRD location and, when applicable, the implementation notes location, then stop.
+Invoke `to-issues` with the PRD path only when the user asks for the handoff, accepts an offered handoff, or originally requested an end-to-end PRD-to-issues workflow. Otherwise, confirm the saved PRD location and, when applicable, the implementation notes location, then stop.
+
+If the user does not accept the PRD yet, keep the PRD in draft review state and do not invoke `to-issues`.

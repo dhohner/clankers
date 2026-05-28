@@ -1,7 +1,7 @@
 ---
 name: next-thing
 description: Identify the single highest-leverage next addition to the current project and present it as a crisp, evidence-backed product recommendation in the voice of a Senior Product Manager. Use this whenever the user asks what to build next, what opportunity to prioritize, what the strongest product bet is, or wants a recommendation that feels like an elevator pitch rather than an implementation plan.
-disable-model-invocation: true
+disable-model-invocation: false
 ---
 
 # Next Best Thing

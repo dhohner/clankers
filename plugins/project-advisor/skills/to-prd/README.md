@@ -1,6 +1,6 @@
 # Write a PRD
 
-Turns a rough idea or partial brief into a structured Product Requirements Document through a focused interview, codebase exploration, and module design — then saves it as a PRD file.
+Turns a rough idea or partial brief into a structured Product Requirements Document through a focused interview, codebase exploration, and module design — then saves it as a styled HTML PRD file that is easy to review in a browser.
 
 ## How it works
 
@@ -10,8 +10,8 @@ The skill treats the interview as the main work. It keeps asking until the probl
 2. **Explore the codebase** — verifies existing patterns, naming, domain documentation, durable decisions, and constraints that the brief may not mention
 3. **Run the interview** — drills into unresolved decision clusters, challenges ambiguous terminology against docs and code, pressure-tests fuzzy boundaries with concrete scenarios, and keeps documentation follow-ups secondary to the PRD
 4. **Sketch the solution shape** — proposes the major modules or capability areas and confirms them with the user
-5. **Draft the PRD** — produces a structured document from the bundled template
-6. **Review loop** — self-reviews inline, then dispatches a reviewer subagent to catch completeness, consistency, and scope issues before asking the user
+5. **Draft the PRD** — produces a styled HTML document from the bundled template
+6. **Review loop** — self-reviews inline, runs a reviewer subagent when available, makes the generated HTML PRD available for review, then asks the user to accept or request changes
 
 ## PRD structure
 
@@ -28,7 +28,7 @@ Every generated PRD includes these sections:
 ## Bundled references
 
 - `references/interview-map.md` — decision clusters used to guide the interview
-- `references/prd-template.md` — section structure and writing guidance
+- `references/prd-template.html` — styled HTML layout, section structure, and writing guidance
 - `references/review-checklist.md` — quality criteria applied before user review
 
 ## Usage
@@ -39,7 +39,7 @@ Every generated PRD includes these sections:
 "I need a product requirements document for X"
 ```
 
-Once the PRD is approved, the skill offers to break it into Jira-ready work items using the `to-issues` skill.
+Once the PRD is approved, the skill offers to hand it off to the `to-issues` skill to break it into Jira-ready work items.
 
 ## Language
 
