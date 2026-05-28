@@ -8,7 +8,7 @@ Use this checklist before asking either a reviewer subagent or the user to look 
 - If the user requested `with debug`, the companion `implementation-notes.html` file exists and includes `Design Decisions`, `Deviations`, `Tradeoffs`, and `Open Questions`.
 - No placeholder text, TODOs, empty template cards, or obviously unfinished sections remain in the PRD or, when present, the companion notes artifact.
 - User stories cover the meaningful parts of the feature rather than only the happy path.
-- When unresolved context exists, `Further Notes` separates assumptions, open questions, and rollout or migration concerns clearly enough to review, and the companion notes file makes the same uncertainty easy to audit when `with debug` was requested.
+- When unresolved context exists, `Further Notes` separates assumptions, open questions, and rollout or migration concerns clearly enough to review. The companion notes file makes the same uncertainty easy to audit when `with debug` was requested.
 - The generated PRD is valid standalone HTML with preserved styling and readable layout.
 
 ## Consistency
@@ -23,6 +23,8 @@ Use this checklist before asking either a reviewer subagent or the user to look 
 
 - A later issue-splitting step could turn this into work items without guessing the basics.
 - Ambiguous requirements are either resolved or named as open questions.
+- Provisional assumptions are labeled as assumptions, not written as settled facts.
+- The PRD does not infer specific workflow rules, approval gates, data models, UI surfaces, or automation behavior unless the user or repo evidence supports them.
 - Important edge cases and constraints are explicit enough to prevent drift.
 - When the user requested `with debug`, the notes explain ambiguous choices, intentional departures, and remaining confirmations clearly enough that a reviewer can tell how to read the PRD.
 - The PRD does not mix provisional assumptions into settled implementation decisions, and the notes file does not restate settled decisions as if they were still open when it exists.

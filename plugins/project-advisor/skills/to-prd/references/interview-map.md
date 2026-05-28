@@ -1,10 +1,10 @@
 # Interview Map
 
-Use this map to drive the PRD interview until you and the user share the same mental model of the feature.
+Use this map to drive the PRD interview until you and the user share the same mental model of the feature. Treat it as a decision map, not a script.
 
-Do not ask every question mechanically. Pick the next unresolved branch that matters most.
+The right next question is the one whose answer would most change the PRD.
 
-## What the interview is trying to achieve
+## Target Understanding
 
 By the time you stop interviewing, you should be able to explain:
 
@@ -15,23 +15,17 @@ By the time you stop interviewing, you should be able to explain:
 - where the feature begins and ends
 - what must be true for the implementation to be considered correct
 
-If you cannot explain one of those points clearly, the interview is not done yet.
+If one of those points is unclear, ask about it or carry it into the PRD as a labeled assumption or open question. Do not fill it with a plausible story.
 
-## Decision clusters to walk through
+## Decision Clusters
 
-### Problem and urgency
+### Problem
 
 Clarify:
 
 - what is broken, painful, slow, risky, or missing today
 - why this matters now instead of later
 - what happens if the team does nothing
-
-Useful angles to explore:
-
-- What is the current failure, friction, or missed opportunity?
-- Who notices the problem first?
-- What concrete outcome would make this worth building?
 
 ### Users and actors
 
@@ -41,13 +35,7 @@ Clarify:
 - secondary actors affected by the change
 - who benefits, who pays the cost, and who can block adoption
 
-Useful angles to explore:
-
-- Who is the main actor in the happy path?
-- Who else needs different behavior, permissions, or visibility?
-- Is there an operator, admin, or support workflow hiding behind the main feature?
-
-### Current workflow and desired workflow
+### Workflow
 
 Clarify:
 
@@ -55,13 +43,7 @@ Clarify:
 - where the handoff, delay, or confusion happens
 - what the improved flow should feel like end-to-end
 
-Useful angles to explore:
-
-- Walk me through the current path step by step.
-- Where does the user get stuck, wait, or guess?
-- What should be different in the future flow from the user's perspective?
-
-### Scope edges
+### Scope
 
 Clarify:
 
@@ -69,13 +51,7 @@ Clarify:
 - what feels adjacent but should stay out of scope
 - whether the work is one coherent initiative or several hidden projects
 
-Useful angles to explore:
-
-- What tempting adjacent work should we avoid folding into this PRD?
-- Are there obvious follow-ups that should remain separate?
-- If we had to ship a narrower first version, what still has to be included?
-
-### Rules, states, and exceptions
+### Rules and States
 
 Clarify:
 
@@ -84,13 +60,7 @@ Clarify:
 - important edge cases
 - failure paths and fallback behavior
 
-Useful angles to explore:
-
-- What conditions change the outcome?
-- What happens when data is missing, stale, or invalid?
-- Are there approval, timing, or entitlement rules that matter?
-
-### Constraints and tradeoffs
+### Constraints
 
 Clarify:
 
@@ -99,13 +69,7 @@ Clarify:
 - compliance, localization, rollout, migration, or compatibility concerns
 - explicit tradeoffs the team is willing to make
 
-Useful angles to explore:
-
-- What constraints would make one solution acceptable and another impossible?
-- Do we need to preserve existing behavior for some users or systems?
-- Are there rollout, migration, or policy constraints we need to capture now?
-
-### Quality bar and testing intent
+### Quality Bar
 
 Clarify:
 
@@ -113,21 +77,28 @@ Clarify:
 - what user-visible behavior deserves direct testing
 - what regressions the team is most worried about
 
-Useful angles to explore:
+## Useful Question Patterns
 
-- What would make you confident this shipped correctly?
-- Which behaviors are risky enough that we should name them explicitly in testing decisions?
-- Do we already have similar tests or feature patterns in the repo?
+Use concrete prompts when the discussion is still abstract:
+
+- "Walk me through the current path step by step."
+- "Where does the user get stuck, wait, or guess?"
+- "What should be different in the future flow from the user's perspective?"
+- "What tempting adjacent work should stay out of this PRD?"
+- "If we shipped a narrower first version, what still has to be included?"
+- "What conditions change the outcome?"
+- "What happens when data is missing, stale, or invalid?"
+- "What would make you confident this shipped correctly?"
 
 ## Round structure
 
 Run the interview in loops:
 
 1. Pick one unresolved decision cluster.
-2. Ask a focused round of 3-6 questions.
-3. Summarize confirmed understanding, provisional assumptions, and open decisions.
-4. Inspect the codebase or think through implications.
-5. Choose the next cluster.
+2. Ask a focused round of 3-6 questions, fewer when one answer is likely decisive.
+3. Summarize `Confirmed`, `Provisional`, and `Open`.
+4. Inspect the repo or think through implications.
+5. Choose the next cluster or draft if the remaining gaps are safe to label.
 
 ## Exit criteria
 
@@ -140,4 +111,4 @@ You are ready to draft the PRD when all of the following are true:
 - the likely module or capability breakdown is credible
 - the testing section can describe external behavior worth validating
 
-If one of these is still weak, keep interviewing.
+If one of these is still weak and would change planning, keep interviewing. If it is weak but not blocking, put it in `Further Notes` instead of inventing a decision.

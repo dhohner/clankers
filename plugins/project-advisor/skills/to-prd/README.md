@@ -1,15 +1,15 @@
 # Write a PRD
 
-Turns a rough idea or partial brief into a structured Product Requirements Document through a focused interview, codebase exploration, and module design — then saves it as a styled HTML PRD file that is easy to review in a browser.
+Turns a rough idea or partial brief into a structured Product Requirements Document through a focused interview, codebase exploration, and shared-understanding pass, then saves it as a styled HTML PRD file that is easy to review in a browser.
 
 ## How it works
 
-The skill treats the interview as the main work. It keeps asking until the problem, users, scope, constraints, and module shape are all concrete. It uses code and domain docs to sharpen the brief, but keeps the PRD as the main deliverable. Only then does it write.
+The skill treats the interview as the main work. It keeps separate buckets for confirmed decisions, provisional assumptions, and open questions so the PRD can move forward without pretending uncertain details are settled. It uses code and domain docs to sharpen the brief, but keeps the PRD as the main deliverable. Only then does it write.
 
 1. **Capture seed context** — extracts what is already known from the conversation before asking anything new
 2. **Explore the codebase** — verifies existing patterns, naming, domain documentation, durable decisions, and constraints that the brief may not mention
-3. **Run the interview** — drills into unresolved decision clusters, challenges ambiguous terminology against docs and code, pressure-tests fuzzy boundaries with concrete scenarios, and keeps documentation follow-ups secondary to the PRD
-4. **Sketch the solution shape** — proposes the major modules or capability areas and confirms them with the user
+3. **Run the interview** — resolves the next decision that would most change the PRD, challenges ambiguous terminology against docs and code, and pressure-tests fuzzy boundaries with concrete scenarios
+4. **Confirm the solution shape** — proposes the major capability areas, scope edges, and testing intent, then confirms them with the user
 5. **Draft the PRD** — produces a styled HTML document from the bundled template
 6. **Review loop** — self-reviews inline, runs a reviewer subagent when available, makes the generated HTML PRD available for review, then asks the user to accept or request changes
 
