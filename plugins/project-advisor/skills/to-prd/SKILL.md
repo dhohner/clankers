@@ -116,7 +116,7 @@ If subagents are available, run a reviewer loop using the PRD path and, when rel
 - If the review finds issues, fix the PRD and review again.
 - If the same disagreement repeats 3 times, or the review loop exceeds 5 total passes, stop and ask the user how to proceed.
 
-After the review loop passes, make the PRD easy for the user to review. Prefer the environment's browser or file-preview tool when available. Otherwise provide the PRD path.
+After the review loop passes, make the PRD easy for the user to review before asking them to review it. If the environment has a browser or file-preview tool, use it to open or preview the PRD first, then tell the user what was opened. When `with debug` was requested, open or preview the notes file too. Only fall back to providing paths when no open or preview mechanism exists.
 
 Ask the user to review the PRD and, when present, the implementation notes. If an interactive question tool exists, offer quick options such as `Accepted`, `Needs changes`, and `Let me review it first`.
 

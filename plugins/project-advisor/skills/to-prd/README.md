@@ -11,7 +11,7 @@ The skill treats the interview as the main work. It keeps separate buckets for c
 3. **Run the interview** — resolves the next decision that would most change the PRD, challenges ambiguous terminology against docs and code, and pressure-tests fuzzy boundaries with concrete scenarios
 4. **Confirm the solution shape** — proposes the major capability areas, scope edges, and testing intent, then confirms them with the user
 5. **Draft the PRD** — produces a styled HTML document from the bundled template
-6. **Review loop** — self-reviews inline, runs a reviewer subagent when available, makes the generated HTML PRD available for review, then asks the user to accept or request changes
+6. **Review loop** — self-reviews inline, runs a reviewer subagent when available, opens or previews the generated HTML PRD for the user when the environment supports it, then asks the user to accept or request changes
 
 ## PRD structure
 
