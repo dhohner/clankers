@@ -71,7 +71,7 @@ JS_TS_BRANCH_RE = re.compile(r"\b(if|else\s+if|for|while|case|catch|switch|defau
 JAVA_BRANCH_RE = re.compile(r"\b(if|else\s+if|for|while|case|catch|switch|default)\b|&&|\|\||\?")
 PY_BRANCH_RE = re.compile(r"\b(if|for|while|except|elif|match|case)\b")
 FUNC_RE = re.compile(r"\b(function\s+\w+|def\s+\w+|class\s+\w+|[A-Za-z_$][\w$]*\s*[:=]\s*(?:async\s*)?\([^)]*\)\s*=>|(?:public|private|protected|static|async|export|final|open|override|func)\s+[^\n{;=]+\()")
-IMPORT_RE = re.compile(r"(?:import\s+.*?\s+from\s+['\"]([^'\"]+)|import\s+['\"]([^'\"]+)|require\(['\"]([^'\"]+)['\"]\)|from\s+([\w.]+)\s+import|^\s*import\s+([A-Za-z_][\w.]*))", re.MULTILINE)
+IMPORT_RE = re.compile(r"(?:import\s+.*?\s+from\s+['\"]([^'\"]+)|export\s+.*?\s+from\s+['\"]([^'\"]+)|import\s+['\"]([^'\"]+)|import\(['\"]([^'\"]+)['\"]\)|require\(['\"]([^'\"]+)['\"]\)|from\s+([\w.]+)\s+import|^\s*import\s+([A-Za-z_][\w.]*))", re.MULTILINE)
 COMMENT_RE = re.compile(r"/\*.*?\*/|//.*?$|#.*?$", re.MULTILINE | re.DOTALL)
 STRING_RE = re.compile(r"'''[\s\S]*?'''|\"\"\"[\s\S]*?\"\"\"|'(?:\\.|[^'\\])*'|\"(?:\\.|[^\"\\])*\"|`(?:\\.|[^`\\])*`")
 
@@ -93,6 +93,29 @@ class FileMetric:
         if self.coverage is None:
             return None
         return (self.complexity ** 2) * ((1 - self.coverage) ** 3) + self.complexity
+
+
+@dataclass
+class SymbolMetric:
+    id: str
+    path: Path
+    class_name: str
+    name: str
+    kind: str
+    start_line: int
+    end_line: int
+    complexity: int
+    calls: set[str]
+    changed: bool = False
+    boundary: str | None = None
+
+
+@dataclass(frozen=True)
+class CallEdge:
+    source: str
+    target: str
+    label: str = ""
+    external: bool = False
 
 
 LANGUAGES_BY_EXTENSION = {
@@ -505,19 +528,135 @@ def dot_escape(value: object) -> str:
     return str(value).replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n')
 
 
-def dot_for(metrics: list[FileMetric], thresholds: Thresholds) -> str:
+def candidate_module_paths(base: Path) -> list[Path]:
+    """Return likely source files for an import base path without requiring deps."""
+    candidates = [base]
+    candidates.extend(base.with_suffix(ext) for ext in CODE_EXTENSIONS if not base.suffix)
+    candidates.extend(base / f"index{ext}" for ext in (".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"))
+    candidates.append(base / "__init__.py")
+    return candidates
+
+
+def build_import_index(metrics: list[FileMetric], root: Path) -> dict[str, FileMetric]:
+    """Index scanned files by common import spellings for deterministic local resolution."""
+    index: dict[str, FileMetric] = {}
+    for m in metrics:
+        rel = m.path.as_posix()
+        no_suffix = m.path.with_suffix("").as_posix()
+        abs_no_suffix = (root / m.path).with_suffix("").as_posix()
+        keys = {
+            rel,
+            "./" + rel,
+            no_suffix,
+            "./" + no_suffix,
+            abs_no_suffix,
+            no_suffix.replace("/", "."),
+        }
+        if m.path.name == "__init__.py":
+            pkg = m.path.parent.as_posix()
+            keys.update({pkg, "./" + pkg, pkg.replace("/", ".")})
+        if m.path.name.startswith("index."):
+            pkg = m.path.parent.as_posix()
+            keys.update({pkg, "./" + pkg})
+        for key in keys:
+            index.setdefault(key.lstrip("/"), m)
+    return index
+
+
+def resolve_import(imp: str, source: FileMetric, root: Path, index: dict[str, FileMetric]) -> FileMetric | None:
+    """Resolve a parsed import string to a scanned local file when possible.
+
+    Handles relative JS/TS/Python imports, Python dotted modules/packages, simple
+    repo-root imports, JS index files, Python packages, and Java package imports.
+    External package imports intentionally return None.
+    """
+    imp = imp.strip()
+    if not imp:
+        return None
+    if imp.endswith(".*"):
+        imp = imp[:-2]
+
+    source_dir = root / source.path.parent
+    bases: list[Path] = []
+    if imp.startswith("."):
+        # JS/TS relative paths and Python relative modules both normalize here.
+        if imp.startswith(("./", "../")):
+            bases.append((source_dir / imp).resolve())
+        else:
+            level = len(imp) - len(imp.lstrip("."))
+            remainder = imp[level:].replace(".", "/")
+            base = source_dir
+            for _ in range(max(0, level - 1)):
+                base = base.parent
+            bases.append((base / remainder).resolve())
+    elif imp.startswith("/"):
+        bases.append(root / imp.lstrip("/"))
+    elif imp.startswith(("@/", "~/")):
+        alias_path = imp[2:]
+        bases.extend([root / alias_path, root / "src" / alias_path])
+    else:
+        # Python/Java dotted module path and common repo-root / src-root aliases.
+        slash = imp.replace(".", "/")
+        bases.extend([root / imp, root / slash, root / "src" / imp, root / "src" / slash])
+
+    for base in bases:
+        for candidate in candidate_module_paths(base):
+            try:
+                rel = candidate.resolve().relative_to(root).as_posix()
+            except ValueError:
+                continue
+            target = index.get(rel) or index.get(Path(rel).with_suffix("").as_posix())
+            if target and target.path != source.path:
+                return target
+
+    # Fall back to precomputed spellings, including Java/Python dotted names.
+    for key in (imp, imp.lstrip("./"), imp.replace(".", "/"), imp.replace("/", ".")):
+        target = index.get(key)
+        if target and target.path != source.path:
+            return target
+    return None
+
+
+def dependency_edges(metrics: list[FileMetric], root: Path) -> list[tuple[FileMetric, FileMetric, str]]:
+    index = build_import_index(metrics, root)
+    edges: list[tuple[FileMetric, FileMetric, str]] = []
+    seen: set[tuple[Path, Path, str]] = set()
+    for m in metrics:
+        for imp in sorted(m.imports):
+            target = resolve_import(imp, m, root, index)
+            if not target:
+                continue
+            key = (m.path, target.path, imp)
+            if key not in seen:
+                seen.add(key)
+                edges.append((m, target, imp))
+    return edges
+
+
+def dependency_edge_payload(edge: tuple[FileMetric, FileMetric, str]) -> dict[str, str]:
+    source, target, imp = edge
+    return {"source": source.path.as_posix(), "target": target.path.as_posix(), "import": imp}
+
+
+def dot_for(metrics: list[FileMetric], root: Path, thresholds: Thresholds, graph_metrics: list[FileMetric] | None = None) -> str:
     out = StringIO()
-    by_stem = {m.path.stem: m for m in metrics}
+    visible = {m.path for m in metrics}
+    edge_source = graph_metrics or metrics
+    emitted_nodes: set[Path] = set()
     print("digraph crap_complexity {", file=out)
     print('  graph [rankdir="LR"];', file=out)
     for m in metrics:
         color = {"high": "red", "medium": "orange", "low": "gray"}[risk(m, thresholds)]
         print(f'  "{dot_escape(m.path)}" [label="{dot_escape(m.path)}\\nC={m.complexity}", color="{color}"];', file=out)
-    for m in metrics:
-        for imp in m.imports:
-            target = by_stem.get(Path(imp).stem)
-            if target:
-                print(f'  "{dot_escape(m.path)}" -> "{dot_escape(target.path)}";', file=out)
+        emitted_nodes.add(m.path)
+    for source, target, imp in dependency_edges(edge_source, root):
+        if source.path not in visible and target.path not in visible:
+            continue
+        for m in (source, target):
+            if m.path not in emitted_nodes:
+                print(f'  "{dot_escape(m.path)}" [label="{dot_escape(m.path)}\\nC={m.complexity}", color="lightgray", style="dashed"];', file=out)
+                emitted_nodes.add(m.path)
+        print(f'  "{dot_escape(source.path)}" -> "{dot_escape(target.path)}" [label="{dot_escape(imp)}"];', file=out)
     print("}", file=out)
     return out.getvalue()
 
@@ -577,7 +716,10 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Generate local complexity and dependency graph data for CRAP analysis")
     ap.add_argument("root", nargs="?", default=".", type=Path)
     ap.add_argument("--coverage", type=Path, help="Istanbul/Jest coverage-summary.json, JaCoCo XML, or simple coverage JSON (auto-detected if omitted)")
-    ap.add_argument("--format", choices=["markdown", "json", "dot", "sarif"], default="markdown")
+    ap.add_argument("--format", choices=["markdown", "json", "dot", "sarif", "agent"], default="markdown")
+    ap.add_argument("--graph-level", choices=["file", "symbol"], default="file", help="file=dependency graph, symbol=Java method call graph")
+    ap.add_argument("--direction", choices=["callees", "callers", "both"], default="both", help="Symbol graph traversal direction from changed methods")
+    ap.add_argument("--depth", type=int, default=8, help="Maximum symbol call-chain depth from changed methods")
     ap.add_argument("--all", action="store_true", help="Analyze all code files under root instead of only locally changed code")
     ap.add_argument("--top", type=int, help="Only display the N riskiest files")
     ap.add_argument("--min-risk", choices=RISK_ORDER.keys(), default="low", help="Only display files at or above this risk")
@@ -587,6 +729,11 @@ def main() -> None:
     ap.add_argument("--ignore-dir", action="append", default=[], help="Additional directory name to ignore; repeatable")
     ap.add_argument("--exclude", action="append", default=[], help="Glob for repo-relative paths or filenames to exclude; repeatable")
     ap.add_argument("--include-generated", action="store_true", help="Include common generated file patterns that are skipped by default")
+    ap.add_argument("--include-tests", action="store_true", help="Include test sources in symbol call graphs; excluded by default")
+    ap.add_argument("--include-snippets", action="store_true", help="Include source snippets in symbol json/agent output")
+    ap.add_argument("--snippet-lines", type=int, default=80, help="Maximum snippet lines per symbol")
+    ap.add_argument("--project-package", action="append", default=[], help="Project package root for symbol call graphs; repeatable")
+    ap.add_argument("--edge-scope", choices=["project", "resolved", "all"], default="project", help="Symbol graph edge scope")
     ap.add_argument("--no-auto-coverage", action="store_true", help="Do not auto-detect common coverage artifacts when --coverage is omitted")
     ap.add_argument("--workers", type=int, default=DEFAULT_WORKERS, help="Process workers for CPU-heavy scans; default is 1")
     ap.add_argument("--medium-complexity", type=int, default=DEFAULT_MEDIUM_COMPLEXITY)
@@ -599,6 +746,8 @@ def main() -> None:
     root = args.root.resolve()
     if not root.exists():
         ap.error(f"root does not exist: {root}")
+    if args.format == "agent" and args.graph_level != "symbol":
+        ap.error("--format agent is only supported with --graph-level symbol")
     if args.medium_complexity > args.high_complexity:
         ap.error("--medium-complexity must be less than or equal to --high-complexity")
     if args.medium_score > args.high_score:
@@ -608,6 +757,47 @@ def main() -> None:
     thresholds = Thresholds(args.medium_complexity, args.high_complexity, args.medium_score, args.high_score)
     coverage, coverage_source = load_coverage(args.coverage, root, not args.no_auto_coverage)
     changed = None if args.all else changed_code(root, ignore_dirs, args.exclude, args.max_file_size, args.include_generated, args.base_ref)
+
+    if args.graph_level == "symbol":
+        if args.format == "sarif":
+            ap.error("--graph-level symbol currently supports --format markdown, json, dot, or agent")
+        graph_files = list(iter_files(root, ignore_dirs, args.exclude, args.max_file_size, args.include_generated))
+        languages = {p.suffix for p in graph_files}
+        helper: Path | None = None
+        if ".java" in languages:
+            helper = Path(__file__).resolve().parent / "java" / "cli.py"
+        if helper is None:
+            ap.error("No supported symbol call-graph language detected under root. Currently supported: Java")
+        cmd = [
+            sys.executable,
+            str(helper),
+            str(root),
+            "--format", args.format,
+            "--direction", args.direction,
+            "--depth", str(args.depth),
+            "--base-ref", args.base_ref,
+            "--max-file-size", str(args.max_file_size),
+        ]
+        if args.all:
+            cmd.append("--all")
+        if args.include_generated:
+            cmd.append("--include-generated")
+        if args.include_tests:
+            cmd.append("--include-tests")
+        if args.include_snippets:
+            cmd.append("--include-snippets")
+        cmd.extend(["--snippet-lines", str(args.snippet_lines)])
+        cmd.extend(["--edge-scope", args.edge_scope])
+        for value in args.project_package:
+            cmd.extend(["--project-package", value])
+        for value in args.ignore_dir:
+            cmd.extend(["--ignore-dir", value])
+        for value in args.exclude:
+            cmd.extend(["--exclude", value])
+        if args.output:
+            cmd.extend(["--output", str(args.output)])
+        raise SystemExit(subprocess.run(cmd).returncode)
+
     files = list(iter_files(root, ignore_dirs, args.exclude, args.max_file_size, args.include_generated)) if args.all else list(changed or {})
     worker_count = max(1, min(args.workers, len(files) or 1))
     jobs = [(p, root, coverage, None if changed is None else changed[p]) for p in files]
@@ -626,12 +816,13 @@ def main() -> None:
         payload = {
             "summary": summary_for(metrics, display, coverage_source, "all" if args.all else "changed", root, thresholds),
             "files": [metric_payload(m, thresholds) for m in display],
+            "edges": [dependency_edge_payload(edge) for edge in dependency_edges(metrics, root) if edge[0] in display and edge[1] in display],
         }
         emit(json.dumps(payload, indent=2) + "\n", args.output)
     elif args.format == "sarif":
         emit(json.dumps(sarif_for(display, root, thresholds), indent=2) + "\n", args.output)
     elif args.format == "dot":
-        emit(dot_for(display, thresholds), args.output)
+        emit(dot_for(display, root, thresholds, metrics), args.output)
     else:
         emit(markdown_for(display, len(metrics), coverage_source, thresholds), args.output)
 
