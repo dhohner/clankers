@@ -10,9 +10,9 @@ Examples:
   python plugins/crap/scripts/crap-complexity-graph.py . --coverage coverage-summary.json --fail-on high
   python plugins/crap/scripts/crap-complexity-graph.py . --format sarif --output crap.sarif
 
-Coverage support is best-effort. Pass an Istanbul/Jest coverage-summary.json,
-JaCoCo XML report, or a simple JSON object keyed by file path with line/statement
-percentage values. If --coverage is omitted, common coverage artifact paths are
+Coverage support is best-effort. Pass a JaCoCo XML report or a simple JSON
+object keyed by file path with line/statement percentage values. If --coverage
+is omitted, common coverage artifact paths are
 auto-detected under the selected root.
 The CRAP score follows the Artima formula:
   CRAP = complexity^2 * (1 - coverage)^3 + complexity
@@ -37,8 +37,6 @@ from typing import Iterable
 
 CODE_EXTENSIONS = {
     ".java",
-    ".js", ".jsx", ".mjs", ".cjs",
-    ".ts", ".tsx",
     ".py",
 }
 IGNORE_DIRS = {".git", "node_modules", "dist", "build", "coverage", ".next", "target", "vendor", "__pycache__"}
@@ -62,12 +60,9 @@ COVERAGE_GLOBS = (
 GENERATED_FILE_PATTERNS = (
     "*.generated.*",
     "*.gen.*",
-    "*.min.js",
-    "*.bundle.js",
     "*_pb2.py",
 )
 
-JS_TS_BRANCH_RE = re.compile(r"\b(if|else\s+if|for|while|case|catch|switch|default)\b|&&|\|\||\?")
 JAVA_BRANCH_RE = re.compile(r"\b(if|else\s+if|for|while|case|catch|switch|default)\b|&&|\|\||\?")
 PY_BRANCH_RE = re.compile(r"\b(if|for|while|except|elif|match|case)\b")
 FUNC_RE = re.compile(r"\b(function\s+\w+|def\s+\w+|class\s+\w+|[A-Za-z_$][\w$]*\s*[:=]\s*(?:async\s*)?\([^)]*\)\s*=>|(?:public|private|protected|static|async|export|final|open|override|func)\s+[^\n{;=]+\()")
@@ -119,14 +114,8 @@ class CallEdge:
 
 
 LANGUAGES_BY_EXTENSION = {
-    ".cjs": "JavaScript",
     ".java": "Java",
-    ".js": "JavaScript",
-    ".jsx": "JavaScript React",
-    ".mjs": "JavaScript",
     ".py": "Python",
-    ".ts": "TypeScript",
-    ".tsx": "TypeScript React",
 }
 
 
@@ -398,7 +387,7 @@ def branch_regex(path: Path) -> re.Pattern[str]:
         return JAVA_BRANCH_RE
     if path.suffix == ".py":
         return PY_BRANCH_RE
-    return JS_TS_BRANCH_RE
+    return JAVA_BRANCH_RE
 
 
 def imports_in(scanned: str) -> set[str]:
@@ -532,7 +521,6 @@ def candidate_module_paths(base: Path) -> list[Path]:
     """Return likely source files for an import base path without requiring deps."""
     candidates = [base]
     candidates.extend(base.with_suffix(ext) for ext in CODE_EXTENSIONS if not base.suffix)
-    candidates.extend(base / f"index{ext}" for ext in (".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"))
     candidates.append(base / "__init__.py")
     return candidates
 
@@ -566,8 +554,8 @@ def build_import_index(metrics: list[FileMetric], root: Path) -> dict[str, FileM
 def resolve_import(imp: str, source: FileMetric, root: Path, index: dict[str, FileMetric]) -> FileMetric | None:
     """Resolve a parsed import string to a scanned local file when possible.
 
-    Handles relative JS/TS/Python imports, Python dotted modules/packages, simple
-    repo-root imports, JS index files, Python packages, and Java package imports.
+    Handles relative Python imports, Python dotted modules/packages, simple
+    repo-root imports, Python packages, and Java package imports.
     External package imports intentionally return None.
     """
     imp = imp.strip()
@@ -579,7 +567,7 @@ def resolve_import(imp: str, source: FileMetric, root: Path, index: dict[str, Fi
     source_dir = root / source.path.parent
     bases: list[Path] = []
     if imp.startswith("."):
-        # JS/TS relative paths and Python relative modules both normalize here.
+        # Relative imports normalize here.
         if imp.startswith(("./", "../")):
             bases.append((source_dir / imp).resolve())
         else:
@@ -715,7 +703,7 @@ def emit(text: str, output: Path | None) -> None:
 def main() -> None:
     ap = argparse.ArgumentParser(description="Generate local complexity and dependency graph data for CRAP analysis")
     ap.add_argument("root", nargs="?", default=".", type=Path)
-    ap.add_argument("--coverage", type=Path, help="Istanbul/Jest coverage-summary.json, JaCoCo XML, or simple coverage JSON (auto-detected if omitted)")
+    ap.add_argument("--coverage", type=Path, help="JaCoCo XML or simple coverage JSON (auto-detected if omitted)")
     ap.add_argument("--format", choices=["markdown", "json", "dot", "sarif", "agent"], default="markdown")
     ap.add_argument("--graph-level", choices=["file", "symbol"], default="file", help="file=dependency graph, symbol=Java method call graph")
     ap.add_argument("--direction", choices=["callees", "callers", "both"], default="both", help="Symbol graph traversal direction from changed methods")
