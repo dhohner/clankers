@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import importlib.util
 import subprocess
 import sys
 import tempfile
@@ -13,6 +14,54 @@ SKILL_DIR = Path(__file__).resolve().parents[1]
 SCRIPT = SKILL_DIR / "scripts" / "generate_prd.py"
 EXAMPLE = SKILL_DIR / "examples" / "basic-prd.json"
 SOURCE_ASSETS = SKILL_DIR / "bundle" / "assets"
+MODULE_SPEC = importlib.util.spec_from_file_location("generate_prd", SCRIPT)
+assert MODULE_SPEC and MODULE_SPEC.loader
+GENERATOR = importlib.util.module_from_spec(MODULE_SPEC)
+sys.modules[MODULE_SPEC.name] = GENERATOR
+MODULE_SPEC.loader.exec_module(GENERATOR)
+
+
+def sample_block(name: str) -> object:
+    spec = GENERATOR.BLOCK_SPECS[name]
+    if spec.kind == "problem":
+        return {"statement": "A clear problem.", "evidence": ["Observed evidence."]}
+    if spec.kind == "scope":
+        return {"in": ["Included behavior."], "out": ["Excluded behavior."]}
+    if spec.kind == "diagram":
+        return {"description": f"{spec.title} description.", "source": "A --> B"}
+    if spec.kind == "table":
+        return {"columns": ["From", "To"], "rows": [["A", "B"]]}
+    if spec.kind == "questions":
+        return ["What still needs a decision?"]
+    if spec.kind == "list":
+        return ["Intentionally excluded outcome."]
+    if spec.kind == "code":
+        return [
+            {
+                "reference": "src/example.py",
+                "language": "python",
+                "code": "result = build()",
+                "annotation": "Existing contract evidence.",
+            }
+        ]
+    return [{field: f"{field.replace('_', ' ')} value" for field in spec.fields}]
+
+
+def base_manifest(
+    initiative_type: str = "small-feature",
+    surfaces: list[str] | None = None,
+) -> dict[str, object]:
+    return {
+        "schema_version": 1,
+        "slug": "catalog-fixture",
+        "title": "Catalog fixture",
+        "summary": "A focused manifest for block selection tests.",
+        "status": "Draft",
+        "initiative_type": initiative_type,
+        "review_surfaces": surfaces or ["document"],
+        "metadata": {"Owner": "Test"},
+        "blocks": {},
+    }
 
 
 class AnchorParser(HTMLParser):
@@ -64,7 +113,7 @@ class GeneratePrdTests(unittest.TestCase):
             bundle = root / "action-items" / "PRD-example-review-bundle"
             document = (bundle / "index.html").read_text(encoding="utf-8")
 
-            self.assertIn("<h1>Example PRD Review Bundle</h1>", document)
+            self.assertIn('<h1 id="document-title">Example PRD Review Bundle</h1>', document)
             self.assertNotIn("{{", document)
             self.assertIn('href="./assets/styles.css"', document)
             self.assertIn('src="./assets/app.js"', document)
@@ -142,13 +191,16 @@ class GeneratePrdTests(unittest.TestCase):
             ).read_text(encoding="utf-8")
 
             self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertIn("<h1>Keep {{STATUS}} literal</h1>", document)
+            self.assertIn(
+                '<h1 id="document-title">Keep {{STATUS}} literal</h1>',
+                document,
+            )
 
-    def test_empty_open_questions_omits_section_and_renumbers_grounding(self) -> None:
+    def test_omitted_open_questions_leave_no_section_or_navigation(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
             manifest = json.loads(EXAMPLE.read_text(encoding="utf-8"))
-            manifest["sections"]["open_questions"] = []
+            del manifest["blocks"]["open_questions"]
             manifest_path = root / "manifest.json"
             manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
 
@@ -161,12 +213,165 @@ class GeneratePrdTests(unittest.TestCase):
             ).read_text(encoding="utf-8")
 
             self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertNotIn('id="open-questions"', document)
-            self.assertNotIn('href="#open-questions"', document)
-            self.assertIn(
-                '<span>10</span><div><h2><a href="#repository-grounding">Repository grounding</a></h2>',
-                document,
+            self.assertNotIn('id="open_questions"', document)
+            self.assertNotIn('href="#open_questions"', document)
+            self.assertIn('data-block="repository_grounding"', document)
+
+    def test_representative_initiatives_render_only_selected_review_blocks(self) -> None:
+        fixtures = {
+            "ui-heavy": (["document", "ui"], ["problem", "personas", "requirements", "wireframes", "annotated_screens", "testing_strategy"]),
+            "workflow-heavy": (["document", "workflow"], ["problem", "personas", "journeys", "workflow_diagram", "state_transition_matrix", "failure_paths"]),
+            "api-heavy": (["document", "api"], ["problem", "requirements", "api_contract", "dependencies", "testing_strategy"]),
+            "data-heavy": (["document", "data"], ["problem", "requirements", "data_flow_diagram", "data_model", "security_privacy"]),
+            "architecture-heavy": (["document", "architecture"], ["problem", "architecture_diagram", "system_context", "decisions", "risks"]),
+            "mixed": (["document", "ui", "api", "data"], ["problem", "user_stories", "requirements", "ui_flow", "api_contract", "data_model", "rollout"]),
+            "small-feature": (["document"], ["problem", "goals", "requirements", "scope", "testing_strategy"]),
+        }
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            for index, (initiative_type, (surfaces, selected)) in enumerate(fixtures.items()):
+                with self.subTest(initiative_type=initiative_type):
+                    manifest = base_manifest(initiative_type, surfaces)
+                    manifest["slug"] = f"fixture-{index}"
+                    manifest["blocks"] = {name: sample_block(name) for name in reversed(selected)}
+                    manifest_path = root / f"{initiative_type}.json"
+                    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+                    result = self.run_generator(manifest_path, root / "action-items")
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    document = (
+                        root / "action-items" / f"PRD-fixture-{index}" / "index.html"
+                    ).read_text(encoding="utf-8")
+                    for name in selected:
+                        self.assertIn(f'data-block="{name}"', document)
+                        self.assertIn(f'href="#{name}"', document)
+                    omitted = set(GENERATOR.BLOCK_SPECS) - set(selected)
+                    for name in omitted:
+                        self.assertNotIn(f'data-block="{name}"', document)
+                        self.assertNotIn(f'href="#{name}"', document)
+                    positions = [document.index(f'data-block="{name}"') for name in selected]
+                    catalog_positions = [
+                        position
+                        for name, position in sorted(
+                            zip(selected, positions),
+                            key=lambda pair: list(GENERATOR.BLOCK_SPECS).index(pair[0]),
+                        )
+                    ]
+                    self.assertEqual(catalog_positions, sorted(catalog_positions))
+
+    def test_full_catalog_renders_with_stable_semantic_sections(self) -> None:
+        manifest = base_manifest("mixed", sorted(GENERATOR.REVIEW_SURFACES))
+        manifest["blocks"] = {
+            name: sample_block(name) for name in GENERATOR.BLOCK_SPECS
+        }
+        normalized = GENERATOR.validate_manifest(manifest)
+        document = GENERATOR.render_document(normalized)
+
+        for name, spec in GENERATOR.BLOCK_SPECS.items():
+            self.assertIn(f'<section id="{name}" data-block="{name}"', document)
+            self.assertIn(f'data-block-category="{spec.category}"', document)
+            self.assertIn(f'aria-labelledby="{name}-heading"', document)
+        self.assertIn('id="req-01"', document)
+        self.assertIn('id="dec-01"', document)
+        self.assertIn('id="risk-01"', document)
+        self.assertIn('id="question-01"', document)
+        self.assertIn('id="test-01"', document)
+
+    def test_optional_blocks_do_not_renumber_stable_entities(self) -> None:
+        manifest = base_manifest()
+        stable_blocks = ["requirements", "decisions", "risks", "testing_strategy", "open_questions"]
+        manifest["blocks"] = {name: sample_block(name) for name in stable_blocks}
+        before = GENERATOR.render_document(GENERATOR.validate_manifest(manifest))
+
+        manifest["blocks"]["wireframes"] = sample_block("wireframes")
+        manifest["blocks"]["dependencies"] = sample_block("dependencies")
+        after = GENERATOR.render_document(GENERATOR.validate_manifest(manifest))
+
+        for identity in ("req-01", "dec-01", "risk-01", "question-01", "test-01"):
+            self.assertEqual(before.count(f'id="{identity}"'), 1)
+            self.assertEqual(after.count(f'id="{identity}"'), 1)
+
+    def test_invalid_block_name_and_content_report_actionable_paths(self) -> None:
+        manifest = base_manifest("api-heavy", ["document", "api"])
+        manifest["blocks"] = {
+            "api_contract": [{"contract": "GET /items"}],
+            "mystery_panel": ["content"],
+        }
+        with self.assertRaises(GENERATOR.ManifestError) as raised:
+            GENERATOR.validate_manifest(manifest)
+
+        message = str(raised.exception)
+        self.assertIn("unsupported block name(s): mystery_panel", message)
+        self.assertIn("blocks.api_contract[0].behavior must be a non-empty string", message)
+
+    def test_diagram_source_is_optional(self) -> None:
+        manifest = base_manifest("workflow-heavy", ["document", "workflow"])
+        manifest["blocks"] = {
+            "workflow_diagram": {"description": "Actor submits and receives a result."}
+        }
+
+        normalized = GENERATOR.validate_manifest(manifest)
+        document = GENERATOR.render_document(normalized)
+
+        self.assertIn("Actor submits and receives a result.", document)
+        self.assertNotIn("diagram-source", document)
+
+    def test_diagram_text_remains_available_to_assistive_technology(self) -> None:
+        manifest = base_manifest("workflow-heavy", ["document", "workflow"])
+        manifest["blocks"] = {
+            "workflow_diagram": {
+                "description": "Actor submits and receives a result.",
+                "source": "Actor --> Result",
+            }
+        }
+
+        normalized = GENERATOR.validate_manifest(manifest)
+        document = GENERATOR.render_document(normalized)
+
+        self.assertIn('<figure class="diagram-brief"><div>', document)
+        self.assertNotIn('role="img"', document)
+        self.assertIn("<code>Actor --&gt; Result</code>", document)
+
+    def test_unknown_manifest_fields_and_reserved_metadata_are_rejected(self) -> None:
+        manifest = base_manifest()
+        manifest["blocks"] = {"problem": sample_block("problem")}
+        manifest["block"] = manifest["blocks"]
+        manifest["metadata"] = {
+            "Initiative": "Misleading override",
+            " owner ": "First",
+            "Owner": "Second",
+        }
+
+        with self.assertRaises(GENERATOR.ManifestError) as raised:
+            GENERATOR.validate_manifest(manifest)
+
+        message = str(raised.exception)
+        self.assertIn("block is not a supported manifest field", message)
+        self.assertIn(
+            "metadata.Initiative is reserved for generated metadata",
+            message,
+        )
+        self.assertIn(
+            "metadata contains duplicate label after normalization: Owner",
+            message,
+        )
+
+    def test_duplicate_json_keys_are_rejected_before_generation(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            manifest_path = root / "duplicate.json"
+            manifest_path.write_text(
+                '{"schema_version":1,"schema_version":1}',
+                encoding="utf-8",
             )
+
+            result = self.run_generator(manifest_path, root / "action-items")
+
+            self.assertEqual(result.returncode, 2)
+            self.assertIn(
+                "JSON object contains duplicate key(s): schema_version",
+                result.stderr,
+            )
+            self.assertFalse((root / "action-items").exists())
 
     def test_review_assets_cover_responsive_navigation_anchor_and_print_behavior(
         self,
@@ -210,7 +415,9 @@ class GeneratePrdTests(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("schema_version must be the number 1", result.stderr)
             self.assertIn("slug must contain only lowercase", result.stderr)
-            self.assertIn("sections must be an object", result.stderr)
+            self.assertIn("initiative_type must be a non-empty string", result.stderr)
+            self.assertIn("review_surfaces must be a non-empty array", result.stderr)
+            self.assertIn("blocks must be a non-empty object", result.stderr)
             self.assertFalse((root / "action-items" / "PRD-escape").exists())
             self.assertFalse((root / "action-items").exists())
 

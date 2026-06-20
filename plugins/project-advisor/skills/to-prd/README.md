@@ -15,15 +15,10 @@ The skill treats the interview as the main work. It keeps separate buckets for c
 
 ## PRD structure
 
-Every generated PRD includes these sections:
-
-- **Problem Statement** — the problem from the user's perspective
-- **Solution** — the proposed approach
-- **User Stories** — broad coverage across all relevant actors and scenarios
-- **Implementation Decisions** — modules, interfaces, schema changes, API contracts
-- **Testing Decisions** — what to test, how, and relevant prior art in the codebase
-- **Out of Scope** — explicit boundaries
-- **Further Notes** — assumptions, open questions, and rollout notes (populated only when there is material to include)
+Every generated PRD includes a summary, status, and metadata. The remaining
+document structure is selected from the block catalog according to the
+initiative and the review surfaces that need human alignment. Omitted blocks
+are not rendered.
 
 ## Bundled references
 
@@ -51,17 +46,19 @@ Existing bundles are preserved unless `--force` is supplied.
 Manifest version 1 requires:
 
 - `schema_version`, `slug`, `title`, `summary`, `status`, and string-valued `metadata`
-- a problem statement with evidence
-- goals with success signals
-- users with needs and outcomes
-- requirements, decisions, and validation outcomes
-- explicit in-scope and out-of-scope lists
-- rollout phases, risks with mitigations, and repository grounding
+- `initiative_type`: `ui-heavy`, `workflow-heavy`, `api-heavy`, `data-heavy`,
+  `architecture-heavy`, `mixed`, or `small-feature`
+- one or more `review_surfaces`: `document`, `workflow`, `ui`, `api`, `data`, or
+  `architecture`
+- a non-empty `blocks` object containing only the review blocks useful for the
+  initiative
 
-`sections.open_questions` is optional. When absent or empty, the generator omits
-the section rather than leaving an empty heading or placeholder. Invalid JSON or
-incomplete content exits non-zero and prints field-specific errors before any
-bundle is published.
+The block catalog spans framing, people and workflow, product definition,
+visual experience, technical contracts, and delivery and assurance. Blocks are
+rendered in stable catalog order regardless of JSON key order. Omitted blocks
+leave no heading, navigation item, card, or placeholder. Invalid block names or
+content shapes exit non-zero with field-specific errors before any bundle is
+published.
 
 ## Usage
 

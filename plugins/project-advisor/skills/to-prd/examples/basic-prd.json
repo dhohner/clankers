@@ -4,12 +4,16 @@
   "title": "Example PRD Review Bundle",
   "summary": "Give maintainers a deterministic, portable PRD artifact that can be reviewed in a browser and committed with its companion assets.",
   "status": "Draft for review",
+  "initiative_type": "small-feature",
+  "review_surfaces": [
+    "document"
+  ],
   "metadata": {
     "Owner": "Project Advisor maintainers",
     "Primary user": "PRD reviewers",
     "Review mode": "Read-only"
   },
-  "sections": {
+  "blocks": {
     "problem": {
       "statement": "Single-file prose templates make document structure and asset handling depend on the authoring agent.",
       "evidence": [
@@ -23,7 +27,7 @@
         "success_signal": "The command creates index.html and copied assets under action-items/PRD-example-review-bundle/."
       }
     ],
-    "users": [
+    "personas": [
       {
         "actor": "PRD maintainer",
         "need": "Generate a review artifact with one documented command.",
@@ -42,7 +46,7 @@
         "rationale": "The generator should not require package installation or Codex-specific runtimes."
       }
     ],
-    "validation": [
+    "testing_strategy": [
       {
         "target": "Bundle completeness",
         "expected_outcome": "index.html and every referenced local asset exist in the generated directory."
@@ -55,7 +59,7 @@
         "Copied versioned assets"
       ],
       "out": [
-        "Adaptive block selection",
+        "Visual review surfaces",
         "Mermaid diagrams and prototypes",
         "Cross-entity traceability"
       ]
@@ -73,7 +77,7 @@
       }
     ],
     "open_questions": [
-      "Which additional blocks should become part of manifest version 2?"
+      "Which additional visual surfaces should be selected for the next iteration?"
     ],
     "repository_grounding": [
       {
