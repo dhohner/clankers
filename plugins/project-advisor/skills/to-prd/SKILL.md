@@ -92,6 +92,8 @@ Use this filename pattern for the PRD: `action-items/PRD-<short-slug>.html`.
 
 Create the PRD directly from the bundled HTML template structure. Preserve the inline CSS and semantic layout. Write in English. Keep proper nouns, product names, established technical terms, and code identifiers as-is. Escape user-provided text so the HTML stays valid and does not execute markup.
 
+Preserve a flat document hierarchy. Use whitespace, dividers, typography, and grid alignment for ordinary sections and repeated content. Reserve bordered or elevated cards for genuinely bounded review surfaces such as prototypes, diagrams, tables, or callouts. Do not place routine content cards inside section cards.
+
 Keep the PRD focused on product planning decisions:
 
 - Do not include fragile implementation trivia such as exact file paths or code snippets unless the user explicitly asks.

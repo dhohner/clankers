@@ -50,7 +50,7 @@ MANIFEST_FIELDS = {
     "metadata",
     "blocks",
 }
-GENERATED_METADATA_LABELS = {"initiative", "review surfaces"}
+GENERATED_METADATA_LABELS = {"initiative", "review surfaces", "output"}
 
 
 @dataclass(frozen=True)
@@ -66,6 +66,7 @@ class BlockSpec:
 
 
 BLOCK_SPECS: dict[str, BlockSpec] = {
+    "executive_summary": BlockSpec("Executive summary", "The proposed product change at a glance.", "framing", "all", "summary"),
     "problem": BlockSpec("Problem and evidence", "Why this outcome matters now.", "framing", "all", "problem"),
     "goals": BlockSpec("Goals and success measures", "Observable outcomes for the initiative.", "framing", "validation", "cards", ("goal", "success_signal")),
     "non_goals": BlockSpec("Non-goals", "Outcomes this initiative intentionally does not pursue.", "framing", "decisions", "list"),
@@ -341,6 +342,24 @@ def _normalize_entity_id(value: str) -> str:
 def _validate_block(name: str, value: Any, errors: list[str]) -> Any:
     spec = BLOCK_SPECS[name]
     path = f"blocks.{name}"
+    if spec.kind == "summary":
+        if not isinstance(value, dict):
+            errors.append(f"{path} must be an object")
+            return {"metrics": [], "recommendation": ""}
+        _reject_unknown_fields(value, {"metrics", "recommendation"}, path, errors)
+        return {
+            "metrics": _object_list(
+                value.get("metrics"),
+                f"{path}.metrics",
+                ("label", "value", "description"),
+                errors,
+            ),
+            "recommendation": _non_empty_string(
+                value.get("recommendation"),
+                f"{path}.recommendation",
+                errors,
+            ),
+        }
     if spec.kind == "cards":
         optional = ENTITY_OPTIONAL_FIELDS_BY_BLOCK.get(name)
         return _object_list(value, path, spec.fields, errors, optional)
@@ -646,7 +665,33 @@ def _render_evidence_items(references: list[str]) -> str:
     return f'<p class="entity-evidence"><strong>Evidence:</strong> {evidence}</p>'
 
 
-def _render_cards(items: list[dict[str, Any]], spec: BlockSpec) -> str:
+def _render_cards(name: str, items: list[dict[str, Any]], spec: BlockSpec) -> str:
+    if name == "requirements":
+        requirements: list[str] = []
+        for index, item in enumerate(items, start=1):
+            entity_id = item.get("id", f"{spec.id_prefix}-{index:02d}")
+            label = item.get("label", _entity_label(entity_id))
+            relationships = "".join(
+                [
+                    _render_relationship_links("Related", item.get("relates_to", [])),
+                    _render_relationship_links("Validation", item.get("validation", [])),
+                    _render_evidence_items(item.get("evidence", [])),
+                    (
+                        f'<p class="entity-exception"><strong>Validation exception:</strong> {_escape(item["exception"])}</p>'
+                        if item.get("exception")
+                        else ""
+                    ),
+                ]
+            )
+            requirements.append(
+                f'<article id="{_escape(entity_id)}">'
+                f'<a class="entity-id" href="#{_escape(entity_id)}" '
+                f'aria-label="Link to {_escape(label)}">{_escape(label)}</a>'
+                f'<div><h3>{_escape(item["title"])}</h3>'
+                f'<p>{_escape(item["description"])}</p>{relationships}</div></article>'
+            )
+        return '<div class="requirement-list">' + "".join(requirements) + "</div>"
+
     cards: list[str] = []
     for index, item in enumerate(items, start=1):
         identity = ""
@@ -681,7 +726,48 @@ def _render_cards(items: list[dict[str, Any]], spec: BlockSpec) -> str:
             f'<article{anchor} class="card{" entity-card" if anchor else ""}">'
             f"{identity}<h3>{_escape(item[primary])}</h3>{details}{relationships}</article>"
         )
-    return '<div class="card-grid">' + "".join(cards) + "</div>"
+    if name == "goals":
+        rows = "".join(
+            "<tr>"
+            f"<td>GOAL-{index:02d}</td>"
+            f"<td>{_escape(item['goal'])}</td>"
+            f"<td>{_escape(item['success_signal'])}</td>"
+            "</tr>"
+            for index, item in enumerate(items, start=1)
+        )
+        return (
+            '<div class="table-wrap"><table><thead><tr>'
+            f"<th>ID</th><th>Goal</th><th>Success signal</th>"
+            f"</tr></thead><tbody>{rows}</tbody></table></div>"
+        )
+    if name == "rollout":
+        return '<ol class="timeline">' + "".join(
+            f"<li><span>Phase {index}</span>"
+            f"<div><h3>{_escape(item['phase'])}</h3>"
+            f"<p>{_escape(item['outcome'])}</p></div></li>"
+            for index, item in enumerate(items, start=1)
+        ) + "</ol>"
+    if name == "repository_grounding":
+        rows = "".join(
+            "<tr>"
+            f"<td><code>{_escape(item['reference'])}</code></td>"
+            f"<td>{_escape(item['observation'])}</td>"
+            f"<td>{_escape(item['implication'])}</td>"
+            "</tr>"
+            for item in items
+        )
+        return (
+            '<div class="table-wrap"><table><thead><tr>'
+            "<th>Evidence</th><th>Observed constraint</th><th>Implication</th>"
+            f"</tr></thead><tbody>{rows}</tbody></table></div>"
+        )
+    grid_class = {
+        "decisions": "decision-grid",
+        "risks": "risk-list",
+        "testing_strategy": "validation-list",
+        "capability_map": "block-grid",
+    }.get(name, "card-grid")
+    return f'<div class="{grid_class}">' + "".join(cards) + "</div>"
 
 
 def _render_table(value: dict[str, Any]) -> str:
@@ -758,7 +844,8 @@ def _render_native_diagram(
     node_markup: list[str] = []
     for index, node in enumerate(nodes):
         row = index // columns
-        column = index % columns
+        row_column = index % columns
+        column = row_column if row % 2 == 0 else columns - row_column - 1
         x = start_x + column * (node_width + column_gap)
         y = 26 + row * (node_height + row_gap)
         positions[node["id"]] = (x, y)
@@ -782,33 +869,52 @@ def _render_native_diagram(
         to_center_y = to_y + node_height // 2
         delta_x = to_center_x - from_center_x
         delta_y = to_center_y - from_center_y
-        if abs(delta_x) >= abs(delta_y):
+        if from_y == to_y:
             direction = 1 if delta_x >= 0 else -1
             x1 = from_center_x + direction * node_width // 2
             y1 = from_center_y
             x2 = to_center_x - direction * (node_width // 2 + 10)
             y2 = to_center_y
+            path = f"M {x1} {y1} L {x2} {y2}"
+            label_x = (x1 + x2) // 2
+            label_y = y1 - 9
+        elif from_x == to_x:
+            direction = 1 if delta_y >= 0 else -1
+            x1 = from_center_x
+            y1 = from_center_y + direction * node_height // 2
+            x2 = to_center_x
+            y2 = to_center_y - direction * (node_height // 2 + 10)
+            path = f"M {x1} {y1} L {x2} {y2}"
+            label_x = x1 + 12
+            label_y = (y1 + y2) // 2 - 4
         else:
             direction = 1 if delta_y >= 0 else -1
             x1 = from_center_x
             y1 = from_center_y + direction * node_height // 2
             x2 = to_center_x
             y2 = to_center_y - direction * (node_height // 2 + 10)
+            bend_y = (y1 + y2) // 2
+            path = (
+                f"M {x1} {y1} L {x1} {bend_y} "
+                f"L {x2} {bend_y} L {x2} {y2}"
+            )
+            label_x = (x1 + x2) // 2
+            label_y = bend_y - 9
         label = (
-            f'<text class="native-edge-label" x="{(x1 + x2) // 2}" '
-            f'y="{(y1 + y2) // 2 - 9}" text-anchor="middle">{_escape(edge["label"])}</text>'
+            f'<text class="native-edge-label" x="{label_x}" '
+            f'y="{label_y}" text-anchor="middle">{_escape(edge["label"])}</text>'
             if edge["label"]
             else ""
         )
         edge_markup.append(
-            f'<path d="M {x1} {y1} L {x2} {y2}" marker-end="url(#{name}-arrow)">'
+            f'<path d="{path}" marker-end="url(#{name}-arrow)">'
             f"</path>{label}"
         )
     description_id = f"{name}-visual-description"
     return (
-        f'<figure class="visual-surface diagram-surface native-diagram" '
+        f'<figure class="diagram-surface native-diagram" '
         f'aria-labelledby="{description_id}">'
-        f"{_render_visual_heading('Native diagram', description, description_id)}"
+        f'<p id="{description_id}" class="visual-description">{_escape(description)}</p>'
         '<div class="diagram-canvas">'
         f'<svg viewBox="0 0 {width} {height}" role="img" '
         f'aria-labelledby="{description_id}" preserveAspectRatio="xMidYMid meet">'
@@ -826,9 +932,9 @@ def _render_mermaid_diagram(name: str, value: dict[str, Any]) -> str:
     description_id = f"{name}-visual-description"
     source_id = f"{name}-mermaid-source"
     return (
-        f'<figure class="visual-surface diagram-surface mermaid-diagram" '
+        f'<figure class="diagram-surface mermaid-diagram" '
         f'aria-labelledby="{description_id}">'
-        f"{_render_visual_heading('Mermaid diagram', value['description'], description_id)}"
+        f'<p id="{description_id}" class="visual-description">{_escape(value["description"])}</p>'
         f'<div class="mermaid-canvas" data-mermaid-source="{source_id}" '
         'aria-hidden="true"><p class="visual-loading">Rendering diagram…</p></div>'
         '<details class="diagram-source-details" open>'
@@ -867,20 +973,33 @@ def _render_prototype(value: dict[str, Any]) -> str:
             f'<div class="prototype-content">{content}</div></section>'
         )
     return (
-        f'<figure class="visual-surface prototype-surface" '
+        f'<figure class="prototype prototype-surface" '
         f'aria-labelledby="{description_id}">'
-        f"{_render_visual_heading('Prototype', value['description'], description_id)}"
-        '<div class="prototype-shell">'
+        '<div class="prototype-toolbar"><div><span class="prototype-dot"></span>'
+        f'<strong id="{description_id}">{_escape(value["description"])}</strong></div>'
         '<div class="prototype-tabs" role="tablist" aria-label="Prototype states">'
-        f'{"".join(tabs)}</div><div class="prototype-stage">{"".join(panels)}</div></div>'
+        f'{"".join(tabs)}</div></div><div class="prototype-stage">{"".join(panels)}</div>'
         '<figcaption>State switching is local, temporary, and does not persist data.</figcaption>'
         "</figure>"
     )
 
 
 def _render_block_content(name: str, value: Any, spec: BlockSpec) -> str:
+    if spec.kind == "summary":
+        metrics = "".join(
+            '<article class="metric">'
+            f"<span>{_escape(item['label'])}</span>"
+            f"<strong>{_escape(item['value'])}</strong>"
+            f"<p>{_escape(item['description'])}</p></article>"
+            for item in value["metrics"]
+        )
+        return (
+            f'<div class="metric-grid">{metrics}</div>'
+            '<div class="callout"><strong>Recommendation</strong>'
+            f"<p>{_escape(value['recommendation'])}</p></div>"
+        )
     if spec.kind == "cards":
-        return _render_cards(value, spec)
+        return _render_cards(name, value, spec)
     if spec.kind == "frames":
         return _render_frames(name, value, spec)
     if spec.kind == "prototype":
@@ -925,12 +1044,12 @@ def _render_block_content(name: str, value: Any, spec: BlockSpec) -> str:
                 ]
             )
             rows.append(
-                f'<li id="{_escape(entity_id)}">'
+                f'<article id="{_escape(entity_id)}">'
                 f'<a class="entity-id" href="#{_escape(entity_id)}" '
                 f'aria-label="Link to {_escape(label)}">{_escape(label)}</a>'
-                f"<span>{_escape(question['question'])}</span>{links}</li>"
+                f"<h3>{_escape(question['question'])}</h3>{links}</article>"
             )
-        return f'<ul class="question-list">{"".join(rows)}</ul>'
+        return f'<div class="question-list">{"".join(rows)}</div>'
     if spec.kind == "code":
         snippets = "".join(
             '<article class="code-sample">'
@@ -986,7 +1105,7 @@ def _render_traceability_view(blocks: dict[str, Any]) -> str:
             "</tr>"
         )
     return (
-        '<section id="traceability" data-block="traceability" data-block-category="delivery-assurance" '
+        '<section id="traceability" class="section" data-block="traceability" data-block-category="delivery-assurance" '
         'data-review-area="validation decisions" aria-labelledby="traceability-heading">'
         '<div class="section-heading"><span>TR</span><div><h2 id="traceability-heading">'
         '<a href="#traceability">Traceability view</a></h2>'
@@ -998,11 +1117,13 @@ def _render_traceability_view(blocks: dict[str, Any]) -> str:
 
 
 def render_document(manifest: dict[str, Any]) -> str:
-    metadata_items = {
-        "Initiative": manifest["initiative_type"],
-        "Review surfaces": ", ".join(manifest["review_surfaces"]),
-        **manifest["metadata"],
-    }
+    metadata_items: dict[str, str] = {}
+    for label, value in manifest["metadata"].items():
+        if label.casefold() == "review mode":
+            metadata_items["Output"] = f"action-items/PRD-{manifest['slug']}/"
+        metadata_items[label] = value
+    if "Output" not in metadata_items:
+        metadata_items["Output"] = f"action-items/PRD-{manifest['slug']}/"
     metadata = "".join(
         f"<div><dt>{_escape(label)}</dt><dd>{_escape(value)}</dd></div>"
         for label, value in metadata_items.items()
@@ -1019,7 +1140,7 @@ def render_document(manifest: dict[str, Any]) -> str:
                 '<p class="evidence-disclaimer"><strong>Evidence only:</strong> referenced paths and symbols support product statements; they are not mandatory implementation instructions.</p>'
                 f"{content}"
             )
-        if name in {"problem", "scope", "repository_grounding"}:
+        if name in {"scope"}:
             content = (
                 '<details class="supporting-detail" open>'
                 f"<summary>Review {html.escape(spec.title.lower())}</summary>"
@@ -1027,7 +1148,7 @@ def render_document(manifest: dict[str, Any]) -> str:
             )
         navigation.append(f'<a href="#{name}">{_escape(spec.title)}</a>')
         rendered_blocks.append(
-            f'<section id="{name}" data-block="{name}" '
+            f'<section id="{name}" class="section" data-block="{name}" '
             f'data-block-category="{spec.category}" data-review-area="{spec.review_area}" '
             f'aria-labelledby="{heading_id}">'
             '<div class="section-heading">'
@@ -1039,12 +1160,12 @@ def render_document(manifest: dict[str, Any]) -> str:
 
     traceability_view = _render_traceability_view(manifest["blocks"])
     if traceability_view:
-        navigation.append('<a href="#traceability">Traceability view</a>')
+        navigation.append('<a href="#traceability">Traceability</a>')
         rendered_blocks.append(traceability_view)
 
     has_supporting_details = any(
-        name in manifest["blocks"]
-        for name in {"problem", "scope", "repository_grounding"}
+        name == "scope" or BLOCK_SPECS[name].kind == "diagram"
+        for name in manifest["blocks"]
     )
     replacements = {
         "{{TITLE}}": _escape(manifest["title"]),
@@ -1053,8 +1174,8 @@ def render_document(manifest: dict[str, Any]) -> str:
         "{{METADATA}}": metadata,
         "{{NAVIGATION}}": "\n".join(navigation),
         "{{DETAILS_CONTROL}}": (
-            '<button id="toggle-details" type="button" aria-pressed="false">'
-            "Collapse supporting detail</button>"
+            '<button id="collapse-all" type="button" aria-pressed="false">'
+            "Collapse details</button>"
             if has_supporting_details
             else ""
         ),

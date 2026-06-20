@@ -23,6 +23,17 @@ MODULE_SPEC.loader.exec_module(GENERATOR)
 
 def sample_block(name: str) -> object:
     spec = GENERATOR.BLOCK_SPECS[name]
+    if spec.kind == "summary":
+        return {
+            "metrics": [
+                {
+                    "label": "Current",
+                    "value": "One fixed output",
+                    "description": "A representative summary metric.",
+                }
+            ],
+            "recommendation": "Use the generated review bundle.",
+        }
     if spec.kind == "problem":
         return {"statement": "A clear problem.", "evidence": ["Observed evidence."]}
     if spec.kind == "scope":
@@ -142,21 +153,36 @@ class GeneratePrdTests(unittest.TestCase):
             bundle = root / "action-items" / "PRD-example-review-bundle"
             document = (bundle / "index.html").read_text(encoding="utf-8")
 
-            self.assertIn('<h1 id="document-title">Example PRD Review Bundle</h1>', document)
+            self.assertIn(
+                '<h1 id="document-title">Rich Interactive HTML Output for to-prd</h1>',
+                document,
+            )
+            self.assertIn(
+                "<dt>Output</dt><dd>action-items/PRD-example-review-bundle/</dd>",
+                document,
+            )
+            self.assertNotIn("<dt>Initiative</dt>", document)
+            self.assertNotIn("<dt>Review surfaces</dt>", document)
             self.assertNotIn("{{", document)
             self.assertIn('href="./assets/styles.css"', document)
             self.assertIn('src="./assets/app.js"', document)
-            self.assertIn('src="./assets/project-advisor.svg"', document)
+            self.assertIn('class="brand-mark"', document)
             self.assertIn('aria-label="PRD navigation"', document)
             self.assertIn('id="nav-toggle"', document)
-            self.assertIn('id="toggle-details"', document)
-            self.assertIn('data-review-lens="decisions"', document)
+            self.assertIn('id="collapse-all"', document)
+            self.assertIn('class="hero-topline"', document)
             self.assertIn('id="req-01"', document)
             self.assertIn('href="#req-01"', document)
             self.assertIn('id="dec-01"', document)
             self.assertIn('id="risk-01"', document)
             self.assertIn('id="question-01"', document)
             self.assertIn('id="test-01"', document)
+            self.assertIn('class="metric-grid"', document)
+            self.assertIn('class="requirement-list"', document)
+            self.assertIn('class="timeline"', document)
+            self.assertIn('class="decision-grid"', document)
+            self.assertIn('class="prototype prototype-surface"', document)
+            self.assertNotIn('class="document-header"', document)
             source_assets = sorted(
                 path.relative_to(SOURCE_ASSETS)
                 for path in SOURCE_ASSETS.rglob("*")
@@ -296,7 +322,10 @@ class GeneratePrdTests(unittest.TestCase):
         document = GENERATOR.render_document(normalized)
 
         for name, spec in GENERATOR.BLOCK_SPECS.items():
-            self.assertIn(f'<section id="{name}" data-block="{name}"', document)
+            self.assertIn(
+                f'<section id="{name}" class="section" data-block="{name}"',
+                document,
+            )
             self.assertIn(f'data-block-category="{spec.category}"', document)
             self.assertIn(f'aria-labelledby="{name}-heading"', document)
         self.assertIn('id="req-01"', document)
@@ -356,7 +385,7 @@ class GeneratePrdTests(unittest.TestCase):
         normalized = GENERATOR.validate_manifest(manifest)
         document = GENERATOR.render_document(normalized)
 
-        self.assertIn('class="visual-surface diagram-surface mermaid-diagram"', document)
+        self.assertIn('class="diagram-surface mermaid-diagram"', document)
         self.assertIn('aria-labelledby="workflow_diagram-visual-description"', document)
         self.assertIn("<code>Actor --&gt; Result</code>", document)
         self.assertIn("Diagram source and text fallback", document)
@@ -382,11 +411,41 @@ class GeneratePrdTests(unittest.TestCase):
 
         document = GENERATOR.render_document(GENERATOR.validate_manifest(manifest))
 
-        self.assertIn('class="visual-surface diagram-surface native-diagram"', document)
+        self.assertIn('class="diagram-surface native-diagram"', document)
         self.assertIn("<svg ", document)
         self.assertIn("&lt;Client&gt;", document)
         self.assertNotIn("<Client>", document)
         self.assertIn("Structured HTML and SVG generated from manifest content.", document)
+
+    def test_native_diagram_uses_snake_rows_for_sequential_flows(self) -> None:
+        manifest = base_manifest("architecture-heavy", ["document", "architecture"])
+        manifest["blocks"] = {
+            "architecture_diagram": {
+                "description": "A five-step sequential flow.",
+                "native": {
+                    "nodes": [
+                        {"id": "one", "label": "One"},
+                        {"id": "two", "label": "Two"},
+                        {"id": "three", "label": "Three"},
+                        {"id": "four", "label": "Four"},
+                        {"id": "five", "label": "Five"},
+                    ],
+                    "edges": [
+                        {"from": "one", "to": "two", "label": "1"},
+                        {"from": "two", "to": "three", "label": "2"},
+                        {"from": "three", "to": "four", "label": "3"},
+                        {"from": "four", "to": "five", "label": "4"},
+                    ],
+                },
+            }
+        }
+
+        document = GENERATOR.render_document(GENERATOR.validate_manifest(manifest))
+
+        self.assertIn('<rect x="528" y="151"', document)
+        self.assertIn('<rect x="290" y="151"', document)
+        self.assertIn('d="M 618 96 L 618 141"', document)
+        self.assertNotIn('d="M 618 61 L 142 176"', document)
 
     def test_native_diagram_rejects_unknown_edge_targets(self) -> None:
         manifest = base_manifest("architecture-heavy", ["document", "architecture"])
@@ -420,7 +479,8 @@ class GeneratePrdTests(unittest.TestCase):
 
         self.assertIn("Wireframe · Review aid", document)
         self.assertIn("Annotated state · Review aid", document)
-        self.assertIn("Prototype · Review aid", document)
+        self.assertIn('class="prototype prototype-surface"', document)
+        self.assertIn('class="prototype-toolbar"', document)
         self.assertIn("Behavioral intent, not final production design", document)
         self.assertIn('role="tablist"', document)
         self.assertIn('role="tabpanel"', document)
@@ -600,6 +660,7 @@ class GeneratePrdTests(unittest.TestCase):
         manifest["block"] = manifest["blocks"]
         manifest["metadata"] = {
             "Initiative": "Misleading override",
+            "Output": "Misleading path",
             " owner ": "First",
             "Owner": "Second",
         }
@@ -611,6 +672,10 @@ class GeneratePrdTests(unittest.TestCase):
         self.assertIn("block is not a supported manifest field", message)
         self.assertIn(
             "metadata.Initiative is reserved for generated metadata",
+            message,
+        )
+        self.assertIn(
+            "metadata.Output is reserved for generated metadata",
             message,
         )
         self.assertIn(
@@ -642,7 +707,7 @@ class GeneratePrdTests(unittest.TestCase):
         script = (SOURCE_ASSETS / "app.js").read_text(encoding="utf-8")
         styles = (SOURCE_ASSETS / "styles.css").read_text(encoding="utf-8")
 
-        self.assertIn('window.matchMedia("(max-width: 900px)")', script)
+        self.assertIn('window.matchMedia("(max-width: 980px)")', script)
         self.assertIn('event.key === "Escape"', script)
         self.assertIn('event.key !== "Tab"', script)
         self.assertIn(
@@ -663,16 +728,43 @@ class GeneratePrdTests(unittest.TestCase):
         self.assertIn('event.key === "ArrowRight"', script)
         self.assertIn("state.hidden = false", script)
         self.assertIn('window.matchMedia("(prefers-reduced-motion: reduce)")', script)
-        self.assertIn("@media (max-width: 900px)", styles)
-        self.assertIn("max-height: calc(100vh - 62px)", styles)
-        self.assertIn("max-height: calc(100dvh - 62px)", styles)
+        self.assertIn("@media (max-width: 980px)", styles)
+        self.assertIn("position: fixed", styles)
+        self.assertIn("height: 100dvh", styles)
+        self.assertIn("grid-template-columns: 275px minmax(0, 1fr)", styles)
+        self.assertIn("main {\n  grid-column: 2", styles)
+        self.assertIn("width: min(1160px, 100%)", styles)
+        self.assertIn("padding: 42px 54px 70px", styles)
+        self.assertNotIn(
+            "main {\n  grid-column: 2;\n  width: min(1160px, 100%);\n"
+            "  min-width: 0;\n  padding: 42px 54px 70px;\n  background:",
+            styles,
+        )
+        self.assertNotIn(
+            ".hero {\n  position: relative;\n  padding: 42px 2px 38px;\n"
+            "  border-bottom: 1px solid var(--line);\n  background:",
+            styles,
+        )
+        self.assertIn(".requirement-list article", styles)
+        self.assertIn(".metric-grid { grid-template-columns: repeat(3", styles)
+        self.assertIn(
+            ".timeline li { display: grid; grid-template-columns: 100px",
+            styles,
+        )
+        self.assertIn("grid-template-columns: repeat(4, minmax(0, 1fr))", styles)
+        self.assertIn("background: transparent", styles)
+        self.assertIn("max-height: calc(100vh - 66px)", styles)
+        self.assertIn("max-height: calc(100dvh - 66px)", styles)
         self.assertIn("overflow-x: hidden", styles)
         self.assertIn("overflow-wrap: anywhere", styles)
         self.assertIn("@media (prefers-reduced-motion: reduce)", styles)
         self.assertIn("@media print", styles)
-        self.assertIn("details.supporting-detail > *:not(summary)", styles)
+        self.assertIn("details > *:not(summary)", styles)
         self.assertIn(".visual-surface", styles)
-        self.assertIn(".diagram-canvas svg, .mermaid-canvas svg", styles)
+        self.assertIn(".diagram-canvas svg,\n.mermaid-canvas svg", styles)
+        self.assertIn(".diagram-source code,", styles)
+        self.assertIn("background: transparent", styles)
+        self.assertIn(".native-diagram marker path", styles)
         self.assertIn(".prototype-state[hidden] { display: block; }", styles)
         self.assertIn(".prototype-state::before", styles)
 

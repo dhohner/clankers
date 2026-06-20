@@ -40,8 +40,12 @@ python3 plugins/project-advisor/skills/to-prd/scripts/generate_prd.py \
 ```
 
 This creates `action-items/PRD-example-review-bundle/index.html` and its local
-assets. Pass `--output-root <directory>` to choose another parent directory.
-Existing bundles are preserved unless `--force` is supplied.
+assets. The example intentionally exercises the reference-aligned hero,
+summary metrics, flat content grids, tables, requirements, diagrams, prototype
+states, timeline, risks, questions, grounding, and traceability. Use it as the
+visual regression fixture for generator changes. Pass `--output-root
+<directory>` to choose another parent directory. Existing bundles are
+preserved unless `--force` is supplied.
 
 Manifest version 1 requires:
 

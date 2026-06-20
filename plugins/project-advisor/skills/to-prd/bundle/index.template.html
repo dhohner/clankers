@@ -13,9 +13,12 @@
     <div class="app-shell">
       <aside class="sidebar" aria-label="PRD navigation">
         <div class="sidebar-header">
-          <a class="brand" href="#summary" aria-label="Project Advisor PRD summary">
-            <img src="./assets/project-advisor.svg" alt="" width="36" height="36" />
-            <span><strong>Project Advisor</strong><small>Review document</small></span>
+          <a class="brand" href="#summary" aria-label="Project Advisor PRD home">
+            <svg class="brand-mark" viewBox="0 0 44 44" aria-hidden="true">
+              <path d="M7 7h12v12H7zM25 7h12v12H25zM7 25h12v12H7z" />
+              <path class="brand-mark-accent" d="M25 25h12v12H25z" />
+            </svg>
+            <span><strong>Project Advisor</strong><small>Product review surface</small></span>
           </a>
           <button id="nav-toggle" class="nav-toggle" type="button" aria-expanded="false"
             aria-controls="sidebar-panel" aria-label="Open document navigation">
@@ -24,40 +27,28 @@
         </div>
         <div id="sidebar-panel" class="sidebar-panel">
           <nav aria-label="Document sections">{{NAVIGATION}}</nav>
-          <div class="review-controls" role="group" aria-label="Review controls">
+          <div class="sidebar-actions" role="group" aria-label="Review controls">
             {{DETAILS_CONTROL}}
-            <div class="review-lens">
-              <span>Review lens</span>
-              <div role="group" aria-label="Select a read-only review lens">
-                <button type="button" data-review-lens="all" aria-pressed="true">All</button>
-                <button type="button" data-review-lens="decisions" aria-pressed="false">Decisions</button>
-                <button type="button" data-review-lens="validation" aria-pressed="false">Validation</button>
-              </div>
-            </div>
             <button id="print-document" type="button">Print / Save PDF</button>
-            <p id="review-status" class="sr-only" aria-live="polite">Showing the complete document.</p>
           </div>
         </div>
       </aside>
-      <div class="document">
-        <header class="document-header">
-          <span class="document-type">Product Requirements Document</span>
-          <span class="status" role="status" aria-label="Document status: {{STATUS}}">{{STATUS}}</span>
+      <main id="content" tabindex="-1">
+        <header id="summary" class="hero" aria-labelledby="document-title">
+          <div class="hero-topline">
+            <span class="eyebrow">Product Requirements Document</span>
+            <span class="status" role="status" aria-label="Document status: {{STATUS}}">{{STATUS}}</span>
+          </div>
+          <h1 id="document-title">{{TITLE}}</h1>
+          <p class="lede">{{SUMMARY}}</p>
+          <dl class="metadata">{{METADATA}}</dl>
         </header>
-        <main id="content" tabindex="-1">
-          <section id="summary" class="hero" data-review-area="all" aria-labelledby="document-title">
-            <p class="eyebrow">Product Requirements Document</p>
-            <h1 id="document-title">{{TITLE}}</h1>
-            <p class="lede">{{SUMMARY}}</p>
-            <dl class="metadata">{{METADATA}}</dl>
-          </section>
-          {{BLOCKS}}
-        </main>
+        {{BLOCKS}}
         <footer>
-          <span>Generated from a version 1 PRD block manifest.</span>
+          <span>{{STATUS}}</span>
           <a href="#summary">Back to top</a>
         </footer>
-      </div>
+      </main>
     </div>
   </body>
 </html>

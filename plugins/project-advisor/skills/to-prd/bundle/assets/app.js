@@ -1,16 +1,14 @@
 document.documentElement.classList.add("js");
 
-const mobileQuery = window.matchMedia("(max-width: 900px)");
+const mobileQuery = window.matchMedia("(max-width: 980px)");
 const sidebar = document.querySelector(".sidebar");
 const navToggle = document.querySelector("#nav-toggle");
 const sidebarPanel = document.querySelector("#sidebar-panel");
 const navLinks = [...document.querySelectorAll(".sidebar nav a")];
 const internalLinks = [...document.querySelectorAll('a[href^="#"]')];
 const sections = [...document.querySelectorAll("main > section[id]")];
-const supportingDetails = [...document.querySelectorAll("details.supporting-detail")];
-const detailsToggle = document.querySelector("#toggle-details");
-const reviewButtons = [...document.querySelectorAll("[data-review-lens]")];
-const reviewStatus = document.querySelector("#review-status");
+const supportingDetails = [...document.querySelectorAll("details")];
+const detailsToggle = document.querySelector("#collapse-all");
 const printButton = document.querySelector("#print-document");
 const prototypeTablists = [...document.querySelectorAll(".prototype-tabs")];
 const prototypeStates = [...document.querySelectorAll(".prototype-state")];
@@ -181,33 +179,7 @@ detailsToggle?.addEventListener("click", () => {
     detail.open = !collapse;
   });
   detailsToggle.setAttribute("aria-pressed", String(collapse));
-  detailsToggle.textContent = collapse
-    ? "Expand supporting detail"
-    : "Collapse supporting detail";
-});
-
-const reviewLensCopy = {
-  all: "Showing the complete document.",
-  decisions: "Decision review lens selected. Related sections are emphasized.",
-  validation: "Validation review lens selected. Related sections are emphasized.",
-};
-
-reviewButtons.forEach((button) => {
-  button.addEventListener("click", () => {
-    const lens = button.dataset.reviewLens;
-    document.documentElement.dataset.reviewLens = lens;
-    reviewButtons.forEach((candidate) => {
-      candidate.setAttribute("aria-pressed", String(candidate === button));
-    });
-    sections.forEach((section) => {
-      const areas = section.dataset.reviewArea?.split(" ") ?? [];
-      section.classList.toggle(
-        "review-muted",
-        lens !== "all" && !areas.includes("all") && !areas.includes(lens),
-      );
-    });
-    reviewStatus.textContent = reviewLensCopy[lens];
-  });
+  detailsToggle.textContent = collapse ? "Expand details" : "Collapse details";
 });
 
 function selectPrototypeTab(tab, moveFocus = false) {

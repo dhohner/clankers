@@ -7,6 +7,8 @@ Use this checklist before asking either a reviewer subagent or the user to look 
 - All required PRD sections are present in the styled HTML document.
 - If the user requested `with debug`, the companion `implementation-notes.html` file exists and includes `Design Decisions`, `Deviations`, `Tradeoffs`, and `Open Questions`.
 - No placeholder text, TODOs, empty template cards, or obviously unfinished sections remain in the PRD or, when present, the companion notes artifact.
+- Ordinary document content uses a flat visual hierarchy; repeated bordered or elevated cards are not nested inside section-level cards.
+- Desktop section navigation remains available while the document scrolls, with its own overflow behavior when the navigation is taller than the viewport.
 - User stories cover the meaningful parts of the feature rather than only the happy path.
 - When unresolved context exists, `Further Notes` separates assumptions, open questions, and rollout or migration concerns clearly enough to review. The companion notes file makes the same uncertainty easy to audit when `with debug` was requested.
 - The generated PRD is valid standalone HTML with preserved styling and readable layout.
