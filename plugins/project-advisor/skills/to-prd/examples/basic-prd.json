@@ -441,7 +441,7 @@
         "implication": "Generated JavaScript should preserve the same review-only interaction boundary."
       },
       {
-        "reference": "plugins/project-advisor/skills/to-prd/scripts/generate_prd.py",
+        "reference": "plugins/project-advisor/skills/to-prd/scripts/prd_bundle/bundle.py",
         "observation": "The generator already validates manifests and copies versioned assets.",
         "implication": "Visual reliability should be added without weakening deterministic generation."
       }
