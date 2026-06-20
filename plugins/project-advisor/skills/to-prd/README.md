@@ -60,6 +60,54 @@ leave no heading, navigation item, card, or placeholder. Invalid block names or
 content shapes exit non-zero with field-specific errors before any bundle is
 published.
 
+### Visual review blocks
+
+Diagram blocks accept either Mermaid `source` or a structured `native` graph.
+Mermaid is loaded progressively from the jsDelivr Mermaid 11 ESM distribution;
+the description and escaped source remain visible if loading or rendering
+fails. Native graphs render locally as HTML and SVG without an editor or agent
+API:
+
+```json
+{
+  "description": "A request moves through the gateway to the service.",
+  "native": {
+    "nodes": [
+      {"id": "client", "label": "Client"},
+      {"id": "gateway", "label": "Gateway"},
+      {"id": "service", "label": "Service"}
+    ],
+    "edges": [
+      {"from": "client", "to": "gateway", "label": "HTTPS"},
+      {"from": "gateway", "to": "service", "label": "Route"}
+    ]
+  }
+}
+```
+
+`wireframes` and `annotated_screens` accept optional structured `regions` on
+each screen. `prototype` accepts a description and named states with optional
+label/value content. Generated state controls are keyboard-operable,
+read-only, do not persist data, and expand all states for print:
+
+```json
+{
+  "description": "Review behavior across the main approval states.",
+  "states": [
+    {
+      "label": "Ready",
+      "behavior": "The reviewer can inspect the proposed change.",
+      "content": [{"label": "Status", "value": "Ready for review"}]
+    },
+    {
+      "label": "Blocked",
+      "behavior": "The unresolved dependency and next action are visible.",
+      "content": [{"label": "Status", "value": "Needs input"}]
+    }
+  ]
+}
+```
+
 ## Usage
 
 ```text

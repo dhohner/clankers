@@ -6,12 +6,14 @@ const navToggle = document.querySelector("#nav-toggle");
 const sidebarPanel = document.querySelector("#sidebar-panel");
 const navLinks = [...document.querySelectorAll(".sidebar nav a")];
 const internalLinks = [...document.querySelectorAll('a[href^="#"]')];
-const sections = [...document.querySelectorAll("main section[id]")];
+const sections = [...document.querySelectorAll("main > section[id]")];
 const supportingDetails = [...document.querySelectorAll("details.supporting-detail")];
 const detailsToggle = document.querySelector("#toggle-details");
 const reviewButtons = [...document.querySelectorAll("[data-review-lens]")];
 const reviewStatus = document.querySelector("#review-status");
 const printButton = document.querySelector("#print-document");
+const prototypeTablists = [...document.querySelectorAll(".prototype-tabs")];
+const prototypeStates = [...document.querySelectorAll(".prototype-state")];
 let anchorObserver;
 
 function navigationIsOpen() {
@@ -208,16 +210,118 @@ reviewButtons.forEach((button) => {
   });
 });
 
+function selectPrototypeTab(tab, moveFocus = false) {
+  const tablist = tab.closest('[role="tablist"]');
+  if (!tablist) return;
+  const tabs = [...tablist.querySelectorAll('[role="tab"]')];
+  tabs.forEach((candidate) => {
+    const selected = candidate === tab;
+    candidate.setAttribute("aria-selected", String(selected));
+    candidate.tabIndex = selected ? 0 : -1;
+    const panel = document.getElementById(candidate.getAttribute("aria-controls"));
+    if (panel) panel.hidden = !selected;
+  });
+  if (moveFocus) tab.focus();
+}
+
+prototypeTablists.forEach((tablist) => {
+  const tabs = [...tablist.querySelectorAll('[role="tab"]')];
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => selectPrototypeTab(tab));
+    tab.addEventListener("keydown", (event) => {
+      const currentIndex = tabs.indexOf(tab);
+      let nextIndex;
+      if (event.key === "ArrowRight") nextIndex = (currentIndex + 1) % tabs.length;
+      if (event.key === "ArrowLeft") nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+      if (event.key === "Home") nextIndex = 0;
+      if (event.key === "End") nextIndex = tabs.length - 1;
+      if (nextIndex === undefined) return;
+      event.preventDefault();
+      selectPrototypeTab(tabs[nextIndex], true);
+    });
+  });
+});
+
+const MERMAID_CDN =
+  "https://cdn.jsdelivr.net/npm/mermaid@11.15.0/dist/mermaid.esm.min.mjs";
+
+function showMermaidFailure(canvas, error) {
+  canvas.replaceChildren();
+  const message = document.createElement("p");
+  message.className = "visual-loading";
+  message.textContent =
+    "Diagram rendering unavailable. Review the source fallback below.";
+  canvas.append(message);
+  canvas.closest(".mermaid-diagram")?.classList.add("render-failed");
+  const source = document.getElementById(canvas.dataset.mermaidSource);
+  const details = source?.closest("details");
+  if (details) details.open = true;
+  console.warn("A Mermaid diagram could not be rendered.", error);
+}
+
+async function renderMermaidDiagrams() {
+  const canvases = [...document.querySelectorAll(".mermaid-canvas")];
+  if (!canvases.length) return;
+  let mermaid;
+  try {
+    const module = await import(MERMAID_CDN);
+    mermaid = module.default;
+    mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: "strict",
+      theme: "base",
+      themeVariables: {
+        fontFamily: '"Avenir Next", Avenir, sans-serif',
+        primaryColor: "#f7f9f7",
+        primaryBorderColor: "#176b52",
+        primaryTextColor: "#17201c",
+        lineColor: "#176b52",
+        tertiaryColor: "#dff3ea",
+      },
+    });
+  } catch (error) {
+    canvases.forEach((canvas) => showMermaidFailure(canvas, error));
+    return;
+  }
+
+  await Promise.all(canvases.map(async (canvas, index) => {
+    try {
+      const source = document.getElementById(canvas.dataset.mermaidSource);
+      if (!source) throw new Error("Mermaid source is missing");
+      const result = await mermaid.render(
+        `prd-mermaid-${index + 1}`,
+        source.textContent,
+      );
+      canvas.innerHTML = result.svg;
+      canvas.closest(".mermaid-diagram")?.classList.add("rendered");
+      const details = source.closest("details");
+      if (details) details.open = false;
+    } catch (error) {
+      showMermaidFailure(canvas, error);
+    }
+  }));
+}
+
+renderMermaidDiagrams();
+
 let printDetailState = [];
+let printPrototypeState = [];
 window.addEventListener("beforeprint", () => {
   printDetailState = supportingDetails.map((detail) => detail.open);
   supportingDetails.forEach((detail) => {
     detail.open = true;
   });
+  printPrototypeState = prototypeStates.map((state) => state.hidden);
+  prototypeStates.forEach((state) => {
+    state.hidden = false;
+  });
 });
 window.addEventListener("afterprint", () => {
   supportingDetails.forEach((detail, index) => {
     detail.open = printDetailState[index];
+  });
+  prototypeStates.forEach((state, index) => {
+    state.hidden = printPrototypeState[index];
   });
 });
 

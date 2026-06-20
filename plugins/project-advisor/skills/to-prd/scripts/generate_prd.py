@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import html
 import json
+import math
 import re
 import shutil
 import sys
@@ -80,10 +81,10 @@ BLOCK_SPECS: dict[str, BlockSpec] = {
     "business_rules": BlockSpec("Business rules", "Durable rules that constrain product behavior.", "product-definition", "validation decisions", "cards", ("rule", "rationale")),
     "decisions": BlockSpec("Decision log", "Settled choices that shape delivery.", "product-definition", "decisions", "cards", ("decision", "rationale"), "dec", "DEC"),
     "alternatives": BlockSpec("Alternatives and tradeoffs", "Options considered and why they were not selected.", "product-definition", "decisions", "cards", ("option", "tradeoff")),
-    "wireframes": BlockSpec("Wireframes", "Screen concepts used to review layout and hierarchy.", "visual-experience", "all", "cards", ("screen", "intent")),
+    "wireframes": BlockSpec("Wireframes", "Screen concepts used to review layout and hierarchy.", "visual-experience", "all", "frames", ("screen", "intent")),
     "before_after": BlockSpec("Before and after", "The visible change from the current experience.", "visual-experience", "all", "cards", ("before", "after")),
-    "annotated_screens": BlockSpec("Annotated screen states", "Important states and the behavior each communicates.", "visual-experience", "validation", "cards", ("state", "annotation")),
-    "prototype": BlockSpec("Read-only prototype", "Behavioral states available for review.", "visual-experience", "all", "cards", ("state", "behavior")),
+    "annotated_screens": BlockSpec("Annotated screen states", "Important states and the behavior each communicates.", "visual-experience", "validation", "frames", ("state", "annotation")),
+    "prototype": BlockSpec("Read-only prototype", "Behavioral states available for review.", "visual-experience", "all", "prototype"),
     "ui_flow": BlockSpec("UI flow", "How reviewers move between interface states.", "visual-experience", "all", "diagram"),
     "design_direction": BlockSpec("Design direction", "Principles guiding the proposed visual experience.", "visual-experience", "decisions", "cards", ("principle", "application")),
     "architecture_diagram": BlockSpec("Architecture diagram", "System boundaries and responsibilities relevant to the initiative.", "technical-contracts", "decisions", "diagram"),
@@ -181,11 +182,151 @@ def _object_list(
     return result
 
 
+def _optional_object_list(
+    value: Any,
+    path: str,
+    fields: tuple[str, ...],
+    errors: list[str],
+) -> list[dict[str, str]]:
+    if value is None:
+        return []
+    if value == []:
+        return []
+    return _object_list(value, path, fields, errors)
+
+
+def _validate_frames(
+    value: Any,
+    path: str,
+    fields: tuple[str, ...],
+    errors: list[str],
+) -> list[dict[str, Any]]:
+    if not isinstance(value, list) or not value:
+        errors.append(f"{path} must be a non-empty array")
+        return []
+    result: list[dict[str, Any]] = []
+    for index, item in enumerate(value):
+        item_path = f"{path}[{index}]"
+        if not isinstance(item, dict):
+            errors.append(f"{item_path} must be an object")
+            continue
+        _reject_unknown_fields(item, set(fields) | {"regions"}, item_path, errors)
+        normalized = {
+            field: _non_empty_string(item.get(field), f"{item_path}.{field}", errors)
+            for field in fields
+        }
+        normalized["regions"] = _optional_object_list(
+            item.get("regions"),
+            f"{item_path}.regions",
+            ("label", "detail"),
+            errors,
+        )
+        result.append(normalized)
+    return result
+
+
+def _validate_prototype(value: Any, path: str, errors: list[str]) -> dict[str, Any]:
+    if isinstance(value, list):
+        states = _object_list(value, path, ("state", "behavior"), errors)
+        return {
+            "description": "Switch between the defined states to review behavior.",
+            "states": [
+                {
+                    "label": state["state"],
+                    "behavior": state["behavior"],
+                    "content": [],
+                }
+                for state in states
+            ],
+        }
+    if not isinstance(value, dict):
+        errors.append(f"{path} must be an object")
+        return {"description": "", "states": []}
+    _reject_unknown_fields(value, {"description", "states"}, path, errors)
+    description = _non_empty_string(
+        value.get("description"),
+        f"{path}.description",
+        errors,
+    )
+    raw_states = value.get("states")
+    if not isinstance(raw_states, list) or not raw_states:
+        errors.append(f"{path}.states must be a non-empty array")
+        return {"description": description, "states": []}
+    states: list[dict[str, Any]] = []
+    for index, state in enumerate(raw_states):
+        state_path = f"{path}.states[{index}]"
+        if not isinstance(state, dict):
+            errors.append(f"{state_path} must be an object")
+            continue
+        _reject_unknown_fields(
+            state,
+            {"label", "behavior", "content"},
+            state_path,
+            errors,
+        )
+        states.append(
+            {
+                "label": _non_empty_string(
+                    state.get("label"),
+                    f"{state_path}.label",
+                    errors,
+                ),
+                "behavior": _non_empty_string(
+                    state.get("behavior"),
+                    f"{state_path}.behavior",
+                    errors,
+                ),
+                "content": _optional_object_list(
+                    state.get("content"),
+                    f"{state_path}.content",
+                    ("label", "value"),
+                    errors,
+                ),
+            }
+        )
+    return {"description": description, "states": states}
+
+
+def _validate_native_diagram(
+    value: Any,
+    path: str,
+    errors: list[str],
+) -> dict[str, Any] | None:
+    if value is None:
+        return None
+    if not isinstance(value, dict):
+        errors.append(f"{path} must be an object")
+        return {"nodes": [], "edges": []}
+    _reject_unknown_fields(value, {"nodes", "edges"}, path, errors)
+    nodes = _object_list(value.get("nodes"), f"{path}.nodes", ("id", "label"), errors)
+    node_ids = [node["id"] for node in nodes]
+    if len(node_ids) != len(set(node_ids)):
+        errors.append(f"{path}.nodes must use unique ids")
+    edges = _optional_object_list(
+        value.get("edges"),
+        f"{path}.edges",
+        ("from", "to", "label"),
+        errors,
+    )
+    known_ids = set(node_ids)
+    for index, edge in enumerate(edges):
+        for endpoint in ("from", "to"):
+            if edge[endpoint] and edge[endpoint] not in known_ids:
+                errors.append(
+                    f"{path}.edges[{index}].{endpoint} must reference a node id"
+                )
+    return {"nodes": nodes, "edges": edges}
+
+
 def _validate_block(name: str, value: Any, errors: list[str]) -> Any:
     spec = BLOCK_SPECS[name]
     path = f"blocks.{name}"
     if spec.kind == "cards":
         return _object_list(value, path, spec.fields, errors)
+    if spec.kind == "frames":
+        return _validate_frames(value, path, spec.fields, errors)
+    if spec.kind == "prototype":
+        return _validate_prototype(value, path, errors)
     if spec.kind == "list" or spec.kind == "questions":
         return _string_list(value, path, errors)
     if spec.kind == "problem":
@@ -209,17 +350,21 @@ def _validate_block(name: str, value: Any, errors: list[str]) -> Any:
     if spec.kind == "diagram":
         if not isinstance(value, dict):
             errors.append(f"{path} must be an object")
-            return {"description": "", "source": ""}
-        _reject_unknown_fields(value, {"description", "source"}, path, errors)
+            return {"description": "", "source": "", "native": None}
+        _reject_unknown_fields(value, {"description", "source", "native"}, path, errors)
         source = value.get("source", "")
         if source is None:
             source = ""
         elif not isinstance(source, str):
             errors.append(f"{path}.source must be a string when present")
             source = ""
+        native = _validate_native_diagram(value.get("native"), f"{path}.native", errors)
+        if source.strip() and native is not None:
+            errors.append(f"{path} must use either source or native, not both")
         return {
             "description": _non_empty_string(value.get("description"), f"{path}.description", errors),
             "source": source.strip(),
+            "native": native,
         }
     if spec.kind == "table":
         if not isinstance(value, dict):
@@ -395,9 +540,195 @@ def _render_table(value: dict[str, Any]) -> str:
     )
 
 
+def _render_visual_heading(kind: str, description: str, description_id: str) -> str:
+    return (
+        '<div class="visual-heading">'
+        f'<span class="review-aid-label">{_escape(kind)} · Review aid</span>'
+        '<span>Behavioral intent, not final production design</span>'
+        "</div>"
+        f'<p id="{description_id}" class="visual-description">'
+        f"{_escape(description)}</p>"
+    )
+
+
+def _render_frames(name: str, items: list[dict[str, Any]], spec: BlockSpec) -> str:
+    frames: list[str] = []
+    primary, secondary = spec.fields
+    visual_kind = "Annotated state" if name == "annotated_screens" else "Wireframe"
+    for index, item in enumerate(items, start=1):
+        regions = item["regions"] or [
+            {
+                "label": _field_label(secondary),
+                "detail": item[secondary],
+            }
+        ]
+        rendered_regions = "".join(
+            '<div class="screen-region">'
+            f"<strong>{_escape(region['label'])}</strong>"
+            f"<span>{_escape(region['detail'])}</span></div>"
+            for region in regions
+        )
+        description_id = f"{name}-visual-{index}-description"
+        frames.append(
+            f'<figure class="visual-surface screen-surface" '
+            f'aria-labelledby="{description_id}">'
+            f"{_render_visual_heading(visual_kind, item[secondary], description_id)}"
+            '<div class="screen-chrome">'
+            '<div class="screen-toolbar" aria-hidden="true"><i></i><i></i><i></i></div>'
+            f'<div class="screen-canvas"><span class="screen-title">'
+            f"{_escape(item[primary])}</span>{rendered_regions}</div></div>"
+            f"<figcaption>{_escape(item[primary])}</figcaption></figure>"
+        )
+    return '<div class="visual-grid">' + "".join(frames) + "</div>"
+
+
+def _render_native_diagram(
+    name: str,
+    description: str,
+    native: dict[str, Any],
+) -> str:
+    nodes = native["nodes"]
+    width = 760
+    node_width = 180
+    node_height = 70
+    column_gap = 58
+    row_gap = 55
+    columns = min(3, len(nodes)) or 1
+    rows = math.ceil(len(nodes) / columns)
+    height = rows * node_height + max(0, rows - 1) * row_gap + 52
+    positions: dict[str, tuple[int, int]] = {}
+    total_width = columns * node_width + max(0, columns - 1) * column_gap
+    start_x = max(20, (width - total_width) // 2)
+    node_markup: list[str] = []
+    for index, node in enumerate(nodes):
+        row = index // columns
+        column = index % columns
+        x = start_x + column * (node_width + column_gap)
+        y = 26 + row * (node_height + row_gap)
+        positions[node["id"]] = (x, y)
+        node_markup.append(
+            f'<g class="native-node"><rect x="{x}" y="{y}" width="{node_width}" '
+            f'height="{node_height}" rx="12"></rect>'
+            f'<foreignObject x="{x + 10}" y="{y + 8}" width="{node_width - 20}" '
+            f'height="{node_height - 16}"><div xmlns="http://www.w3.org/1999/xhtml" '
+            f'class="native-node-label">{_escape(node["label"])}</div>'
+            "</foreignObject></g>"
+        )
+    edge_markup: list[str] = []
+    for edge in native["edges"]:
+        if edge["from"] not in positions or edge["to"] not in positions:
+            continue
+        from_x, from_y = positions[edge["from"]]
+        to_x, to_y = positions[edge["to"]]
+        from_center_x = from_x + node_width // 2
+        from_center_y = from_y + node_height // 2
+        to_center_x = to_x + node_width // 2
+        to_center_y = to_y + node_height // 2
+        delta_x = to_center_x - from_center_x
+        delta_y = to_center_y - from_center_y
+        if abs(delta_x) >= abs(delta_y):
+            direction = 1 if delta_x >= 0 else -1
+            x1 = from_center_x + direction * node_width // 2
+            y1 = from_center_y
+            x2 = to_center_x - direction * (node_width // 2 + 10)
+            y2 = to_center_y
+        else:
+            direction = 1 if delta_y >= 0 else -1
+            x1 = from_center_x
+            y1 = from_center_y + direction * node_height // 2
+            x2 = to_center_x
+            y2 = to_center_y - direction * (node_height // 2 + 10)
+        label = (
+            f'<text class="native-edge-label" x="{(x1 + x2) // 2}" '
+            f'y="{(y1 + y2) // 2 - 9}" text-anchor="middle">{_escape(edge["label"])}</text>'
+            if edge["label"]
+            else ""
+        )
+        edge_markup.append(
+            f'<path d="M {x1} {y1} L {x2} {y2}" marker-end="url(#{name}-arrow)">'
+            f"</path>{label}"
+        )
+    description_id = f"{name}-visual-description"
+    return (
+        f'<figure class="visual-surface diagram-surface native-diagram" '
+        f'aria-labelledby="{description_id}">'
+        f"{_render_visual_heading('Native diagram', description, description_id)}"
+        '<div class="diagram-canvas">'
+        f'<svg viewBox="0 0 {width} {height}" role="img" '
+        f'aria-labelledby="{description_id}" preserveAspectRatio="xMidYMid meet">'
+        f'<defs><marker id="{name}-arrow" viewBox="0 0 10 10" refX="8" refY="5" '
+        'markerWidth="7" markerHeight="7" orient="auto-start-reverse">'
+        '<path d="M 0 0 L 10 5 L 0 10 z"></path></marker></defs>'
+        f'<g class="native-edges">{"".join(edge_markup)}</g>'
+        f'{"".join(node_markup)}</svg></div>'
+        "<figcaption>Structured HTML and SVG generated from manifest content.</figcaption>"
+        "</figure>"
+    )
+
+
+def _render_mermaid_diagram(name: str, value: dict[str, Any]) -> str:
+    description_id = f"{name}-visual-description"
+    source_id = f"{name}-mermaid-source"
+    return (
+        f'<figure class="visual-surface diagram-surface mermaid-diagram" '
+        f'aria-labelledby="{description_id}">'
+        f"{_render_visual_heading('Mermaid diagram', value['description'], description_id)}"
+        f'<div class="mermaid-canvas" data-mermaid-source="{source_id}" '
+        'aria-hidden="true"><p class="visual-loading">Rendering diagram…</p></div>'
+        '<details class="diagram-source-details" open>'
+        '<summary>Diagram source and text fallback</summary>'
+        f'<pre id="{source_id}" class="diagram-source"><code>'
+        f'{_escape(value["source"])}</code></pre></details>'
+        '<figcaption>Rendered from Mermaid source using the approved CDN.</figcaption>'
+        "</figure>"
+    )
+
+
+def _render_prototype(value: dict[str, Any]) -> str:
+    description_id = "prototype-visual-description"
+    tabs: list[str] = []
+    panels: list[str] = []
+    for index, state in enumerate(value["states"]):
+        selected = index == 0
+        state_id = f"prototype-state-{index + 1}"
+        tab_id = f"prototype-tab-{index + 1}"
+        tabs.append(
+            f'<button id="{tab_id}" type="button" role="tab" '
+            f'aria-selected="{str(selected).lower()}" aria-controls="{state_id}" '
+            f'tabindex="{"0" if selected else "-1"}">{_escape(state["label"])}</button>'
+        )
+        content = "".join(
+            '<div class="prototype-field">'
+            f"<span>{_escape(item['label'])}</span>"
+            f"<strong>{_escape(item['value'])}</strong></div>"
+            for item in state["content"]
+        )
+        panels.append(
+            f'<section id="{state_id}" class="prototype-state" role="tabpanel" '
+            f'aria-labelledby="{tab_id}" data-state-label="{_escape(state["label"])}"'
+            f'{" hidden" if not selected else ""}>'
+            f'<p class="prototype-behavior">{_escape(state["behavior"])}</p>'
+            f'<div class="prototype-content">{content}</div></section>'
+        )
+    return (
+        f'<figure class="visual-surface prototype-surface" '
+        f'aria-labelledby="{description_id}">'
+        f"{_render_visual_heading('Prototype', value['description'], description_id)}"
+        '<div class="prototype-shell">'
+        '<div class="prototype-tabs" role="tablist" aria-label="Prototype states">'
+        f'{"".join(tabs)}</div><div class="prototype-stage">{"".join(panels)}</div></div>'
+        '<figcaption>State switching is local, temporary, and does not persist data.</figcaption>'
+        "</figure>"
+    )
+
+
 def _render_block_content(name: str, value: Any, spec: BlockSpec) -> str:
     if spec.kind == "cards":
         return _render_cards(value, spec)
+    if spec.kind == "frames":
+        return _render_frames(name, value, spec)
+    if spec.kind == "prototype":
+        return _render_prototype(value)
     if spec.kind == "list":
         return _list(value)
     if spec.kind == "problem":
@@ -413,15 +744,14 @@ def _render_block_content(name: str, value: Any, spec: BlockSpec) -> str:
             f"{_list(value['out'])}</article></div>"
         )
     if spec.kind == "diagram":
-        source = (
-            f'<pre class="diagram-source"><code>{_escape(value["source"])}</code></pre>'
-            if value["source"]
-            else ""
-        )
+        if value["source"]:
+            return _render_mermaid_diagram(name, value)
+        if value["native"] is not None:
+            return _render_native_diagram(name, value["description"], value["native"])
         return (
             '<figure class="diagram-brief">'
             '<div>'
-            f"<p>{_escape(value['description'])}</p>{source}</div>"
+            f"<p>{_escape(value['description'])}</p></div>"
             "<figcaption>Text-first diagram brief; visual rendering is optional.</figcaption>"
             "</figure>"
         )

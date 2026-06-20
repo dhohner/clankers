@@ -29,6 +29,32 @@ def sample_block(name: str) -> object:
         return {"in": ["Included behavior."], "out": ["Excluded behavior."]}
     if spec.kind == "diagram":
         return {"description": f"{spec.title} description.", "source": "A --> B"}
+    if spec.kind == "frames":
+        return [
+            {
+                spec.fields[0]: f"{spec.fields[0].replace('_', ' ')} value",
+                spec.fields[1]: f"{spec.fields[1].replace('_', ' ')} value",
+                "regions": [
+                    {"label": "Primary region", "detail": "Visible review content."}
+                ],
+            }
+        ]
+    if spec.kind == "prototype":
+        return {
+            "description": "Review state changes without saving data.",
+            "states": [
+                {
+                    "label": "Default",
+                    "behavior": "The initial read-only state.",
+                    "content": [{"label": "Status", "value": "Ready"}],
+                },
+                {
+                    "label": "Blocked",
+                    "behavior": "The blocked state explains the next action.",
+                    "content": [{"label": "Status", "value": "Needs review"}],
+                },
+            ],
+        }
     if spec.kind == "table":
         return {"columns": ["From", "To"], "rows": [["A", "B"]]}
     if spec.kind == "questions":
@@ -327,9 +353,128 @@ class GeneratePrdTests(unittest.TestCase):
         normalized = GENERATOR.validate_manifest(manifest)
         document = GENERATOR.render_document(normalized)
 
-        self.assertIn('<figure class="diagram-brief"><div>', document)
-        self.assertNotIn('role="img"', document)
+        self.assertIn('class="visual-surface diagram-surface mermaid-diagram"', document)
+        self.assertIn('aria-labelledby="workflow_diagram-visual-description"', document)
         self.assertIn("<code>Actor --&gt; Result</code>", document)
+        self.assertIn("Diagram source and text fallback", document)
+
+    def test_native_diagram_renders_structured_svg_without_executable_markup(self) -> None:
+        manifest = base_manifest("architecture-heavy", ["document", "architecture"])
+        manifest["blocks"] = {
+            "architecture_diagram": {
+                "description": "Requests move through the gateway to the service.",
+                "native": {
+                    "nodes": [
+                        {"id": "client", "label": "<Client>"},
+                        {"id": "gateway", "label": "Gateway"},
+                        {"id": "service", "label": "Service"},
+                    ],
+                    "edges": [
+                        {"from": "client", "to": "gateway", "label": "HTTPS"},
+                        {"from": "gateway", "to": "service", "label": "Route"},
+                    ],
+                },
+            }
+        }
+
+        document = GENERATOR.render_document(GENERATOR.validate_manifest(manifest))
+
+        self.assertIn('class="visual-surface diagram-surface native-diagram"', document)
+        self.assertIn("<svg ", document)
+        self.assertIn("&lt;Client&gt;", document)
+        self.assertNotIn("<Client>", document)
+        self.assertIn("Structured HTML and SVG generated from manifest content.", document)
+
+    def test_native_diagram_rejects_unknown_edge_targets(self) -> None:
+        manifest = base_manifest("architecture-heavy", ["document", "architecture"])
+        manifest["blocks"] = {
+            "architecture_diagram": {
+                "description": "Invalid edge fixture.",
+                "native": {
+                    "nodes": [{"id": "known", "label": "Known"}],
+                    "edges": [{"from": "known", "to": "missing", "label": "Route"}],
+                },
+            }
+        }
+
+        with self.assertRaises(GENERATOR.ManifestError) as raised:
+            GENERATOR.validate_manifest(manifest)
+
+        self.assertIn(
+            "blocks.architecture_diagram.native.edges[0].to must reference a node id",
+            str(raised.exception),
+        )
+
+    def test_wireframes_and_prototype_render_as_labeled_read_only_review_aids(self) -> None:
+        manifest = base_manifest("ui-heavy", ["document", "ui"])
+        manifest["blocks"] = {
+            "wireframes": sample_block("wireframes"),
+            "annotated_screens": sample_block("annotated_screens"),
+            "prototype": sample_block("prototype"),
+        }
+
+        document = GENERATOR.render_document(GENERATOR.validate_manifest(manifest))
+
+        self.assertIn("Wireframe · Review aid", document)
+        self.assertIn("Annotated state · Review aid", document)
+        self.assertIn("Prototype · Review aid", document)
+        self.assertIn("Behavioral intent, not final production design", document)
+        self.assertIn('role="tablist"', document)
+        self.assertIn('role="tabpanel"', document)
+        self.assertIn('aria-selected="true"', document)
+        self.assertIn('aria-selected="false"', document)
+        self.assertIn("does not persist data", document)
+        self.assertIn('<div class="screen-chrome">', document)
+        self.assertNotIn('<div class="screen-chrome" aria-hidden="true">', document)
+
+    def test_optional_visual_collections_accept_explicit_empty_arrays(self) -> None:
+        manifest = base_manifest("mixed", ["document", "ui", "architecture"])
+        manifest["blocks"] = {
+            "wireframes": [
+                {
+                    "screen": "Review queue",
+                    "intent": "Show the empty state.",
+                    "regions": [],
+                }
+            ],
+            "prototype": {
+                "description": "Review an empty state.",
+                "states": [
+                    {
+                        "label": "Empty",
+                        "behavior": "No records are available.",
+                        "content": [],
+                    }
+                ],
+            },
+            "architecture_diagram": {
+                "description": "A standalone service.",
+                "native": {
+                    "nodes": [{"id": "service", "label": "Service"}],
+                    "edges": [],
+                },
+            },
+        }
+
+        normalized = GENERATOR.validate_manifest(manifest)
+
+        self.assertEqual([], normalized["blocks"]["wireframes"][0]["regions"])
+        self.assertEqual([], normalized["blocks"]["prototype"]["states"][0]["content"])
+        self.assertEqual([], normalized["blocks"]["architecture_diagram"]["native"]["edges"])
+
+    def test_legacy_prototype_state_list_remains_supported(self) -> None:
+        manifest = base_manifest("ui-heavy", ["document", "ui"])
+        manifest["blocks"] = {
+            "prototype": [
+                {"state": "Ready", "behavior": "Shows the completed result."},
+                {"state": "Blocked", "behavior": "Explains the unresolved dependency."},
+            ]
+        }
+
+        document = GENERATOR.render_document(GENERATOR.validate_manifest(manifest))
+
+        self.assertIn(">Ready</button>", document)
+        self.assertIn(">Blocked</button>", document)
 
     def test_unknown_manifest_fields_and_reserved_metadata_are_rejected(self) -> None:
         manifest = base_manifest()
@@ -391,6 +536,14 @@ class GeneratePrdTests(unittest.TestCase):
         self.assertIn("focusAnchorTarget(hash)", script)
         self.assertIn('window.addEventListener("beforeprint"', script)
         self.assertIn("detail.open = true", script)
+        self.assertIn("MERMAID_CDN", script)
+        self.assertIn("https://cdn.jsdelivr.net/npm/mermaid@11.15.0/", script)
+        self.assertIn('securityLevel: "strict"', script)
+        self.assertIn("Diagram rendering unavailable", script)
+        self.assertIn("showMermaidFailure(canvas, error)", script)
+        self.assertIn("selectPrototypeTab", script)
+        self.assertIn('event.key === "ArrowRight"', script)
+        self.assertIn("state.hidden = false", script)
         self.assertIn('window.matchMedia("(prefers-reduced-motion: reduce)")', script)
         self.assertIn("@media (max-width: 900px)", styles)
         self.assertIn("max-height: calc(100vh - 62px)", styles)
@@ -400,6 +553,10 @@ class GeneratePrdTests(unittest.TestCase):
         self.assertIn("@media (prefers-reduced-motion: reduce)", styles)
         self.assertIn("@media print", styles)
         self.assertIn("details.supporting-detail > *:not(summary)", styles)
+        self.assertIn(".visual-surface", styles)
+        self.assertIn(".diagram-canvas svg, .mermaid-canvas svg", styles)
+        self.assertIn(".prototype-state[hidden] { display: block; }", styles)
+        self.assertIn(".prototype-state::before", styles)
 
     def test_invalid_manifest_reports_all_errors_without_creating_bundle(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
