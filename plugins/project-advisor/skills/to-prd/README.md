@@ -31,6 +31,38 @@ Every generated PRD includes these sections:
 - `references/prd-template.html` — styled HTML layout, section structure, and writing guidance
 - `references/review-checklist.md` — quality criteria applied before user review
 
+## Basic JSON bundle generator
+
+The first bundle generator is available independently of any coding-agent harness.
+It uses only the Python 3 standard library and copies its CSS, JavaScript, and SVG
+assets from versioned files in `bundle/assets/`.
+
+From the repository root:
+
+```sh
+python3 plugins/project-advisor/skills/to-prd/scripts/generate_prd.py \
+  plugins/project-advisor/skills/to-prd/examples/basic-prd.json
+```
+
+This creates `action-items/PRD-example-review-bundle/index.html` and its local
+assets. Pass `--output-root <directory>` to choose another parent directory.
+Existing bundles are preserved unless `--force` is supplied.
+
+Manifest version 1 requires:
+
+- `schema_version`, `slug`, `title`, `summary`, `status`, and string-valued `metadata`
+- a problem statement with evidence
+- goals with success signals
+- users with needs and outcomes
+- requirements, decisions, and validation outcomes
+- explicit in-scope and out-of-scope lists
+- rollout phases, risks with mitigations, and repository grounding
+
+`sections.open_questions` is optional. When absent or empty, the generator omits
+the section rather than leaving an empty heading or placeholder. Invalid JSON or
+incomplete content exits non-zero and prints field-specific errors before any
+bundle is published.
+
 ## Usage
 
 ```text

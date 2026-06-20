@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="{{SUMMARY}}" />
+    <title>PRD · {{TITLE}}</title>
+    <link rel="stylesheet" href="./assets/styles.css" />
+    <script src="./assets/app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <header class="site-header">
+      <a class="brand" href="#summary">
+        <img src="./assets/project-advisor.svg" alt="" width="36" height="36" />
+        <span>Project Advisor</span>
+      </a>
+      <span class="status">{{STATUS}}</span>
+    </header>
+
+    <main id="content">
+      <section id="summary" class="hero">
+        <p class="eyebrow">Product Requirements Document</p>
+        <h1>{{TITLE}}</h1>
+        <p class="lede">{{SUMMARY}}</p>
+        <dl class="metadata">{{METADATA}}</dl>
+      </section>
+
+      <section id="problem">
+        <div class="section-heading">
+          <span>01</span><div><h2>Problem and evidence</h2><p>Why this outcome matters now.</p></div>
+        </div>
+        <div class="split">
+          <article><h3>Problem statement</h3>{{PROBLEM}}</article>
+          <article><h3>Evidence</h3>{{EVIDENCE}}</article>
+        </div>
+      </section>
+
+      <section id="goals">
+        <div class="section-heading">
+          <span>02</span><div><h2>Goals and success measures</h2><p>Observable outcomes for the initiative.</p></div>
+        </div>
+        <div class="card-grid">{{GOALS}}</div>
+      </section>
+
+      <section id="users">
+        <div class="section-heading">
+          <span>03</span><div><h2>Users and intended outcomes</h2><p>Who benefits and what changes for them.</p></div>
+        </div>
+        <div class="card-grid">{{USERS}}</div>
+      </section>
+
+      <section id="requirements">
+        <div class="section-heading">
+          <span>04</span><div><h2>Requirements</h2><p>Behavior the delivered product must support.</p></div>
+        </div>
+        <div class="card-grid">{{REQUIREMENTS}}</div>
+      </section>
+
+      <section id="decisions">
+        <div class="section-heading">
+          <span>05</span><div><h2>Decisions</h2><p>Settled choices that shape delivery.</p></div>
+        </div>
+        <div class="card-grid">{{DECISIONS}}</div>
+      </section>
+
+      <section id="validation">
+        <div class="section-heading">
+          <span>06</span><div><h2>Validation</h2><p>Observable proof that the requirements work.</p></div>
+        </div>
+        <div class="card-grid">{{VALIDATION}}</div>
+      </section>
+
+      <section id="scope">
+        <div class="section-heading">
+          <span>07</span><div><h2>Scope boundaries</h2><p>Explicit limits for implementation planning.</p></div>
+        </div>
+        <div class="split">
+          <article><h3>In scope</h3>{{IN_SCOPE}}</article>
+          <article><h3>Out of scope</h3>{{OUT_OF_SCOPE}}</article>
+        </div>
+      </section>
+
+      <section id="rollout">
+        <div class="section-heading">
+          <span>08</span><div><h2>Rollout and migration</h2><p>How the outcome reaches users safely.</p></div>
+        </div>
+        <div class="card-grid">{{ROLLOUT}}</div>
+      </section>
+
+      <section id="risks">
+        <div class="section-heading">
+          <span>09</span><div><h2>Risks and mitigations</h2><p>Known failure modes and responses.</p></div>
+        </div>
+        <div class="card-grid">{{RISKS}}</div>
+      </section>
+
+      {{OPEN_QUESTIONS_SECTION}}
+
+      <section id="repository-grounding">
+        <div class="section-heading">
+          <span>{{GROUNDING_NUMBER}}</span><div><h2>Repository grounding</h2><p>Evidence that informed the product shape.</p></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Reference</th><th>Observation</th><th>Implication</th></tr></thead>
+            <tbody>{{GROUNDING_ROWS}}</tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>Generated from a version 1 PRD manifest.</span>
+      <a href="#summary">Back to top</a>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "slug": "example-review-bundle",
+  "title": "Example PRD Review Bundle",
+  "summary": "Give maintainers a deterministic, portable PRD artifact that can be reviewed in a browser and committed with its companion assets.",
+  "status": "Draft for review",
+  "metadata": {
+    "Owner": "Project Advisor maintainers",
+    "Primary user": "PRD reviewers",
+    "Review mode": "Read-only"
+  },
+  "sections": {
+    "problem": {
+      "statement": "Single-file prose templates make document structure and asset handling depend on the authoring agent.",
+      "evidence": [
+        "The current workflow asks an agent to reproduce template structure directly.",
+        "Review artifacts need to work outside a specific coding-agent harness."
+      ]
+    },
+    "goals": [
+      {
+        "goal": "Produce the same basic bundle from the same manifest.",
+        "success_signal": "The command creates index.html and copied assets under action-items/PRD-example-review-bundle/."
+      }
+    ],
+    "users": [
+      {
+        "actor": "PRD maintainer",
+        "need": "Generate a review artifact with one documented command.",
+        "outcome": "The artifact is portable across conventional macOS and coding-agent shells."
+      }
+    ],
+    "requirements": [
+      {
+        "title": "Portable bundle",
+        "description": "The generated HTML resolves CSS, JavaScript, and SVG through relative paths."
+      }
+    ],
+    "decisions": [
+      {
+        "decision": "Use Python 3 and the standard library.",
+        "rationale": "The generator should not require package installation or Codex-specific runtimes."
+      }
+    ],
+    "validation": [
+      {
+        "target": "Bundle completeness",
+        "expected_outcome": "index.html and every referenced local asset exist in the generated directory."
+      }
+    ],
+    "scope": {
+      "in": [
+        "Version 1 JSON manifest validation",
+        "Outcome-first core PRD sections",
+        "Copied versioned assets"
+      ],
+      "out": [
+        "Adaptive block selection",
+        "Mermaid diagrams and prototypes",
+        "Cross-entity traceability"
+      ]
+    },
+    "rollout": [
+      {
+        "phase": "Initial adoption",
+        "outcome": "Maintainers can generate and inspect a basic bundle before the richer block catalog is added."
+      }
+    ],
+    "risks": [
+      {
+        "risk": "A partial write could look like a complete PRD.",
+        "mitigation": "Validate first and publish a temporary bundle only after all files are written."
+      }
+    ],
+    "open_questions": [
+      "Which additional blocks should become part of manifest version 2?"
+    ],
+    "repository_grounding": [
+      {
+        "reference": "plugins/project-advisor/skills/to-prd/SKILL.md",
+        "observation": "The existing skill produces a styled HTML PRD.",
+        "implication": "The bundle generator should preserve browser-readable output while separating deterministic rendering from agent judgment."
+      }
+    ]
+  }
+}
