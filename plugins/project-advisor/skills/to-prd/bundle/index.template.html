@@ -10,109 +10,177 @@
   </head>
   <body>
     <a class="skip-link" href="#content">Skip to content</a>
-    <header class="site-header">
-      <a class="brand" href="#summary">
-        <img src="./assets/project-advisor.svg" alt="" width="36" height="36" />
-        <span>Project Advisor</span>
-      </a>
-      <span class="status">{{STATUS}}</span>
-    </header>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="PRD navigation">
+        <div class="sidebar-header">
+          <a class="brand" href="#summary" aria-label="Project Advisor PRD summary">
+            <img src="./assets/project-advisor.svg" alt="" width="36" height="36" />
+            <span><strong>Project Advisor</strong><small>Review document</small></span>
+          </a>
+          <button
+            id="nav-toggle"
+            class="nav-toggle"
+            type="button"
+            aria-expanded="false"
+            aria-controls="sidebar-panel"
+            aria-label="Open document navigation"
+          >
+            <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
+          </button>
+        </div>
 
-    <main id="content">
-      <section id="summary" class="hero">
+        <div id="sidebar-panel" class="sidebar-panel">
+          <nav aria-label="Document sections">
+            <a href="#summary">Summary</a>
+            <a href="#problem">Problem</a>
+            <a href="#goals">Goals</a>
+            <a href="#users">Users</a>
+            <a href="#requirements">Requirements</a>
+            <a href="#decisions">Decisions</a>
+            <a href="#validation">Validation</a>
+            <a href="#scope">Scope</a>
+            <a href="#rollout">Rollout</a>
+            <a href="#risks">Risks</a>
+            {{OPEN_QUESTIONS_NAV}}
+            <a href="#repository-grounding">Repository grounding</a>
+          </nav>
+
+          <div class="review-controls" role="group" aria-label="Review controls">
+            <button id="toggle-details" type="button" aria-pressed="false">
+              Collapse supporting detail
+            </button>
+            <div class="review-lens">
+              <span>Review lens</span>
+              <div role="group" aria-label="Select a read-only review lens">
+                <button type="button" data-review-lens="all" aria-pressed="true">All</button>
+                <button type="button" data-review-lens="decisions" aria-pressed="false">Decisions</button>
+                <button type="button" data-review-lens="validation" aria-pressed="false">Validation</button>
+              </div>
+            </div>
+            <button id="print-document" type="button">Print / Save PDF</button>
+            <p id="review-status" class="sr-only" aria-live="polite">Showing the complete document.</p>
+          </div>
+        </div>
+      </aside>
+
+      <div class="document">
+        <header class="document-header">
+          <span class="document-type">Product Requirements Document</span>
+          <span class="status" role="status" aria-label="Document status: {{STATUS}}">{{STATUS}}</span>
+        </header>
+
+        <main id="content" tabindex="-1">
+      <section id="summary" class="hero" data-review-area="all">
         <p class="eyebrow">Product Requirements Document</p>
         <h1>{{TITLE}}</h1>
         <p class="lede">{{SUMMARY}}</p>
         <dl class="metadata">{{METADATA}}</dl>
       </section>
 
-      <section id="problem">
+      <section id="problem" data-review-area="all">
         <div class="section-heading">
-          <span>01</span><div><h2>Problem and evidence</h2><p>Why this outcome matters now.</p></div>
+          <span>01</span><div><h2><a href="#problem">Problem and evidence</a></h2><p>Why this outcome matters now.</p></div>
         </div>
-        <div class="split">
-          <article><h3>Problem statement</h3>{{PROBLEM}}</article>
-          <article><h3>Evidence</h3>{{EVIDENCE}}</article>
-        </div>
+        <details class="supporting-detail" open>
+          <summary>Problem context and evidence</summary>
+          <div class="split">
+            <article><h3>Problem statement</h3>{{PROBLEM}}</article>
+            <article><h3>Evidence</h3>{{EVIDENCE}}</article>
+          </div>
+        </details>
       </section>
 
-      <section id="goals">
+      <section id="goals" data-review-area="validation">
         <div class="section-heading">
-          <span>02</span><div><h2>Goals and success measures</h2><p>Observable outcomes for the initiative.</p></div>
+          <span>02</span><div><h2><a href="#goals">Goals and success measures</a></h2><p>Observable outcomes for the initiative.</p></div>
         </div>
         <div class="card-grid">{{GOALS}}</div>
       </section>
 
-      <section id="users">
+      <section id="users" data-review-area="all">
         <div class="section-heading">
-          <span>03</span><div><h2>Users and intended outcomes</h2><p>Who benefits and what changes for them.</p></div>
+          <span>03</span><div><h2><a href="#users">Users and intended outcomes</a></h2><p>Who benefits and what changes for them.</p></div>
         </div>
-        <div class="card-grid">{{USERS}}</div>
+        <details class="supporting-detail" open>
+          <summary>User needs and outcomes</summary>
+          <div class="card-grid">{{USERS}}</div>
+        </details>
       </section>
 
-      <section id="requirements">
+      <section id="requirements" data-review-area="validation decisions">
         <div class="section-heading">
-          <span>04</span><div><h2>Requirements</h2><p>Behavior the delivered product must support.</p></div>
+          <span>04</span><div><h2><a href="#requirements">Requirements</a></h2><p>Behavior the delivered product must support.</p></div>
         </div>
         <div class="card-grid">{{REQUIREMENTS}}</div>
       </section>
 
-      <section id="decisions">
+      <section id="decisions" data-review-area="decisions">
         <div class="section-heading">
-          <span>05</span><div><h2>Decisions</h2><p>Settled choices that shape delivery.</p></div>
+          <span>05</span><div><h2><a href="#decisions">Decisions</a></h2><p>Settled choices that shape delivery.</p></div>
         </div>
         <div class="card-grid">{{DECISIONS}}</div>
       </section>
 
-      <section id="validation">
+      <section id="validation" data-review-area="validation">
         <div class="section-heading">
-          <span>06</span><div><h2>Validation</h2><p>Observable proof that the requirements work.</p></div>
+          <span>06</span><div><h2><a href="#validation">Validation</a></h2><p>Observable proof that the requirements work.</p></div>
         </div>
         <div class="card-grid">{{VALIDATION}}</div>
       </section>
 
-      <section id="scope">
+      <section id="scope" data-review-area="decisions">
         <div class="section-heading">
-          <span>07</span><div><h2>Scope boundaries</h2><p>Explicit limits for implementation planning.</p></div>
+          <span>07</span><div><h2><a href="#scope">Scope boundaries</a></h2><p>Explicit limits for implementation planning.</p></div>
         </div>
-        <div class="split">
-          <article><h3>In scope</h3>{{IN_SCOPE}}</article>
-          <article><h3>Out of scope</h3>{{OUT_OF_SCOPE}}</article>
-        </div>
+        <details class="supporting-detail" open>
+          <summary>Included and excluded scope</summary>
+          <div class="split">
+            <article><h3>In scope</h3>{{IN_SCOPE}}</article>
+            <article><h3>Out of scope</h3>{{OUT_OF_SCOPE}}</article>
+          </div>
+        </details>
       </section>
 
-      <section id="rollout">
+      <section id="rollout" data-review-area="validation">
         <div class="section-heading">
-          <span>08</span><div><h2>Rollout and migration</h2><p>How the outcome reaches users safely.</p></div>
+          <span>08</span><div><h2><a href="#rollout">Rollout and migration</a></h2><p>How the outcome reaches users safely.</p></div>
         </div>
-        <div class="card-grid">{{ROLLOUT}}</div>
+        <details class="supporting-detail" open>
+          <summary>Rollout phases</summary>
+          <div class="card-grid">{{ROLLOUT}}</div>
+        </details>
       </section>
 
-      <section id="risks">
+      <section id="risks" data-review-area="decisions validation">
         <div class="section-heading">
-          <span>09</span><div><h2>Risks and mitigations</h2><p>Known failure modes and responses.</p></div>
+          <span>09</span><div><h2><a href="#risks">Risks and mitigations</a></h2><p>Known failure modes and responses.</p></div>
         </div>
         <div class="card-grid">{{RISKS}}</div>
       </section>
 
       {{OPEN_QUESTIONS_SECTION}}
 
-      <section id="repository-grounding">
+      <section id="repository-grounding" data-review-area="all">
         <div class="section-heading">
-          <span>{{GROUNDING_NUMBER}}</span><div><h2>Repository grounding</h2><p>Evidence that informed the product shape.</p></div>
+          <span>{{GROUNDING_NUMBER}}</span><div><h2><a href="#repository-grounding">Repository grounding</a></h2><p>Evidence that informed the product shape.</p></div>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Reference</th><th>Observation</th><th>Implication</th></tr></thead>
-            <tbody>{{GROUNDING_ROWS}}</tbody>
-          </table>
-        </div>
-      </section>
-    </main>
+        <details class="supporting-detail" open>
+          <summary>Repository evidence</summary>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Reference</th><th>Observation</th><th>Implication</th></tr></thead>
+              <tbody>{{GROUNDING_ROWS}}</tbody>
+            </table>
+          </div>
+        </details>
+    </section>
+        </main>
 
-    <footer>
-      <span>Generated from a version 1 PRD manifest.</span>
-      <a href="#summary">Back to top</a>
-    </footer>
+        <footer>
+          <span>Generated from a version 1 PRD manifest.</span>
+          <a href="#summary">Back to top</a>
+        </footer>
+      </div>
+    </div>
   </body>
 </html>

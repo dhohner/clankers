@@ -236,15 +236,38 @@ def _list(items: list[str]) -> str:
     return "<ul>" + "".join(f"<li>{_escape(item)}</li>" for item in items) + "</ul>"
 
 
-def _cards(items: list[dict[str, str]], title_key: str, body_key: str) -> str:
-    return "\n".join(
-        (
-            '<article class="card">'
-            f"<h3>{_escape(item[title_key])}</h3>"
-            f"<p>{_escape(item[body_key])}</p>"
-            "</article>"
+def _cards(
+    items: list[dict[str, str]],
+    title_key: str,
+    body_key: str,
+    id_prefix: str | None = None,
+    label_prefix: str | None = None,
+) -> str:
+    def render_card(index: int, item: dict[str, str]) -> str:
+        identity = ""
+        if id_prefix and label_prefix:
+            anchor = f"{id_prefix}-{index:02d}"
+            label = f"{label_prefix}-{index:02d}"
+            identity = (
+                f'<a class="entity-id" href="#{anchor}" '
+                f'aria-label="Link to {label}">{label}</a>'
+            )
+            opening = f'<article id="{anchor}" class="card entity-card">'
+        else:
+            opening = '<article class="card">'
+        return "".join(
+            (
+                opening,
+                identity,
+                f"<h3>{_escape(item[title_key])}</h3>",
+                f"<p>{_escape(item[body_key])}</p>",
+                "</article>",
+            )
         )
-        for item in items
+
+    return "\n".join(
+        render_card(index, item)
+        for index, item in enumerate(items, start=1)
     )
 
 
@@ -270,11 +293,17 @@ def render_document(manifest: dict[str, Any]) -> str:
         )
         for item in sections["users"]
     )
-    requirements = _cards(sections["requirements"], "title", "description")
-    decisions = _cards(sections["decisions"], "decision", "rationale")
-    validation = _cards(sections["validation"], "target", "expected_outcome")
+    requirements = _cards(
+        sections["requirements"], "title", "description", "req", "REQ"
+    )
+    decisions = _cards(
+        sections["decisions"], "decision", "rationale", "dec", "DEC"
+    )
+    validation = _cards(
+        sections["validation"], "target", "expected_outcome", "test", "TEST"
+    )
     rollout = _cards(sections["rollout"], "phase", "outcome")
-    risks = _cards(sections["risks"], "risk", "mitigation")
+    risks = _cards(sections["risks"], "risk", "mitigation", "risk", "RISK")
     grounding_rows = "".join(
         (
             "<tr>"
@@ -287,13 +316,23 @@ def render_document(manifest: dict[str, Any]) -> str:
     )
     question_section = ""
     if sections["open_questions"]:
+        questions = "".join(
+            (
+                f'<li id="question-{index:02d}">'
+                f'<a class="entity-id" href="#question-{index:02d}" '
+                f'aria-label="Link to QUESTION-{index:02d}">QUESTION-{index:02d}</a>'
+                f"<span>{_escape(question)}</span>"
+                "</li>"
+            )
+            for index, question in enumerate(sections["open_questions"], start=1)
+        )
         question_section = (
-            '<section id="open-questions">'
+            '<section id="open-questions" data-review-area="decisions">'
             '<div class="section-heading"><span>10</span><div>'
-            "<h2>Open questions</h2>"
+            '<h2><a href="#open-questions">Open questions</a></h2>'
             "<p>Decisions that still need explicit confirmation.</p>"
             "</div></div>"
-            f"{_list(sections['open_questions'])}"
+            f'<ul class="question-list">{questions}</ul>'
             "</section>"
         )
 
@@ -314,6 +353,11 @@ def render_document(manifest: dict[str, Any]) -> str:
         "{{ROLLOUT}}": rollout,
         "{{RISKS}}": risks,
         "{{OPEN_QUESTIONS_SECTION}}": question_section,
+        "{{OPEN_QUESTIONS_NAV}}": (
+            '<a href="#open-questions">Open questions</a>'
+            if sections["open_questions"]
+            else ""
+        ),
         "{{GROUNDING_NUMBER}}": "11" if sections["open_questions"] else "10",
         "{{GROUNDING_ROWS}}": grounding_rows,
     }

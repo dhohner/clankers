@@ -5,6 +5,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from html.parser import HTMLParser
 from pathlib import Path
 
 
@@ -12,6 +13,25 @@ SKILL_DIR = Path(__file__).resolve().parents[1]
 SCRIPT = SKILL_DIR / "scripts" / "generate_prd.py"
 EXAMPLE = SKILL_DIR / "examples" / "basic-prd.json"
 SOURCE_ASSETS = SKILL_DIR / "bundle" / "assets"
+
+
+class AnchorParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__()
+        self.ids: list[str] = []
+        self.fragment_links: list[str] = []
+
+    def handle_starttag(
+        self,
+        tag: str,
+        attrs: list[tuple[str, str | None]],
+    ) -> None:
+        attributes = dict(attrs)
+        if attributes.get("id"):
+            self.ids.append(attributes["id"])
+        href = attributes.get("href")
+        if tag == "a" and href and href.startswith("#") and len(href) > 1:
+            self.fragment_links.append(href[1:])
 
 
 class GeneratePrdTests(unittest.TestCase):
@@ -49,6 +69,16 @@ class GeneratePrdTests(unittest.TestCase):
             self.assertIn('href="./assets/styles.css"', document)
             self.assertIn('src="./assets/app.js"', document)
             self.assertIn('src="./assets/project-advisor.svg"', document)
+            self.assertIn('aria-label="PRD navigation"', document)
+            self.assertIn('id="nav-toggle"', document)
+            self.assertIn('id="toggle-details"', document)
+            self.assertIn('data-review-lens="decisions"', document)
+            self.assertIn('id="req-01"', document)
+            self.assertIn('href="#req-01"', document)
+            self.assertIn('id="dec-01"', document)
+            self.assertIn('id="risk-01"', document)
+            self.assertIn('id="question-01"', document)
+            self.assertIn('id="test-01"', document)
             source_assets = sorted(
                 path.relative_to(SOURCE_ASSETS)
                 for path in SOURCE_ASSETS.rglob("*")
@@ -65,6 +95,15 @@ class GeneratePrdTests(unittest.TestCase):
                     (bundle / "assets" / asset).read_bytes(),
                     (SOURCE_ASSETS / asset).read_bytes(),
                 )
+
+            anchors = AnchorParser()
+            anchors.feed(document)
+            self.assertEqual(len(anchors.ids), len(set(anchors.ids)))
+            self.assertEqual(
+                set(anchors.fragment_links) - set(anchors.ids),
+                set(),
+                "every generated fragment link should resolve to a unique target",
+            )
 
     def test_manifest_content_is_html_escaped(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -123,10 +162,39 @@ class GeneratePrdTests(unittest.TestCase):
 
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertNotIn('id="open-questions"', document)
+            self.assertNotIn('href="#open-questions"', document)
             self.assertIn(
-                "<span>10</span><div><h2>Repository grounding</h2>",
+                '<span>10</span><div><h2><a href="#repository-grounding">Repository grounding</a></h2>',
                 document,
             )
+
+    def test_review_assets_cover_responsive_navigation_anchor_and_print_behavior(
+        self,
+    ) -> None:
+        script = (SOURCE_ASSETS / "app.js").read_text(encoding="utf-8")
+        styles = (SOURCE_ASSETS / "styles.css").read_text(encoding="utf-8")
+
+        self.assertIn('window.matchMedia("(max-width: 900px)")', script)
+        self.assertIn('event.key === "Escape"', script)
+        self.assertIn('event.key !== "Tab"', script)
+        self.assertIn(
+            "document.getElementById(decodeURIComponent(hash.slice(1)))",
+            script,
+        )
+        self.assertIn("ResizeObserver", script)
+        self.assertNotIn("setTimeout(stopAnchorStabilization", script)
+        self.assertIn("focusAnchorTarget(hash)", script)
+        self.assertIn('window.addEventListener("beforeprint"', script)
+        self.assertIn("detail.open = true", script)
+        self.assertIn('window.matchMedia("(prefers-reduced-motion: reduce)")', script)
+        self.assertIn("@media (max-width: 900px)", styles)
+        self.assertIn("max-height: calc(100vh - 62px)", styles)
+        self.assertIn("max-height: calc(100dvh - 62px)", styles)
+        self.assertIn("overflow-x: hidden", styles)
+        self.assertIn("overflow-wrap: anywhere", styles)
+        self.assertIn("@media (prefers-reduced-motion: reduce)", styles)
+        self.assertIn("@media print", styles)
+        self.assertIn("details.supporting-detail > *:not(summary)", styles)
 
     def test_invalid_manifest_reports_all_errors_without_creating_bundle(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
