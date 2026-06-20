@@ -162,23 +162,31 @@ def _object_list(
     path: str,
     fields: tuple[str, ...],
     errors: list[str],
-) -> list[dict[str, str]]:
+    optional_fields: set[str] | None = None,
+) -> list[dict[str, Any]]:
     if not isinstance(value, list) or not value:
         errors.append(f"{path} must be a non-empty array")
         return []
-    result: list[dict[str, str]] = []
+    result: list[dict[str, Any]] = []
+    optional_fields = optional_fields or set()
     for index, item in enumerate(value):
         item_path = f"{path}[{index}]"
         if not isinstance(item, dict):
             errors.append(f"{item_path} must be an object")
             continue
-        _reject_unknown_fields(item, set(fields), item_path, errors)
-        result.append(
-            {
-                field: _non_empty_string(item.get(field), f"{item_path}.{field}", errors)
-                for field in fields
-            }
-        )
+        _reject_unknown_fields(item, set(fields) | optional_fields, item_path, errors)
+        normalized: dict[str, Any] = {
+            field: _non_empty_string(item.get(field), f"{item_path}.{field}", errors)
+            for field in fields
+        }
+        if "id" in optional_fields and "id" in item:
+            normalized["id"] = _non_empty_string(item.get("id"), f"{item_path}.id", errors)
+        for list_field in ("relates_to", "validates", "validation", "evidence"):
+            if list_field in optional_fields and list_field in item:
+                normalized[list_field] = _string_list(item.get(list_field), f"{item_path}.{list_field}", errors)
+        if "exception" in optional_fields and "exception" in item:
+            normalized["exception"] = _non_empty_string(item.get("exception"), f"{item_path}.exception", errors)
+        result.append(normalized)
     return result
 
 
@@ -318,17 +326,55 @@ def _validate_native_diagram(
     return {"nodes": nodes, "edges": edges}
 
 
+ENTITY_OPTIONAL_FIELDS_BY_BLOCK = {
+    "requirements": {"id", "relates_to", "validation", "evidence", "exception"},
+    "decisions": {"id", "relates_to", "evidence"},
+    "risks": {"id", "relates_to", "evidence"},
+    "testing_strategy": {"id", "relates_to", "validates", "evidence"},
+}
+
+
+def _normalize_entity_id(value: str) -> str:
+    return value.strip().lower()
+
+
 def _validate_block(name: str, value: Any, errors: list[str]) -> Any:
     spec = BLOCK_SPECS[name]
     path = f"blocks.{name}"
     if spec.kind == "cards":
-        return _object_list(value, path, spec.fields, errors)
+        optional = ENTITY_OPTIONAL_FIELDS_BY_BLOCK.get(name)
+        return _object_list(value, path, spec.fields, errors, optional)
     if spec.kind == "frames":
         return _validate_frames(value, path, spec.fields, errors)
     if spec.kind == "prototype":
         return _validate_prototype(value, path, errors)
-    if spec.kind == "list" or spec.kind == "questions":
+    if spec.kind == "list":
         return _string_list(value, path, errors)
+    if spec.kind == "questions":
+        if not isinstance(value, list) or not value:
+            errors.append(f"{path} must be a non-empty array of strings or question objects")
+            return []
+        questions: list[dict[str, Any]] = []
+        for index, item in enumerate(value):
+            item_path = f"{path}[{index}]"
+            if isinstance(item, str):
+                text = _non_empty_string(item, item_path, errors)
+                questions.append({"question": text})
+                continue
+            if not isinstance(item, dict):
+                errors.append(f"{item_path} must be a string or object")
+                continue
+            _reject_unknown_fields(item, {"id", "question", "relates_to", "evidence"}, item_path, errors)
+            normalized: dict[str, Any] = {
+                "question": _non_empty_string(item.get("question"), f"{item_path}.question", errors)
+            }
+            if "id" in item:
+                normalized["id"] = _non_empty_string(item.get("id"), f"{item_path}.id", errors)
+            for list_field in ("relates_to", "evidence"):
+                if list_field in item:
+                    normalized[list_field] = _string_list(item.get(list_field), f"{item_path}.{list_field}", errors)
+            questions.append(normalized)
+        return questions
     if spec.kind == "problem":
         if not isinstance(value, dict):
             errors.append(f"{path} must be an object")
@@ -396,6 +442,84 @@ def _validate_block(name: str, value: Any, errors: list[str]) -> Any:
     if spec.kind == "code":
         return _object_list(value, path, ("reference", "language", "code", "annotation"), errors)
     raise RuntimeError(f"unsupported renderer kind: {spec.kind}")
+
+
+ENTITY_ID_PATTERN = re.compile(r"^(req|dec|risk|question|test)-[a-z0-9][a-z0-9-]*$")
+
+
+def _entity_label(entity_id: str) -> str:
+    prefix, _, suffix = entity_id.partition("-")
+    return f"{prefix.upper()}-{suffix.upper()}"
+
+
+def _assign_and_validate_traceability(blocks: dict[str, Any], errors: list[str]) -> None:
+    entity_ids: dict[str, str] = {}
+    validation_links: dict[str, set[str]] = {}
+    requirements: list[dict[str, Any]] = []
+
+    for block_name, items in blocks.items():
+        spec = BLOCK_SPECS[block_name]
+        if not spec.id_prefix or not spec.label_prefix:
+            continue
+        if block_name == "open_questions":
+            iterable = items
+            text_field = "question"
+        else:
+            iterable = items
+            text_field = spec.fields[0]
+        for index, item in enumerate(iterable, start=1):
+            default_id = f"{spec.id_prefix}-{index:02d}"
+            entity_id = _normalize_entity_id(item.get("id", default_id))
+            item["id"] = entity_id
+            item["label"] = _entity_label(entity_id)
+            if not ENTITY_ID_PATTERN.fullmatch(entity_id) or not entity_id.startswith(f"{spec.id_prefix}-"):
+                errors.append(f"blocks.{block_name}[{index - 1}].id must look like {spec.label_prefix}-01 and use the {spec.id_prefix} prefix")
+            if entity_id in entity_ids:
+                errors.append(f"duplicate entity id: {entity_id}")
+            else:
+                entity_ids[entity_id] = f"blocks.{block_name}[{index - 1}]"
+            item.setdefault("relates_to", [])
+            item.setdefault("evidence", [])
+            if block_name == "requirements":
+                requirements.append(item)
+            if block_name == "testing_strategy":
+                for requirement_id in item.get("validates", []):
+                    normalized_requirement_id = _normalize_entity_id(requirement_id)
+                    validation_links.setdefault(normalized_requirement_id, set()).add(entity_id)
+            # Touch the main text field so malformed question objects are still easy to locate in debuggers.
+            item.get(text_field)
+
+    for block_name, items in blocks.items():
+        spec = BLOCK_SPECS[block_name]
+        if not spec.id_prefix:
+            continue
+        for index, item in enumerate(items, start=1):
+            item_path = f"blocks.{block_name}[{index - 1}]"
+            for field in ("relates_to", "validates", "validation"):
+                normalized_refs = []
+                for reference in item.get(field, []):
+                    reference_id = _normalize_entity_id(reference)
+                    normalized_refs.append(reference_id)
+                    if reference_id not in entity_ids:
+                        errors.append(f"{item_path}.{field} references missing entity id: {reference}")
+                    if block_name == "requirements" and field == "validation" and not reference_id.startswith("test-"):
+                        errors.append(f"{item_path}.validation must reference a TEST entity id: {reference}")
+                    if block_name == "testing_strategy" and field == "validates" and not reference_id.startswith("req-"):
+                        errors.append(f"{item_path}.validates must reference a REQ entity id: {reference}")
+                if field in item:
+                    item[field] = normalized_refs
+
+    for requirement in requirements:
+        requirement_id = requirement["id"]
+        linked_tests = {
+            _normalize_entity_id(reference)
+            for reference in requirement.get("validation", [])
+        } | validation_links.get(requirement_id, set())
+        requirement["validation"] = sorted(linked_tests)
+        if not linked_tests and not requirement.get("exception"):
+            errors.append(
+                f"{entity_ids.get(requirement_id, requirement_id)} must connect to a validation outcome or include an exception"
+            )
 
 
 def validate_manifest(raw: Any) -> dict[str, Any]:
@@ -484,6 +608,7 @@ def validate_manifest(raw: Any) -> dict[str, Any]:
         for name in BLOCK_SPECS
         if name in blocks
     }
+    _assign_and_validate_traceability(normalized["blocks"], errors)
 
     if errors:
         raise ManifestError("\n".join(f"- {message}" for message in errors))
@@ -504,26 +629,57 @@ def _field_label(field: str) -> str:
     return field.replace("_", " ").capitalize()
 
 
-def _render_cards(items: list[dict[str, str]], spec: BlockSpec) -> str:
+def _render_relationship_links(label: str, references: list[str]) -> str:
+    if not references:
+        return ""
+    links = ", ".join(
+        f'<a href="#{_escape(reference)}">{_escape(_entity_label(reference))}</a>'
+        for reference in references
+    )
+    return f'<p class="entity-links"><strong>{_escape(label)}:</strong> {links}</p>'
+
+
+def _render_evidence_items(references: list[str]) -> str:
+    if not references:
+        return ""
+    evidence = ", ".join(f"<code>{_escape(reference)}</code>" for reference in references)
+    return f'<p class="entity-evidence"><strong>Evidence:</strong> {evidence}</p>'
+
+
+def _render_cards(items: list[dict[str, Any]], spec: BlockSpec) -> str:
     cards: list[str] = []
     for index, item in enumerate(items, start=1):
         identity = ""
         anchor = ""
         if spec.id_prefix and spec.label_prefix:
-            anchor = f' id="{spec.id_prefix}-{index:02d}"'
-            label = f"{spec.label_prefix}-{index:02d}"
+            entity_id = item.get("id", f"{spec.id_prefix}-{index:02d}")
+            label = item.get("label", _entity_label(entity_id))
+            anchor = f' id="{_escape(entity_id)}"'
             identity = (
-                f'<a class="entity-id" href="#{spec.id_prefix}-{index:02d}" '
-                f'aria-label="Link to {label}">{label}</a>'
+                f'<a class="entity-id" href="#{_escape(entity_id)}" '
+                f'aria-label="Link to {_escape(label)}">{_escape(label)}</a>'
             )
         primary, *secondary = spec.fields
         details = "".join(
             f"<p><strong>{_escape(_field_label(field))}:</strong> {_escape(item[field])}</p>"
             for field in secondary
         )
+        relationships = "".join(
+            [
+                _render_relationship_links("Related", item.get("relates_to", [])),
+                _render_relationship_links("Validation", item.get("validation", [])),
+                _render_relationship_links("Validates", item.get("validates", [])),
+                _render_evidence_items(item.get("evidence", [])),
+                (
+                    f'<p class="entity-exception"><strong>Validation exception:</strong> {_escape(item["exception"])}</p>'
+                    if item.get("exception")
+                    else ""
+                ),
+            ]
+        )
         cards.append(
             f'<article{anchor} class="card{" entity-card" if anchor else ""}">'
-            f"{identity}<h3>{_escape(item[primary])}</h3>{details}</article>"
+            f"{identity}<h3>{_escape(item[primary])}</h3>{details}{relationships}</article>"
         )
     return '<div class="card-grid">' + "".join(cards) + "</div>"
 
@@ -758,14 +914,23 @@ def _render_block_content(name: str, value: Any, spec: BlockSpec) -> str:
     if spec.kind == "table":
         return _render_table(value)
     if spec.kind == "questions":
-        items = "".join(
-            f'<li id="question-{index:02d}">'
-            f'<a class="entity-id" href="#question-{index:02d}" '
-            f'aria-label="Link to QUESTION-{index:02d}">QUESTION-{index:02d}</a>'
-            f"<span>{_escape(question)}</span></li>"
-            for index, question in enumerate(value, start=1)
-        )
-        return f'<ul class="question-list">{items}</ul>'
+        rows: list[str] = []
+        for index, question in enumerate(value, start=1):
+            entity_id = question.get("id", f"question-{index:02d}")
+            label = question.get("label", _entity_label(entity_id))
+            links = "".join(
+                [
+                    _render_relationship_links("Related", question.get("relates_to", [])),
+                    _render_evidence_items(question.get("evidence", [])),
+                ]
+            )
+            rows.append(
+                f'<li id="{_escape(entity_id)}">'
+                f'<a class="entity-id" href="#{_escape(entity_id)}" '
+                f'aria-label="Link to {_escape(label)}">{_escape(label)}</a>'
+                f"<span>{_escape(question['question'])}</span>{links}</li>"
+            )
+        return f'<ul class="question-list">{"".join(rows)}</ul>'
     if spec.kind == "code":
         snippets = "".join(
             '<article class="code-sample">'
@@ -777,6 +942,59 @@ def _render_block_content(name: str, value: Any, spec: BlockSpec) -> str:
         )
         return f'<div class="code-grid">{snippets}</div>'
     raise RuntimeError(f"unsupported renderer kind for {name}: {spec.kind}")
+
+
+def _iter_entities(blocks: dict[str, Any]) -> list[tuple[str, str, str, dict[str, Any]]]:
+    entities: list[tuple[str, str, str, dict[str, Any]]] = []
+    for block_name, items in blocks.items():
+        spec = BLOCK_SPECS[block_name]
+        if not spec.id_prefix:
+            continue
+        title_field = "question" if spec.kind == "questions" else spec.fields[0]
+        for item in items:
+            entities.append((block_name, item["id"], item.get(title_field, ""), item))
+    return entities
+
+
+def _render_traceability_links(references: list[str]) -> str:
+    if not references:
+        return "—"
+    return ", ".join(
+        f'<a href="#{_escape(reference)}">{_escape(_entity_label(reference))}</a>'
+        for reference in references
+    )
+
+
+def _render_traceability_view(blocks: dict[str, Any]) -> str:
+    entities = _iter_entities(blocks)
+    if not entities:
+        return ""
+    rows: list[str] = []
+    for block_name, entity_id, title, item in entities:
+        links = item.get("relates_to", []) + item.get("validation", []) + item.get("validates", [])
+        connected = _render_traceability_links(links)
+        evidence = ", ".join(f"<code>{_escape(reference)}</code>" for reference in item.get("evidence", [])) or "—"
+        exception = _escape(item.get("exception", "")) if item.get("exception") else "—"
+        rows.append(
+            "<tr>"
+            f'<td><a href="#{_escape(entity_id)}">{_escape(item.get("label", _entity_label(entity_id)))}</a></td>'
+            f"<td>{_escape(BLOCK_SPECS[block_name].title)}</td>"
+            f"<td>{_escape(title)}</td>"
+            f"<td>{connected}</td>"
+            f"<td>{evidence}</td>"
+            f"<td>{exception}</td>"
+            "</tr>"
+        )
+    return (
+        '<section id="traceability" data-block="traceability" data-block-category="delivery-assurance" '
+        'data-review-area="validation decisions" aria-labelledby="traceability-heading">'
+        '<div class="section-heading"><span>TR</span><div><h2 id="traceability-heading">'
+        '<a href="#traceability">Traceability view</a></h2>'
+        '<p>Generated relationships between requirements, decisions, risks, questions, and validation outcomes.</p>'
+        '</div></div><div class="table-wrap traceability-table"><table><thead><tr>'
+        '<th>ID</th><th>Type</th><th>Statement</th><th>Connected entities</th><th>Evidence</th><th>Exception</th>'
+        f'</tr></thead><tbody>{"".join(rows)}</tbody></table></div></section>'
+    )
 
 
 def render_document(manifest: dict[str, Any]) -> str:
@@ -796,6 +1014,11 @@ def render_document(manifest: dict[str, Any]) -> str:
         spec = BLOCK_SPECS[name]
         heading_id = f"{name}-heading"
         content = _render_block_content(name, value, spec)
+        if name == "repository_grounding":
+            content = (
+                '<p class="evidence-disclaimer"><strong>Evidence only:</strong> referenced paths and symbols support product statements; they are not mandatory implementation instructions.</p>'
+                f"{content}"
+            )
         if name in {"problem", "scope", "repository_grounding"}:
             content = (
                 '<details class="supporting-detail" open>'
@@ -813,6 +1036,11 @@ def render_document(manifest: dict[str, Any]) -> str:
             f"<p>{_escape(spec.description)}</p></div></div>"
             f"{content}</section>"
         )
+
+    traceability_view = _render_traceability_view(manifest["blocks"])
+    if traceability_view:
+        navigation.append('<a href="#traceability">Traceability view</a>')
+        rendered_blocks.append(traceability_view)
 
     has_supporting_details = any(
         name in manifest["blocks"]

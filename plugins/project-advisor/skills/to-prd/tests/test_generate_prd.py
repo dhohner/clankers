@@ -58,7 +58,7 @@ def sample_block(name: str) -> object:
     if spec.kind == "table":
         return {"columns": ["From", "To"], "rows": [["A", "B"]]}
     if spec.kind == "questions":
-        return ["What still needs a decision?"]
+        return [{"question": "What still needs a decision?"}]
     if spec.kind == "list":
         return ["Intentionally excluded outcome."]
     if spec.kind == "code":
@@ -70,7 +70,10 @@ def sample_block(name: str) -> object:
                 "annotation": "Existing contract evidence.",
             }
         ]
-    return [{field: f"{field.replace('_', ' ')} value" for field in spec.fields}]
+    item = {field: f"{field.replace('_', ' ')} value" for field in spec.fields}
+    if name == "requirements":
+        item["exception"] = "Validation target is selected in a later block when present."
+    return [item]
 
 
 def base_manifest(
@@ -475,6 +478,121 @@ class GeneratePrdTests(unittest.TestCase):
 
         self.assertIn(">Ready</button>", document)
         self.assertIn(">Blocked</button>", document)
+
+    def test_traceability_relationships_and_repository_evidence_render(self) -> None:
+        manifest = base_manifest()
+        manifest["blocks"] = {
+            "requirements": [
+                {
+                    "id": "REQ-PORTABLE",
+                    "title": "Portable bundle",
+                    "description": "Assets resolve locally.",
+                    "validation": ["TEST-ASSETS"],
+                    "relates_to": ["DEC-STDLIB"],
+                    "evidence": ["plugins/project-advisor/skills/to-prd/scripts/generate_prd.py::generate_bundle"],
+                }
+            ],
+            "decisions": [
+                {
+                    "id": "DEC-STDLIB",
+                    "decision": "Use the standard library.",
+                    "rationale": "Keep generation portable.",
+                    "relates_to": ["REQ-PORTABLE"],
+                }
+            ],
+            "risks": [
+                {
+                    "id": "RISK-PARTIAL",
+                    "risk": "Partial output can mislead reviewers.",
+                    "mitigation": "Publish after validation.",
+                    "relates_to": ["REQ-PORTABLE"],
+                }
+            ],
+            "testing_strategy": [
+                {
+                    "id": "TEST-ASSETS",
+                    "target": "Asset links",
+                    "expected_outcome": "Every local asset exists.",
+                    "validates": ["REQ-PORTABLE"],
+                }
+            ],
+            "repository_grounding": [
+                {
+                    "reference": "plugins/project-advisor/skills/to-prd/scripts/generate_prd.py::generate_bundle",
+                    "observation": "Bundle publication is centralized.",
+                    "implication": "The product statement is supported by an exact symbol reference.",
+                }
+            ],
+        }
+
+        document = GENERATOR.render_document(GENERATOR.validate_manifest(manifest))
+
+        self.assertIn('id="req-portable"', document)
+        self.assertIn('href="#test-assets"', document)
+        self.assertNotIn('href="#plugins/project-advisor/skills/to-prd/scripts/generate_prd.py::generate_bundle"', document)
+        self.assertIn('href="#traceability"', document)
+        self.assertIn("Traceability view", document)
+        self.assertIn("Evidence only:", document)
+        self.assertIn("not mandatory implementation instructions", document)
+        self.assertIn("generate_prd.py::generate_bundle", document)
+
+    def test_traceability_rejects_entity_fields_on_wrong_block_types(self) -> None:
+        manifest = base_manifest()
+        manifest["blocks"] = {
+            "decisions": [
+                {
+                    "decision": "Use the standard library.",
+                    "rationale": "Keep generation portable.",
+                    "validates": ["REQ-01"],
+                }
+            ],
+            "requirements": [
+                {
+                    "title": "Portable bundle",
+                    "description": "Assets resolve locally.",
+                    "exception": "Validation is handled outside this fixture.",
+                }
+            ],
+        }
+
+        with self.assertRaises(GENERATOR.ManifestError) as raised:
+            GENERATOR.validate_manifest(manifest)
+
+        self.assertIn(
+            "blocks.decisions[0].validates is not supported for this block",
+            str(raised.exception),
+        )
+
+    def test_traceability_rejects_duplicate_broken_and_unvalidated_requirements(self) -> None:
+        manifest = base_manifest()
+        manifest["blocks"] = {
+            "requirements": [
+                {
+                    "id": "REQ-DUPLICATE",
+                    "title": "First",
+                    "description": "Needs proof.",
+                    "validation": ["TEST-MISSING"],
+                },
+                {
+                    "id": "REQ-DUPLICATE",
+                    "title": "Second",
+                    "description": "Duplicate id.",
+                    "exception": "Deferred until validation design is selected.",
+                },
+                {
+                    "title": "Unvalidated",
+                    "description": "No test or exception.",
+                },
+            ]
+        }
+
+        with self.assertRaises(GENERATOR.ManifestError) as raised:
+            GENERATOR.validate_manifest(manifest)
+
+        message = str(raised.exception)
+        self.assertIn("duplicate entity id: req-duplicate", message)
+        self.assertIn("references missing entity id: TEST-MISSING", message)
+        self.assertIn("must connect to a validation outcome or include an exception", message)
 
     def test_unknown_manifest_fields_and_reserved_metadata_are_rejected(self) -> None:
         manifest = base_manifest()

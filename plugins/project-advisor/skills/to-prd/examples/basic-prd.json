@@ -37,19 +37,32 @@
     "requirements": [
       {
         "title": "Portable bundle",
-        "description": "The generated HTML resolves CSS, JavaScript, and SVG through relative paths."
+        "description": "The generated HTML resolves CSS, JavaScript, and SVG through relative paths.",
+        "validation": [
+          "TEST-01"
+        ],
+        "relates_to": [
+          "DEC-01",
+          "RISK-01"
+        ]
       }
     ],
     "decisions": [
       {
         "decision": "Use Python 3 and the standard library.",
-        "rationale": "The generator should not require package installation or Codex-specific runtimes."
+        "rationale": "The generator should not require package installation or Codex-specific runtimes.",
+        "relates_to": [
+          "REQ-01"
+        ]
       }
     ],
     "testing_strategy": [
       {
         "target": "Bundle completeness",
-        "expected_outcome": "index.html and every referenced local asset exist in the generated directory."
+        "expected_outcome": "index.html and every referenced local asset exist in the generated directory.",
+        "validates": [
+          "REQ-01"
+        ]
       }
     ],
     "scope": {
@@ -73,7 +86,10 @@
     "risks": [
       {
         "risk": "A partial write could look like a complete PRD.",
-        "mitigation": "Validate first and publish a temporary bundle only after all files are written."
+        "mitigation": "Validate first and publish a temporary bundle only after all files are written.",
+        "relates_to": [
+          "REQ-01"
+        ]
       }
     ],
     "open_questions": [
