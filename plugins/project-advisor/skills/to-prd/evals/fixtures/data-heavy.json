@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "slug": "fixture-data-heavy",
+  "title": "Data-heavy PRD fixture",
+  "summary": "Traceability relationships remain stable as a planning source is regenerated.",
+  "status": "Draft",
+  "initiative_type": "data-heavy",
+  "review_surfaces": ["document", "data"],
+  "metadata": {
+    "Owner": "Evaluation"
+  },
+  "blocks": {
+    "problem": {
+      "statement": "Requirements, decisions, risks, and tests can drift apart during revisions.",
+      "evidence": ["Stable identities and explicit relationships are needed for later issue splitting."]
+    },
+    "requirements": [
+      {
+        "id": "REQ-STABLE-TRACE",
+        "title": "Stable traceability",
+        "description": "Regeneration preserves durable entity identities and their declared relationships.",
+        "validation": ["TEST-STABLE-TRACE"]
+      }
+    ],
+    "data_flow_diagram": {
+      "description": "Interview findings become manifest entities, which become rendered traceability links.",
+      "source": "flowchart LR\n  A[Interview findings] --> B[Manifest entities]\n  B --> C[Rendered traceability]"
+    },
+    "data_model": [
+      {
+        "entity": "Planning entity",
+        "definition": "A requirement, decision, risk, question, or test with a stable ID and typed relationships."
+      }
+    ],
+    "security_privacy": [
+      {
+        "concern": "Repository evidence may expose irrelevant sensitive details.",
+        "response": "Include only references that materially support a product statement."
+      }
+    ],
+    "testing_strategy": [
+      {
+        "id": "TEST-STABLE-TRACE",
+        "target": "Traceability regeneration",
+        "expected_outcome": "Unchanged entities keep their IDs and every declared relationship resolves.",
+        "validates": ["REQ-STABLE-TRACE"]
+      }
+    ]
+  }
+}

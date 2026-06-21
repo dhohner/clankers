@@ -18,6 +18,9 @@ class PrdBundleCliTests(unittest.TestCase):
             self.assertNotIn("RuntimeWarning", result.stderr)
             bundle = root / "action-items" / "PRD-example-review-bundle"
             document = (bundle / "index.html").read_text(encoding="utf-8")
+            preserved_manifest = json.loads(
+                (bundle / "prd.json").read_text(encoding="utf-8")
+            )
 
             self.assertIn(
                 '<h1 id="document-title">Rich Interactive HTML Output for to-prd</h1>',
@@ -52,6 +55,8 @@ class PrdBundleCliTests(unittest.TestCase):
             self.assertIn('class="decision-grid"', document)
             self.assertIn('class="prototype prototype-surface"', document)
             self.assertNotIn('class="document-header"', document)
+            self.assertEqual(preserved_manifest["slug"], "example-review-bundle")
+            self.assertEqual(preserved_manifest["schema_version"], 1)
 
             source_assets = sorted(
                 path.relative_to(SOURCE_ASSETS)

@@ -3,75 +3,80 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Create a PRD for a PRD readiness scorecard feature in project-advisor. The users are maintainers reviewing draft PRDs before they are broken into issues. The feature should help them spot blocking gaps, summarize readiness, and recommend the next step. Constraints: keep the PRD in English, do not rely on Python or Node-based helpers, inspect the repo before drafting, and if some product choices are still unresolved, record them explicitly instead of inventing certainty. Write the final PRD as styled HTML.",
-      "expected_output": "A repo-grounded PRD that follows the bundled template shape, defines what the readiness scorecard actually outputs, stays HTML-PRD-first instead of inventing an unsupported runtime surface, and records unresolved product decisions instead of filling them with guesses. The implementation notes artifact should stay off unless the prompt explicitly includes `with debug`.",
-      "files": [],
+      "prompt": "Create a document-only PRD for a small planning-policy clarification. Inspect the repo, keep uncertainty explicit, generate the standard PRD bundle from JSON, validate it, and stop before issue splitting.",
+      "expected_output": "A validated action-items/PRD-<slug>/ bundle containing index.html, prd.json, and copied versioned assets, using only document review blocks that materially help.",
+      "files": ["evals/fixtures/document-only.json"],
       "expectations": [
-        "The output includes a styled HTML PRD with the required sections Problem Statement, Solution, User Stories, Implementation Decisions, Testing Decisions, Out of Scope, and Further Notes.",
-        "The PRD grounds the proposal in the existing project-advisor skill workflow or adjacent repo concepts rather than describing the feature in isolation.",
-        "The PRD explicitly defines the scorecard's review output contract, including a readiness outcome or state, a distinction between blocking gaps and non-blocking cautions, and a recommended next step.",
-        "The PRD explicitly names unresolved questions, assumptions, or rollout concerns instead of presenting uncertain details as settled facts.",
-        "The PRD stays aligned with the repo's current skill-driven workflow and does not invent a concrete UI surface, command, panel, or persistence path that the repo does not support.",
-        "The output is written in English.",
-        "The PRD avoids brittle implementation trivia such as exact file paths or code snippets unless the prompt required them.",
-        "The capability breakdown and decision outcomes are concrete enough that a later issue-splitting step would not need to rediscover the feature shape.",
-        "The skill does not create or require an `implementation-notes.html` file unless the prompt explicitly includes `with debug`.",
-        "The skill does not create Jira issue files or invoke issue splitting unless the user explicitly accepts or asks for that handoff."
+        "The workflow authors a schema-version-1 JSON manifest and invokes the bundled generator with python3.",
+        "The output is a directory bundle with index.html, prd.json, and local assets rather than a legacy single HTML file.",
+        "The PRD does not add specialized UI, workflow, API, data, or architecture visuals without a product reason.",
+        "Structural and visual review occur before human acceptance is requested.",
+        "Issue splitting is not invoked without user acceptance or an explicit handoff request."
       ]
     },
     {
       "id": 2,
-      "prompt": "Create a PRD for a pause feature in the mock repo at `evals/files/context-aware-repo/`. Support agents want to let customers put an account on hold immediately for up to three months and then resume it later. Inspect that repo before drafting. Keep the PRD in English, treat the mock repo as the authoritative codebase context, and if the prompt conflicts with repo terminology or decision records, make that conflict explicit instead of silently averaging them together. Write the final PRD as styled HTML.",
-      "expected_output": "A PRD that uses the mock repo's canonical billing terminology, surfaces the conflict between the requested immediate hold behavior and the documented next-cycle pause policy, preserves the core product request around pause length and resume behavior, and keeps documentation changes optional instead of turning them into default work.",
-      "files": [
-        "evals/files/context-aware-repo/CONTEXT-MAP.md",
-        "evals/files/context-aware-repo/billing/CONTEXT.md",
-        "evals/files/context-aware-repo/billing/README.md",
-        "evals/files/context-aware-repo/billing/docs/adr/0001-pause-window-policy.md"
-      ],
+      "prompt": "Create a UI-heavy PRD for a review queue with empty, ready, and blocked states. Inspect the repo, generate the standard PRD bundle from JSON, validate responsive and print behavior, and stop before issue splitting.",
+      "expected_output": "A validated UI-focused PRD bundle whose selected wireframes or prototype states clarify hierarchy, behavior, accessibility, and read-only review boundaries.",
+      "files": ["evals/fixtures/ui-heavy.json"],
       "expectations": [
-        "The PRD uses `subscription`, `pause`, or `resume` as the primary business terms rather than treating `account` as the canonical concept.",
-        "The PRD explicitly identifies the conflict between the prompt's immediate-hold request and the ADR that says pauses begin on the next billing-cycle boundary.",
-        "The PRD turns that conflict into one coherent planning decision or open question instead of promising both immediate-start and next-cycle behavior in the same first-release flow.",
-        "The PRD keeps the feature anchored to the existing support workflow described in the mock repo rather than inventing a customer self-service or separate-surface solution.",
-        "The PRD explicitly preserves the core request for a bounded pause of up to three months and a resume path, rather than dropping those requirements while resolving the terminology conflict.",
-        "The output stays focused on the PRD and does not create, require, or assume updates to CONTEXT or ADR files without explicit user approval.",
-        "Without the phrase `with debug`, the run returns exactly one PRD HTML artifact under `outputs/action-items/` and no companion notes or debug artifact.",
-        "The output is written in English and reads like a planning document rather than a documentation-maintenance checklist.",
-        "The skill does not create Jira issue files or invoke issue splitting unless the user explicitly accepts or asks for that handoff."
+        "The manifest uses ui-heavy with document and ui review surfaces.",
+        "Visual blocks are relevant to state and hierarchy rather than decorative.",
+        "The review covers desktop, narrow/mobile, print, keyboard behavior, accessible descriptions, and asset resolution.",
+        "The generated bundle preserves stable IDs and normalized JSON.",
+        "Issue splitting is not invoked without user acceptance or an explicit handoff request."
       ]
     },
     {
       "id": 3,
-      "prompt": "Create a PRD for PRD handoff notes that capture rollout risks, open follow-up questions, and ownership hints once a PRD is marked ready for issue splitting. The brief is intentionally incomplete: do not fabricate detailed workflow rules if they are not justified by the prompt or the repo. The users are maintainers handing work from PRD authoring into ticket creation. Inspect the repo, keep the PRD in English, and write the final PRD as styled HTML.",
-      "expected_output": "A PRD that handles an underspecified brief by making uncertainty explicit while still producing a coherent, reviewable feature proposal. The implementation notes artifact appears only when the prompt explicitly includes `with debug`.",
-      "files": [],
+      "prompt": "Create a workflow-heavy PRD for a draft, review, revision, acceptance, and optional handoff lifecycle. Generate and validate the standard JSON-backed PRD bundle and stop before issue splitting.",
+      "expected_output": "A validated workflow PRD bundle that makes transitions, acceptance boundaries, and failure paths reviewable without inventing workflow rules.",
+      "files": ["evals/fixtures/workflow-heavy.json"],
       "expectations": [
-        "The PRD stays coherent even though the brief is incomplete, with open questions or assumptions clearly separated from confirmed decisions.",
-        "The PRD explains the intended user-visible workflow for handoff notes rather than only listing internal implementation tasks.",
-        "The PRD keeps handoff notes as an adjunct to the documented PRD-to-issues workflow rather than replacing the PRD itself or inventing a separate approval system.",
-        "The PRD includes a credible testing section that focuses on externally visible outcomes and risky transitions in the handoff flow.",
-        "The PRD avoids pretending that repo details or business rules exist when they were not supported by the prompt or repository context, including approval state machines, mandatory ownership automation, or hidden workflow gates.",
-        "The PRD remains narrow enough to become a later issue-splitting input rather than expanding into several unrelated initiatives.",
-        "The output is written in English.",
-        "The skill does not leak the `with debug` notes requirement into normal PRD runs.",
-        "The skill does not create Jira issue files or invoke issue splitting unless the user explicitly accepts or asks for that handoff."
+        "The manifest uses workflow-heavy with document and workflow review surfaces.",
+        "The selected blocks expose sequence, transitions, failure paths, and the acceptance gate.",
+        "The workflow remains usable without a browser tool, virtual environment, or subagent.",
+        "The generator is invoked with python3 and copies versioned assets.",
+        "Issue splitting is only offered after acceptance."
       ]
     },
     {
       "id": 4,
-      "prompt": "Create a PRD with debug for a PRD readiness scorecard feature in project-advisor. The users are maintainers reviewing draft PRDs before they are broken into issues. The feature should help them spot blocking gaps, summarize readiness, and recommend the next step. Constraints: keep the PRD in English, do not rely on Python or Node-based helpers, inspect the repo before drafting, and if some product choices are still unresolved, record them explicitly instead of inventing certainty. Write the final PRD as styled HTML.",
-      "expected_output": "A repo-grounded PRD plus a companion implementation-notes HTML file because the prompt explicitly includes `with debug`, with the PRD defining the scorecard's real review outputs and the notes keeping runtime-surface ambiguity explicit instead of inventing certainty.",
-      "files": [],
+      "prompt": "Create an API-heavy PRD for a stable readiness evaluation response. Keep implementation internals open, generate and validate the standard JSON-backed PRD bundle, and stop before issue splitting.",
+      "expected_output": "A validated API-focused bundle that defines observable request, response, validation, and failure behavior without prescribing unsupported internals.",
+      "files": ["evals/fixtures/api-heavy.json"],
       "expectations": [
-        "The output includes a styled HTML PRD with the required sections Problem Statement, Solution, User Stories, Implementation Decisions, Testing Decisions, Out of Scope, and Further Notes, plus a companion implementation-notes HTML file with Design Decisions, Deviations, Tradeoffs, and Open Questions.",
-        "The PRD grounds the proposal in the existing project-advisor skill workflow or adjacent repo concepts rather than describing the feature in isolation.",
-        "The PRD explicitly defines the readiness scorecard's review output contract, including blocker-versus-advisory separation and a recommended next step.",
-        "The implementation notes file captures material interpretation choices instead of duplicating settled PRD content.",
-        "The PRD and notes keep the invocation surface or persistence model open when the repo does not justify a concrete command, panel, or storage path.",
-        "The notes file explains unresolved questions, assumptions, or rollout concerns that matter for how the PRD should be read.",
-        "The output is written in English.",
-        "The skill enables the companion notes file because the prompt included the exact toggle phrase `with debug`."
+        "The manifest uses api-heavy with document and api review surfaces.",
+        "The API contract and failure outcomes are product-observable and testable.",
+        "Requirements have stable IDs and validation relationships or explicit exceptions.",
+        "The bundle contains index.html, prd.json, and resolved local assets.",
+        "Issue splitting is not invoked without user acceptance or an explicit handoff request."
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Create a data-heavy PRD for stable traceability relationships across PRD regeneration. Generate and validate the standard JSON-backed PRD bundle and stop before issue splitting.",
+      "expected_output": "A validated data-focused bundle that explains entities, relationships, lifecycle implications, privacy boundaries, and validation without overcommitting storage details.",
+      "files": ["evals/fixtures/data-heavy.json"],
+      "expectations": [
+        "The manifest uses data-heavy with document and data review surfaces.",
+        "Stable IDs and traceability relationships remain explicit in prd.json and index.html.",
+        "Data visuals include useful text equivalents.",
+        "The review checks accessibility, print output, asset resolution, and visual relevance.",
+        "Issue splitting is not invoked without user acceptance or an explicit handoff request."
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Create an architecture-heavy PRD that separates agent product judgment from deterministic PRD generation. Generate and validate the standard JSON-backed bundle and stop before issue splitting.",
+      "expected_output": "A validated architecture-focused bundle that clarifies system boundaries, responsibilities, portability, risks, and repository evidence.",
+      "files": ["evals/fixtures/architecture-heavy.json"],
+      "expectations": [
+        "The manifest uses architecture-heavy with document and architecture review surfaces.",
+        "The PRD explicitly separates agent judgment from generator responsibilities.",
+        "Architecture visuals are backed by descriptions or structured text.",
+        "The workflow has documented fallbacks for unavailable preview, virtual-environment, browser, and subagent capabilities.",
+        "Issue splitting is only offered after human acceptance."
       ]
     }
   ]

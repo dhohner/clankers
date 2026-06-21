@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "slug": "fixture-api-heavy",
+  "title": "API-heavy PRD fixture",
+  "summary": "Consumers need a stable readiness result without depending on internal scoring details.",
+  "status": "Draft",
+  "initiative_type": "api-heavy",
+  "review_surfaces": ["document", "api"],
+  "metadata": {
+    "Owner": "Evaluation"
+  },
+  "blocks": {
+    "problem": {
+      "statement": "Automation consumers cannot reliably distinguish ready, caution, and blocked planning states.",
+      "evidence": ["The external response contract is the primary review boundary."]
+    },
+    "requirements": [
+      {
+        "id": "REQ-READINESS-CONTRACT",
+        "title": "Stable readiness response",
+        "description": "Consumers receive a status, blocking gaps, cautions, and a recommended next step.",
+        "validation": ["TEST-READINESS-CONTRACT"]
+      }
+    ],
+    "api_contract": [
+      {
+        "contract": "Readiness evaluation response",
+        "behavior": "Returns stable product-level fields and actionable errors without exposing internal implementation details."
+      }
+    ],
+    "failure_paths": [
+      {
+        "scenario": "The submitted planning source is invalid.",
+        "fallback": "Return a concise validation failure and do not publish a partial result."
+      }
+    ],
+    "testing_strategy": [
+      {
+        "id": "TEST-READINESS-CONTRACT",
+        "target": "Readiness response",
+        "expected_outcome": "Valid and invalid requests produce documented observable outcomes.",
+        "validates": ["REQ-READINESS-CONTRACT"]
+      }
+    ]
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "slug": "fixture-workflow-heavy",
+  "title": "Workflow-heavy PRD fixture",
+  "summary": "A draft moves through review, revision, acceptance, and optional issue handoff.",
+  "status": "Draft",
+  "initiative_type": "workflow-heavy",
+  "review_surfaces": ["document", "workflow"],
+  "metadata": {
+    "Owner": "Evaluation"
+  },
+  "blocks": {
+    "problem": {
+      "statement": "Maintainers need an explicit acceptance boundary before issue creation.",
+      "evidence": ["The sequence and failure paths determine whether handoff is allowed."]
+    },
+    "journeys": [
+      {
+        "current": "A draft can be mistaken for an accepted planning source.",
+        "future": "Review and acceptance are explicit before issue splitting is offered."
+      }
+    ],
+    "workflow_diagram": {
+      "description": "Drafts are generated and reviewed; requested changes return to drafting, while acceptance enables an optional handoff.",
+      "source": "flowchart LR\n  A[Draft] --> B[Review]\n  B -->|Changes| A\n  B -->|Accepted| C[Offer issue handoff]"
+    },
+    "failure_paths": [
+      {
+        "scenario": "The reviewer requests changes.",
+        "fallback": "Update the manifest, regenerate, validate, and request review again."
+      }
+    ],
+    "decisions": [
+      {
+        "id": "DEC-ACCEPTANCE-GATE",
+        "decision": "Issue splitting is offered only after human acceptance.",
+        "rationale": "Draft content must not become implementation work by implication."
+      }
+    ]
+  }
+}

@@ -1,46 +1,51 @@
-# Review Checklist
+# PRD Bundle Review Checklist
 
-Use this checklist before asking either a reviewer subagent or the user to look at the PRD. Apply the notes-specific checks only when the user explicitly requested `with debug`.
+Apply this checklist after the generator succeeds and before requesting human acceptance.
 
-## Completeness
+## Structure and portability
 
-- All required PRD sections are present in the styled HTML document.
-- If the user requested `with debug`, the companion `implementation-notes.html` file exists and includes `Design Decisions`, `Deviations`, `Tradeoffs`, and `Open Questions`.
-- No placeholder text, TODOs, empty template cards, or obviously unfinished sections remain in the PRD or, when present, the companion notes artifact.
-- Ordinary document content uses a flat visual hierarchy; repeated bordered or elevated cards are not nested inside section-level cards.
-- Desktop section navigation remains available while the document scrolls, with its own overflow behavior when the navigation is taller than the viewport.
-- User stories cover the meaningful parts of the feature rather than only the happy path.
-- When unresolved context exists, `Further Notes` separates assumptions, open questions, and rollout or migration concerns clearly enough to review. The companion notes file makes the same uncertainty easy to audit when `with debug` was requested.
-- The generated PRD is valid standalone HTML with preserved styling and readable layout.
+- `index.html`, `prd.json`, and every referenced local asset exist inside `action-items/PRD-<slug>/`.
+- The copied files under `assets/` are the generator's versioned assets; the bundle does not depend on a virtual environment, package install, or machine-specific absolute asset path.
+- IDs are unique and stable across regeneration when the underlying requirement, decision, risk, question, or validation outcome has not changed.
+- Fragment links resolve, local asset links stay inside the bundle, and no placeholder or template marker remains.
+- The normalized `prd.json` represents the same initiative and content shown in `index.html`.
 
-## Consistency
+## Product quality and traceability
 
-- When the user requested `with debug`, the PRD and the notes describe the same initiative.
-- The Problem Statement and Solution describe the same initiative.
-- Implementation Decisions do not contradict scope, user stories, testing decisions, or the notes file when it exists.
-- Material deviations or tradeoffs called out in the notes are reflected consistently in the PRD when that file exists.
-- Out of Scope does not quietly reintroduce work described as core.
+- Problem, outcome, users, scope, requirements, decisions, risks, testing intent, and open questions are coherent.
+- Confirmed decisions, provisional assumptions, and open questions are not presented as the same certainty level.
+- Each requirement has a stable ID and connects to a validation outcome or an explicit exception.
+- Material relationships among requirements, decisions, risks, questions, evidence, and tests are reviewable.
+- Repository evidence supports product statements without turning suggested file or symbol locations into mandatory implementation instructions.
+- A later issue-splitting pass can use the accepted PRD without rediscovering the initiative shape.
 
-## Clarity
+## Responsive and interaction review
 
-- A later issue-splitting step could turn this into work items without guessing the basics.
-- Ambiguous requirements are either resolved or named as open questions.
-- Provisional assumptions are labeled as assumptions, not written as settled facts.
-- The PRD does not infer specific workflow rules, approval gates, data models, UI surfaces, or automation behavior unless the user or repo evidence supports them.
-- Important edge cases and constraints are explicit enough to prevent drift.
-- When the user requested `with debug`, the notes explain ambiguous choices, intentional departures, and remaining confirmations clearly enough that a reviewer can tell how to read the PRD.
-- The PRD does not mix provisional assumptions into settled implementation decisions, and the notes file does not restate settled decisions as if they were still open when it exists.
+- At a desktop width, navigation remains usable while content scrolls and does not obscure the document.
+- At a narrow/mobile width, no meaningful content is clipped or requires unintended horizontal scrolling.
+- Navigation, anchors, collapsible details, and read-only prototype controls remain keyboard-operable.
+- Prototype states are explicitly read-only, do not persist changes, and retain understandable content without interaction.
+- Reduced-motion behavior does not hide content or block navigation.
 
-## Scope quality
+## Accessibility
 
-- The PRD describes one coherent initiative, not several unrelated projects.
-- The scope is narrow enough to plan, but broad enough to be meaningful.
-- Adjacent follow-up ideas are kept separate when they would muddy implementation planning.
+- Heading order, landmarks, labels, focus order, and contrast support document review.
+- Diagrams, wireframes, and prototypes include a useful description or structured text equivalent.
+- Diagram rendering failure leaves the source meaning available.
+- Visual meaning is not communicated by color alone.
 
-## Testing quality
+## Print
 
-- Testing Decisions focus on observable behavior.
-- The PRD names the risky behaviors or regressions worth validating.
-- Proposed testing areas line up with the module or capability breakdown.
+- Print output includes all required sections and expands content hidden only for interactive review.
+- Navigation and controls do not consume print space or become required to understand the document.
+- Tables, diagrams, prototypes, and traceability content remain legible and do not lose critical labels at page boundaries.
+- Asset references resolve when printing or saving the local bundle as PDF.
 
-If the PRD or, when enabled, the companion notes artifact fails one of these checks, fix it before moving on.
+## Visual relevance
+
+- Every visual surface clarifies a decision, workflow, state, hierarchy, or contract that prose alone would make harder to review.
+- UI-heavy PRDs show useful states or flows; workflow-heavy PRDs expose transitions and failure paths; API, data, and architecture-heavy PRDs visualize only the contracts or boundaries that require alignment.
+- Decorative, redundant, empty, or misleading visuals are omitted.
+- The document remains readable when optional blocks are absent.
+
+Fix failures in the manifest or generator, regenerate, and repeat the relevant checks. If visual tooling is unavailable, complete the structural checks and explicitly leave responsive, print, and rendered accessibility checks for human review.

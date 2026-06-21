@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import json
 import shutil
 import tempfile
 from pathlib import Path
 
+from .output_validation import validate_generated_bundle
 from .paths import ASSET_DIR
 from .rendering import render_document
 from .types import NormalizedManifest
@@ -25,7 +27,12 @@ def generate_bundle(manifest: NormalizedManifest, output_root: Path, force: bool
     backup_path: Path | None = None
     try:
         (temp_path / "index.html").write_text(render_document(manifest), encoding="utf-8")
+        (temp_path / "prd.json").write_text(
+            json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
         shutil.copytree(ASSET_DIR, temp_path / "assets", copy_function=shutil.copy2)
+        validate_generated_bundle(temp_path)
         if target.exists() or target.is_symlink():
             backup_root = Path(
                 tempfile.mkdtemp(prefix=f".PRD-{manifest['slug']}-backup-", dir=output_root)

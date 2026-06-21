@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "slug": "fixture-document-only",
+  "title": "Document-only PRD fixture",
+  "summary": "A compact planning document whose decisions do not require a specialized visual surface.",
+  "status": "Draft",
+  "initiative_type": "small-feature",
+  "review_surfaces": ["document"],
+  "metadata": {
+    "Owner": "Evaluation"
+  },
+  "blocks": {
+    "problem": {
+      "statement": "Reviewers need a concise statement of a small product change.",
+      "evidence": ["The decision can be understood without UI, workflow, API, data, or architecture visuals."]
+    },
+    "goals": [
+      {
+        "goal": "Make the intended outcome explicit.",
+        "success_signal": "A reviewer can accept or reject the scope without reconstructing missing context."
+      }
+    ],
+    "scope": {
+      "in": ["Document the behavior and its validation intent."],
+      "out": ["Introduce a new user interface or system boundary."]
+    },
+    "testing_strategy": [
+      {
+        "id": "TEST-DOCUMENT",
+        "target": "Planning completeness",
+        "expected_outcome": "The document states the outcome, boundary, and acceptance evidence."
+      }
+    ]
+  }
+}

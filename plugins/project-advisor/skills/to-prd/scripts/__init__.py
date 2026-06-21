@@ -8,6 +8,7 @@ package or run the bundled CLI from the skill root.
 from __future__ import annotations
 
 from .bundle import generate_bundle
+from .output_validation import BundleValidationError, validate_generated_bundle
 from .paths import ASSET_DIR, SCRIPT_DIR, SOURCE_DIR, TEMPLATE_PATH
 from .rendering import render_document
 from .spec import (
@@ -56,6 +57,8 @@ __all__ = [
     "BlockSpec",
     "_json_object",
     "generate_bundle",
+    "BundleValidationError",
+    "validate_generated_bundle",
     "main",
     "parse_args",
     "render_document",
