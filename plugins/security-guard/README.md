@@ -2,7 +2,7 @@
 
 Prevents agent tool work from printing the current user environment or reading common local credentials.
 
-This plugin supports Claude-format hooks and Pi extensions. The Claude-format hook is intentionally scoped to Unix-like environments and direct terminal commands handled through Bash-compatible hosts. The Pi extension intercepts Pi `bash` and `read` tool calls.
+This plugin supports Claude-format hooks and Pi extensions. The Claude-format hook is intentionally scoped to Unix-like environments and direct terminal commands handled through Bash-compatible hosts. The Pi extension intercepts Pi `bash` and `read` tool calls, and asks for human approval before destructive Pi Bash commands such as `rm`, forced `mv`, and risky permission changes.
 
 ## What It Does
 
@@ -24,11 +24,14 @@ It also blocks direct attempts to read or print common secret material:
 
 The Claude-format hook writes a denial reason to stderr and exits with code `2`, which is the shared blocking path for Claude-format hooks and is also supported by VS Code agent hooks. The Pi extension returns a blocked tool call with the same policy message. The denial reason explicitly tells the agent not to suggest workarounds, alternate commands, or indirect ways to print the current user environment or read sensitive credentials.
 
+The Pi extension also requires explicit UI approval before agent-run Bash commands starting `rm`, `truncate`, `dd`, or `mkfs`; risky `mv`, `chmod`, or `chown`; plus destructive Git commands (`git reset --hard`, `git clean -fd`, `git push --force`). In non-interactive mode, those commands are blocked by default.
+
 ## Scope
 
 - Targets macOS and Linux only; Windows is intentionally not supported
 - Intercepts Bash or terminal tool calls before they execute in Claude-format hosts
 - Intercepts `bash` and `read` tool calls before they execute in Pi
+- Requires explicit human approval for destructive Pi Bash commands such as `rm`, `truncate`, `dd`, `mkfs`, risky `mv`/`chmod`/`chown`, and selected destructive Git commands
 - Blocks direct commands and simple nested shell invocations containing env-dump or sensitive credential access commands
 - Intentionally favors clear, high-signal secret paths and token commands over broad keyword matching
 - Requires `jq` to inspect hook input in Claude-format hosts

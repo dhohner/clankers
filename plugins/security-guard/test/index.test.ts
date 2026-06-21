@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import extension from "../index.js";
+import extension, { DESTRUCTIVE_APPROVAL_REASON } from "../index.js";
 
 function makeMockPi() {
   return { on: vi.fn() };
@@ -27,6 +27,30 @@ describe("extension entrypoint", () => {
     extension(pi as never);
     const handler = pi.on.mock.calls.find(([event]) => event === "tool_call")?.[1];
 
-    await expect(handler({ toolName: "read", args: { path: ".env" } })).resolves.toMatchObject({ block: true });
+    await expect(handler({ toolName: "read", args: { path: ".env" } }, { hasUI: false })).resolves.toMatchObject({ block: true });
+  });
+
+  it("requires approval for destructive Bash tool calls", async () => {
+    const pi = makeMockPi();
+    extension(pi as never);
+    const handler = pi.on.mock.calls.find(([event]) => event === "tool_call")?.[1];
+
+    await expect(handler({ toolName: "bash", input: { command: "rm file.txt" } }, { hasUI: false })).resolves.toEqual({
+      block: true,
+      reason: DESTRUCTIVE_APPROVAL_REASON,
+    });
+  });
+
+  it("allows approved destructive Bash tool calls", async () => {
+    const pi = makeMockPi();
+    extension(pi as never);
+    const handler = pi.on.mock.calls.find(([event]) => event === "tool_call")?.[1];
+
+    await expect(
+      handler(
+        { toolName: "bash", input: { command: "mv old new" } },
+        { hasUI: true, ui: { confirm: vi.fn().mockResolvedValue(true) } },
+      ),
+    ).resolves.toBeUndefined();
   });
 });

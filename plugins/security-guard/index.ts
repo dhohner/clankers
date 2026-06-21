@@ -1,7 +1,7 @@
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
 import { getString, getToolInput, normalizeToolName } from "./lib/events.ts";
-import { evaluateText } from "./lib/policy.ts";
-import { BLOCK_REASON, type ToolCallEvent, type UserBashEvent } from "./lib/types.ts";
+import { evaluateText, isDestructiveText } from "./lib/policy.ts";
+import { BLOCK_REASON, DESTRUCTIVE_APPROVAL_REASON, type ToolCallEvent, type UserBashEvent } from "./lib/types.ts";
 
 const TOOL_INPUT_KEYS: Readonly<Record<string, readonly string[]>> = {
   bash: ["command"],
@@ -17,10 +17,23 @@ function getBlockReasonForToolCall(event: ToolCallEvent): string | undefined {
   return decision.blocked ? decision.reason : undefined;
 }
 
+function getBashCommand(event: ToolCallEvent): string {
+  return normalizeToolName(event.toolName) === "bash" ? getString(getToolInput(event), ["command"]) : "";
+}
+
 export default function securityGuard(pi: ExtensionAPI) {
-  pi.on("tool_call", async (event) => {
-    const reason = getBlockReasonForToolCall(event as ToolCallEvent);
+  pi.on("tool_call", async (event, ctx) => {
+    const toolEvent = event as ToolCallEvent;
+    const reason = getBlockReasonForToolCall(toolEvent);
     if (reason) return { block: true, reason };
+
+    const command = getBashCommand(toolEvent);
+    if (!isDestructiveText(command)) return undefined;
+
+    if (!ctx.hasUI) return { block: true, reason: DESTRUCTIVE_APPROVAL_REASON };
+
+    const approved = await ctx.ui.confirm("Approve destructive command?", command);
+    if (!approved) return { block: true, reason: DESTRUCTIVE_APPROVAL_REASON };
 
     return undefined;
   });
@@ -41,4 +54,4 @@ export default function securityGuard(pi: ExtensionAPI) {
   });
 }
 
-export { BLOCK_REASON, evaluateText, isBlockedText } from "./lib/policy.ts";
+export { BLOCK_REASON, DESTRUCTIVE_APPROVAL_REASON, evaluateText, isBlockedText, isDestructiveText } from "./lib/policy.ts";
