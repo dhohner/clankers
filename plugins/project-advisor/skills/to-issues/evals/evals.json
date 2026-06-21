@@ -3,10 +3,10 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Convert the PRD in plugins/project-advisor/skills/to-issues/evals/inputs/prd-order-history.md into Jira-ready vertical-slice action items. Assume the slice breakdown is approved and write the markdown files directly.",
+      "prompt": "Convert the accepted PRD manifest in plugins/project-advisor/skills/to-issues/evals/inputs/prd-order-history.json into Jira-ready vertical-slice action items. Use the JSON manifest as the source of truth for scope, constraints, and success measures. Assume the slice breakdown is approved and write the markdown files directly.",
       "expected_output": "Generated action items use outcome-oriented scenarios and avoid implementation-task wording such as file, endpoint, schema, component, or method changes.",
       "files": [
-        "plugins/project-advisor/skills/to-issues/evals/inputs/prd-order-history.md"
+        "plugins/project-advisor/skills/to-issues/evals/inputs/prd-order-history.json"
       ],
       "expectations": [
         "At least one generated action item covers chronological order history with user-visible summary fields and a first-time empty state.",
@@ -22,10 +22,10 @@
     },
     {
       "id": 2,
-      "prompt": "Convert the PRD in plugins/project-advisor/skills/to-issues/evals/inputs/prd-delegated-approvals.md into Jira-ready vertical-slice action items. Assume the slice breakdown is approved and write the markdown files directly.",
+      "prompt": "Convert the accepted PRD manifest in plugins/project-advisor/skills/to-issues/evals/inputs/prd-delegated-approvals.json into Jira-ready vertical-slice action items. Use the JSON manifest as the source of truth for scope, constraints, and open questions. Assume the slice breakdown is approved and write the markdown files directly.",
       "expected_output": "Generated action items describe user-visible behavior, constraints, and verifiable outcomes instead of prescribing implementation steps across layers.",
       "files": [
-        "plugins/project-advisor/skills/to-issues/evals/inputs/prd-delegated-approvals.md"
+        "plugins/project-advisor/skills/to-issues/evals/inputs/prd-delegated-approvals.json"
       ],
       "expectations": [
         "At least one generated action item covers delegation setup with eligibility checks and clear validation feedback.",
@@ -76,6 +76,24 @@
         "All ticket content is written in German. No English labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' appear.",
         "The Hinweise section follows the note structure from references/jira-issue-template.md: the panel header is followed by a `<ul>` with one `<li>` per included entry, and note entries with no real information are omitted instead of using placeholders such as `Keine`.",
         "Scenario text does not contain filler adjectives like nahtlos, robust, umfassend, zuverlässig, eindeutig, or sichergestellt."
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Convert the accepted PRD manifest in plugins/project-advisor/skills/to-issues/evals/inputs/prd-support-reply-templates.json into Jira-ready vertical-slice action items. Treat the JSON manifest as the source of truth for scope, constraints, and open questions, even if a styled HTML review surface also exists. Assume the slice breakdown is approved and write the markdown files directly.",
+      "expected_output": "Generated action items can start from a structured to-prd JSON source and preserve constraints that might be abbreviated in a rendered review surface.",
+      "files": [
+        "plugins/project-advisor/skills/to-issues/evals/inputs/prd-support-reply-templates.json"
+      ],
+      "expectations": [
+        "At least one generated action item covers creating and maintaining personal Antwortvorlagen from the existing reply workflow rather than introducing a separate management surface first.",
+        "At least one generated action item covers applying a template with clear handling for missing placeholders before a reply is sent.",
+        "The generated action items preserve the manifest's explicit first-release constraint that templates are personal and not shared across the team.",
+        "The generated action items preserve the manifest's explicit non-goal that analytics and centrally managed default templates are out of scope for the first release.",
+        "The generated action items use the JSON manifest as planning source and describe product behavior and constraints rather than prescribing specific APIs, schemas, tables, services, or components to change.",
+        "All ticket content is written in German. No English labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' appear.",
+        "The Hinweise section follows the note structure from references/jira-issue-template.md: the panel header is followed by a `<ul>` with one `<li>` per included entry, and note entries with no real information are omitted instead of using placeholders such as `Keine`.",
+        "Scenarios use first-person perspective (ich befinde mich, ich klicke, ich sehe) rather than third-person (der Nutzer, der Kunde befindet sich)."
       ]
     }
   ]

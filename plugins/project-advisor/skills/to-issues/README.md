@@ -8,7 +8,7 @@ The generated items are written for experienced developers. They describe desire
 
 This skill converts a PRD into a set of Jira-ready markdown files:
 
-1. **Locate the PRD** — reads the PRD from a workspace file or asks the user
+1. **Locate the PRD** — reads the PRD from a workspace file or asks the user, preferring `prd.json` from a `to-prd` bundle over the rendered `index.html` when both exist; use `fast` mode for planning prose or feature briefs that are not packaged as `to-prd` artifacts
 2. **Explore the codebase** — verifies the current workflow, terminology, and constraints before splitting work
 3. **Draft vertical slices** — breaks the PRD or feature brief into thin end-to-end tracer-bullet slices, each demoable on its own
 4. **Review only what matters** — runs a full approval loop in `default` mode and a minimal clarification loop in `fast` mode
@@ -29,6 +29,7 @@ Each generated file uses Jira-compatible HTML panels:
 "Convert the PRD into Jira issues"
 "Break this PRD down into work items"
 "Create implementation tickets from the PRD"
+"Split the accepted prd.json from the to-prd bundle into Jira-ready slices"
 ```
 
 ## Bundled References

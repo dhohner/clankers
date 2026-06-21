@@ -89,4 +89,4 @@ Do not treat the draft as accepted until human review is complete. Keep `prd.jso
 
 Only after the user accepts the PRD, offer to pass the accepted bundle to `to-issues`.
 
-Invoke `to-issues` only when the user asks for issue splitting, accepts the handoff, or originally requested an end-to-end PRD-to-issues flow. Pass the accepted `index.html` as the review source and keep `prd.json` for traceability.
+Invoke `to-issues` only when the user asks for issue splitting, accepts the handoff, or originally requested an end-to-end PRD-to-issues flow. Pass the accepted `prd.json` as the planning source and include `index.html` as the reviewer-facing companion when it helps preserve context. If you mention only one bundle file during handoff, mention `prd.json`.

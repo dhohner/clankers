@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "slug": "self-service-order-history",
+  "title": "Self-Service Order History",
+  "summary": "Signed-in customers can review completed and in-progress orders, find older purchases faster, and open available invoices without contacting support.",
+  "status": "Accepted",
+  "initiative_type": "mixed",
+  "review_surfaces": ["document", "workflow"],
+  "metadata": {
+    "Owner": "Customer Portal",
+    "Primary user": "Returning customer",
+    "Release": "v1"
+  },
+  "blocks": {
+    "problem": {
+      "statement": "Customers currently contact support to answer simple questions about older orders, invoice access, and delivery status. This increases support volume and delays resolution for more complex issues.",
+      "evidence": [
+        "Routine order-history questions are handled by support instead of self-service.",
+        "Invoice access requests create avoidable manual work for the support team."
+      ]
+    },
+    "goals": [
+      {
+        "goal": "Let customers review past orders and invoices without contacting support.",
+        "success_signal": "Customers can find a specific order or invoice on their own in the portal."
+      },
+      {
+        "goal": "Reduce support contacts about order history and invoice access.",
+        "success_signal": "Routine questions about older orders shift from support channels into self-service behavior."
+      }
+    ],
+    "scope": {
+      "in": [
+        "Chronological order history in the customer portal",
+        "Filtering by order status and date range",
+        "Key order details including order number, date, total amount, status, and delivery summary",
+        "Opening invoice PDFs when an invoice already exists",
+        "Clear empty states for no orders and no filter matches"
+      ],
+      "out": [
+        "Order cancellation",
+        "Editing an order after submission",
+        "Reissuing invoices"
+      ]
+    },
+    "requirements": [
+      {
+        "id": "REQ-01",
+        "title": "Chronologische Bestellübersicht",
+        "description": "Angemeldete Kunden können einen Bestellverlauf im Kontobereich öffnen, standardmäßig mit den neuesten Bestellungen zuerst.",
+        "validation": ["TEST-01"]
+      },
+      {
+        "id": "REQ-02",
+        "title": "Filter mit Rücksprung-Verhalten",
+        "description": "Kunden können nach Status und Datumsbereich filtern, und die gewählten Filter bleiben erhalten, wenn sie eine Bestellung öffnen und wieder zurückkehren.",
+        "validation": ["TEST-02"]
+      },
+      {
+        "id": "REQ-03",
+        "title": "Detailansicht und Rechnungszugriff",
+        "description": "Beim Öffnen einer Bestellung sehen Kunden Lieferadresse, Positionen, Zahlungsübersicht und Versandmeilensteine. Wenn eine Rechnung vorhanden ist, kann sie aus Liste und Detailansicht geöffnet werden; wenn nicht, wird das klar erklärt.",
+        "validation": ["TEST-03"],
+        "relates_to": ["RISK-01"]
+      },
+      {
+        "id": "REQ-04",
+        "title": "Leere Zustände und Fehler ohne Kontextverlust",
+        "description": "Wenn keine Bestellungen vorliegen oder Filter alle Ergebnisse entfernen, sehen Kunden einen passenden leeren Zustand. Wenn der Rechnungsabruf fehlschlägt, erhalten sie einen wiederholbaren Fehler ohne Verlust des aktuellen Seitenzustands.",
+        "validation": ["TEST-04"]
+      },
+      {
+        "id": "REQ-05",
+        "title": "Zugriffsgrenze und Auditierbarkeit",
+        "description": "Nur der authentifizierte Kunde kann auf den eigenen Bestellverlauf und die eigenen Rechnungslinks zugreifen; Rechnungszugriffe sind auditierbar.",
+        "validation": ["TEST-05"]
+      }
+    ],
+    "risks": [
+      {
+        "id": "RISK-01",
+        "risk": "Wenn der Rechnungsabruf instabil ist oder den Seitenzustand zurücksetzt, verlieren Kunden Vertrauen in die Selbstbedienung.",
+        "mitigation": "Fehler müssen sichtbar und wiederholbar sein, ohne die aktuelle Navigationsposition zu verlieren."
+      }
+    ],
+    "testing": [
+      {
+        "id": "TEST-01",
+        "expected_outcome": "Ein Kunde findet im Kontobereich eine chronologisch sortierte Bestellübersicht mit den wichtigsten Feldern.",
+        "validates": ["REQ-01"]
+      },
+      {
+        "id": "TEST-02",
+        "expected_outcome": "Status- und Datumsfilter lassen sich anwenden und bleiben beim Wechsel in eine Bestellung und zurück erhalten.",
+        "validates": ["REQ-02"]
+      },
+      {
+        "id": "TEST-03",
+        "expected_outcome": "Aus Liste und Detailansicht lässt sich eine vorhandene Rechnung öffnen; fehlende Rechnungen werden verständlich erklärt.",
+        "validates": ["REQ-03"]
+      },
+      {
+        "id": "TEST-04",
+        "expected_outcome": "Bei keinem Bestand, leer gefilterter Liste oder fehlgeschlagenem Rechnungsabruf sehen Kunden passende Rückmeldungen, ohne ihren aktuellen Kontext zu verlieren.",
+        "validates": ["REQ-04"]
+      },
+      {
+        "id": "TEST-05",
+        "expected_outcome": "Ein Kunde kann nur den eigenen Bestellverlauf und die eigenen Rechnungen öffnen; Rechnungszugriffe werden nachvollziehbar protokolliert.",
+        "validates": ["REQ-05"]
+      }
+    ]
+  }
+}
