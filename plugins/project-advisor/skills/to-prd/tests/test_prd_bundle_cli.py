@@ -27,7 +27,7 @@ class PrdBundleCliTests(unittest.TestCase):
                 document,
             )
             self.assertIn(
-                "<dt>Output</dt><dd>action-items/PRD-example-review-bundle/</dd>",
+                f"<dt>Output</dt><dd>{bundle}/</dd>",
                 document,
             )
             self.assertNotIn("<dt>Initiative</dt>", document)
@@ -202,6 +202,21 @@ class PrdBundleCliTests(unittest.TestCase):
             self.assertFalse(sentinel.exists())
             self.assertTrue(
                 (output_root / "PRD-example-review-bundle" / "index.html").exists()
+            )
+
+    def test_custom_output_root_is_reflected_in_document_metadata(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            output_root = root / "custom-review-output"
+
+            result = run_generator(EXAMPLE, output_root)
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            bundle = output_root / "PRD-example-review-bundle"
+            document = (bundle / "index.html").read_text(encoding="utf-8")
+            self.assertIn(
+                f"<dt>Output</dt><dd>{bundle}/</dd>",
+                document,
             )
 
     def test_force_does_not_delete_a_preexisting_backup_named_path(self) -> None:

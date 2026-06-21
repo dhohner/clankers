@@ -3,80 +3,80 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Create a document-only PRD for a small planning-policy clarification. Inspect the repo, keep uncertainty explicit, generate the standard PRD bundle from JSON, validate it, and stop before issue splitting.",
-      "expected_output": "A validated action-items/PRD-<slug>/ bundle containing index.html, prd.json, and copied versioned assets, using only document review blocks that materially help.",
-      "files": ["evals/fixtures/document-only.json"],
+      "prompt": "We need a short PRD for changing project-advisor's planning policy: generated planning artifacts should go under action-items, but existing files must never be overwritten without an explicit replacement action. This is a small maintainer-facing clarification, not a new UI. Inspect the repository for current behavior and terminology. I have not decided whether replacement should be an error, a confirmation, or a versioned copy, so do not silently choose one. Produce the reviewable PRD, but do not split it into issues yet.",
+      "expected_output": "A repo-grounded document-focused PRD bundle that preserves the unresolved replacement policy as an open question or clearly labeled assumption, selects only useful blocks, and stops pending human acceptance.",
+      "files": [],
       "expectations": [
-        "The workflow authors a schema-version-1 JSON manifest and invokes the bundled generator with python3.",
-        "The output is a directory bundle with index.html, prd.json, and local assets rather than a legacy single HTML file.",
-        "The PRD does not add specialized UI, workflow, API, data, or architecture visuals without a product reason.",
-        "Structural and visual review occur before human acceptance is requested.",
-        "Issue splitting is not invoked without user acceptance or an explicit handoff request."
+        "The run inspects repository evidence and distinguishes confirmed behavior from the unresolved replacement policy.",
+        "The run authors a schema-version-1 JSON manifest rather than receiving a completed manifest as input.",
+        "The generated bundle contains index.html, prd.json, and local assets under action-items/PRD-<slug>/.",
+        "The PRD stays document-focused and does not invent specialized UI, workflow, API, data, or architecture surfaces.",
+        "The run performs structural review, identifies any visual checks it could not perform, and does not invoke issue splitting before acceptance."
       ]
     },
     {
       "id": 2,
-      "prompt": "Create a UI-heavy PRD for a review queue with empty, ready, and blocked states. Inspect the repo, generate the standard PRD bundle from JSON, validate responsive and print behavior, and stop before issue splitting.",
-      "expected_output": "A validated UI-focused PRD bundle whose selected wireframes or prototype states clarify hierarchy, behavior, accessibility, and read-only review boundaries.",
-      "files": ["evals/fixtures/ui-heavy.json"],
+      "prompt": "Draft a PRD for a maintainer review queue for generated PRDs. Reviewers need to distinguish empty, ready, blocked, and accepted states and understand why a draft is blocked. The queue should be read-only for the first release; editing remains in the existing authoring workflow. Inspect the repo before deciding terminology or where this belongs. I am unsure whether accepted PRDs should remain visible by default, so keep that decision open unless repository evidence settles it. Generate the standard review bundle and stop for my review.",
+      "expected_output": "A validated UI-focused PRD bundle that uses relevant wireframes, annotated states, or a read-only prototype to clarify hierarchy and behavior while keeping acceptance visibility unresolved.",
+      "files": [],
       "expectations": [
-        "The manifest uses ui-heavy with document and ui review surfaces.",
-        "Visual blocks are relevant to state and hierarchy rather than decorative.",
-        "The review covers desktop, narrow/mobile, print, keyboard behavior, accessible descriptions, and asset resolution.",
-        "The generated bundle preserves stable IDs and normalized JSON.",
-        "Issue splitting is not invoked without user acceptance or an explicit handoff request."
+        "The PRD uses repo-grounded terminology and records the accepted-item visibility decision as open or provisional.",
+        "The authored manifest selects ui-heavy with document and ui review surfaces for a product reason.",
+        "Visual blocks clarify empty, ready, blocked, and accepted states and explicitly remain read-only.",
+        "Requirements use stable IDs and connect to validation outcomes or explicit exceptions.",
+        "The run reviews responsive, print, keyboard, accessibility, and asset behavior before requesting acceptance."
       ]
     },
     {
       "id": 3,
-      "prompt": "Create a workflow-heavy PRD for a draft, review, revision, acceptance, and optional handoff lifecycle. Generate and validate the standard JSON-backed PRD bundle and stop before issue splitting.",
-      "expected_output": "A validated workflow PRD bundle that makes transitions, acceptance boundaries, and failure paths reviewable without inventing workflow rules.",
-      "files": ["evals/fixtures/workflow-heavy.json"],
+      "prompt": "Create a PRD for the lifecycle of a generated PRD: draft, human review, requested revision, acceptance, and an optional handoff to issue splitting. A reviewer must be able to reject a draft back to revision, and issue creation must never happen before acceptance. Inspect the repository for the current to-prd and to-issues contracts. We have not decided whether acceptance can later be revoked or who is authorized to accept, so surface those decisions instead of inventing workflow rules. Produce the PRD bundle and wait for review.",
+      "expected_output": "A workflow-focused PRD bundle that makes transitions, acceptance boundaries, failure paths, and unresolved authorization or revocation policy reviewable.",
+      "files": [],
       "expectations": [
-        "The manifest uses workflow-heavy with document and workflow review surfaces.",
-        "The selected blocks expose sequence, transitions, failure paths, and the acceptance gate.",
-        "The workflow remains usable without a browser tool, virtual environment, or subagent.",
-        "The generator is invoked with python3 and copies versioned assets.",
-        "Issue splitting is only offered after acceptance."
+        "The run inspects both PRD authoring and issue-handoff repository contracts.",
+        "The authored manifest selects workflow-heavy with document and workflow review surfaces.",
+        "The selected blocks expose the draft, review, revision, acceptance, and optional handoff sequence plus failure paths.",
+        "Acceptance revocation and authorization remain explicit open questions unless supported by repository evidence.",
+        "The run does not create issues and requests human acceptance only after generation and review."
       ]
     },
     {
       "id": 4,
-      "prompt": "Create an API-heavy PRD for a stable readiness evaluation response. Keep implementation internals open, generate and validate the standard JSON-backed PRD bundle, and stop before issue splitting.",
-      "expected_output": "A validated API-focused bundle that defines observable request, response, validation, and failure behavior without prescribing unsupported internals.",
-      "files": ["evals/fixtures/api-heavy.json"],
+      "prompt": "Write a PRD for a stable readiness-evaluation API used by internal planning tools. Consumers submit a PRD manifest and receive an overall readiness result, blocking findings, advisory findings, and a recommended next action. Malformed input and unsupported schema versions need observable error behavior. Inspect the repository for the manifest and validation vocabulary. Do not choose transport, authentication, persistence, or deployment architecture unless the repo already constrains them. Generate the review bundle and stop before issue splitting.",
+      "expected_output": "An API-focused PRD bundle defining observable request, response, validation, and failure behavior while leaving unsupported implementation choices open.",
+      "files": [],
       "expectations": [
-        "The manifest uses api-heavy with document and api review surfaces.",
-        "The API contract and failure outcomes are product-observable and testable.",
-        "Requirements have stable IDs and validation relationships or explicit exceptions.",
-        "The bundle contains index.html, prd.json, and resolved local assets.",
-        "Issue splitting is not invoked without user acceptance or an explicit handoff request."
+        "The API vocabulary and constraints are grounded in the repository's manifest and validation contracts.",
+        "The authored manifest selects api-heavy with document and api review surfaces.",
+        "The API contract separates blocking findings, advisories, overall readiness, next action, malformed input, and unsupported-version behavior.",
+        "Transport, authentication, persistence, and deployment remain open unless repository evidence supports a decision.",
+        "Requirements have stable IDs and validation relationships or explicit exceptions."
       ]
     },
     {
       "id": 5,
-      "prompt": "Create a data-heavy PRD for stable traceability relationships across PRD regeneration. Generate and validate the standard JSON-backed PRD bundle and stop before issue splitting.",
-      "expected_output": "A validated data-focused bundle that explains entities, relationships, lifecycle implications, privacy boundaries, and validation without overcommitting storage details.",
-      "files": ["evals/fixtures/data-heavy.json"],
+      "prompt": "Create a PRD for preserving traceability when a PRD is regenerated from an edited manifest. Requirements, decisions, risks, questions, and testing outcomes should keep durable identities when their meaning has not changed, and broken relationships must be reported before publication. Inspect the current generator and validation code. We have not decided how to handle a renamed entity whose intent is unchanged or whether deleted IDs can ever be reused. Keep those policies explicit and unresolved if the repo does not answer them. Generate the PRD bundle for review only.",
+      "expected_output": "A data-focused PRD bundle explaining durable entities, relationships, lifecycle rules, validation, and unresolved rename or ID-reuse policy without overcommitting storage details.",
+      "files": [],
       "expectations": [
-        "The manifest uses data-heavy with document and data review surfaces.",
-        "Stable IDs and traceability relationships remain explicit in prd.json and index.html.",
-        "Data visuals include useful text equivalents.",
-        "The review checks accessibility, print output, asset resolution, and visual relevance.",
-        "Issue splitting is not invoked without user acceptance or an explicit handoff request."
+        "The PRD is grounded in current traceability normalization and publication validation behavior.",
+        "The authored manifest selects data-heavy with document and data review surfaces.",
+        "Stable entities, relationships, regeneration, and broken-reference behavior are explicit and testable.",
+        "Rename handling and deleted-ID reuse remain open questions unless repository evidence resolves them.",
+        "Any data visual has a useful description or structured text equivalent."
       ]
     },
     {
       "id": 6,
-      "prompt": "Create an architecture-heavy PRD that separates agent product judgment from deterministic PRD generation. Generate and validate the standard JSON-backed bundle and stop before issue splitting.",
-      "expected_output": "A validated architecture-focused bundle that clarifies system boundaries, responsibilities, portability, risks, and repository evidence.",
-      "files": ["evals/fixtures/architecture-heavy.json"],
+      "prompt": "Draft a PRD for separating product judgment from deterministic PRD generation in project-advisor. The agent should own interviewing, repository grounding, uncertainty, and block selection; a standard-library generator should own schema validation, escaping, canonical rendering, asset copying, structural validation, and atomic publication. Inspect the current implementation and identify the real boundary. The future packaging and version-migration strategy is not settled, so do not fabricate it. Produce an architecture-oriented review bundle and stop before issue splitting.",
+      "expected_output": "An architecture-focused PRD bundle that accurately describes agent and generator boundaries, portability, failure handling, repository evidence, and open evolution questions.",
+      "files": [],
       "expectations": [
-        "The manifest uses architecture-heavy with document and architecture review surfaces.",
-        "The PRD explicitly separates agent judgment from generator responsibilities.",
-        "Architecture visuals are backed by descriptions or structured text.",
-        "The workflow has documented fallbacks for unavailable preview, virtual-environment, browser, and subagent capabilities.",
-        "Issue splitting is only offered after human acceptance."
+        "The PRD accurately separates current agent responsibilities from deterministic generator responsibilities using repository evidence.",
+        "The authored manifest selects architecture-heavy with document and architecture review surfaces.",
+        "Architecture visuals include descriptions or structured text and clarify actual boundaries rather than decorative components.",
+        "Failure handling and atomic publication behavior are represented without turning evidence paths into mandatory implementation instructions.",
+        "Packaging and schema-migration strategy remain open unless the repository already settles them."
       ]
     }
   ]

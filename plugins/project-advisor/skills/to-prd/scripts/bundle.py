@@ -14,6 +14,7 @@ from .types import NormalizedManifest
 
 
 def generate_bundle(manifest: NormalizedManifest, output_root: Path, force: bool = False) -> Path:
+    display_target = output_root / f"PRD-{manifest['slug']}"
     output_root = output_root.resolve()
     target = output_root / f"PRD-{manifest['slug']}"
     if (target.exists() or target.is_symlink()) and not force:
@@ -26,7 +27,10 @@ def generate_bundle(manifest: NormalizedManifest, output_root: Path, force: bool
     backup_root: Path | None = None
     backup_path: Path | None = None
     try:
-        (temp_path / "index.html").write_text(render_document(manifest), encoding="utf-8")
+        (temp_path / "index.html").write_text(
+            render_document(manifest, display_target),
+            encoding="utf-8",
+        )
         (temp_path / "prd.json").write_text(
             json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
             encoding="utf-8",

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import html
+from pathlib import Path
 
 from .paths import TEMPLATE_PATH
 from .render_blocks import render_block_content
@@ -12,14 +13,22 @@ from .spec import BLOCK_SPECS, TEMPLATE_MARKER_PATTERN
 from .types import NormalizedManifest
 
 
-def render_document(manifest: NormalizedManifest) -> str:
+def render_document(
+    manifest: NormalizedManifest,
+    output_path: Path | str | None = None,
+) -> str:
+    rendered_output_path = (
+        Path(output_path).as_posix()
+        if output_path is not None
+        else f"action-items/PRD-{manifest['slug']}"
+    ).rstrip("/") + "/"
     metadata_items: dict[str, str] = {}
     for label, value in manifest["metadata"].items():
         if label.casefold() == "review mode":
-            metadata_items["Output"] = f"action-items/PRD-{manifest['slug']}/"
+            metadata_items["Output"] = rendered_output_path
         metadata_items[label] = value
     if "Output" not in metadata_items:
-        metadata_items["Output"] = f"action-items/PRD-{manifest['slug']}/"
+        metadata_items["Output"] = rendered_output_path
     metadata = "".join(
         f"<div><dt>{escape_html(label)}</dt><dd>{escape_html(value)}</dd></div>"
         for label, value in metadata_items.items()
