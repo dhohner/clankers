@@ -35,6 +35,8 @@ class PrdBundleCliTests(unittest.TestCase):
             self.assertNotIn("{{", document)
             self.assertIn("default-src 'none'", document)
             self.assertIn('script-src \'self\' https://cdn.jsdelivr.net', document)
+            self.assertIn("style-src-elem 'self' 'unsafe-inline'", document)
+            self.assertIn("style-src-attr 'unsafe-inline'", document)
             self.assertIn('name="referrer" content="no-referrer"', document)
             self.assertIn('href="./assets/styles.css"', document)
             self.assertIn('src="./assets/app.js"', document)
