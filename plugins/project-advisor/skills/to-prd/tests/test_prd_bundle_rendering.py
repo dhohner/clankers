@@ -130,6 +130,25 @@ class PrdBundleRenderingTests(unittest.TestCase):
         self.assertIn("<code>Actor --&gt; Result</code>", document)
         self.assertIn("Diagram source and text fallback", document)
 
+    def test_mermaid_flowcharts_are_normalized_to_top_to_bottom(self) -> None:
+        manifest = base_manifest("workflow-heavy", ["document", "workflow"])
+        manifest["blocks"] = {
+            "workflow_diagram": {
+                "description": "Actor submits and receives a result.",
+                "source": "flowchart LR\n  A[Actor] --> B[Result]",
+            }
+        }
+
+        normalized = BUNDLE.validate_manifest(manifest)
+        document = BUNDLE.render_document(normalized)
+
+        self.assertEqual(
+            "flowchart TB\n  A[Actor] --> B[Result]",
+            normalized["blocks"]["workflow_diagram"]["source"],
+        )
+        self.assertIn("flowchart TB", document)
+        self.assertNotIn("flowchart LR", document)
+
     def test_native_diagram_renders_structured_svg_without_executable_markup(self) -> None:
         manifest = base_manifest("architecture-heavy", ["document", "architecture"])
         manifest["blocks"] = {

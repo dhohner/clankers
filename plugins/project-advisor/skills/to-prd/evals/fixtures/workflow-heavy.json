@@ -22,7 +22,7 @@
     ],
     "workflow_diagram": {
       "description": "Drafts are generated and reviewed; requested changes return to drafting, while acceptance enables an optional handoff.",
-      "source": "flowchart LR\n  A[Draft] --> B[Review]\n  B -->|Changes| A\n  B -->|Accepted| C[Offer issue handoff]"
+      "source": "flowchart TB\n  A[Draft] --> B[Review]\n  B -->|Changes| A\n  B -->|Accepted| C[Offer issue handoff]"
     },
     "failure_paths": [
       {

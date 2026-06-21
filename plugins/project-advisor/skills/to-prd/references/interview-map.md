@@ -100,6 +100,25 @@ Run the interview in loops:
 4. Inspect the repo or think through implications.
 5. Choose the next cluster or draft if the remaining gaps are safe to label.
 
+Present each round in a scannable format. Prefer short bucketed bullets followed by numbered questions. Do not bury multiple questions inside a narrative paragraph.
+
+Preferred shape:
+
+```md
+Confirmed
+
+- ...
+
+Open
+
+- ...
+
+Questions
+
+1. ...
+2. ...
+```
+
 ## Exit criteria
 
 You are ready to draft the PRD when all of the following are true:

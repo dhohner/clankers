@@ -357,7 +357,7 @@ details > :not(summary) { margin-left: 18px; margin-right: 18px; }
 .mermaid-canvas svg {
   display: block;
   width: 100%;
-  max-width: 760px;
+  max-width: 960px;
   height: auto;
   max-height: 620px;
   margin: auto;

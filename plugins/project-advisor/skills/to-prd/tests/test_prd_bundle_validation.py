@@ -69,6 +69,37 @@ class PrdBundleValidationTests(unittest.TestCase):
             str(raised.exception),
         )
 
+    def test_traceability_accepts_generated_labels_and_empty_optional_lists(self) -> None:
+        manifest = base_manifest()
+        manifest["blocks"] = {
+            "requirements": [
+                {
+                    "id": "REQ-01",
+                    "label": "REQ-01",
+                    "title": "Portable bundle",
+                    "description": "Assets resolve locally.",
+                    "validation": ["TEST-01"],
+                    "evidence": [],
+                }
+            ],
+            "testing_strategy": [
+                {
+                    "id": "TEST-01",
+                    "label": "TEST-01",
+                    "target": "Asset links",
+                    "expected_outcome": "Every local asset exists.",
+                    "validates": ["REQ-01"],
+                    "relates_to": [],
+                    "evidence": [],
+                }
+            ],
+        }
+
+        normalized = BUNDLE.validate_manifest(manifest)
+
+        self.assertEqual([], normalized["blocks"]["requirements"][0]["evidence"])
+        self.assertEqual("REQ-01", normalized["blocks"]["requirements"][0]["label"])
+
     def test_traceability_relationships_and_repository_evidence_render(self) -> None:
         manifest = base_manifest()
         manifest["blocks"] = {

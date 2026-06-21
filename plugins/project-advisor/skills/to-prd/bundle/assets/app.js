@@ -242,6 +242,11 @@ async function renderMermaidDiagrams() {
       startOnLoad: false,
       securityLevel: "strict",
       theme: "base",
+      flowchart: {
+        nodeSpacing: 80,
+        rankSpacing: 90,
+        curve: "basis",
+      },
       themeVariables: {
         fontFamily: '"Avenir Next", Avenir, sans-serif',
         primaryColor: "#f7f9f7",

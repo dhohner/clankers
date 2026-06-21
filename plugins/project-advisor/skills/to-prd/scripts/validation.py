@@ -19,6 +19,20 @@ from .spec import (
 from .types import NormalizedBlocks, NormalizedManifest
 
 
+def _readable_mermaid_source(source: str) -> str:
+    lines = source.strip().splitlines()
+    if not lines:
+        return ""
+    head = lines[0].strip().split()
+    if (
+        len(head) >= 2
+        and head[0] in {"flowchart", "graph"}
+        and head[1] in {"LR", "RL"}
+    ):
+        lines[0] = lines[0].replace(head[1], "TB", 1)
+    return "\n".join(lines)
+
+
 class ManifestError(ValueError):
     """Raised when a manifest does not satisfy the version 1 contract."""
 
@@ -83,7 +97,8 @@ def _object_list(
         if not isinstance(item, dict):
             errors.append(f"{item_path} must be an object")
             continue
-        _reject_unknown_fields(item, set(fields) | optional_fields, item_path, errors)
+        allowed_labels = {"label"} if "id" in optional_fields else set()
+        _reject_unknown_fields(item, set(fields) | optional_fields | allowed_labels, item_path, errors)
         normalized: dict[str, Any] = {
             field: _non_empty_string(item.get(field), f"{item_path}.{field}", errors)
             for field in fields
@@ -92,8 +107,9 @@ def _object_list(
             normalized["id"] = _non_empty_string(item.get("id"), f"{item_path}.id", errors)
         for list_field in ("relates_to", "validates", "validation", "evidence"):
             if list_field in optional_fields and list_field in item:
-                normalized[list_field] = _string_list(
-                    item.get(list_field),
+                value = item.get(list_field)
+                normalized[list_field] = [] if value == [] else _string_list(
+                    value,
                     f"{item_path}.{list_field}",
                     errors,
                 )
@@ -311,7 +327,7 @@ def _validate_block(name: str, value: Any, errors: list[str]) -> Any:
             errors.append(f"{path} must use either source or native, not both")
         return {
             "description": _non_empty_string(value.get("description"), f"{path}.description", errors),
-            "source": source.strip(),
+            "source": _readable_mermaid_source(source),
             "native": native,
         }
     if spec.kind == "table":

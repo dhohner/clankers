@@ -24,7 +24,7 @@
     ],
     "data_flow_diagram": {
       "description": "Interview findings become manifest entities, which become rendered traceability links.",
-      "source": "flowchart LR\n  A[Interview findings] --> B[Manifest entities]\n  B --> C[Rendered traceability]"
+      "source": "flowchart TB\n  A[Interview findings] --> B[Manifest entities]\n  B --> C[Rendered traceability]"
     },
     "data_model": [
       {

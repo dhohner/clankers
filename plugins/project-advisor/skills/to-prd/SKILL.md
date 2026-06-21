@@ -1,106 +1,92 @@
 ---
 name: to-prd
-description: "Use when the user wants a PRD, feature spec, requirements doc, planning brief, or help turning a fuzzy product idea, conversation, draft, or rough proposal into something reviewable. Interview until the problem, users, constraints, scope, tradeoffs, and capability boundaries are shared and concrete; ground decisions in the repository; then generate and validate a portable English HTML PRD bundle for human review and optional issue splitting."
+description: "Use whenever the user wants a PRD, feature spec, requirements doc, planning brief, or a fuzzy idea turned into a reviewable product document. Interview until the problem, actors, scope, constraints, tradeoffs, and validation bar are concrete; ground product statements in the repository; then generate and validate the local HTML PRD bundle before offering issue splitting."
 ---
 
 # Write a PRD
 
-Treat the interview and product judgment as the core work. Use the bundled generator for deterministic validation, rendering, asset copying, and publication.
+Treat the interview and product judgment as the main job. Use the bundled generator for deterministic rendering, validation, and asset publication.
 
-Do not guess what the user meant. Ask when a decision would change scope, behavior, rollout, or issue decomposition. Otherwise preserve uncertainty as a labeled assumption or open question.
+## Operating rules
 
-Maintain three buckets:
+- Do not guess. Ask when an answer would materially change scope, behavior, rollout, or issue decomposition. Otherwise keep the uncertainty as an assumption or open question.
+- Maintain three buckets throughout the interaction:
+  - `Confirmed`: stated by the user or strongly evidenced by the repo.
+  - `Provisional`: working assumptions that keep planning moving.
+  - `Open`: unresolved decisions that could change the initiative shape.
+- Use an interactive question tool when available. Otherwise ask concise chat questions.
+- Keep interview rounds small. Ask at most 4 questions unless the user explicitly wants a broader intake.
+- Present updates in a scannable shape: short `Confirmed`, `Provisional`, and `Open` bullets, then numbered `Questions`.
+- Use repository evidence for terminology, current behavior, and durable constraints. Do not turn a helpful file path or symbol into a mandatory implementation plan unless that precision matters to the product decision.
 
-- `Confirmed`: stated by the user or strongly evidenced by the repository.
-- `Provisional`: assumptions that let planning continue, clearly labeled.
-- `Open`: unresolved decisions that could materially change the plan.
+## 1. Discover and align
 
-Use an interactive question tool when available. Otherwise ask concise questions in chat. Keep each round focused on the few answers that would most change the PRD.
+Read [./references/interview-map.md](./references/interview-map.md) before the first serious interview round. Use it as a decision map, not a script.
 
-## 1. Discover and ground
-
-Extract the problem, users, desired outcome, constraints, deadlines, and non-goals already present in the conversation.
-
-Read [references/interview-map.md](references/interview-map.md) before the first serious interview round. Use it as a decision map, not a script.
-
-Inspect the repository early unless it is empty or irrelevant. Use code, tests, schemas, APIs, ADRs, and existing documents as evidence for terminology, current behavior, durable constraints, and adjacent workflows. Surface conflicts between repository evidence and the user's request instead of silently resolving them.
-
-Repository analysis informs product judgment; it does not make exact implementation paths mandatory. Record exact paths or symbols only when they materially support a product statement.
-
-## 2. Reach shared understanding
+Start by extracting whatever is already known from the conversation: problem, users, desired outcome, constraints, deadlines, and non-goals. Inspect the repository early unless it is clearly irrelevant.
 
 Choose each next question by asking which missing answer would most change the PRD. After each round, summarize what moved between `Confirmed`, `Provisional`, and `Open`.
 
-Before drafting, confirm or clearly label:
+Before drafting, make sure the PRD can honestly describe:
 
-- the major capability areas;
-- the main in-scope and out-of-scope boundaries;
-- the user-visible workflows and failure paths;
-- the decisions, risks, and regressions that require explicit validation;
-- the review surfaces that would materially improve understanding.
+- the main capability areas;
+- what is in scope and explicitly out of scope;
+- the key user-visible workflows, failure paths, and fallback behavior;
+- the decisions, risks, and regressions that need explicit validation;
+- which review surfaces matter: document, workflow, UI, API, data, and/or architecture.
 
-Stop interviewing when the remaining uncertainty can be represented honestly without changing the basic initiative shape.
+Stop interviewing once the remaining uncertainty can be labeled without changing the overall initiative shape.
 
-## 3. Author the manifest
+## 2. Author the manifest
 
-Read [references/manifest-contract.md](references/manifest-contract.md). Create a JSON manifest in a temporary workspace location or another non-colliding path. The manifest is the planning source; do not hand-author `index.html`.
+Read [./references/manifest-contract.md](./references/manifest-contract.md). Create a JSON manifest in a temporary workspace path or another non-colliding location. The manifest is the source of truth; do not hand-author `index.html`.
 
-Agent responsibilities:
+Your responsibilities:
 
 - synthesize the interview and repository evidence;
-- choose the initiative type, review surfaces, and useful blocks;
-- write product content and relationships;
-- distinguish decisions, assumptions, evidence, and open questions;
-- decide whether a diagram, wireframe, prototype, table, or other visual is relevant.
+- choose the initiative type, review surfaces, and only the blocks that improve review quality;
+- write requirements, decisions, risks, testing intent, and open questions with stable IDs and traceability where required;
+- include visuals only when they clarify a workflow, state, boundary, or contract better than prose alone.
 
-Generator responsibilities:
+The generator is responsible for contract validation, canonical rendering, asset copying, bundle staging, and structural output validation.
 
-- validate the JSON contract and traceability relationships;
-- escape content and render blocks in canonical order;
-- create `action-items/PRD-<slug>/index.html`;
-- preserve the normalized source as `action-items/PRD-<slug>/prd.json`;
-- copy the versioned assets into `action-items/PRD-<slug>/assets/`;
-- structurally validate required files, IDs, anchors, and local asset resolution before publishing.
-
-Use `python3`; do not require a virtual environment, package installation, Node.js, a browser tool, or a Codex-specific harness:
+Use `python3` and keep the workflow portable:
 
 ```sh
 python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py \
   /path/to/prd-manifest.json
 ```
 
-Use `--output-root <directory>` only when the workspace requires a different parent. Use `--force` only when intentionally replacing the same draft bundle after revising its manifest.
+Use `--output-root <directory>` only when needed by the workspace. Use `--force` only when intentionally replacing an earlier draft after revising the manifest.
 
-If `python3` is unavailable, report the blocked deterministic generation step and preserve the completed manifest for another environment. Do not silently recreate the bundle by hand.
+If `python3` is unavailable, report that deterministic generation is blocked and preserve the manifest for another environment. Do not recreate the bundle by hand.
 
-## 4. Validate before human review
+## 3. Validate before review
 
-Read [references/review-checklist.md](references/review-checklist.md). Structural validation by the generator is necessary but not sufficient. Inspect the generated document and assets, then perform visual review using the best capability available:
+Read [./references/review-checklist.md](./references/review-checklist.md). Generator success is necessary, not sufficient.
 
-1. Use a browser or preview tool when available.
-2. Otherwise open the local file with an available operating-system mechanism.
-3. Otherwise provide the absolute `index.html` path and use source inspection plus the print and responsive checklist; tell the user which visual checks remain for their review.
+After generation:
 
-Subagents are optional. If available, a reviewer may independently return `Approved` or `Issues Found`; otherwise perform the same review inline. Do not make the workflow depend on subagents.
+1. Inspect the produced bundle and assets.
+2. Perform visual review with the best tool available: browser or preview first, `open` second, source inspection plus explicit human follow-up last.
+3. Check desktop, narrow/mobile, and print behavior when the environment allows it.
 
-Fix structural, content, or visual issues by editing the manifest and regenerating the bundle. Review desktop, narrow/mobile, and print behavior before asking the user for acceptance. Do not claim visual validation that the environment could not perform.
+Fix structural, content, or visual issues by editing the manifest and regenerating. Do not claim visual validation the environment could not actually perform.
 
-## 5. Request acceptance
+## 4. Request acceptance
 
-Expose or open `action-items/PRD-<slug>/index.html` for review and identify the bundle directory. Ask the user to accept it or request changes.
+Open the bundle for the user with:
 
-If the user requests changes, update the manifest, regenerate with `--force`, repeat structural and visual validation, and expose the revised bundle again.
+```sh
+open action-items/PRD-<slug>/index.html
+```
 
-Do not call a draft accepted when human review is unavailable or pending. Keep the generated `prd.json` with the bundle so the accepted source remains available for later issue splitting.
+Ask the user to accept the PRD or request changes. If they ask for changes, update the manifest, regenerate with `--force`, rerun the relevant validation, and reopen the revised bundle.
 
-## 6. Offer issue splitting
+Do not treat the draft as accepted until human review is complete. Keep `prd.json` beside `index.html` so the accepted source remains available.
+
+## 5. Offer issue splitting
 
 Only after the user accepts the PRD, offer to pass the accepted bundle to `to-issues`.
 
-Invoke `to-issues` only when the user:
-
-- asks for issue splitting;
-- accepts the offered handoff; or
-- originally requested an end-to-end PRD-to-issues workflow.
-
-Pass the accepted bundle's `index.html` as the review source and retain `prd.json` beside it for traceability. Otherwise stop after reporting the saved bundle path.
+Invoke `to-issues` only when the user asks for issue splitting, accepts the handoff, or originally requested an end-to-end PRD-to-issues flow. Pass the accepted `index.html` as the review source and keep `prd.json` for traceability.
