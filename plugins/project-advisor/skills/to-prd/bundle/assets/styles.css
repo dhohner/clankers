@@ -376,7 +376,37 @@ details > :not(summary) { margin-left: 18px; margin-right: 18px; }
 .native-edges path { fill: none; stroke: var(--accent); stroke-width: 2; }
 .native-diagram marker path { fill: var(--accent); stroke: none; }
 .native-edge-label { fill: var(--muted); font: 700 11px/1.2 "Avenir Next", Avenir, sans-serif; }
-.diagram-source-details { margin: 16px 0 0; }
+.diagram-source-details {
+  margin: 16px 0 0;
+  overflow: hidden;
+}
+.diagram-source-details > summary {
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  color: var(--muted);
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.diagram-source-details > summary::-webkit-details-marker { display: none; }
+.diagram-source-details > summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.diagram-source-details > summary::after {
+  content: '\203A';
+  font-size: 1.3rem;
+  font-weight: 300;
+  line-height: 1;
+  transform-origin: 50% 45%;
+  transition: transform .2s ease;
+}
+.diagram-source-details[open] > summary::after { transform: rotate(90deg); }
+.diagram-source-details .diagram-source { margin: 0; border-radius: 0; }
 .diagram-source,
 .code-sample pre {
   max-width: 100%;
@@ -448,20 +478,24 @@ details > :not(summary) { margin-left: 18px; margin-right: 18px; }
   color: var(--accent-dark);
   font-weight: 750;
 }
-.prototype-stage { min-height: 310px; padding: 24px; }
+.prototype-stage { min-height: 310px; padding: 24px; background: white; }
 .prototype-state[hidden] { display: none; }
 .prototype-behavior { margin: 0 0 16px; font-weight: 750; }
 .prototype-content {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  gap: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
 }
 .prototype-field {
-  padding: 18px;
-  border: 1px solid #d3ddd7;
-  border-radius: 14px;
-  background: white;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
 }
+.prototype-field:nth-last-child(-n+2) { border-bottom: 0; }
+.prototype-field:nth-child(odd) { border-right: 1px solid var(--line); }
 .prototype-field span {
   display: block;
   color: var(--accent);
