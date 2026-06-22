@@ -25,7 +25,7 @@ action-items/PRD-<slug>/
 3. Select the initiative type, review surfaces, traceability relationships, and relevant blocks.
 4. Write a JSON manifest; do not hand-author the generated HTML.
 5. Run the standard-library-only `python3` generator.
-6. Review structure, responsive behavior, print output, accessibility, traceability, asset resolution, and visual relevance.
+6. Review structure, traceability, asset resolution, and other deterministic checks; leave rendered responsive, print, and accessibility judgment to the human reviewer unless a cheap preview exists.
 7. Request human acceptance.
 8. Offer issue splitting only after acceptance and only when the user requests the handoff.
 

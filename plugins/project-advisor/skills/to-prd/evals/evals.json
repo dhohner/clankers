@@ -24,7 +24,7 @@
         "The authored manifest selects ui-heavy with document and ui review surfaces for a product reason.",
         "Visual blocks clarify empty, ready, blocked, and accepted states and explicitly remain read-only.",
         "Requirements use stable IDs and connect to validation outcomes or explicit exceptions.",
-        "The run reviews responsive, print, keyboard, accessibility, and asset behavior before requesting acceptance."
+        "The run completes structural and traceability review, defers rendered responsive, print, and accessibility judgment to human review when no cheap preview path exists, and requests acceptance before issue splitting."
       ]
     },
     {

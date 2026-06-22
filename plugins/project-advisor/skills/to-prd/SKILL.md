@@ -1,13 +1,13 @@
 ---
 name: to-prd
-description: "Use whenever the user wants a PRD, feature spec, requirements doc, planning brief, or a fuzzy idea turned into a reviewable product document. Interview until the problem, actors, scope, constraints, tradeoffs, and validation bar are concrete; ground product statements in the repository; then generate and validate the local HTML PRD bundle before offering issue splitting."
+description: "Use whenever the user needs a PRD, feature spec, requirements doc, planning brief, or a fuzzy product idea turned into a reviewable product document. Also use it when the user needs scope, requirements, decisions, risks, or acceptance criteria clarified before implementation. Interview until the decisions that shape the plan are concrete, ground the document in the repository, then generate and validate the local PRD bundle before offering issue splitting."
 ---
 
 # Write a PRD
 
-Treat the interview and product judgment as the main job. Use the bundled generator for deterministic rendering, validation, and asset publication.
+Treat product judgment as the main job. Keep the loop short: discover, draft, validate, then stop for human review.
 
-## Operating rules
+## Working rules
 
 - Do not guess. Ask when an answer would materially change scope, behavior, rollout, or issue decomposition. Otherwise keep the uncertainty as an assumption or open question.
 - Maintain three buckets throughout the interaction:
@@ -19,7 +19,7 @@ Treat the interview and product judgment as the main job. Use the bundled genera
 - Present updates in a scannable shape: short `Confirmed`, `Provisional`, and `Open` bullets, then numbered `Questions`.
 - Use repository evidence for terminology, current behavior, and durable constraints. Do not turn a helpful file path or symbol into a mandatory implementation plan unless that precision matters to the product decision.
 
-## 1. Discover and align
+## 1. Discover the initiative
 
 Read [./references/interview-map.md](./references/interview-map.md) before the first serious interview round. Use it as a decision map, not a script.
 
@@ -37,7 +37,7 @@ Before drafting, make sure the PRD can honestly describe:
 
 Stop interviewing once the remaining uncertainty can be labeled without changing the overall initiative shape.
 
-## 2. Author the manifest
+## 2. Author the source of truth
 
 Read [./references/manifest-contract.md](./references/manifest-contract.md). Create a JSON manifest in a temporary workspace path or another non-colliding location. The manifest is the source of truth; do not hand-author `index.html`.
 
@@ -61,19 +61,19 @@ Use `--output-root <directory>` only when needed by the workspace. Use `--force`
 
 If `python3` is unavailable, report that deterministic generation is blocked and preserve the manifest for another environment. Do not recreate the bundle by hand.
 
-## 3. Validate before review
+## 3. Validate deterministically
 
 Read [./references/review-checklist.md](./references/review-checklist.md). Generator success is necessary, not sufficient.
 
 After generation:
 
 1. Inspect the produced bundle and assets.
-2. Perform visual review with the best tool available: browser or preview first, `open` second, source inspection plus explicit human follow-up last.
-3. Check desktop, narrow/mobile, and print behavior when the environment allows it.
+2. Treat deterministic validation as the gate for agent-side completion: the manifest must parse, the generator must succeed, and the staged bundle must satisfy the structural checks in the checklist.
+3. If validation fails, fix the manifest and regenerate. Leave responsive, print, and rendered accessibility judgment to the human reviewer unless the environment provides a low-cost preview path.
 
-Fix structural, content, or visual issues by editing the manifest and regenerating. Do not claim visual validation the environment could not actually perform.
+Fix structural or content issues by editing the manifest and regenerating. Treat `prd.json` as the planning source of truth and `index.html` as the review surface.
 
-## 4. Request acceptance
+## 4. Request human review
 
 Open the bundle for the user with:
 
