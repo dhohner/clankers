@@ -191,7 +191,7 @@ blocks:
           label: Shape
         - from: manifest
           to: generator
-          label: Validate
+          label: Validator is validating stuff
         - from: generator
           to: bundle
           label: Render

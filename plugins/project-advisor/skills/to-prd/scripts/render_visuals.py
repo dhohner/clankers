@@ -51,13 +51,14 @@ def render_frames(name: str, items: list[dict[str, Any]], spec: BlockSpec) -> st
 
 def render_native_diagram(name: str, description: str, native: dict[str, Any]) -> str:
     nodes = native["nodes"]
-    width = 760
     node_width = 180
     node_height = 70
-    column_gap = 58
-    row_gap = 55
+    max_edge_label = max((len(edge["label"]) for edge in native["edges"]), default=0)
+    column_gap = max(58, min(420, max_edge_label * 7 + 32))
+    row_gap = max(55, min(160, max_edge_label * 4 + 24))
     columns = min(3, len(nodes)) or 1
     rows = math.ceil(len(nodes) / columns)
+    width = max(760, columns * node_width + max(0, columns - 1) * column_gap + 40)
     height = rows * node_height + max(0, rows - 1) * row_gap + 52
     positions: dict[str, tuple[int, int]] = {}
     total_width = columns * node_width + max(0, columns - 1) * column_gap
@@ -90,6 +91,7 @@ def render_native_diagram(name: str, description: str, native: dict[str, Any]) -
         to_center_y = to_y + node_height // 2
         delta_x = to_center_x - from_center_x
         delta_y = to_center_y - from_center_y
+        label_anchor = "middle"
         if from_y == to_y:
             direction = 1 if delta_x >= 0 else -1
             x1 = from_center_x + direction * node_width // 2
@@ -106,8 +108,9 @@ def render_native_diagram(name: str, description: str, native: dict[str, Any]) -
             x2 = to_center_x
             y2 = to_center_y - direction * (node_height // 2 + 10)
             path = f"M {x1} {y1} L {x2} {y2}"
-            label_x = x1 + 12
+            label_x = x1 + 18
             label_y = (y1 + y2) // 2 - 4
+            label_anchor = "start"
         else:
             direction = 1 if delta_y >= 0 else -1
             x1 = from_center_x
@@ -119,7 +122,7 @@ def render_native_diagram(name: str, description: str, native: dict[str, Any]) -
             label_x = (x1 + x2) // 2
             label_y = bend_y - 9
         label = (
-            f'<text class="native-edge-label" x="{label_x}" y="{label_y}" text-anchor="middle">{escape_html(edge["label"])}</text>'
+            f'<text class="native-edge-label" x="{label_x}" y="{label_y}" text-anchor="{label_anchor}">{escape_html(edge["label"])}</text>'
             if edge["label"]
             else ""
         )
