@@ -8,8 +8,8 @@
       "files": [],
       "expectations": [
         "The run inspects repository evidence and distinguishes confirmed behavior from the unresolved replacement policy.",
-        "The run authors a schema-version-1 JSON manifest rather than receiving a completed manifest as input.",
-        "The generated bundle contains index.html, prd.json, and local assets under action-items/PRD-<slug>/.",
+        "The run authors a schema-version-1 YAML manifest rather than receiving a completed manifest as input.",
+        "The generated bundle contains index.html, prd.yaml, and local assets under action-items/PRD-<slug>/.",
         "The PRD stays document-focused and does not invent specialized UI, workflow, API, data, or architecture surfaces.",
         "The run performs structural review, identifies any visual checks it could not perform, and does not invoke issue splitting before acceptance."
       ]

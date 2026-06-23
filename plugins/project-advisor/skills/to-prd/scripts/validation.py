@@ -37,7 +37,7 @@ class ManifestError(ValueError):
     """Raised when a manifest does not satisfy the version 1 contract."""
 
 
-def _json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+def _yaml_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
     result: dict[str, Any] = {}
     duplicates: list[str] = []
     for key, value in pairs:
@@ -46,7 +46,7 @@ def _json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
         result[key] = value
     if duplicates:
         raise ManifestError(
-            "JSON object contains duplicate key(s): " + ", ".join(sorted(set(duplicates)))
+            "YAML mapping contains duplicate key(s): " + ", ".join(sorted(set(duplicates)))
         )
     return result
 
@@ -429,7 +429,7 @@ def _assign_and_validate_traceability(blocks: NormalizedBlocks, errors: list[str
 def validate_manifest(raw: Any) -> NormalizedManifest:
     errors: list[str] = []
     if not isinstance(raw, dict):
-        raise ManifestError("manifest must be a JSON object")
+        raise ManifestError("manifest must be a YAML mapping")
 
     for field in sorted(set(raw) - MANIFEST_FIELDS):
         errors.append(f"{field} is not a supported manifest field")
@@ -512,4 +512,4 @@ def validate_manifest(raw: Any) -> NormalizedManifest:
     return normalized
 
 
-__all__ = ["ManifestError", "_json_object", "validate_manifest"]
+__all__ = ["ManifestError", "_yaml_object", "validate_manifest"]

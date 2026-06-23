@@ -1,18 +1,17 @@
 from __future__ import annotations
 
-import json
 import tempfile
 import unittest
 from pathlib import Path
 
-from support import BUNDLE
+from support import dump_yaml, BUNDLE
 
 
 class PrdBundleOutputValidationTests(unittest.TestCase):
     def _write_minimum_bundle(self, root: Path, html: str) -> None:
         (root / "index.html").write_text(html, encoding="utf-8")
-        (root / "prd.json").write_text(
-            json.dumps(
+        (root / "prd.yaml").write_text(
+            dump_yaml(
                 {
                     "schema_version": 1,
                     "slug": "fixture",

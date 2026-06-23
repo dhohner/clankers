@@ -1,11 +1,18 @@
 from __future__ import annotations
 
-import json
 import tempfile
 import unittest
 from pathlib import Path
 
-from support import AnchorParser, EXAMPLE, SOURCE_ASSETS, load_example_manifest, run_generator
+from support import (
+    AnchorParser,
+    EXAMPLE,
+    SOURCE_ASSETS,
+    dump_yaml,
+    load_example_manifest,
+    load_yaml,
+    run_generator,
+)
 
 
 class PrdBundleCliTests(unittest.TestCase):
@@ -18,8 +25,8 @@ class PrdBundleCliTests(unittest.TestCase):
             self.assertNotIn("RuntimeWarning", result.stderr)
             bundle = root / "action-items" / "PRD-example-review-bundle"
             document = (bundle / "index.html").read_text(encoding="utf-8")
-            preserved_manifest = json.loads(
-                (bundle / "prd.json").read_text(encoding="utf-8")
+            preserved_manifest = load_yaml(
+                (bundle / "prd.yaml").read_text(encoding="utf-8")
             )
 
             self.assertIn(
@@ -91,8 +98,8 @@ class PrdBundleCliTests(unittest.TestCase):
             root = Path(temporary_directory)
             manifest = load_example_manifest()
             manifest["title"] = '<script>alert("no")</script>'
-            manifest_path = root / "manifest.json"
-            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            manifest_path = root / "manifest.yaml"
+            manifest_path.write_text(dump_yaml(manifest), encoding="utf-8")
 
             result = run_generator(manifest_path, root / "action-items")
             document = (
@@ -108,8 +115,8 @@ class PrdBundleCliTests(unittest.TestCase):
             root = Path(temporary_directory)
             manifest = load_example_manifest()
             manifest["title"] = "Keep {{STATUS}} literal"
-            manifest_path = root / "manifest.json"
-            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            manifest_path = root / "manifest.yaml"
+            manifest_path.write_text(dump_yaml(manifest), encoding="utf-8")
 
             result = run_generator(manifest_path, root / "action-items")
             document = (
@@ -122,12 +129,33 @@ class PrdBundleCliTests(unittest.TestCase):
                 document,
             )
 
-    def test_duplicate_json_keys_are_rejected_before_generation(self) -> None:
+    def test_preserved_manifest_keeps_quoted_metadata_labels(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
-            manifest_path = root / "duplicate.json"
+            manifest = load_example_manifest()
+            manifest["metadata"] = {"Owner: team": "A", "Release #": "1"}
+            manifest_path = root / "manifest.yaml"
+            manifest_path.write_text(dump_yaml(manifest), encoding="utf-8")
+
+            result = run_generator(manifest_path, root / "action-items")
+            preserved_manifest = load_yaml(
+                (
+                    root
+                    / "action-items"
+                    / "PRD-example-review-bundle"
+                    / "prd.yaml"
+                ).read_text(encoding="utf-8")
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(preserved_manifest["metadata"], manifest["metadata"])
+
+    def test_duplicate_yaml_keys_are_rejected_before_generation(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            manifest_path = root / "duplicate.yaml"
             manifest_path.write_text(
-                '{"schema_version":1,"schema_version":1}',
+                "schema_version: 1\nschema_version: 1\n",
                 encoding="utf-8",
             )
 
@@ -135,7 +163,7 @@ class PrdBundleCliTests(unittest.TestCase):
 
             self.assertEqual(result.returncode, 2)
             self.assertIn(
-                "JSON object contains duplicate key(s): schema_version",
+                "YAML mapping contains duplicate key(s): schema_version",
                 result.stderr,
             )
             self.assertFalse((root / "action-items").exists())
@@ -143,9 +171,9 @@ class PrdBundleCliTests(unittest.TestCase):
     def test_invalid_manifest_reports_all_errors_without_creating_bundle(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
-            manifest_path = root / "invalid.json"
+            manifest_path = root / "invalid.yaml"
             manifest_path.write_text(
-                json.dumps({"schema_version": 2, "slug": "../escape"}),
+                dump_yaml({"schema_version": 2, "slug": "../escape"}),
                 encoding="utf-8",
             )
 
@@ -160,10 +188,10 @@ class PrdBundleCliTests(unittest.TestCase):
             self.assertFalse((root / "action-items" / "PRD-escape").exists())
             self.assertFalse((root / "action-items").exists())
 
-    def test_invalid_json_has_location_and_creates_no_output(self) -> None:
+    def test_invalid_yaml_has_location_and_creates_no_output(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
-            manifest_path = root / "invalid.json"
+            manifest_path = root / "invalid.yaml"
             manifest_path.write_text('{"schema_version": 1,}', encoding="utf-8")
 
             result = run_generator(manifest_path, root / "action-items")
@@ -177,8 +205,8 @@ class PrdBundleCliTests(unittest.TestCase):
             root = Path(temporary_directory)
             manifest = load_example_manifest()
             manifest["schema_version"] = True
-            manifest_path = root / "manifest.json"
-            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            manifest_path = root / "manifest.yaml"
+            manifest_path.write_text(dump_yaml(manifest), encoding="utf-8")
 
             result = run_generator(manifest_path, root / "action-items")
 

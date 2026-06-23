@@ -1,6 +1,6 @@
 # Write a PRD
 
-The `to-prd` skill turns a rough product idea into a validated, portable review bundle through an interview, repository grounding, JSON manifest authoring, deterministic generation, and human acceptance.
+The `to-prd` skill turns a rough product idea into a validated, portable review bundle through an interview, repository grounding, YAML manifest authoring, deterministic generation, and human acceptance.
 
 ## Output
 
@@ -9,21 +9,21 @@ Each PRD is generated under:
 ```text
 action-items/PRD-<slug>/
 ├── index.html
-├── prd.json
+├── prd.yaml
 └── assets/
     ├── app.js
     ├── project-advisor.svg
     └── styles.css
 ```
 
-`prd.json` is the normalized planning source. `index.html` is the human review surface. The files under `assets/` are copied versioned generator assets, so the bundle can be moved or reviewed without installing the plugin.
+`prd.yaml` is the normalized planning source. `index.html` is the human review surface. The files under `assets/` are copied versioned generator assets, so the bundle can be moved or reviewed without installing the plugin.
 
 ## Workflow
 
 1. Interview until the problem, users, scope, constraints, tradeoffs, and material uncertainty are clear.
 2. Inspect the repository for terminology, current behavior, and durable constraints.
 3. Select the initiative type, review surfaces, traceability relationships, and relevant blocks.
-4. Write a JSON manifest; do not hand-author the generated HTML.
+4. Write a YAML manifest; do not hand-author the generated HTML.
 5. Run the standard-library-only `python3` generator.
 6. Review structure, traceability, asset resolution, and other deterministic checks; leave rendered responsive, print, and accessibility judgment to the human reviewer unless a cheap preview exists.
 7. Request human acceptance.
@@ -37,7 +37,7 @@ From the repository root:
 
 ```sh
 python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py \
-  plugins/project-advisor/skills/to-prd/examples/basic-prd.json
+  plugins/project-advisor/skills/to-prd/examples/basic-prd.yaml
 ```
 
 This creates `action-items/PRD-example-review-bundle/`.
@@ -52,10 +52,10 @@ No virtual environment, package installation, Node.js, Codex browser, or subagen
 ## Contracts and fixtures
 
 - `references/interview-map.md`: interview decision map
-- `references/manifest-contract.md`: JSON and block-selection contract
+- `references/manifest-contract.md`: YAML and block-selection contract
 - `references/review-checklist.md`: structural and visual acceptance checks
-- `examples/basic-prd.json`: broad mixed-initiative example
-- `evals/fixtures/*.json`: focused document, UI, workflow, API, data, and architecture fixtures
+- `examples/basic-prd.yaml`: broad mixed-initiative example
+- `evals/fixtures/*.yaml`: focused document, UI, workflow, API, data, and architecture fixtures
 - `bundle/`: canonical HTML shell and versioned assets
 
 ## Test

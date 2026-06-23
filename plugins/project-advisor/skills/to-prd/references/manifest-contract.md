@@ -1,6 +1,6 @@
 # PRD Manifest Contract
 
-Create JSON that the bundled `python3` generator can validate and render. Use [../examples/basic-prd.json](../examples/basic-prd.json) for a full example and `evals/fixtures/` for focused initiative examples.
+Create YAML that the bundled `python3` generator can validate and render. Use [../examples/basic-prd.yaml](../examples/basic-prd.yaml) for a full example and `evals/fixtures/` for focused initiative examples.
 
 ## Required top-level fields
 
@@ -10,7 +10,7 @@ Create JSON that the bundled `python3` generator can validate and render. Use [.
 - `initiative_type`: `small-feature`, `ui-heavy`, `workflow-heavy`, `api-heavy`, `data-heavy`, `architecture-heavy`, or `mixed`
 - `review_surfaces`: one or more of `document`, `ui`, `workflow`, `api`, `data`, and `architecture`
 - `metadata`: string-valued labels; do not set generated labels such as `Output`
-- `blocks`: a non-empty object containing only supported block names
+- `blocks`: a non-empty mapping containing only supported block names
 
 ## Block selection
 
@@ -39,7 +39,11 @@ Connect entities with `relates_to`, `validation`, and `validates` where supporte
 
 ## Visual content
 
-Supply a concise text description for every diagram or visual surface. Use structured native diagram data when simple nodes and edges are sufficient. Use Mermaid source only when it communicates the relationship more clearly. Treat wireframes and prototypes as read-only review aids, not final production design.
+Supply a concise text description for every diagram or visual surface.
+Use structured native diagram data when simple nodes and edges are sufficient.
+Use YAML block scalars such as `|-` for multiline Mermaid source or code.
+Use Mermaid source only when it communicates the relationship more clearly.
+Treat wireframes and prototypes as read-only review aids, not final production design.
 
 ## Generation
 
@@ -47,7 +51,7 @@ From the repository root:
 
 ```sh
 python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py \
-  /path/to/prd-manifest.json
+  /path/to/prd-manifest.yaml
 ```
 
-The generator validates the manifest, renders the bundle, preserves normalized JSON as `prd.json`, copies versioned assets, validates the staged output, and only then publishes the bundle directory.
+The generator validates the manifest, renders the bundle, preserves normalized YAML as `prd.yaml`, copies versioned assets, validates the staged output, and only then publishes the bundle directory.

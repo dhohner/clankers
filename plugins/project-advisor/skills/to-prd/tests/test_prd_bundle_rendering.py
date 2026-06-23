@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-import json
 import tempfile
 import unittest
 from pathlib import Path
 
-from support import BUNDLE, EXAMPLE, base_manifest, load_example_manifest, run_generator, sample_block
+from support import dump_yaml, BUNDLE, base_manifest, load_example_manifest, run_generator, sample_block
 
 
 class PrdBundleRenderingTests(unittest.TestCase):
@@ -14,8 +13,8 @@ class PrdBundleRenderingTests(unittest.TestCase):
             root = Path(temporary_directory)
             manifest = load_example_manifest()
             del manifest["blocks"]["open_questions"]
-            manifest_path = root / "manifest.json"
-            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            manifest_path = root / "manifest.yaml"
+            manifest_path.write_text(dump_yaml(manifest), encoding="utf-8")
 
             result = run_generator(manifest_path, root / "action-items")
             document = (
@@ -44,8 +43,8 @@ class PrdBundleRenderingTests(unittest.TestCase):
                     manifest = base_manifest(initiative_type, surfaces)
                     manifest["slug"] = f"fixture-{index}"
                     manifest["blocks"] = {name: sample_block(name) for name in reversed(selected)}
-                    manifest_path = root / f"{initiative_type}.json"
-                    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+                    manifest_path = root / f"{initiative_type}.yaml"
+                    manifest_path.write_text(dump_yaml(manifest), encoding="utf-8")
                     result = run_generator(manifest_path, root / "action-items")
                     self.assertEqual(result.returncode, 0, result.stderr)
                     document = (

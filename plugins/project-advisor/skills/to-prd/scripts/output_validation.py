@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-import json
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
+
+from .yaml_manifest import YamlError, loads
 
 
 class BundleValidationError(RuntimeError):
@@ -51,21 +52,21 @@ def _resolve_local_path(bundle: Path, value: str) -> Path:
 
 
 def validate_generated_bundle(bundle: Path) -> None:
-    """Validate required files, anchors, local assets, and preserved manifest JSON."""
+    """Validate required files, anchors, local assets, and preserved manifest YAML."""
 
     index_path = bundle / "index.html"
-    manifest_path = bundle / "prd.json"
+    manifest_path = bundle / "prd.yaml"
     errors: list[str] = []
 
     if not index_path.is_file():
         errors.append("missing index.html")
     if not manifest_path.is_file():
-        errors.append("missing prd.json")
+        errors.append("missing prd.yaml")
     else:
         try:
-            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        except (json.JSONDecodeError, OSError) as error:
-            errors.append(f"prd.json is not readable JSON: {error}")
+            manifest = loads(manifest_path.read_text(encoding="utf-8"))
+        except (YamlError, OSError) as error:
+            errors.append(f"prd.yaml is not readable YAML: {error}")
         else:
             for field in (
                 "schema_version",
@@ -79,7 +80,7 @@ def validate_generated_bundle(bundle: Path) -> None:
                 "blocks",
             ):
                 if field not in manifest:
-                    errors.append(f"prd.json is missing required field: {field}")
+                    errors.append(f"prd.yaml is missing required field: {field}")
 
     if index_path.is_file():
         parser = _DocumentParser()

@@ -39,7 +39,7 @@ Stop interviewing once the remaining uncertainty can be labeled without changing
 
 ## 2. Author the source of truth
 
-Read [./references/manifest-contract.md](./references/manifest-contract.md). Create a JSON manifest in a temporary workspace path or another non-colliding location. The manifest is the source of truth; do not hand-author `index.html`.
+Read [./references/manifest-contract.md](./references/manifest-contract.md). Create a YAML manifest in a temporary workspace path or another non-colliding location. The manifest is the source of truth; do not hand-author `index.html`.
 
 Your responsibilities:
 
@@ -54,7 +54,7 @@ Use `python3` and keep the workflow portable:
 
 ```sh
 python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py \
-  /path/to/prd-manifest.json
+  /path/to/prd-manifest.yaml
 ```
 
 Use `--output-root <directory>` only when needed by the workspace. Use `--force` only when intentionally replacing an earlier draft after revising the manifest.
@@ -71,7 +71,7 @@ After generation:
 2. Treat deterministic validation as the gate for agent-side completion: the manifest must parse, the generator must succeed, and the staged bundle must satisfy the structural checks in the checklist.
 3. If validation fails, fix the manifest and regenerate. Leave responsive, print, and rendered accessibility judgment to the human reviewer unless the environment provides a low-cost preview path.
 
-Fix structural or content issues by editing the manifest and regenerating. Treat `prd.json` as the planning source of truth and `index.html` as the review surface.
+Fix structural or content issues by editing the manifest and regenerating. Treat `prd.yaml` as the planning source of truth and `index.html` as the review surface.
 
 ## 4. Request human review
 
@@ -83,10 +83,10 @@ open action-items/PRD-<slug>/index.html
 
 Ask the user to accept the PRD or request changes. If they ask for changes, update the manifest, regenerate with `--force`, rerun the relevant validation, and reopen the revised bundle.
 
-Do not treat the draft as accepted until human review is complete. Keep `prd.json` beside `index.html` so the accepted source remains available.
+Do not treat the draft as accepted until human review is complete. Keep `prd.yaml` beside `index.html` so the accepted source remains available.
 
 ## 5. Offer issue splitting
 
 Only after the user accepts the PRD, offer to pass the accepted bundle to `to-issues`.
 
-Invoke `to-issues` only when the user asks for issue splitting, accepts the handoff, or originally requested an end-to-end PRD-to-issues flow. Pass the accepted `prd.json` as the planning source and include `index.html` as the reviewer-facing companion when it helps preserve context. If you mention only one bundle file during handoff, mention `prd.json`.
+Invoke `to-issues` only when the user asks for issue splitting, accepts the handoff, or originally requested an end-to-end PRD-to-issues flow. Pass the accepted `prd.yaml` as the planning source and include `index.html` as the reviewer-facing companion when it helps preserve context. If you mention only one bundle file during handoff, mention `prd.yaml`.

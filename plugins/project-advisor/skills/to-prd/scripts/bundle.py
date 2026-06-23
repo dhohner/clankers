@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import shutil
 import tempfile
 from pathlib import Path
@@ -11,6 +10,7 @@ from .output_validation import validate_generated_bundle
 from .paths import ASSET_DIR
 from .rendering import render_document
 from .types import NormalizedManifest
+from .yaml_manifest import dumps
 
 
 def generate_bundle(manifest: NormalizedManifest, output_root: Path, force: bool = False) -> Path:
@@ -31,8 +31,8 @@ def generate_bundle(manifest: NormalizedManifest, output_root: Path, force: bool
             render_document(manifest, display_target),
             encoding="utf-8",
         )
-        (temp_path / "prd.json").write_text(
-            json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
+        (temp_path / "prd.yaml").write_text(
+            dumps(manifest),
             encoding="utf-8",
         )
         shutil.copytree(ASSET_DIR, temp_path / "assets", copy_function=shutil.copy2)

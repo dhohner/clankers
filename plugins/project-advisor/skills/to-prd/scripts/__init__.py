@@ -23,7 +23,8 @@ from .spec import (
     BlockSpec,
 )
 from .types import NormalizedBlocks, NormalizedManifest
-from .validation import ManifestError, _json_object, validate_manifest
+from .validation import ManifestError, _yaml_object, validate_manifest
+from .yaml_manifest import dumps as dump_yaml, loads as load_yaml
 
 
 def parse_args(argv: list[str] | None = None):
@@ -55,7 +56,9 @@ __all__ = [
     "TEMPLATE_MARKER_PATTERN",
     "TEMPLATE_PATH",
     "BlockSpec",
-    "_json_object",
+    "_yaml_object",
+    "dump_yaml",
+    "load_yaml",
     "generate_bundle",
     "BundleValidationError",
     "validate_generated_bundle",

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from pathlib import Path
 
@@ -13,17 +12,19 @@ if __package__ in {None, ""}:
         sys.path.insert(0, str(SKILL_DIR))
 
     from scripts.bundle import generate_bundle
-    from scripts.validation import ManifestError, _json_object, validate_manifest
+    from scripts.validation import ManifestError, validate_manifest
+    from scripts.yaml_manifest import YamlError, loads
 else:
     from .bundle import generate_bundle
-    from .validation import ManifestError, _json_object, validate_manifest
+    from .validation import ManifestError, validate_manifest
+    from .yaml_manifest import YamlError, loads
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Generate action-items/PRD-<slug>/ from a JSON PRD manifest."
+        description="Generate action-items/PRD-<slug>/ from a YAML PRD manifest."
     )
-    parser.add_argument("manifest", type=Path, help="path to the JSON manifest")
+    parser.add_argument("manifest", type=Path, help="path to the YAML manifest")
     parser.add_argument(
         "--output-root",
         type=Path,
@@ -41,13 +42,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     try:
-        with args.manifest.open(encoding="utf-8") as manifest_file:
-            raw_manifest = json.load(manifest_file, object_pairs_hook=_json_object)
+        raw_manifest = loads(args.manifest.read_text(encoding="utf-8"))
         manifest = validate_manifest(raw_manifest)
         target = generate_bundle(manifest, args.output_root, args.force)
-    except json.JSONDecodeError as error:
+    except YamlError as error:
         print(
-            f"error: invalid JSON in {args.manifest}: line {error.lineno}, column {error.colno}: {error.msg}",
+            f"error: invalid YAML in {args.manifest}: line {error.line}, {error}",
             file=sys.stderr,
         )
         return 2

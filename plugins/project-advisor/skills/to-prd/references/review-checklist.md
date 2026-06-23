@@ -4,11 +4,11 @@ Apply this checklist after the generator succeeds and before requesting human ac
 
 ## Structure and portability
 
-- `index.html`, `prd.json`, and every referenced local asset exist inside `action-items/PRD-<slug>/`.
+- `index.html`, `prd.yaml`, and every referenced local asset exist inside `action-items/PRD-<slug>/`.
 - The copied files under `assets/` are the generator's versioned assets; the bundle does not depend on a virtual environment, package install, or machine-specific absolute asset path.
 - IDs are unique and stable across regeneration when the underlying requirement, decision, risk, question, or validation outcome has not changed.
 - Fragment links resolve, local asset links stay inside the bundle, and no placeholder or template marker remains.
-- The normalized `prd.json` represents the same initiative and content shown in `index.html`.
+- The normalized `prd.yaml` represents the same initiative and content shown in `index.html`.
 
 ## Traceability
 

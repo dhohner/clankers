@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import subprocess
 import sys
 from html.parser import HTMLParser
@@ -9,7 +8,7 @@ from pathlib import Path
 
 SKILL_DIR = Path(__file__).resolve().parents[1]
 SCRIPT_DIR = SKILL_DIR / "scripts"
-EXAMPLE = SKILL_DIR / "examples" / "basic-prd.json"
+EXAMPLE = SKILL_DIR / "examples" / "basic-prd.yaml"
 SOURCE_ASSETS = SKILL_DIR / "bundle" / "assets"
 EVIDENCE_REFERENCE = (
     "plugins/project-advisor/skills/to-prd/scripts/bundle.py::generate_bundle"
@@ -44,7 +43,7 @@ def run_generator(
 
 
 def load_example_manifest() -> dict[str, object]:
-    return json.loads(EXAMPLE.read_text(encoding="utf-8"))
+    return BUNDLE.load_yaml(EXAMPLE.read_text(encoding="utf-8"))
 
 
 def sample_block(name: str) -> object:
@@ -147,3 +146,11 @@ class AnchorParser(HTMLParser):
         href = attributes.get("href")
         if tag == "a" and href and href.startswith("#") and len(href) > 1:
             self.fragment_links.append(href[1:])
+
+
+def dump_yaml(value: object) -> str:
+    return BUNDLE.dump_yaml(value)
+
+
+def load_yaml(value: str) -> object:
+    return BUNDLE.load_yaml(value)

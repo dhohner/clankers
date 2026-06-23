@@ -1,0 +1,70 @@
+schema_version: 1
+slug: "fixture-architecture-heavy"
+title: "Architecture-heavy PRD fixture"
+summary: The boundary between agent judgment and deterministic generation must remain explicit.
+status: Draft
+initiative_type: "architecture-heavy"
+review_surfaces:
+  - document
+  - architecture
+metadata:
+  Owner: Evaluation
+blocks:
+  problem:
+    statement: Planning quality degrades when product judgment and rendering responsibilities are conflated.
+    evidence:
+      - The workflow needs portable deterministic output without constraining agent discovery.
+  architecture_diagram:
+    description: Agent discovery produces a manifest; the generator validates and publishes a portable bundle for human review.
+    native:
+      nodes:
+        - id: agent
+          label: Agent judgment
+        - id: manifest
+          label: YAML manifest
+        - id: generator
+          label: Deterministic generator
+        - id: bundle
+          label: Review bundle
+      edges:
+        - from: agent
+          to: manifest
+          label: Author
+        - from: manifest
+          to: generator
+          label: Validate
+        - from: generator
+          to: bundle
+          label: Publish
+  system_context:
+    description: The workflow uses repository evidence and user decisions without requiring a particular agent harness.
+    native:
+      nodes:
+        - id: user
+          label: Reviewer
+        - id: agent
+          label: Planning agent
+        - id: repo
+          label: Repository
+        - id: bundle
+          label: Portable PRD bundle
+      edges:
+        - from: user
+          to: agent
+          label: Decisions
+        - from: repo
+          to: agent
+          label: Evidence
+        - from: agent
+          to: bundle
+          label: Generate
+  decisions:
+    - id: "DEC-RESPONSIBILITY-BOUNDARY"
+      decision: Agents own product judgment; the generator owns deterministic publication.
+      rationale: The boundary preserves adaptability and repeatability.
+  risks:
+    - id: "RISK-HARNESS-DEPENDENCY"
+      risk: "The workflow assumes a Codex-specific preview or runtime."
+      mitigation: "Keep generation standard-library-only and make preview capabilities optional."
+      relates_to:
+        - "DEC-RESPONSIBILITY-BOUNDARY"
