@@ -23,8 +23,8 @@ class PrdBundleYamlManifestTests(unittest.TestCase):
         value = {
             "diagram": {"source": "A --> B\nB --> C"},
             "notes": "one\ntwo\n",
-            "items": ["first\nsecond"],
-            "records": [{"code": "alpha\nbeta", "label": "kept"}],
+            "items": ["first\nsecond", []],
+            "records": [{"code": "alpha\nbeta", "label": "kept", "refs": []}],
         }
 
         self.assertEqual(
@@ -36,9 +36,16 @@ class PrdBundleYamlManifestTests(unittest.TestCase):
             {"summary": "one two\n\nthree"},
         )
         self.assertEqual(load_yaml(dump_yaml(value)), value)
+        self.assertEqual(load_yaml(dump_yaml([])), [])
+        self.assertEqual(load_yaml(dump_yaml({})), {})
 
-    def test_rejects_empty_and_tab_indented_documents(self) -> None:
-        for text in ("# comment only\n", "root:\n\tchild: value\n"):
+    def test_rejects_empty_tab_indented_and_duplicate_key_documents(self) -> None:
+        for text in (
+            "# comment only\n",
+            "root:\n\tchild: value\n",
+            "title: one\ntitle: two\n",
+            '{"title":"one","title":"two"}',
+        ):
             with self.subTest(text=text):
                 with self.assertRaises(ValueError):
                     load_yaml(text)

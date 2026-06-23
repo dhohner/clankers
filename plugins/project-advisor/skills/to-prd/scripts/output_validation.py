@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+from collections import Counter
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
+from .validation import ManifestError, validate_manifest
 from .yaml_manifest import YamlError, loads
 
 
@@ -68,19 +70,10 @@ def validate_generated_bundle(bundle: Path) -> None:
         except (YamlError, OSError) as error:
             errors.append(f"prd.yaml is not readable YAML: {error}")
         else:
-            for field in (
-                "schema_version",
-                "slug",
-                "title",
-                "summary",
-                "status",
-                "initiative_type",
-                "review_surfaces",
-                "metadata",
-                "blocks",
-            ):
-                if field not in manifest:
-                    errors.append(f"prd.yaml is missing required field: {field}")
+            try:
+                validate_manifest(manifest)
+            except ManifestError as error:
+                errors.append(f"prd.yaml does not match the manifest contract: {error}")
 
     if index_path.is_file():
         parser = _DocumentParser()
@@ -92,7 +85,7 @@ def validate_generated_bundle(bundle: Path) -> None:
             if "document-title" not in parser.ids:
                 errors.append("index.html is missing required document-title ID")
             duplicates = sorted(
-                identity for identity in set(parser.ids) if parser.ids.count(identity) > 1
+                identity for identity, count in Counter(parser.ids).items() if count > 1
             )
             if duplicates:
                 errors.append("index.html contains duplicate IDs: " + ", ".join(duplicates))

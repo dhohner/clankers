@@ -8,13 +8,25 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from .validation import _yaml_object
-
 
 class YamlError(ValueError):
     def __init__(self, message: str, line: int = 1) -> None:
         super().__init__(message)
         self.line = line
+
+
+def _yaml_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    duplicates: list[str] = []
+    for key, value in pairs:
+        if key in result:
+            duplicates.append(key)
+        result[key] = value
+    if duplicates:
+        raise YamlError(
+            "YAML mapping contains duplicate key(s): " + ", ".join(sorted(set(duplicates)))
+        )
+    return result
 
 
 def loads(text: str) -> Any:
@@ -301,12 +313,17 @@ def _parse_single_quoted(value: str, line_number: int = 1) -> str:
 def _dump(value: Any, indent: int) -> str:
     space = " " * indent
     if isinstance(value, dict):
+        if not value:
+            return f"{space}{{}}"
         lines: list[str] = []
         for key, item in value.items():
             formatted_key = _format_key(key)
             if isinstance(item, (dict, list)):
-                lines.append(f"{space}{formatted_key}:")
-                lines.append(_dump(item, indent + 2))
+                if not item:
+                    lines.append(f"{space}{formatted_key}: {_format_scalar(item)}")
+                else:
+                    lines.append(f"{space}{formatted_key}:")
+                    lines.append(_dump(item, indent + 2))
             elif _is_block_scalar(item):
                 lines.append(f"{space}{formatted_key}: {_format_block_scalar_marker(item)}")
                 lines.extend(_format_block_scalar_lines(item, indent + 2))
@@ -314,6 +331,8 @@ def _dump(value: Any, indent: int) -> str:
                 lines.append(f"{space}{formatted_key}: {_format_scalar(item)}")
         return "\n".join(lines)
     if isinstance(value, list):
+        if not value:
+            return f"{space}[]"
         lines = []
         for item in value:
             if isinstance(item, dict):
@@ -324,8 +343,11 @@ def _dump(value: Any, indent: int) -> str:
                 key, first = entries[0]
                 formatted_key = _format_key(key)
                 if isinstance(first, (dict, list)):
-                    lines.append(f"{space}- {formatted_key}:")
-                    lines.append(_dump(first, indent + 4))
+                    if not first:
+                        lines.append(f"{space}- {formatted_key}: {_format_scalar(first)}")
+                    else:
+                        lines.append(f"{space}- {formatted_key}:")
+                        lines.append(_dump(first, indent + 4))
                 elif _is_block_scalar(first):
                     lines.append(f"{space}- {formatted_key}: {_format_block_scalar_marker(first)}")
                     lines.extend(_format_block_scalar_lines(first, indent + 4))
@@ -334,16 +356,22 @@ def _dump(value: Any, indent: int) -> str:
                 for key, rest in entries[1:]:
                     formatted_key = _format_key(key)
                     if isinstance(rest, (dict, list)):
-                        lines.append(f"{space}  {formatted_key}:")
-                        lines.append(_dump(rest, indent + 4))
+                        if not rest:
+                            lines.append(f"{space}  {formatted_key}: {_format_scalar(rest)}")
+                        else:
+                            lines.append(f"{space}  {formatted_key}:")
+                            lines.append(_dump(rest, indent + 4))
                     elif _is_block_scalar(rest):
                         lines.append(f"{space}  {formatted_key}: {_format_block_scalar_marker(rest)}")
                         lines.extend(_format_block_scalar_lines(rest, indent + 4))
                     else:
                         lines.append(f"{space}  {formatted_key}: {_format_scalar(rest)}")
             elif isinstance(item, list):
-                lines.append(f"{space}-")
-                lines.append(_dump(item, indent + 2))
+                if not item:
+                    lines.append(f"{space}- []")
+                else:
+                    lines.append(f"{space}-")
+                    lines.append(_dump(item, indent + 2))
             elif _is_block_scalar(item):
                 lines.append(f"{space}- {_format_block_scalar_marker(item)}")
                 lines.extend(_format_block_scalar_lines(item, indent + 2))
@@ -375,6 +403,10 @@ def _format_block_scalar_lines(value: str, indent: int) -> list[str]:
 
 
 def _format_scalar(value: Any) -> str:
+    if value == {}:
+        return "{}"
+    if value == []:
+        return "[]"
     if value is None:
         return "null"
     if value is True:
@@ -408,4 +440,4 @@ def _looks_numeric(text: str) -> bool:
     return True
 
 
-__all__ = ["YamlError", "dumps", "loads"]
+__all__ = ["YamlError", "_yaml_object", "dumps", "loads"]

@@ -23,8 +23,8 @@ from .spec import (
     BlockSpec,
 )
 from .types import NormalizedBlocks, NormalizedManifest
-from .validation import ManifestError, _yaml_object, validate_manifest
-from .yaml_manifest import dumps as dump_yaml, loads as load_yaml
+from .validation import ManifestError, validate_manifest
+from .yaml_manifest import _yaml_object, dumps as dump_yaml, loads as load_yaml
 
 
 def parse_args(argv: list[str] | None = None):

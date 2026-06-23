@@ -23,7 +23,7 @@ def iter_entities(blocks: NormalizedBlocks) -> list[tuple[str, str, str, dict[st
 
 def render_traceability_links(references: list[str]) -> str:
     if not references:
-        return "—"
+        return "-"
     return ", ".join(
         f'<a href="#{escape_html(reference)}">{escape_html(entity_label(reference))}</a>'
         for reference in references
@@ -38,8 +38,8 @@ def render_traceability_view(blocks: NormalizedBlocks) -> str:
     for block_name, entity_id, title, item in entities:
         links = item.get("relates_to", []) + item.get("validation", []) + item.get("validates", [])
         connected = render_traceability_links(links)
-        evidence = ", ".join(f"<code>{escape_html(reference)}</code>" for reference in item.get("evidence", [])) or "—"
-        exception = escape_html(item.get("exception", "")) if item.get("exception") else "—"
+        evidence = ", ".join(f"<code>{escape_html(reference)}</code>" for reference in item.get("evidence", [])) or "-"
+        exception = escape_html(item.get("exception", "")) if item.get("exception") else "-"
         rows.append(
             "<tr>"
             f'<td><a href="#{escape_html(entity_id)}">{escape_html(item.get("label", entity_label(entity_id)))}</a></td>'

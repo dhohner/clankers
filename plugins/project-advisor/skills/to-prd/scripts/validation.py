@@ -37,20 +37,6 @@ class ManifestError(ValueError):
     """Raised when a manifest does not satisfy the version 1 contract."""
 
 
-def _yaml_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
-    result: dict[str, Any] = {}
-    duplicates: list[str] = []
-    for key, value in pairs:
-        if key in result:
-            duplicates.append(key)
-        result[key] = value
-    if duplicates:
-        raise ManifestError(
-            "YAML mapping contains duplicate key(s): " + ", ".join(sorted(set(duplicates)))
-        )
-    return result
-
-
 def _non_empty_string(value: Any, path: str, errors: list[str]) -> str:
     if not isinstance(value, str) or not value.strip():
         errors.append(f"{path} must be a non-empty string")
@@ -230,7 +216,7 @@ def _validate_block(name: str, value: Any, errors: list[str]) -> Any:
             if not isinstance(item, dict):
                 errors.append(f"{item_path} must be a string or object")
                 continue
-            _reject_unknown_fields(item, {"id", "question", "relates_to", "evidence"}, item_path, errors)
+            _reject_unknown_fields(item, {"id", "label", "question", "relates_to", "evidence"}, item_path, errors)
             normalized: dict[str, Any] = {
                 "question": _non_empty_string(item.get("question"), f"{item_path}.question", errors)
             }
@@ -238,8 +224,9 @@ def _validate_block(name: str, value: Any, errors: list[str]) -> Any:
                 normalized["id"] = _non_empty_string(item.get("id"), f"{item_path}.id", errors)
             for list_field in ("relates_to", "evidence"):
                 if list_field in item:
-                    normalized[list_field] = _string_list(
-                        item.get(list_field),
+                    value = item.get(list_field)
+                    normalized[list_field] = [] if value == [] else _string_list(
+                        value,
                         f"{item_path}.{list_field}",
                         errors,
                     )
@@ -464,4 +451,4 @@ def validate_manifest(raw: Any) -> NormalizedManifest:
     return normalized
 
 
-__all__ = ["ManifestError", "_yaml_object", "validate_manifest"]
+__all__ = ["ManifestError", "validate_manifest"]

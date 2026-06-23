@@ -21,7 +21,12 @@ class PrdBundleOutputValidationTests(unittest.TestCase):
                     "initiative_type": "small-feature",
                     "review_surfaces": ["document"],
                     "metadata": {"Owner": "Test"},
-                    "blocks": {"problem": {}},
+                    "blocks": {
+                        "problem": {
+                            "statement": "A clear problem.",
+                            "evidence": ["Observed evidence."],
+                        }
+                    },
                 }
             ),
             encoding="utf-8",
@@ -62,3 +67,17 @@ class PrdBundleOutputValidationTests(unittest.TestCase):
             self.assertIn("duplicate IDs: duplicate", message)
             self.assertIn("broken anchors: missing", message)
             self.assertIn("missing asset: ./assets/missing.js", message)
+
+    def test_validates_preserved_manifest_contract(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            self._write_minimum_bundle(root, '<h1 id="document-title">Fixture</h1>')
+            (root / "prd.yaml").write_text(
+                dump_yaml({"schema_version": 1, "slug": "fixture"}),
+                encoding="utf-8",
+            )
+
+            with self.assertRaises(BUNDLE.BundleValidationError) as raised:
+                BUNDLE.validate_generated_bundle(root)
+
+            self.assertIn("does not match the manifest contract", str(raised.exception))
