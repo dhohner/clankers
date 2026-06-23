@@ -362,6 +362,39 @@ details > :not(summary) { margin-left: 18px; margin-right: 18px; }
   max-height: 620px;
   margin: auto;
 }
+.mermaid-toolbar {
+  position: sticky;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-end;
+  gap: 8px;
+  padding: 6px;
+}
+.mermaid-toolbar button {
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+}
+.mermaid-toolbar button:hover,
+.mermaid-toolbar button:focus-visible { border-color: var(--accent); }
+.mermaid-canvas {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.mermaid-canvas svg {
+  flex: 0 0 auto;
+  width: auto;
+  max-width: none;
+  max-height: none;
+  margin: auto;
+}
 .native-node rect { fill: var(--surface-soft); stroke: var(--accent); stroke-width: 2; }
 .native-node-label {
   display: grid;

@@ -231,6 +231,38 @@ function showMermaidFailure(canvas, error) {
   console.warn("A Mermaid diagram could not be rendered.", error);
 }
 
+function initMermaidZoom(canvas) {
+  const svg = canvas.querySelector("svg");
+  if (!svg) return;
+  const viewBox = svg.viewBox.baseVal;
+  const baseWidth = viewBox?.width || svg.getBoundingClientRect().width;
+  svg.style.maxWidth = "none";
+  svg.style.maxHeight = "none";
+  let zoom = 1;
+  const toolbar = document.createElement("div");
+  toolbar.className = "mermaid-toolbar";
+  toolbar.innerHTML = `
+    <button type="button" data-zoom="out" aria-label="Zoom diagram out">−</button>
+    <span>100%</span>
+    <button type="button" data-zoom="in" aria-label="Zoom diagram in">+</button>
+    <button type="button" data-zoom="reset">Reset</button>
+  `;
+  const label = toolbar.querySelector("span");
+  function setZoom(nextZoom) {
+    zoom = Math.min(3, Math.max(0.5, nextZoom));
+    svg.style.width = `${Math.round(baseWidth * zoom)}px`;
+    if (label) label.textContent = `${Math.round(zoom * 100)}%`;
+  }
+  toolbar.addEventListener("click", (event) => {
+    const action = event.target.dataset?.zoom;
+    if (action === "in") setZoom(zoom + 0.25);
+    if (action === "out") setZoom(zoom - 0.25);
+    if (action === "reset") setZoom(1);
+  });
+  canvas.prepend(toolbar);
+  setZoom(1);
+}
+
 async function renderMermaidDiagrams() {
   const canvases = [...document.querySelectorAll(".mermaid-canvas")];
   if (!canvases.length) return;
@@ -270,6 +302,7 @@ async function renderMermaidDiagrams() {
         source.textContent,
       );
       canvas.innerHTML = result.svg;
+      initMermaidZoom(canvas);
       canvas.closest(".mermaid-diagram")?.classList.add("rendered");
       const details = source.closest("details");
       if (details) details.open = false;
