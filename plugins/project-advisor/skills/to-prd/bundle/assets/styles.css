@@ -128,9 +128,9 @@ code {
 }
 main {
   grid-column: 2;
-  width: min(1160px, 100%);
+  width: 100%;
   min-width: 0;
-  padding: 42px 54px 70px;
+  padding: 42px clamp(54px, 4vw, 88px) 70px;
   overflow-wrap: anywhere;
 }
 .hero {

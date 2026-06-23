@@ -36,11 +36,13 @@ class PrdBundleAssetsTests(unittest.TestCase):
         self.assertIn("height: 100dvh", styles)
         self.assertIn("grid-template-columns: 275px minmax(0, 1fr)", styles)
         self.assertIn("main {\n  grid-column: 2", styles)
-        self.assertIn("width: min(1160px, 100%)", styles)
-        self.assertIn("padding: 42px 54px 70px", styles)
+        self.assertIn("width: 100%", styles)
+        self.assertNotIn("width: min(1160px, 100%)", styles)
+        self.assertIn("padding: 42px clamp(54px, 4vw, 88px) 70px", styles)
         self.assertNotIn(
-            "main {\n  grid-column: 2;\n  width: min(1160px, 100%);\n"
-            "  min-width: 0;\n  padding: 42px 54px 70px;\n  background:",
+            "main {\n  grid-column: 2;\n  width: 100%;\n"
+            "  min-width: 0;\n"
+            "  padding: 42px clamp(54px, 4vw, 88px) 70px;\n  background:",
             styles,
         )
         self.assertNotIn(
