@@ -1,0 +1,101 @@
+schema_version: 1
+slug: "delegated-purchase-approvals"
+title: Delegated Purchase Approvals
+summary: Approvers can delegate approval authority to another eligible manager for a defined period so urgent purchase requests keep moving without losing accountability.
+status: Accepted
+initiative_type: "workflow-heavy"
+review_surfaces:
+  - document
+  - workflow
+metadata:
+  Owner: Approval Product
+  Primary user: "Approver, requester, compliance reviewer"
+  Release: v1
+blocks:
+  problem:
+    statement: "Purchase approvals stall when the assigned approver is on leave or temporarily unavailable. Requesters have no visibility into who can act instead, and urgent requests are delayed."
+    evidence:
+      - Urgent requests wait for absent approvers instead of rerouting.
+      - Requesters do not know who currently owns an approval when someone is away.
+  goals:
+    - goal: Allow temporary delegation without creating ambiguous ownership.
+      success_signal: "Approvals continue moving during absence windows, and requesters can see who is currently responsible."
+    - goal: Preserve auditable accountability for delegated decisions.
+      success_signal: "Compliance can review who delegated, who acted, and when, without direct database access."
+  scope:
+    in:
+      - "Delegation with start date, end date, and delegate approver"
+      - Eligibility limited to managers in the same business unit
+      - Automatic rerouting of new approvals during the active delegation window
+      - "Consistent display of the currently responsible approver on in-flight requests"
+      - Audit history and notifications for delegation lifecycle events
+    out:
+      - Permanent reassignment of approval chains
+      - "Multi-step delegation chains"
+      - "Cross-business-unit delegation"
+  requirements:
+    - id: "REQ-01"
+      title: Delegation einrichten und pflegen
+      description: "Approver können zukünftige Delegationen anlegen, bearbeiten und abbrechen. Nur berechtigte Manager derselben Business Unit sind wählbar, und Validierungsfehler wie ungeeignete Personen, ungültige Daten oder Überschneidungen werden klar erklärt."
+      validation:
+        - "TEST-01"
+    - id: "REQ-02"
+      title: Automatische Weiterleitung während des aktiven Fensters
+      description: "Neue Freigabeanfragen, die während des aktiven Delegationszeitraums entstehen, werden automatisch an die Vertretung geleitet."
+      validation:
+        - "TEST-02"
+    - id: "REQ-03"
+      title: Verantwortliche Person in laufenden Anfragen sichtbar halten
+      description: "Bereits laufende Anfragen behalten ihren Status, zeigen aber in Listen- und Detailansichten konsistent, wer aktuell verantwortlich ist."
+      validation:
+        - "TEST-03"
+    - id: "REQ-04"
+      title: Automatische Rückkehr nach Ende der Delegation
+      description: "Wenn der Delegationszeitraum endet, gehen neue Freigaben automatisch wieder an die ursprüngliche approvende Person."
+      validation:
+        - "TEST-04"
+    - id: "REQ-05"
+      title: Auditierbarkeit und Benachrichtigungen
+      description: "Anlage, Änderung, Abbruch, Aktivierung, Ablauf und Freigabehandlungen im Rahmen einer Delegation sind auditierbar. Beim Start und Ende einer Delegation gehen E-Mail- und In-Product-Benachrichtigungen an die beteiligten Personen."
+      validation:
+        - "TEST-05"
+    - id: "REQ-06"
+      title: Delegationshistorie ohne Datenbankzugriff einsehbar machen
+      description: "Compliance-Nutzende können Delegationshistorien für anfragende oder approvende Personen einsehen, ohne direkt auf die Datenbank zugreifen zu müssen."
+      validation:
+        - "TEST-06"
+  risks:
+    - id: "RISK-01"
+      risk: Rund um Mitternacht und Zeitzonengrenzen können Delegationen am falschen Tag greifen oder enden.
+      mitigation: Die Lösung muss Delegationsfenster an Tagesgrenzen zuverlässig anwenden.
+    - id: "RISK-02"
+      risk: "Wenn Verantwortlichkeiten in Liste und Detailansicht unterschiedlich erscheinen, verlieren Requester Vertrauen in den Ablauf."
+      mitigation: Die sichtbare Verantwortlichkeit muss in allen relevanten Ansichten konsistent sein.
+  testing:
+    - id: "TEST-01"
+      expected_outcome: "Eine approvende Person kann eine zukünftige Delegation anlegen, bearbeiten oder abbrechen; ungeeignete Delegierte, ungültige Daten und Überschneidungen werden verständlich erklärt."
+      validates:
+        - "REQ-01"
+    - id: "TEST-02"
+      expected_outcome: Neue Anfragen innerhalb des aktiven Delegationsfensters werden automatisch an die Vertretung geleitet.
+      validates:
+        - "REQ-02"
+    - id: "TEST-03"
+      expected_outcome: "Bereits laufende Anfragen zeigen in Listen- und Detailansichten konsistent, wer aktuell verantwortlich ist."
+      validates:
+        - "REQ-03"
+    - id: "TEST-04"
+      expected_outcome: Nach Ende der Delegation gehen neue Anfragen automatisch wieder an die ursprüngliche approvende Person.
+      validates:
+        - "REQ-04"
+    - id: "TEST-05"
+      expected_outcome: "Delegationsereignisse und daraus entstehende Freigabehandlungen sind nachvollziehbar protokolliert, und beteiligte Personen werden bei Start und Ende informiert."
+      validates:
+        - "REQ-05"
+    - id: "TEST-06"
+      expected_outcome: "Compliance-Nutzende können Delegationshistorien für anfragende oder approvende Personen prüfen, ohne direkten Datenbankzugriff zu benötigen."
+      validates:
+        - "REQ-06"
+  open_questions:
+    - id: "QUESTION-01"
+      question: "Wie spätere Reports zur Nutzung von Delegationen aussehen, ist noch nicht entschieden und gehört nicht in die erste Lieferung."
