@@ -62,6 +62,7 @@ class PrdBundleAssetsTests(unittest.TestCase):
         self.assertIn("max-height: calc(100dvh - 66px)", styles)
         self.assertIn("overflow-x: hidden", styles)
         self.assertIn("overflow-wrap: anywhere", styles)
+        self.assertIn(".id-table th { white-space: nowrap; overflow-wrap: normal; }", styles)
         self.assertIn("@media (prefers-reduced-motion: reduce)", styles)
         self.assertIn("@media print", styles)
         self.assertIn("details > *:not(summary)", styles)

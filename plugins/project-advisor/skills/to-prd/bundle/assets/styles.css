@@ -316,7 +316,9 @@ li + li { margin-top: 8px; }
   background: var(--surface);
 }
 table { width: 100%; min-width: 720px; border-collapse: collapse; }
+.traceability-table table { min-width: 980px; }
 th, td { padding: 14px 16px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.id-table th { white-space: nowrap; overflow-wrap: normal; }
 .id-table th:first-child,
 .id-table td:first-child {
   min-width: 8.5rem;
