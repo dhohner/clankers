@@ -90,3 +90,7 @@ Do not treat the draft as accepted until human review is complete. Keep `prd.yam
 Only after the user accepts the PRD, offer to pass the accepted bundle to `to-issues`.
 
 Invoke `to-issues` only when the user asks for issue splitting, accepts the handoff, or originally requested an end-to-end PRD-to-issues flow. Pass the accepted `prd.yaml` as the planning source and include `index.html` as the reviewer-facing companion when it helps preserve context. If you mention only one bundle file during handoff, mention `prd.yaml`.
+
+## 6. Clean up temporary files
+
+After generation succeeds, delete the scratch YAML manifest created outside the bundle. Keep only the generated PRD bundle in `action-items/PRD-<slug>/`, including its preserved `prd.yaml`.
