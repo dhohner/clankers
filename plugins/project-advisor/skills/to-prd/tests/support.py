@@ -75,22 +75,6 @@ def sample_block(name: str) -> object:
                 ],
             }
         ]
-    if spec.kind == "prototype":
-        return {
-            "description": "Review state changes without saving data.",
-            "states": [
-                {
-                    "label": "Default",
-                    "behavior": "The initial read-only state.",
-                    "content": [{"label": "Status", "value": "Ready"}],
-                },
-                {
-                    "label": "Blocked",
-                    "behavior": "The blocked state explains the next action.",
-                    "content": [{"label": "Status", "value": "Needs review"}],
-                },
-            ],
-        }
     if spec.kind == "table":
         return {"columns": ["From", "To"], "rows": [["A", "B"]]}
     if spec.kind == "questions":

@@ -26,19 +26,6 @@ blocks:
       regions:
         - label: Draft list
           detail: Each draft exposes status and the next useful action.
-  prototype:
-    description: "Switch among read-only queue states to inspect hierarchy and guidance."
-    states:
-      - label: Ready
-        behavior: The primary action offers review.
-        content:
-          - label: Status
-            value: Ready for review
-      - label: Blocked
-        behavior: The blocking gap and recovery action are visible.
-        content:
-          - label: Status
-            value: Missing scope decision
   testing_strategy:
     - id: "TEST-QUEUE-STATES"
       target: Queue states

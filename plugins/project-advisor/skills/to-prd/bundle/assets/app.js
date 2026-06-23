@@ -10,8 +10,6 @@ const sections = [...document.querySelectorAll("main > section[id]")];
 const supportingDetails = [...document.querySelectorAll("details")];
 const detailsToggle = document.querySelector("#collapse-all");
 const printButton = document.querySelector("#print-document");
-const prototypeTablists = [...document.querySelectorAll(".prototype-tabs")];
-const prototypeStates = [...document.querySelectorAll(".prototype-state")];
 let anchorObserver;
 
 function navigationIsOpen() {
@@ -182,37 +180,6 @@ detailsToggle?.addEventListener("click", () => {
   detailsToggle.textContent = collapse ? "Expand details" : "Collapse details";
 });
 
-function selectPrototypeTab(tab, moveFocus = false) {
-  const tablist = tab.closest('[role="tablist"]');
-  if (!tablist) return;
-  const tabs = [...tablist.querySelectorAll('[role="tab"]')];
-  tabs.forEach((candidate) => {
-    const selected = candidate === tab;
-    candidate.setAttribute("aria-selected", String(selected));
-    candidate.tabIndex = selected ? 0 : -1;
-    const panel = document.getElementById(candidate.getAttribute("aria-controls"));
-    if (panel) panel.hidden = !selected;
-  });
-  if (moveFocus) tab.focus();
-}
-
-prototypeTablists.forEach((tablist) => {
-  const tabs = [...tablist.querySelectorAll('[role="tab"]')];
-  tabs.forEach((tab) => {
-    tab.addEventListener("click", () => selectPrototypeTab(tab));
-    tab.addEventListener("keydown", (event) => {
-      const currentIndex = tabs.indexOf(tab);
-      let nextIndex;
-      if (event.key === "ArrowRight") nextIndex = (currentIndex + 1) % tabs.length;
-      if (event.key === "ArrowLeft") nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
-      if (event.key === "Home") nextIndex = 0;
-      if (event.key === "End") nextIndex = tabs.length - 1;
-      if (nextIndex === undefined) return;
-      event.preventDefault();
-      selectPrototypeTab(tabs[nextIndex], true);
-    });
-  });
-});
 
 const MERMAID_CDN =
   "https://cdn.jsdelivr.net/npm/mermaid@11.15.0/dist/mermaid.esm.min.mjs";
@@ -315,23 +282,15 @@ async function renderMermaidDiagrams() {
 renderMermaidDiagrams();
 
 let printDetailState = [];
-let printPrototypeState = [];
 window.addEventListener("beforeprint", () => {
   printDetailState = supportingDetails.map((detail) => detail.open);
   supportingDetails.forEach((detail) => {
     detail.open = true;
   });
-  printPrototypeState = prototypeStates.map((state) => state.hidden);
-  prototypeStates.forEach((state) => {
-    state.hidden = false;
-  });
 });
 window.addEventListener("afterprint", () => {
   supportingDetails.forEach((detail, index) => {
     detail.open = printDetailState[index];
-  });
-  prototypeStates.forEach((state, index) => {
-    state.hidden = printPrototypeState[index];
   });
 });
 

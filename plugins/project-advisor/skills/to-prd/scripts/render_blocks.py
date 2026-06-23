@@ -15,7 +15,6 @@ from .render_visuals import (
     render_frames,
     render_mermaid_diagram,
     render_native_diagram,
-    render_prototype,
 )
 from .spec import BlockSpec, entity_label
 
@@ -92,7 +91,7 @@ def render_cards(name: str, items: list[dict[str, Any]], spec: BlockSpec) -> str
             for index, item in enumerate(items, start=1)
         )
         return (
-            '<div class="table-wrap"><table><thead><tr>'
+            '<div class="table-wrap"><table class="id-table"><thead><tr>'
             "<th>ID</th><th>Goal</th><th>Success signal</th>"
             f"</tr></thead><tbody>{rows}</tbody></table></div>"
         )
@@ -133,8 +132,9 @@ def render_table(value: dict[str, Any]) -> str:
         "<tr>" + "".join(f"<td>{escape_html(cell)}</td>" for cell in row) + "</tr>"
         for row in value["rows"]
     )
+    table_class = ' class="id-table"' if value["columns"][0] == "ID" else ""
     return (
-        '<div class="table-wrap"><table><thead><tr>'
+        f'<div class="table-wrap"><table{table_class}><thead><tr>'
         f"{head}</tr></thead><tbody>{rows}</tbody></table></div>"
     )
 
@@ -157,8 +157,6 @@ def render_block_content(name: str, value: Any, spec: BlockSpec) -> str:
         return render_cards(name, value, spec)
     if spec.kind == "frames":
         return render_frames(name, value, spec)
-    if spec.kind == "prototype":
-        return render_prototype(value)
     if spec.kind == "list":
         return render_list(value)
     if spec.kind == "problem":

@@ -62,7 +62,7 @@ class PrdBundleCliTests(unittest.TestCase):
             self.assertIn('class="requirement-list"', document)
             self.assertIn('class="timeline"', document)
             self.assertIn('class="decision-grid"', document)
-            self.assertIn('class="prototype prototype-surface"', document)
+            self.assertNotIn('class="prototype prototype-surface"', document)
             self.assertNotIn('class="document-header"', document)
             self.assertEqual(preserved_manifest["slug"], "example-review-bundle")
             self.assertEqual(preserved_manifest["schema_version"], 1)

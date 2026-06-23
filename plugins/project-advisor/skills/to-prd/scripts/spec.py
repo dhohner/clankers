@@ -71,7 +71,6 @@ BLOCK_SPECS: dict[str, BlockSpec] = {
     "wireframes": BlockSpec("Wireframes", "Screen concepts used to review layout and hierarchy.", "visual-experience", "all", "frames", ("screen", "intent")),
     "before_after": BlockSpec("Before and after", "The visible change from the current experience.", "visual-experience", "all", "cards", ("before", "after")),
     "annotated_screens": BlockSpec("Annotated screen states", "Important states and the behavior each communicates.", "visual-experience", "validation", "frames", ("state", "annotation")),
-    "prototype": BlockSpec("Read-only prototype", "Behavioral states available for review.", "visual-experience", "all", "prototype"),
     "ui_flow": BlockSpec("UI flow", "How reviewers move between interface states.", "visual-experience", "all", "diagram"),
     "design_direction": BlockSpec("Design direction", "Principles guiding the proposed visual experience.", "visual-experience", "decisions", "cards", ("principle", "application")),
     "architecture_diagram": BlockSpec("Architecture diagram", "System boundaries and responsibilities relevant to the initiative.", "technical-contracts", "decisions", "diagram"),

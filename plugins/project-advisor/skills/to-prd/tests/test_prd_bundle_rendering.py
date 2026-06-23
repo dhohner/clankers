@@ -85,6 +85,7 @@ class PrdBundleRenderingTests(unittest.TestCase):
         self.assertIn('id="risk-01"', document)
         self.assertIn('id="question-01"', document)
         self.assertIn('id="test-01"', document)
+        self.assertIn('<table class="id-table"><thead><tr><th>ID</th>', document)
 
     def test_optional_blocks_do_not_renumber_stable_entities(self) -> None:
         manifest = base_manifest()
@@ -205,26 +206,18 @@ class PrdBundleRenderingTests(unittest.TestCase):
         self.assertIn('d="M 618 96 L 618 141"', document)
         self.assertNotIn('d="M 618 61 L 142 176"', document)
 
-    def test_wireframes_and_prototype_render_as_labeled_read_only_review_aids(self) -> None:
+    def test_wireframes_render_as_labeled_read_only_review_aids(self) -> None:
         manifest = base_manifest("ui-heavy", ["document", "ui"])
         manifest["blocks"] = {
             "wireframes": sample_block("wireframes"),
             "annotated_screens": sample_block("annotated_screens"),
-            "prototype": sample_block("prototype"),
         }
 
         document = BUNDLE.render_document(BUNDLE.validate_manifest(manifest))
 
         self.assertIn("Wireframe · Review aid", document)
         self.assertIn("Annotated state · Review aid", document)
-        self.assertIn('class="prototype prototype-surface"', document)
-        self.assertIn('class="prototype-toolbar"', document)
         self.assertIn("Behavioral intent, not final production design", document)
-        self.assertIn('role="tablist"', document)
-        self.assertIn('role="tabpanel"', document)
-        self.assertIn('aria-selected="true"', document)
-        self.assertIn('aria-selected="false"', document)
-        self.assertIn("does not persist data", document)
         self.assertIn('<div class="screen-chrome">', document)
         self.assertNotIn('<div class="screen-chrome" aria-hidden="true">', document)
 
@@ -238,16 +231,6 @@ class PrdBundleRenderingTests(unittest.TestCase):
                     "regions": [],
                 }
             ],
-            "prototype": {
-                "description": "Review an empty state.",
-                "states": [
-                    {
-                        "label": "Empty",
-                        "behavior": "No records are available.",
-                        "content": [],
-                    }
-                ],
-            },
             "architecture_diagram": {
                 "description": "A standalone service.",
                 "native": {
@@ -260,19 +243,4 @@ class PrdBundleRenderingTests(unittest.TestCase):
         normalized = BUNDLE.validate_manifest(manifest)
 
         self.assertEqual([], normalized["blocks"]["wireframes"][0]["regions"])
-        self.assertEqual([], normalized["blocks"]["prototype"]["states"][0]["content"])
         self.assertEqual([], normalized["blocks"]["architecture_diagram"]["native"]["edges"])
-
-    def test_legacy_prototype_state_list_remains_supported(self) -> None:
-        manifest = base_manifest("ui-heavy", ["document", "ui"])
-        manifest["blocks"] = {
-            "prototype": [
-                {"state": "Ready", "behavior": "Shows the completed result."},
-                {"state": "Blocked", "behavior": "Explains the unresolved dependency."},
-            ]
-        }
-
-        document = BUNDLE.render_document(BUNDLE.validate_manifest(manifest))
-
-        self.assertIn(">Ready</button>", document)
-        self.assertIn(">Blocked</button>", document)

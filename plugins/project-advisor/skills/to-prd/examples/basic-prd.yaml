@@ -77,7 +77,7 @@ blocks:
         - "RISK-02"
     - id: "REQ-03"
       title: "Review-only interaction"
-      description: "Support navigation, details, prototype state switching, anchors, and printing without persisting reviewer data."
+      description: "Support navigation, details, anchors, and printing without persisting reviewer data."
       validation:
         - "TEST-03"
       relates_to:
@@ -99,7 +99,7 @@ blocks:
     - capability: Product definition
       outcome: "Requirements, scope, business rules, decisions, and alternatives."
     - capability: Visual experience
-      outcome: "Wireframes, annotated states, prototypes, UI flows, and design direction."
+      outcome: "Wireframes, annotated states, UI flows, and design direction."
     - capability: Technical contracts
       outcome: "Architecture, data flow, APIs, models, lifecycle, and code evidence."
     - capability: Delivery and assurance
@@ -109,7 +109,7 @@ blocks:
       - "Reference-aligned document shell and responsive navigation"
       - "Purpose-specific renderers for common PRD blocks"
       - Mermaid and native visual review surfaces
-      - "Read-only prototype states and print-safe output"
+      - "Print-safe output"
     out:
       - Persisted comments or approvals
       - Editable PRD content in the generated artifact
@@ -126,8 +126,8 @@ blocks:
       relates_to:
         - "REQ-02"
     - id: "DEC-03"
-      decision: "Prototype interactions are local and read-only."
-      rationale: Reviewers may inspect states without changing or persisting PRD data.
+      decision: "Review interactions are local and read-only."
+      rationale: Reviewers may inspect generated views without changing or persisting PRD data.
       relates_to:
         - "REQ-03"
     - id: "DEC-04"
@@ -135,42 +135,6 @@ blocks:
       rationale: "Relationships remain deterministic and validator-friendly."
       relates_to:
         - "REQ-04"
-  prototype:
-    description: Readiness review
-    states:
-      - label: Overview
-        behavior: "The reviewer sees the outcome, coverage, and recommended next step."
-        content:
-          - label: Review outcome
-            value: Ready for issue splitting
-          - label: Requirements covered
-            value: 4 / 4
-          - label: Blocking questions
-            value: 0
-          - label: Recommended next step
-            value: Approve and split into issues
-      - label: Blockers
-        behavior: The reviewer sees whether any unresolved choice prevents implementation planning.
-        content:
-          - label: Release blockers
-            value: None
-          - label: Manifest format
-            value: YAML
-          - label: Portable runtime
-            value: python3
-          - label: Asset strategy
-            value: Copy versioned sources
-      - label: Coverage
-        behavior: "The reviewer sees direct requirement-to-test coverage."
-        content:
-          - label: "REQ-01"
-            value: "TEST-01"
-          - label: "REQ-02"
-            value: "TEST-02"
-          - label: "REQ-03"
-            value: "TEST-03"
-          - label: "REQ-04"
-            value: "TEST-04"
   architecture_diagram:
     description: "Interview state and repository evidence become a manifest, then a reusable generator produces and validates the portable review bundle."
     native:
@@ -210,8 +174,8 @@ blocks:
       relates_to:
         - "REQ-02"
     - id: "RISK-03"
-      risk: A prototype is mistaken for editable product UI.
-      mitigation: Label it as a review aid and never persist state.
+      risk: A generated review surface is mistaken for editable product UI.
+      mitigation: Label generated surfaces as review aids and never persist state.
       relates_to:
         - "REQ-03"
     - id: "RISK-04"
@@ -225,7 +189,7 @@ blocks:
     - phase: "Purpose-specific renderers"
       outcome: "Introduce purpose-specific block renderers and representative fixture content."
     - phase: Interaction and visual verification
-      outcome: "Verify diagrams, prototypes, anchors, mobile behavior, and printing."
+      outcome: "Verify diagrams, anchors, mobile behavior, and printing."
     - phase: Regression fixture adoption
       outcome: Use the fixture as a regression artifact for future generator changes.
   testing_strategy:
@@ -241,7 +205,7 @@ blocks:
         - "REQ-02"
     - id: "TEST-03"
       target: Review controls
-      expected_outcome: "Navigation, details, prototype tabs, anchors, and print behavior work without persistence."
+      expected_outcome: "Navigation, details, anchors, and print behavior work without persistence."
       validates:
         - "REQ-03"
     - id: "TEST-04"
@@ -263,10 +227,10 @@ blocks:
       observation: "The approved artifact uses a persistent rail, hero metadata, numbered sections, and purpose-specific content structures."
       implication: The generator shell and renderers must encode those structures directly.
     - reference: "action-items/PRD-rich-interactive-html-output/styles.css"
-      observation: "Ordinary content is flat while diagrams, tables, details, prototypes, and callouts are visually bounded."
+      observation: "Ordinary content is flat while diagrams, tables, details, and callouts are visually bounded."
       implication: Generic card styling cannot be the default content renderer.
     - reference: "action-items/PRD-rich-interactive-html-output/app.js"
-      observation: "Interaction is limited to navigation, details, prototype states, anchors, and print behavior."
+      observation: "Interaction is limited to navigation, details, anchors, and print behavior."
       implication: "Generated JavaScript should preserve the same review-only interaction boundary."
     - reference: "plugins/project-advisor/skills/to-prd/scripts/prd_bundle/bundle.py"
       observation: The generator already validates manifests and copies versioned assets.

@@ -56,7 +56,7 @@ def render_traceability_view(blocks: NormalizedBlocks) -> str:
         '<div class="section-heading"><span>TR</span><div><h2 id="traceability-heading">'
         '<a href="#traceability">Traceability view</a></h2>'
         '<p>Generated relationships between requirements, decisions, risks, questions, and validation outcomes.</p>'
-        '</div></div><div class="table-wrap traceability-table"><table><thead><tr>'
+        '</div></div><div class="table-wrap traceability-table"><table class="id-table"><thead><tr>'
         '<th>ID</th><th>Type</th><th>Statement</th><th>Connected entities</th><th>Evidence</th><th>Exception</th>'
         f'</tr></thead><tbody>{"".join(rows)}</tbody></table></div></section>'
     )

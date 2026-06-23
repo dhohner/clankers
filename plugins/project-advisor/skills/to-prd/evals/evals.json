@@ -17,7 +17,7 @@
     {
       "id": 2,
       "prompt": "Draft a PRD for a maintainer review queue for generated PRDs. Reviewers need to distinguish empty, ready, blocked, and accepted states and understand why a draft is blocked. The queue should be read-only for the first release; editing remains in the existing authoring workflow. Inspect the repo before deciding terminology or where this belongs. I am unsure whether accepted PRDs should remain visible by default, so keep that decision open unless repository evidence settles it. Generate the standard review bundle and stop for my review.",
-      "expected_output": "A validated UI-focused PRD bundle that uses relevant wireframes, annotated states, or a read-only prototype to clarify hierarchy and behavior while keeping acceptance visibility unresolved.",
+      "expected_output": "A validated UI-focused PRD bundle that uses relevant wireframes or annotated states to clarify hierarchy and behavior while keeping acceptance visibility unresolved.",
       "files": [],
       "expectations": [
         "The PRD uses repo-grounded terminology and records the accepted-item visibility decision as open or provisional.",

@@ -157,47 +157,9 @@ def render_mermaid_diagram(name: str, value: dict[str, Any]) -> str:
     )
 
 
-def render_prototype(value: dict[str, Any]) -> str:
-    description_id = "prototype-visual-description"
-    tabs: list[str] = []
-    panels: list[str] = []
-    for index, state in enumerate(value["states"]):
-        selected = index == 0
-        state_id = f"prototype-state-{index + 1}"
-        tab_id = f"prototype-tab-{index + 1}"
-        tabs.append(
-            f'<button id="{tab_id}" type="button" role="tab" '
-            f'aria-selected="{str(selected).lower()}" aria-controls="{state_id}" '
-            f'tabindex="{"0" if selected else "-1"}">{escape_html(state["label"])}</button>'
-        )
-        content = "".join(
-            '<div class="prototype-field">'
-            f"<span>{escape_html(item['label'])}</span>"
-            f"<strong>{escape_html(item['value'])}</strong></div>"
-            for item in state["content"]
-        )
-        panels.append(
-            f'<section id="{state_id}" class="prototype-state" role="tabpanel" '
-            f'aria-labelledby="{tab_id}" data-state-label="{escape_html(state["label"])}"'
-            f'{" hidden" if not selected else ""}>'
-            f'<p class="prototype-behavior">{escape_html(state["behavior"])}</p>'
-            f'<div class="prototype-content">{content}</div></section>'
-        )
-    return (
-        f'<figure class="prototype prototype-surface" aria-labelledby="{description_id}">'
-        '<div class="prototype-toolbar"><div><span class="prototype-dot"></span>'
-        f'<strong id="{description_id}">{escape_html(value["description"])}</strong></div>'
-        '<div class="prototype-tabs" role="tablist" aria-label="Prototype states">'
-        f'{"".join(tabs)}</div></div><div class="prototype-stage">{"".join(panels)}</div>'
-        '<figcaption>State switching is local, temporary, and does not persist data.</figcaption>'
-        "</figure>"
-    )
-
-
 __all__ = [
     "render_frames",
     "render_mermaid_diagram",
     "render_native_diagram",
-    "render_prototype",
     "render_visual_heading",
 ]

@@ -164,52 +164,6 @@ def _validate_frames(
     return result
 
 
-def _validate_prototype(value: Any, path: str, errors: list[str]) -> dict[str, Any]:
-    if isinstance(value, list):
-        states = _object_list(value, path, ("state", "behavior"), errors)
-        return {
-            "description": "Switch between the defined states to review behavior.",
-            "states": [
-                {
-                    "label": state["state"],
-                    "behavior": state["behavior"],
-                    "content": [],
-                }
-                for state in states
-            ],
-        }
-    if not isinstance(value, dict):
-        errors.append(f"{path} must be an object")
-        return {"description": "", "states": []}
-    _reject_unknown_fields(value, {"description", "states"}, path, errors)
-    description = _non_empty_string(value.get("description"), f"{path}.description", errors)
-    raw_states = value.get("states")
-    if not isinstance(raw_states, list) or not raw_states:
-        errors.append(f"{path}.states must be a non-empty array")
-        return {"description": description, "states": []}
-
-    states: list[dict[str, Any]] = []
-    for index, state in enumerate(raw_states):
-        state_path = f"{path}.states[{index}]"
-        if not isinstance(state, dict):
-            errors.append(f"{state_path} must be an object")
-            continue
-        _reject_unknown_fields(state, {"label", "behavior", "content"}, state_path, errors)
-        states.append(
-            {
-                "label": _non_empty_string(state.get("label"), f"{state_path}.label", errors),
-                "behavior": _non_empty_string(state.get("behavior"), f"{state_path}.behavior", errors),
-                "content": _optional_object_list(
-                    state.get("content"),
-                    f"{state_path}.content",
-                    ("label", "value"),
-                    errors,
-                ),
-            }
-        )
-    return {"description": description, "states": states}
-
-
 def _validate_native_diagram(
     value: Any,
     path: str,
@@ -260,8 +214,6 @@ def _validate_block(name: str, value: Any, errors: list[str]) -> Any:
         return _object_list(value, path, spec.fields, errors, optional_fields)
     if spec.kind == "frames":
         return _validate_frames(value, path, spec.fields, errors)
-    if spec.kind == "prototype":
-        return _validate_prototype(value, path, errors)
     if spec.kind == "list":
         return _string_list(value, path, errors)
     if spec.kind == "questions":

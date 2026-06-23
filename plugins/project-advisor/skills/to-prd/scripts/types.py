@@ -73,21 +73,6 @@ class AnnotatedScreenItem(FrameItem):
     annotation: str
 
 
-class PrototypeField(TypedDict):
-    label: str
-    value: str
-
-
-class PrototypeState(TypedDict):
-    label: str
-    behavior: str
-    content: list[PrototypeField]
-
-
-class PrototypeBlock(TypedDict):
-    description: str
-    states: list[PrototypeState]
-
 
 class CodeSample(TypedDict):
     reference: str
@@ -148,7 +133,6 @@ NormalizedBlock: TypeAlias = (
     | ScopeBlock
     | DiagramBlock
     | TableBlock
-    | PrototypeBlock
     | CardBlock
     | StringBlock
     | WireframesBlock
@@ -182,7 +166,6 @@ class NormalizedBlocks(TypedDict, total=False):
     wireframes: WireframesBlock
     before_after: CardBlock
     annotated_screens: AnnotatedScreensBlock
-    prototype: PrototypeBlock
     ui_flow: DiagramBlock
     design_direction: CardBlock
     architecture_diagram: DiagramBlock
@@ -235,9 +218,6 @@ __all__ = [
     "OpenQuestionItem",
     "OpenQuestionsBlock",
     "ProblemBlock",
-    "PrototypeBlock",
-    "PrototypeField",
-    "PrototypeState",
     "RegionItem",
     "RequirementItem",
     "RequirementsBlock",

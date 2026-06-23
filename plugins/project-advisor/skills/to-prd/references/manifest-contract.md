@@ -17,7 +17,7 @@ Create YAML that the bundled `python3` generator can validate and render. Use [.
 Select blocks because they improve a product decision, not to fill a template.
 
 - Document-only: problem, goals, scope, requirements, decisions, risks, testing, and open questions as needed.
-- UI: wireframes, annotated screens, prototype states, UI flow, and design direction when visual state alignment matters.
+- UI: wireframes, annotated screens, UI flow, and design direction when visual state alignment matters.
 - Workflow: journeys, workflow diagram, transition matrix, business rules, and failure paths.
 - API: API contract, dependencies, security/privacy, failure paths, and observable testing outcomes.
 - Data: data flow, data model, lifecycle, privacy, migration, and validation.
@@ -43,7 +43,7 @@ Supply a concise text description for every diagram or visual surface.
 Use structured native diagram data when simple nodes and edges are sufficient.
 Use YAML block scalars such as `|-` for multiline Mermaid source or code.
 Use Mermaid source only when it communicates the relationship more clearly.
-Treat wireframes and prototypes as read-only review aids, not final production design.
+Treat wireframes and annotated screens as read-only review aids, not final production design.
 
 ## Generation
 
