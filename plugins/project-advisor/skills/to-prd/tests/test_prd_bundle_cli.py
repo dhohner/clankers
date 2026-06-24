@@ -11,6 +11,7 @@ from support import (
     dump_yaml,
     load_example_manifest,
     load_yaml,
+    run_cli,
     run_generator,
 )
 
@@ -96,6 +97,93 @@ class PrdBundleCliTests(unittest.TestCase):
                 "every generated fragment link should resolve to a unique target",
             )
 
+    def test_generate_emits_structured_success_output(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+
+            result = run_cli(
+                "generate",
+                str(EXAMPLE),
+                "--output-root",
+                str(root / "action-items"),
+            )
+            payload = load_yaml(result.stdout)
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(payload["status"], "ok")
+            self.assertEqual(payload["validation"], {"manifest": "ok", "bundle": "ok"})
+            self.assertTrue(Path(payload["files"]["index"]).exists())
+            self.assertIn(" inspect", payload["next"][1])
+
+    def test_validate_emits_aggregates_without_generation(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+
+            result = run_cli("validate", str(EXAMPLE))
+            payload = load_yaml(result.stdout)
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(payload["status"], "ok")
+            self.assertEqual(payload["normalized_slug"], "example-review-bundle")
+            self.assertEqual(payload["summary"]["requirements"], "4")
+            self.assertIn("workflow", payload["review_surfaces"])
+            self.assertFalse((root / "action-items").exists())
+
+    def test_no_arg_dashboard_is_content_first(self) -> None:
+        result = run_cli()
+        payload = load_yaml(result.stdout)
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(payload["status"], "ok")
+        self.assertIn("generator", payload)
+        self.assertIn("bundle_count", payload)
+        self.assertIn("next", payload)
+
+    def test_status_ignores_broken_bundle_symlinks(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            output_root = root / "action-items"
+            output_root.mkdir()
+            (output_root / "PRD-broken").symlink_to(root / "missing")
+
+            result = run_cli("status", "--output-root", str(output_root))
+            payload = load_yaml(result.stdout)
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(payload["status"], "ok")
+            self.assertEqual(payload["bundle_count"], "0")
+
+    def test_inspect_emits_bundle_summary(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            output_root = root / "action-items"
+            generated = run_generator(EXAMPLE, output_root)
+            self.assertEqual(generated.returncode, 0, generated.stderr)
+
+            bundle = output_root / "PRD-example-review-bundle"
+            result = run_cli("inspect", str(bundle))
+            payload = load_yaml(result.stdout)
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(payload["status"], "ok")
+            self.assertIn("requirements", payload["sections"])
+            self.assertIn("req-01", payload["ids"])
+            self.assertEqual(payload["anchors"]["broken"], [])
+            self.assertEqual(payload["traceability"]["requirements"], "4")
+
+    def test_schema_and_examples_are_structured(self) -> None:
+        schema = run_cli("schema", "requirements")
+        schema_payload = load_yaml(schema.stdout)
+        examples = run_cli("examples", "api-heavy")
+        examples_payload = load_yaml(examples.stdout)
+
+        self.assertEqual(schema.returncode, 0, schema.stderr)
+        self.assertEqual(schema_payload["block"], "requirements")
+        self.assertIn("validation", schema_payload["optional_fields"])
+        self.assertEqual(examples.returncode, 0, examples.stderr)
+        self.assertEqual(examples_payload["examples"][0]["name"], "api-heavy")
+        self.assertIn(" validate", examples_payload["next"][0])
+
     def test_manifest_content_is_html_escaped(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
@@ -164,11 +252,15 @@ class PrdBundleCliTests(unittest.TestCase):
 
             result = run_generator(manifest_path, root / "action-items")
 
+            payload = load_yaml(result.stdout)
+
             self.assertEqual(result.returncode, 2)
+            self.assertEqual(payload["code"], "yaml_invalid")
             self.assertIn(
                 "YAML mapping contains duplicate key(s): schema_version",
-                result.stderr,
+                payload["errors"][0]["message"],
             )
+            self.assertEqual(result.stderr, "")
             self.assertFalse((root / "action-items").exists())
 
     def test_invalid_manifest_reports_all_errors_without_creating_bundle(self) -> None:
@@ -182,12 +274,17 @@ class PrdBundleCliTests(unittest.TestCase):
 
             result = run_generator(manifest_path, root / "action-items")
 
+            payload = load_yaml(result.stdout)
+            messages = "\n".join(error["message"] for error in payload["errors"])
+
             self.assertNotEqual(result.returncode, 0)
-            self.assertIn("schema_version must be the number 1", result.stderr)
-            self.assertIn("slug must contain only lowercase", result.stderr)
-            self.assertIn("initiative_type must be a non-empty string", result.stderr)
-            self.assertIn("review_surfaces must be a non-empty array", result.stderr)
-            self.assertIn("blocks must be a non-empty object", result.stderr)
+            self.assertEqual(payload["code"], "manifest_invalid")
+            self.assertIn("schema_version must be the number 1", messages)
+            self.assertIn("slug must contain only lowercase", messages)
+            self.assertIn("initiative_type must be a non-empty string", messages)
+            self.assertIn("review_surfaces must be a non-empty array", messages)
+            self.assertIn("blocks must be a non-empty object", messages)
+            self.assertEqual(result.stderr, "")
             self.assertFalse((root / "action-items" / "PRD-escape").exists())
             self.assertFalse((root / "action-items").exists())
 
@@ -199,8 +296,12 @@ class PrdBundleCliTests(unittest.TestCase):
 
             result = run_generator(manifest_path, root / "action-items")
 
+            payload = load_yaml(result.stdout)
+
             self.assertEqual(result.returncode, 2)
-            self.assertIn("line 1, column", result.stderr)
+            self.assertEqual(payload["code"], "yaml_invalid")
+            self.assertIn("line 1, column", payload["errors"][0]["message"])
+            self.assertEqual(result.stderr, "")
             self.assertFalse((root / "action-items").exists())
 
     def test_boolean_schema_version_is_rejected(self) -> None:
@@ -213,8 +314,12 @@ class PrdBundleCliTests(unittest.TestCase):
 
             result = run_generator(manifest_path, root / "action-items")
 
+            payload = load_yaml(result.stdout)
+
             self.assertEqual(result.returncode, 2)
-            self.assertIn("schema_version must be the number 1", result.stderr)
+            self.assertEqual(payload["code"], "manifest_invalid")
+            self.assertIn("schema_version must be the number 1", payload["errors"][0]["message"])
+            self.assertEqual(result.stderr, "")
             self.assertFalse((root / "action-items").exists())
 
     def test_existing_bundle_requires_force_and_force_replaces_it(self) -> None:
@@ -227,7 +332,10 @@ class PrdBundleCliTests(unittest.TestCase):
             sentinel.write_text("old", encoding="utf-8")
 
             refused = run_generator(EXAMPLE, output_root)
+            payload = load_yaml(refused.stdout)
             self.assertEqual(refused.returncode, 2)
+            self.assertEqual(payload["code"], "bundle_exists")
+            self.assertIn(" inspect", payload["next"][0])
             self.assertTrue(sentinel.exists())
 
             replaced = run_generator(EXAMPLE, output_root, "--force")

@@ -35,18 +35,32 @@ The agent owns interviewing, repository analysis, content judgment, uncertainty,
 From the repository root:
 
 ```sh
-python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py \
+python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py validate \
+  plugins/project-advisor/skills/to-prd/examples/basic-prd.yaml
+python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py generate \
   plugins/project-advisor/skills/to-prd/examples/basic-prd.yaml
 ```
 
 This creates `action-items/PRD-example-review-bundle/`.
 
+Useful commands:
+
+- `status` shows the workspace dashboard and is the no-argument default.
+- `validate <prd.yaml>` validates without writing a bundle.
+- `generate <prd.yaml>` writes the bundle after validation.
+- `inspect <bundle-dir>` summarizes a generated bundle.
+- `schema [block]` shows manifest fields.
+- `examples [name]` lists bundled manifests.
+
 Options:
 
-- `--output-root <directory>` changes the bundle parent.
+- `--output-root <directory>` changes the bundle parent for `status` and `generate`.
 - `--force` atomically replaces an existing bundle with the same slug after the new output validates.
+- `--format yaml|text` defaults to structured YAML.
+- `--full` expands large `validate` and `inspect` output.
 
-No virtual environment, package installation, Node.js, Codex browser, or subagent capability is required. If no preview mechanism is available, provide the absolute `index.html` path and clearly identify visual checks still requiring human review.
+No virtual environment, package installation, Node.js, Codex browser, or subagent capability is required.
+If no preview mechanism is available, provide the absolute `index.html` path and clearly identify visual checks still requiring human review.
 
 ## Contracts and fixtures
 

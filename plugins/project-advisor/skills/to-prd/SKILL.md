@@ -59,11 +59,14 @@ The generator is responsible for contract validation, canonical rendering, asset
 Use `python3` and keep the workflow portable:
 
 ```sh
-python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py \
+python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py validate \
+  /path/to/prd-manifest.yaml
+python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py generate \
   /path/to/prd-manifest.yaml
 ```
 
-Use `--output-root <directory>` only when needed by the workspace. Use `--force` only when intentionally replacing an earlier draft after revising the manifest.
+Use `--output-root <directory>` only when needed by the workspace.
+Use `--force` only when intentionally replacing an earlier draft after revising the manifest.
 
 If `python3` is unavailable, report that deterministic generation is blocked and preserve the manifest for another environment. Do not recreate the bundle by hand.
 

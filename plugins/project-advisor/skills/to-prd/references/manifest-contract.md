@@ -69,8 +69,11 @@ If the source becomes dense, split the content into a smaller diagram plus prose
 From the repository root:
 
 ```sh
-python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py \
+python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py validate \
+  /path/to/prd-manifest.yaml
+python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py generate \
   /path/to/prd-manifest.yaml
 ```
 
+The CLI emits structured YAML by default.
 The generator validates the manifest, renders the bundle, preserves normalized YAML as `prd.yaml`, copies versioned assets, validates the staged output, and only then publishes the bundle directory.

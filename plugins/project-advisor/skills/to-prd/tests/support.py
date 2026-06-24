@@ -20,25 +20,27 @@ if str(SKILL_DIR) not in sys.path:
 import scripts as BUNDLE  # noqa: E402
 
 
+def run_cli(*args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, "-m", "scripts", *args],
+        check=False,
+        capture_output=True,
+        text=True,
+        cwd=SKILL_DIR,
+    )
+
+
 def run_generator(
     manifest: Path,
     output_root: Path,
     *extra_args: str,
 ) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        [
-            sys.executable,
-            "-m",
-            "scripts",
-            str(manifest),
-            "--output-root",
-            str(output_root),
-            *extra_args,
-        ],
-        check=False,
-        capture_output=True,
-        text=True,
-        cwd=SKILL_DIR,
+    return run_cli(
+        "generate",
+        str(manifest),
+        "--output-root",
+        str(output_root),
+        *extra_args,
     )
 
 

@@ -37,6 +37,18 @@ def _readable_mermaid_source(source: str) -> str:
 class ManifestError(ValueError):
     """Raised when a manifest does not satisfy the version 1 contract."""
 
+    def __init__(self, errors: list[str] | str) -> None:
+        if isinstance(errors, str):
+            self.errors = [
+                line.removeprefix("- ")
+                for line in errors.splitlines()
+                if line.strip()
+            ]
+            super().__init__(errors)
+        else:
+            self.errors = errors
+            super().__init__("\n".join(f"- {message}" for message in self.errors))
+
 
 def _non_empty_string(value: Any, path: str, errors: list[str]) -> str:
     if not isinstance(value, str) or not value.strip():
@@ -458,7 +470,7 @@ def validate_manifest(raw: Any) -> NormalizedManifest:
     _assign_and_validate_traceability(normalized["blocks"], errors)
 
     if errors:
-        raise ManifestError("\n".join(f"- {message}" for message in errors))
+        raise ManifestError(errors)
     return normalized
 
 
