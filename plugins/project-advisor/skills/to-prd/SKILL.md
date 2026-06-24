@@ -1,6 +1,6 @@
 ---
 name: to-prd
-description: "Use whenever the user needs a PRD, feature spec, requirements doc, planning brief, or a fuzzy product idea turned into a reviewable English product document. Also use it when the user needs scope, requirements, decisions, risks, or acceptance criteria clarified before implementation. Interview until the decisions that shape the plan are concrete, ground the document in the repository, then generate and validate the English-only local PRD bundle before offering issue splitting. Preserve German only for codebase-backed identifiers, labels, or idioms."
+description: "Use whenever the user needs a PRD, feature spec, requirements doc, planning brief, or a fuzzy product idea turned into a reviewable English product document. Also use it when the user needs scope, requirements, decisions, risks, acceptance criteria, or review feedback applied to an existing PRD bundle before implementation. Interview until the decisions that shape the plan are concrete, ground the document in the repository, then generate and validate the English-only local PRD bundle before offering issue splitting. When revising after review, make focused edits to the existing prd.yaml and regenerate rather than rewriting the full manifest. Preserve German only for codebase-backed identifiers, labels, or idioms."
 ---
 
 # Write a PRD
@@ -20,6 +20,7 @@ Treat product judgment as the main job. Keep the loop short: discover, draft, va
 - Use repository evidence for terminology, current behavior, and durable constraints. Do not turn a helpful file path or symbol into a mandatory implementation plan unless that precision matters to the product decision.
 - Write every user-visible PRD string in English, even when the user prompt, repository comments, or existing planning artifacts are German.
 - Preserve German only for exact code identifiers, file names, API names, product labels, or domain idioms that already appear in the analyzed repository. When you keep German wording, treat it as quoted repository terminology and attach evidence where the manifest supports evidence.
+- After human review, treat `action-items/PRD-<slug>/prd.yaml` as the editable source. Read it, map feedback to the smallest YAML paths that need changes, and preserve unrelated text, ordering, and stable IDs.
 
 ## 1. Discover the initiative
 
@@ -85,7 +86,17 @@ Open the bundle for the user with:
 open action-items/PRD-<slug>/index.html
 ```
 
-Ask the user to accept the PRD or request changes. If they ask for changes, update the manifest, regenerate with `--force`, rerun the relevant validation, and reopen the revised bundle.
+Ask the user to accept the PRD or request changes.
+
+When the user requests changes:
+
+1. Read the existing `action-items/PRD-<slug>/prd.yaml`.
+2. Restate the requested deltas only if the feedback is ambiguous.
+3. Apply focused YAML edits with the editing tool instead of rewriting the file from scratch.
+4. Preserve stable IDs for unchanged requirements, decisions, risks, questions, and tests.
+5. Regenerate from that edited `prd.yaml` with `--force`, rerun the relevant validation, and reopen the revised bundle.
+
+Only rewrite the full manifest when the user asks for a new PRD, changes the initiative shape so broadly that most blocks are obsolete, or the existing `prd.yaml` is invalid and cannot be repaired with targeted edits.
 
 Do not treat the draft as accepted until human review is complete. Keep `prd.yaml` beside `index.html` so the accepted source remains available.
 

@@ -91,6 +91,21 @@
         "Privacy and retention policy remain explicit open questions unless repository evidence resolves them.",
         "The run generates the standard review bundle and stops before issue splitting."
       ]
+    },
+    {
+      "id": 8,
+      "prompt": "I reviewed the generated PRD source in evals/fixtures/data-heavy.yaml. Please revise only this feedback: make the summary say that broken traceability must block publication, and add an open question about whether renamed entities can keep their IDs. Do not change the initiative type, selected review surfaces, existing requirement IDs, or unrelated blocks. Regenerate the bundle after the edit and stop for review.",
+      "expected_output": "A revised PRD bundle created from focused edits to the existing YAML source, preserving unrelated content and stable IDs while applying only the requested review feedback.",
+      "files": [
+        "plugins/project-advisor/skills/to-prd/evals/fixtures/data-heavy.yaml"
+      ],
+      "expectations": [
+        "The run reads the existing YAML source before editing instead of authoring a fresh manifest from scratch.",
+        "The summary is updated to mention broken traceability blocking publication.",
+        "An open question about renamed entities keeping IDs is added with a stable QUESTION-* ID.",
+        "The existing initiative type, review surfaces, requirement ID REQ-STABLE-TRACE, and test ID TEST-STABLE-TRACE remain unchanged.",
+        "Unrelated blocks remain semantically unchanged and the revised bundle is regenerated and validated before review."
+      ]
     }
   ]
 }
