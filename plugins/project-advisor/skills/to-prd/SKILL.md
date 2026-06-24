@@ -51,6 +51,8 @@ Your responsibilities:
 - choose the initiative type, review surfaces, and only the blocks that improve review quality;
 - write requirements, decisions, risks, testing intent, and open questions with stable IDs and traceability where required;
 - include visuals only when they clarify a workflow, state, boundary, or contract better than prose alone.
+- prefer native diagram data for simple node-edge flows, and reserve Mermaid for branches, loops, boundaries, lifecycle states, or cross-system flows.
+- make Mermaid diagrams small, review-question focused, and explicit about decision, failure, fallback, and boundary paths.
 
 The generator is responsible for contract validation, canonical rendering, asset copying, bundle staging, and structural output validation.
 

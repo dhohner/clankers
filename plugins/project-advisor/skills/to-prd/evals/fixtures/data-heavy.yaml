@@ -21,8 +21,19 @@ blocks:
       validation:
         - "TEST-STABLE-TRACE"
   data_flow_diagram:
-    description: "Interview findings become manifest entities, which become rendered traceability links."
-    source: "flowchart TB\n  A[Interview findings] --> B[Manifest entities]\n  B --> C[Rendered traceability]"
+    description: "Repository evidence and interview findings become manifest entities; unresolved traceability blocks publication until fixed."
+    source: |-
+      flowchart TB
+        subgraph Inputs
+          interview[Interview findings]
+          repo[Repository evidence]
+        end
+        interview --> manifest[Manifest entities]
+        repo --> manifest
+        manifest --> traceability{Traceability complete?}
+        traceability -->|No| fix[Fix IDs or validation links]
+        fix --> manifest
+        traceability -->|Yes| bundle[Rendered PRD bundle]
   data_model:
     - entity: Planning entity
       definition: "A requirement, decision, risk, question, or test with a stable ID and typed relationships."

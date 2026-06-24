@@ -53,6 +53,17 @@ Use YAML block scalars such as `|-` for multiline Mermaid source or code.
 Use Mermaid source only when it communicates the relationship more clearly.
 Treat wireframes and annotated screens as read-only review aids, not final production design.
 
+### Mermaid authoring
+
+Prefer Mermaid for branches, loops, boundaries, lifecycle states, or cross-system flows that native nodes and edges cannot express clearly.
+Make each diagram answer one review question, such as where acceptance gates issue handoff or where sensitive data crosses a boundary.
+Keep diagrams small: 6 to 10 visible nodes, meaningful node labels, and short edge labels.
+Show failure, fallback, and decision paths when they affect scope or acceptance.
+Use `subgraph` blocks to show product, runtime, repository, generated artifact, or external-service boundaries.
+Reference stable PRD IDs on important edges only when it improves traceability, for example `|TEST-04 verifies REQ-04|`.
+Avoid decorative styling, custom classes, icons, and clever Mermaid features that make the source fallback harder to read.
+If the source becomes dense, split the content into a smaller diagram plus prose, a table, or native diagram data.
+
 ## Generation
 
 From the repository root:

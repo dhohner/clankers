@@ -18,8 +18,14 @@ blocks:
     - current: A draft can be mistaken for an accepted planning source.
       future: Review and acceptance are explicit before issue splitting is offered.
   workflow_diagram:
-    description: "Drafts are generated and reviewed; requested changes return to drafting, while acceptance enables an optional handoff."
-    source: "flowchart TB\n  A[Draft] --> B[Review]\n  B -->|Changes| A\n  B -->|Accepted| C[Offer issue handoff]"
+    description: "The review gate sends requested changes back to manifest revision and only accepted drafts reach issue handoff."
+    source: |-
+      flowchart TB
+        draft[Generated draft] --> review[Human review]
+        review --> gate{Accepted?}
+        gate -->|Changes requested| revise[Revise manifest]
+        revise --> draft
+        gate -->|Accepted| handoff[Offer issue handoff]
   failure_paths:
     - scenario: The reviewer requests changes.
       fallback: "Update the manifest, regenerate, validate, and request review again."

@@ -14,6 +14,13 @@ Apply this checklist after the generator succeeds and before requesting human ac
 
 - Each requirement has a stable ID and connects to a validation outcome or an explicit exception.
 
+## Visual content
+
+- Every diagram has a concise text description that is useful without rendering.
+- Native diagram data is used for simple node-edge flows.
+- Mermaid diagrams stay small, answer one review question, and show decision, failure, fallback, or boundary paths when those paths affect acceptance.
+- Mermaid node and edge labels are readable as source fallback, not just as rendered artwork.
+
 ## Language
 
 - User-visible PRD prose is English in both `prd.yaml` and `index.html`.

@@ -52,12 +52,17 @@ blocks:
     description: "The future workflow moves from discovery through generation, review, revision, and issue handoff."
     source: |-
       flowchart TB
-        A[Discover and ground] --> B[Shape the solution]
-        B --> C[Generate PRD bundle]
-        C --> D[Review the artifact]
-        D --> E{Accepted?}
-        E -->|Changes| B
-        E -->|Accepted| F[Split into issues]
+        subgraph Discovery
+          interview[Interview and repo evidence] --> scope[Scope and open questions]
+        end
+        subgraph Publication
+          scope --> manifest[prd.yaml manifest]
+          manifest --> generator[Validate and render bundle]
+        end
+        generator --> review[Human review]
+        review --> accepted{Accepted?}
+        accepted -->|Changes requested| scope
+        accepted -->|Accepted| handoff[Optional issue handoff]
   requirements:
     - id: "REQ-01"
       title: "Portable multi-file bundle"
@@ -155,7 +160,7 @@ blocks:
           label: Shape
         - from: manifest
           to: generator
-          label: Validator is validating stuff
+          label: Validate
         - from: generator
           to: bundle
           label: Render
