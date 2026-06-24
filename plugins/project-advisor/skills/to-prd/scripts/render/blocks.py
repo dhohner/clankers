@@ -4,19 +4,19 @@ from __future__ import annotations
 
 from typing import Any
 
-from .render_helpers import (
+from ..spec import BlockSpec, entity_label
+from .helpers import (
     escape_html,
     field_label,
     render_evidence_items,
     render_list,
     render_relationship_links,
 )
-from .render_visuals import (
+from .visuals import (
     render_frames,
     render_mermaid_diagram,
     render_native_diagram,
 )
-from .spec import BlockSpec, entity_label
 
 
 def render_cards(name: str, items: list[dict[str, Any]], spec: BlockSpec) -> str:

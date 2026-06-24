@@ -5,8 +5,8 @@ from __future__ import annotations
 import math
 from typing import Any
 
-from .render_helpers import escape_html, field_label
-from .spec import BlockSpec
+from ..spec import BlockSpec
+from .helpers import escape_html, field_label
 
 
 def render_visual_heading(kind: str, description: str, description_id: str) -> str:

@@ -10,7 +10,7 @@ from __future__ import annotations
 from .bundle import generate_bundle
 from .output_validation import BundleValidationError, validate_generated_bundle
 from .paths import ASSET_DIR, SCRIPT_DIR, SOURCE_DIR, TEMPLATE_PATH
-from .rendering import render_document
+from .render import render_document
 from .spec import (
     BLOCK_SPECS,
     ENTITY_ID_PATTERN,
@@ -29,13 +29,13 @@ from .yaml_manifest import _yaml_object, dumps as dump_yaml, loads as load_yaml
 
 
 def parse_args(argv: list[str] | None = None):
-    from .__main__ import parse_args as _parse_args
+    from .cli import parse_args as _parse_args
 
     return _parse_args(argv)
 
 
 def main(argv: list[str] | None = None):
-    from .__main__ import main as _main
+    from .cli import main as _main
 
     return _main(argv)
 

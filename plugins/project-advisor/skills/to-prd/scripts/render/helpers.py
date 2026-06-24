@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import html
 
-from .spec import entity_label
+from ..spec import entity_label
 
 
 def escape_html(value: str) -> str:

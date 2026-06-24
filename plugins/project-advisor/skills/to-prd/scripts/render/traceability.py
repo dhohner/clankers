@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from .render_helpers import escape_html
-from .spec import BLOCK_SPECS, entity_label
-from .types import NormalizedBlocks
+from ..spec import BLOCK_SPECS, entity_label
+from ..types import NormalizedBlocks
+from .helpers import escape_html
 
 
 def iter_entities(blocks: NormalizedBlocks) -> list[tuple[str, str, str, dict[str, Any]]]:
