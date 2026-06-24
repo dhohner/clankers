@@ -38,6 +38,8 @@ class PrdBundleAssetsTests(unittest.TestCase):
         self.assertIn("main {\n  grid-column: 2", styles)
         self.assertIn("width: 100%", styles)
         self.assertNotIn("width: min(1160px, 100%)", styles)
+        self.assertNotIn("max-width: 850px", styles)
+        self.assertNotIn("max-width: 820px", styles)
         self.assertIn("padding: 42px clamp(54px, 4vw, 88px) 70px", styles)
         self.assertNotIn(
             "main {\n  grid-column: 2;\n  width: 100%;\n"
