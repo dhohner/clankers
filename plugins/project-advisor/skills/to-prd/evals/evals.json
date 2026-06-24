@@ -78,6 +78,19 @@
         "Failure handling and atomic publication behavior are represented without turning evidence paths into mandatory implementation instructions.",
         "Packaging and schema-migration strategy remain open unless the repository already settles them."
       ]
+    },
+    {
+      "id": 7,
+      "prompt": "Erstelle ein PRD fuer eine Lesebestaetigung im Maintainer Review Queue. Der Reviewer soll sehen, ob ein generiertes PRD schon geoeffnet wurde, aber das erste Release soll keine Benachrichtigungen und keine Bearbeitung im Queue haben. Inspect the repository for current terms and generate the normal review bundle. Keep any undecided privacy or retention policy open instead of inventing it.",
+      "expected_output": "A repo-grounded PRD bundle written in English throughout, translating the German feature request into natural English while preserving only repository-backed German identifiers or idioms if they exist.",
+      "files": [],
+      "expectations": [
+        "All user-visible PRD prose in prd.yaml and index.html is English, including titles, summaries, requirements, decisions, risks, questions, tables, and visual labels.",
+        "German wording appears only for exact repository-backed identifiers, product labels, or domain idioms, with evidence when the manifest field supports it.",
+        "The PRD does not mix German prose under English headings.",
+        "Privacy and retention policy remain explicit open questions unless repository evidence resolves them.",
+        "The run generates the standard review bundle and stops before issue splitting."
+      ]
     }
   ]
 }

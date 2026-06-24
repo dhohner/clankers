@@ -12,6 +12,14 @@ Create YAML that the bundled `python3` generator can validate and render. Use [.
 - `metadata`: string-valued labels; do not set generated labels such as `Output`
 - `blocks`: a non-empty mapping containing only supported block names
 
+## Language
+
+Write all user-visible manifest text in English: `title`, `summary`, `status`, `metadata`, block content, table labels, diagram descriptions, wireframe labels, and Mermaid labels.
+Translate German user input, comments, and documentation into natural English planning language.
+Keep German only when it is an exact repository-backed code identifier, file name, API name, product label, or domain idiom.
+When a German phrase is kept for that reason, attach the relevant repository evidence where the field supports `evidence`; otherwise keep it visibly quoted as repository terminology.
+Do not write mixed German prose with English headings.
+
 ## Block selection
 
 Select blocks because they improve a product decision, not to fill a template.

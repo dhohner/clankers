@@ -14,4 +14,11 @@ Apply this checklist after the generator succeeds and before requesting human ac
 
 - Each requirement has a stable ID and connects to a validation outcome or an explicit exception.
 
+## Language
+
+- User-visible PRD prose is English in both `prd.yaml` and `index.html`.
+- German appears only as exact repository-backed terminology: code identifiers, file names, API names, product labels, or domain idioms from the analyzed codebase.
+- Any retained German phrase has repository evidence when the manifest field supports evidence, or is visibly quoted as repository terminology when it does not.
+- There is no German prose hidden under English headings.
+
 Fix failures in the manifest or generator, regenerate, and repeat the relevant deterministic checks. Leave responsive, print, and rendered accessibility checks for human review unless the environment already provides a low-cost preview path.

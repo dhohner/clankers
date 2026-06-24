@@ -65,4 +65,5 @@ cd plugins/project-advisor/skills/to-prd
 python3 -m unittest discover tests 'test_prd_bundle_*.py'
 ```
 
-PRDs are written in English.
+PRDs are written in English throughout.
+German wording is preserved only for exact repository-backed identifiers, product labels, or domain idioms from the analyzed codebase.

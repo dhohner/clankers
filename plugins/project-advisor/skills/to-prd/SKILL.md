@@ -1,6 +1,6 @@
 ---
 name: to-prd
-description: "Use whenever the user needs a PRD, feature spec, requirements doc, planning brief, or a fuzzy product idea turned into a reviewable product document. Also use it when the user needs scope, requirements, decisions, risks, or acceptance criteria clarified before implementation. Interview until the decisions that shape the plan are concrete, ground the document in the repository, then generate and validate the local PRD bundle before offering issue splitting."
+description: "Use whenever the user needs a PRD, feature spec, requirements doc, planning brief, or a fuzzy product idea turned into a reviewable English product document. Also use it when the user needs scope, requirements, decisions, risks, or acceptance criteria clarified before implementation. Interview until the decisions that shape the plan are concrete, ground the document in the repository, then generate and validate the English-only local PRD bundle before offering issue splitting. Preserve German only for codebase-backed identifiers, labels, or idioms."
 ---
 
 # Write a PRD
@@ -18,6 +18,8 @@ Treat product judgment as the main job. Keep the loop short: discover, draft, va
 - Keep interview rounds small. Ask at most 4 questions unless the user explicitly wants a broader intake.
 - Present updates in a scannable shape: short `Confirmed`, `Provisional`, and `Open` bullets, then numbered `Questions`.
 - Use repository evidence for terminology, current behavior, and durable constraints. Do not turn a helpful file path or symbol into a mandatory implementation plan unless that precision matters to the product decision.
+- Write every user-visible PRD string in English, even when the user prompt, repository comments, or existing planning artifacts are German.
+- Preserve German only for exact code identifiers, file names, API names, product labels, or domain idioms that already appear in the analyzed repository. When you keep German wording, treat it as quoted repository terminology and attach evidence where the manifest supports evidence.
 
 ## 1. Discover the initiative
 
@@ -44,6 +46,7 @@ Read [./references/manifest-contract.md](./references/manifest-contract.md). Cre
 Your responsibilities:
 
 - synthesize the interview and repository evidence;
+- translate German user input and repository prose into natural English PRD text;
 - choose the initiative type, review surfaces, and only the blocks that improve review quality;
 - write requirements, decisions, risks, testing intent, and open questions with stable IDs and traceability where required;
 - include visuals only when they clarify a workflow, state, boundary, or contract better than prose alone.
@@ -68,8 +71,9 @@ Read [./references/review-checklist.md](./references/review-checklist.md). Gener
 After generation:
 
 1. Inspect the produced bundle and assets.
-2. Treat deterministic validation as the gate for agent-side completion: the manifest must parse, the generator must succeed, and the staged bundle must satisfy the structural checks in the checklist.
-3. If validation fails, fix the manifest and regenerate. Leave responsive, print, and rendered accessibility judgment to the human reviewer unless the environment provides a low-cost preview path.
+2. Check the rendered PRD and `prd.yaml` for German prose. Translate it to English unless the exact phrase is a codebase-backed identifier, product label, or domain idiom.
+3. Treat deterministic validation as the gate for agent-side completion: the manifest must parse, the generator must succeed, and the staged bundle must satisfy the structural checks in the checklist.
+4. If validation fails, fix the manifest and regenerate. Leave responsive, print, and rendered accessibility judgment to the human reviewer unless the environment provides a low-cost preview path.
 
 Fix structural or content issues by editing the manifest and regenerating. Treat `prd.yaml` as the planning source of truth and `index.html` as the review surface.
 
