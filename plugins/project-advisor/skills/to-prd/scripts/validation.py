@@ -11,6 +11,7 @@ from .spec import (
     GENERATED_METADATA_LABELS,
     INITIATIVE_TYPES,
     MANIFEST_FIELDS,
+    REQUIRED_SURFACES_BY_INITIATIVE,
     REVIEW_SURFACES,
     SLUG_PATTERN,
     entity_label,
@@ -389,8 +390,18 @@ def validate_manifest(raw: Any) -> NormalizedManifest:
     for index, surface in enumerate(surfaces):
         if surface not in REVIEW_SURFACES:
             errors.append(f"review_surfaces[{index}] must be one of: " + ", ".join(sorted(REVIEW_SURFACES)))
-    if len(surfaces) != len(set(surfaces)):
+    surface_set = set(surfaces)
+    if len(surfaces) != len(surface_set):
         errors.append("review_surfaces must not contain duplicates")
+    required_surfaces = REQUIRED_SURFACES_BY_INITIATIVE.get(initiative_type, set())
+    missing_surfaces = sorted(required_surfaces - surface_set)
+    if missing_surfaces:
+        errors.append(
+            f"initiative_type {initiative_type} requires review_surfaces: "
+            + ", ".join(missing_surfaces)
+        )
+    if initiative_type == "mixed" and len(surface_set - {"document"}) < 2:
+        errors.append("initiative_type mixed requires at least two non-document review surfaces")
 
     normalized: NormalizedManifest = {
         "schema_version": 1,

@@ -49,6 +49,27 @@ class PrdBundleValidationTests(unittest.TestCase):
         self.assertIn("unsupported block name(s): mystery_panel", message)
         self.assertIn("blocks.api_contract[0].behavior must be a non-empty string", message)
 
+    def test_initiative_type_must_match_review_surfaces(self) -> None:
+        ui_manifest = base_manifest("ui-heavy", ["document", "api"])
+        ui_manifest["blocks"] = {
+            "problem": {"statement": "A clear problem.", "evidence": ["Observed evidence."]}
+        }
+        with self.assertRaises(BUNDLE.ManifestError) as raised_ui:
+            BUNDLE.validate_manifest(ui_manifest)
+        self.assertIn(
+            "initiative_type ui-heavy requires review_surfaces: ui",
+            str(raised_ui.exception),
+        )
+
+        mixed_manifest = base_manifest("mixed", ["document"])
+        mixed_manifest["blocks"] = ui_manifest["blocks"]
+        with self.assertRaises(BUNDLE.ManifestError) as raised_mixed:
+            BUNDLE.validate_manifest(mixed_manifest)
+        self.assertIn(
+            "initiative_type mixed requires at least two non-document review surfaces",
+            str(raised_mixed.exception),
+        )
+
     def test_native_diagram_rejects_unknown_edge_targets(self) -> None:
         manifest = base_manifest("architecture-heavy", ["document", "architecture"])
         manifest["blocks"] = {

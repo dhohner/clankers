@@ -8,8 +8,8 @@ Create YAML that the bundled `python3` generator can validate and render. Use [.
 - `slug`: lowercase kebab-case; output becomes `action-items/PRD-<slug>/`
 - `title`, `summary`, `status`: non-empty strings
 - `initiative_type`: `small-feature`, `ui-heavy`, `workflow-heavy`, `api-heavy`, `data-heavy`, `architecture-heavy`, or `mixed`
-- `review_surfaces`: one or more of `document`, `ui`, `workflow`, `api`, `data`, and `architecture`
-- `metadata`: string-valued labels; do not set generated labels such as `Output`
+- `review_surfaces`: one or more of `document`, `ui`, `workflow`, `api`, `data`, and `architecture`; include `document`, include the matching surface for `*-heavy` initiatives, and use at least two non-document surfaces for `mixed`
+- `metadata`: string-valued labels; do not set generated labels such as `Initiative`, `Review surfaces`, or `Output`
 - `blocks`: a non-empty mapping containing only supported block names
 
 ## Language

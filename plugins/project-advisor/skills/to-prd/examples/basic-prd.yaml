@@ -49,24 +49,24 @@ blocks:
       need: Generate a stable review artifact without recreating page structure for every PRD.
       outcome: Layout and interaction regressions are fixed once in versioned generator assets.
   workflow_diagram:
-    description: "The future workflow moves from discovery through generation, review, revision, and issue handoff."
+    description: "The future workflow moves from interview and repository evidence through scope decisions, generation, review, revision, and issue handoff."
     source: |-
       flowchart TB
-        subgraph Discovery
-          interview[Interview and repo evidence] --> scope[Scope and open questions]
+        subgraph "01 Discovery"
+          interview[Interview] --> scope[Scope decisions]
         end
-        subgraph Publication
+        subgraph "02 Publication"
           scope --> manifest[prd.yaml manifest]
           manifest --> generator[Validate and render bundle]
         end
         generator --> review[Human review]
         review --> accepted{Accepted?}
-        accepted -->|Changes requested| scope
-        accepted -->|Accepted| handoff[Optional issue handoff]
+        accepted -->|Revise| scope
+        accepted -->|Accept| handoff[Optional issue handoff]
   requirements:
     - id: "REQ-01"
       title: "Portable multi-file bundle"
-      description: "Generate index.html with versioned companion CSS, JavaScript, SVG, and other local assets."
+      description: "Generate index.html with versioned companion CSS, JavaScript, and other local assets."
       validation:
         - "TEST-01"
       relates_to:
@@ -228,15 +228,15 @@ blocks:
       relates_to:
         - "REQ-02"
   repository_grounding:
-    - reference: "action-items/PRD-rich-interactive-html-output/index.html"
-      observation: "The approved artifact uses a persistent rail, hero metadata, numbered sections, and purpose-specific content structures."
-      implication: The generator shell and renderers must encode those structures directly.
-    - reference: "action-items/PRD-rich-interactive-html-output/styles.css"
+    - reference: "plugins/project-advisor/skills/to-prd/bundle/index.template.html"
+      observation: "The template defines the persistent rail, hero metadata, content shell, and review controls."
+      implication: The generator shell must encode those structures directly.
+    - reference: "plugins/project-advisor/skills/to-prd/bundle/assets/styles.css"
       observation: "Ordinary content is flat while diagrams, tables, details, and callouts are visually bounded."
       implication: Generic card styling cannot be the default content renderer.
-    - reference: "action-items/PRD-rich-interactive-html-output/app.js"
-      observation: "Interaction is limited to navigation, details, anchors, and print behavior."
+    - reference: "plugins/project-advisor/skills/to-prd/bundle/assets/app.js"
+      observation: "Interaction is limited to navigation, details, anchors, Mermaid rendering, and print behavior."
       implication: "Generated JavaScript should preserve the same review-only interaction boundary."
-    - reference: "plugins/project-advisor/skills/to-prd/scripts/prd_bundle/bundle.py"
-      observation: The generator already validates manifests and copies versioned assets.
+    - reference: "plugins/project-advisor/skills/to-prd/scripts/bundle.py::generate_bundle"
+      observation: The generator validates manifests, copies versioned assets, and publishes only after structural checks pass.
       implication: Visual reliability should be added without weakening deterministic generation.

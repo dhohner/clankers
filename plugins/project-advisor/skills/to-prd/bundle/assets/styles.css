@@ -402,6 +402,13 @@ details > :not(summary) { margin-left: 18px; margin-right: 18px; }
   max-height: none;
   margin: auto;
 }
+.mermaid-canvas .cluster rect {
+  fill: transparent !important;
+  stroke: transparent !important;
+}
+.mermaid-canvas .cluster-label {
+  display: none;
+}
 .native-node rect { fill: var(--surface-soft); stroke: var(--accent); stroke-width: 2; }
 .native-node-label {
   display: grid;

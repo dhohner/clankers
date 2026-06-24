@@ -42,6 +42,7 @@ class PrdBundleOutputValidationTests(unittest.TestCase):
                 root,
                 '<h1 id="document-title">Fixture</h1>'
                 '<h2 id="summary">Summary</h2>'
+                '<section id="problem"><h2 id="problem-heading">Problem</h2></section>'
                 '<a href="#summary">Summary</a>'
                 '<link rel="stylesheet" href="./assets/styles.css">',
             )
@@ -67,6 +68,59 @@ class PrdBundleOutputValidationTests(unittest.TestCase):
             self.assertIn("duplicate IDs: duplicate", message)
             self.assertIn("broken anchors: missing", message)
             self.assertIn("missing asset: ./assets/missing.js", message)
+
+    def test_reports_manifest_content_missing_from_rendered_html(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            (root / "index.html").write_text(
+                '<h1 id="document-title">Fixture</h1>',
+                encoding="utf-8",
+            )
+            (root / "prd.yaml").write_text(
+                dump_yaml(
+                    {
+                        "schema_version": 1,
+                        "slug": "fixture",
+                        "title": "Fixture",
+                        "summary": "Fixture summary",
+                        "status": "Draft",
+                        "initiative_type": "small-feature",
+                        "review_surfaces": ["document"],
+                        "metadata": {"Owner": "Test"},
+                        "blocks": {
+                            "requirements": [
+                                {
+                                    "title": "Portable bundle",
+                                    "description": "Assets resolve locally.",
+                                    "validation": ["TEST-01"],
+                                }
+                            ],
+                            "testing_strategy": [
+                                {
+                                    "id": "TEST-01",
+                                    "target": "Asset links",
+                                    "expected_outcome": "Every local asset exists.",
+                                    "validates": ["REQ-01"],
+                                }
+                            ],
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            with self.assertRaises(BUNDLE.BundleValidationError) as raised:
+                BUNDLE.validate_generated_bundle(root)
+
+            message = str(raised.exception)
+            self.assertIn(
+                "missing rendered block section(s): requirements, testing_strategy",
+                message,
+            )
+            self.assertIn(
+                "missing rendered entity anchor(s): req-01, test-01",
+                message,
+            )
 
     def test_validates_preserved_manifest_contract(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:

@@ -33,12 +33,15 @@ class PrdBundleCliTests(unittest.TestCase):
                 '<h1 id="document-title">Rich Interactive HTML Output for to-prd</h1>',
                 document,
             )
+            self.assertIn("<dt>Initiative</dt><dd>mixed</dd>", document)
+            self.assertIn(
+                "<dt>Review surfaces</dt><dd>document, workflow, ui, architecture</dd>",
+                document,
+            )
             self.assertIn(
                 f"<dt>Output</dt><dd>{bundle}/</dd>",
                 document,
             )
-            self.assertNotIn("<dt>Initiative</dt>", document)
-            self.assertNotIn("<dt>Review surfaces</dt>", document)
             self.assertNotIn("{{", document)
             self.assertIn("default-src 'none'", document)
             self.assertIn('script-src \'self\' https://cdn.jsdelivr.net', document)

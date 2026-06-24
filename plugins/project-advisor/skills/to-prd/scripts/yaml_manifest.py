@@ -190,7 +190,7 @@ def _parse_mapping(lines: list[tuple[int, int, str]], index: int, indent: int) -
             else:
                 value = None
         else:
-            value = _parse_scalar(value_text, key)
+            value = _parse_scalar(value_text, key, line_number)
         pairs.append((key, value))
     return _yaml_object(pairs), index
 
@@ -210,16 +210,21 @@ def _parse_sequence(lines: list[tuple[int, int, str]], index: int, indent: int) 
                 value, index = _parse_block(lines, index, lines[index][1])
             else:
                 value = None
+        elif item.startswith(("[", "{")):
+            value = _parse_scalar(item, line_number=line_number)
         elif _has_mapping_separator(item):
             key, value_text = _split_key_value(item, line_number)
-            value = _yaml_object([(key, None if value_text == "" else _parse_scalar(value_text, key))])
+            parsed_value = (
+                None if value_text == "" else _parse_scalar(value_text, key, line_number)
+            )
+            value = _yaml_object([(key, parsed_value)])
             if value_text == "" and index < len(lines) and lines[index][1] > indent:
                 value[key], index = _parse_block(lines, index, lines[index][1])
             if index < len(lines) and lines[index][1] > indent:
                 extra, index = _parse_mapping(lines, index, lines[index][1])
                 value = _yaml_object([*value.items(), *extra.items()])
         else:
-            value = _parse_scalar(item)
+            value = _parse_scalar(item, line_number=line_number)
         result.append(value)
     return result, index
 
@@ -278,11 +283,13 @@ def _parse_key(value: str, line_number: int) -> str:
     return value
 
 
-def _parse_scalar(value: str, key: str = "") -> Any:
+def _parse_scalar(value: str, key: str = "", line_number: int = 1) -> Any:
     if value == "{}":
         return {}
     if value == "[]":
         return []
+    if value.startswith(("[", "{")):
+        return _parse_flow_collection(value, line_number)
     if value in {"null", "~"}:
         return None
     if value == "true":
@@ -293,15 +300,88 @@ def _parse_scalar(value: str, key: str = "") -> Any:
         try:
             return json.loads(value)
         except json.JSONDecodeError as error:
-            raise YamlError(error.msg) from error
+            raise YamlError(error.msg, line_number) from error
     if value.startswith("'"):
-        return _parse_single_quoted(value)
+        return _parse_single_quoted(value, line_number)
     if key == "schema_version":
         try:
             return int(value)
         except ValueError:
             return value
     return value
+
+
+def _parse_flow_collection(value: str, line_number: int) -> Any:
+    try:
+        return json.loads(value, object_pairs_hook=_yaml_object)
+    except json.JSONDecodeError as error:
+        json_message = f"column {error.colno}: {error.msg}"
+    if value.startswith("[") and value.endswith("]"):
+        inner = value[1:-1].strip()
+        if not inner:
+            return []
+        return [
+            _parse_scalar(item, line_number=line_number)
+            for item in _split_flow_items(inner, line_number)
+        ]
+    if value.startswith("{") and value.endswith("}"):
+        inner = value[1:-1].strip()
+        if not inner:
+            return {}
+        pairs: list[tuple[str, Any]] = []
+        for item in _split_flow_items(inner, line_number):
+            key, value_text = _split_key_value(item, line_number)
+            parsed_value = (
+                None if value_text == "" else _parse_scalar(value_text, key, line_number)
+            )
+            pairs.append((key, parsed_value))
+        return _yaml_object(pairs)
+    raise YamlError(json_message, line_number)
+
+
+def _split_flow_items(value: str, line_number: int) -> list[str]:
+    items: list[str] = []
+    start = 0
+    depth = 0
+    quote = ""
+    escaped = False
+    for index, char in enumerate(value):
+        if escaped:
+            escaped = False
+            continue
+        if quote == '"' and char == "\\":
+            escaped = True
+            continue
+        if quote:
+            if char == quote:
+                quote = ""
+            continue
+        if char in {'"', "'"}:
+            quote = char
+            continue
+        if char in "[{":
+            depth += 1
+            continue
+        if char in "]}":
+            if depth == 0:
+                raise YamlError("unexpected flow collection close", line_number)
+            depth -= 1
+            continue
+        if char == "," and depth == 0:
+            item = value[start:index].strip()
+            if not item:
+                raise YamlError("empty flow item", line_number)
+            items.append(item)
+            start = index + 1
+    if quote:
+        raise YamlError("unterminated quoted string", line_number)
+    if depth:
+        raise YamlError("unterminated flow collection", line_number)
+    item = value[start:].strip()
+    if not item:
+        raise YamlError("empty flow item", line_number)
+    items.append(item)
+    return items
 
 
 def _parse_single_quoted(value: str, line_number: int = 1) -> str:

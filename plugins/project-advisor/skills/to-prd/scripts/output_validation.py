@@ -7,6 +7,8 @@ from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
+from .spec import BLOCK_SPECS
+from .types import NormalizedManifest
 from .validation import ManifestError, validate_manifest
 from .yaml_manifest import YamlError, loads
 
@@ -59,6 +61,7 @@ def validate_generated_bundle(bundle: Path) -> None:
     index_path = bundle / "index.html"
     manifest_path = bundle / "prd.yaml"
     errors: list[str] = []
+    normalized_manifest: NormalizedManifest | None = None
 
     if not index_path.is_file():
         errors.append("missing index.html")
@@ -71,7 +74,7 @@ def validate_generated_bundle(bundle: Path) -> None:
             errors.append(f"prd.yaml is not readable YAML: {error}")
         else:
             try:
-                validate_manifest(manifest)
+                normalized_manifest = validate_manifest(manifest)
             except ManifestError as error:
                 errors.append(f"prd.yaml does not match the manifest contract: {error}")
 
@@ -92,6 +95,27 @@ def validate_generated_bundle(bundle: Path) -> None:
             broken = sorted(set(parser.fragment_links) - set(parser.ids))
             if broken:
                 errors.append("index.html contains broken anchors: " + ", ".join(broken))
+            if normalized_manifest is not None:
+                missing_blocks = [
+                    name for name in normalized_manifest["blocks"] if name not in parser.ids
+                ]
+                if missing_blocks:
+                    errors.append(
+                        "index.html is missing rendered block section(s): "
+                        + ", ".join(missing_blocks)
+                    )
+                missing_entities: list[str] = []
+                for block_name, items in normalized_manifest["blocks"].items():
+                    if not BLOCK_SPECS[block_name].id_prefix:
+                        continue
+                    missing_entities.extend(
+                        item["id"] for item in items if item["id"] not in parser.ids
+                    )
+                if missing_entities:
+                    errors.append(
+                        "index.html is missing rendered entity anchor(s): "
+                        + ", ".join(missing_entities)
+                    )
             for local_path in sorted(set(parser.local_paths)):
                 try:
                     resolved = _resolve_local_path(bundle, local_path)

@@ -39,6 +39,21 @@ class PrdBundleYamlManifestTests(unittest.TestCase):
         self.assertEqual(load_yaml(dump_yaml([])), [])
         self.assertEqual(load_yaml(dump_yaml({})), {})
 
+    def test_flow_collections_and_scalar_errors_report_source_line(self) -> None:
+        self.assertEqual(
+            load_yaml("review_surfaces: [document, ui]\nmetadata: {Owner: Test}\n"),
+            {"review_surfaces": ["document", "ui"], "metadata": {"Owner": "Test"}},
+        )
+        self.assertEqual(
+            load_yaml("items:\n  - {Owner: Test}\n"),
+            {"items": [{"Owner": "Test"}]},
+        )
+
+        with self.assertRaises(ValueError) as raised:
+            load_yaml('title: ok\nsummary: "unterminated\n')
+
+        self.assertEqual(raised.exception.line, 2)
+
     def test_rejects_empty_tab_indented_and_duplicate_key_documents(self) -> None:
         for text in (
             "# comment only\n",

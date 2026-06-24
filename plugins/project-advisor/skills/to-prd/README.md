@@ -12,7 +12,6 @@ action-items/PRD-<slug>/
 ├── prd.yaml
 └── assets/
     ├── app.js
-    ├── project-advisor.svg
     └── styles.css
 ```
 

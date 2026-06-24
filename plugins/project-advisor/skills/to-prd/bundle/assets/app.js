@@ -242,8 +242,8 @@ async function renderMermaidDiagrams() {
       securityLevel: "strict",
       theme: "base",
       flowchart: {
-        nodeSpacing: 80,
-        rankSpacing: 90,
+        nodeSpacing: 90,
+        rankSpacing: 120,
         curve: "basis",
       },
       themeVariables: {
@@ -253,6 +253,8 @@ async function renderMermaidDiagrams() {
         primaryTextColor: "#17201c",
         lineColor: "#176b52",
         tertiaryColor: "#dff3ea",
+        clusterBkg: "transparent",
+        clusterBorder: "transparent",
       },
     });
   } catch (error) {

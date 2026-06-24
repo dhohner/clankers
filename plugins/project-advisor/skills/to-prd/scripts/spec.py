@@ -25,6 +25,15 @@ REVIEW_SURFACES = {
     "data",
     "architecture",
 }
+REQUIRED_SURFACES_BY_INITIATIVE = {
+    "small-feature": {"document"},
+    "ui-heavy": {"document", "ui"},
+    "workflow-heavy": {"document", "workflow"},
+    "api-heavy": {"document", "api"},
+    "data-heavy": {"document", "data"},
+    "architecture-heavy": {"document", "architecture"},
+    "mixed": {"document"},
+}
 MANIFEST_FIELDS = {
     "schema_version",
     "slug",
@@ -117,6 +126,7 @@ __all__ = [
     "GENERATED_METADATA_LABELS",
     "INITIATIVE_TYPES",
     "MANIFEST_FIELDS",
+    "REQUIRED_SURFACES_BY_INITIATIVE",
     "REVIEW_SURFACES",
     "SLUG_PATTERN",
     "TEMPLATE_MARKER_PATTERN",

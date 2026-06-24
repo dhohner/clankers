@@ -22,13 +22,12 @@ def render_document(
         if output_path is not None
         else f"action-items/PRD-{manifest['slug']}"
     ).rstrip("/") + "/"
-    metadata_items: dict[str, str] = {}
-    for label, value in manifest["metadata"].items():
-        if label.casefold() == "review mode":
-            metadata_items["Output"] = rendered_output_path
-        metadata_items[label] = value
-    if "Output" not in metadata_items:
-        metadata_items["Output"] = rendered_output_path
+    metadata_items: dict[str, str] = {
+        "Initiative": manifest["initiative_type"],
+        "Review surfaces": ", ".join(manifest["review_surfaces"]),
+    }
+    metadata_items.update(manifest["metadata"])
+    metadata_items["Output"] = rendered_output_path
     metadata = "".join(
         f"<div><dt>{escape_html(label)}</dt><dd>{escape_html(value)}</dd></div>"
         for label, value in metadata_items.items()
