@@ -174,6 +174,8 @@ class PrdBundleCliTests(unittest.TestCase):
     def test_schema_and_examples_are_structured(self) -> None:
         schema = run_cli("schema", "requirements")
         schema_payload = load_yaml(schema.stdout)
+        multi_schema = run_cli("schema", "goals", "personas", "testing_strategy")
+        multi_schema_payload = load_yaml(multi_schema.stdout)
         examples = run_cli("examples", "api-heavy")
         examples_payload = load_yaml(examples.stdout)
         all_examples = run_cli("examples")
@@ -182,6 +184,20 @@ class PrdBundleCliTests(unittest.TestCase):
         self.assertEqual(schema.returncode, 0, schema.stderr)
         self.assertEqual(schema_payload["block"], "requirements")
         self.assertIn("validation", schema_payload["optional_fields"])
+        self.assertEqual(
+            schema_payload["example"]["requirements"][0]["id"],
+            "REQ-01",
+        )
+        self.assertEqual(multi_schema.returncode, 0, multi_schema.stderr)
+        self.assertEqual(
+            [item["block"] for item in multi_schema_payload["schemas"]],
+            ["goals", "personas", "testing_strategy"],
+        )
+        self.assertEqual(
+            multi_schema_payload["schemas"][0]["example"]["goals"][0]["goal"],
+            "Example goal",
+        )
+        self.assertNotIn("status", multi_schema_payload["schemas"][0])
         self.assertEqual(examples.returncode, 0, examples.stderr)
         self.assertEqual(examples_payload["examples"][0]["name"], "api-heavy")
         self.assertIn(" validate", examples_payload["next"][0])

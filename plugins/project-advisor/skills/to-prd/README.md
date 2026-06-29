@@ -38,7 +38,7 @@ From the repository root:
 ```sh
 python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py status
 python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py schema
-python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py schema requirements
+python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py schema requirements testing_strategy
 python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py examples minimal-prd
 python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py validate plugins/project-advisor/skills/to-prd/examples/minimal-prd.yaml
 python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py generate plugins/project-advisor/skills/to-prd/examples/minimal-prd.yaml
@@ -48,7 +48,7 @@ python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py inspect action
 Useful commands:
 
 - `status`: workspace dashboard and no-argument default.
-- `schema [block]`: manifest fields and supported blocks.
+- `schema [block ...]`: manifest fields, supported blocks, and block examples.
 - `examples [name]`: bundled manifest examples.
 - `validate <prd.yaml>`: validate without writing.
 - `generate <prd.yaml>`: generate after validation.

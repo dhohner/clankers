@@ -52,7 +52,7 @@ def _build_parser() -> argparse.ArgumentParser:
     inspect.add_argument("--format", choices=("yaml", "text"), default="yaml")
 
     schema = subparsers.add_parser("schema", help="show manifest schema summary")
-    schema.add_argument("block", nargs="?", help="optional block name, such as requirements")
+    schema.add_argument("blocks", nargs="*", help="optional block names, such as requirements")
     schema.add_argument("--format", choices=("yaml", "text"), default="yaml")
 
     examples = subparsers.add_parser("examples", help="list bundled example manifests")

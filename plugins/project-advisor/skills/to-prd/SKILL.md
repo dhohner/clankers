@@ -50,11 +50,12 @@ Prefer CLI output over loading docs:
 
 ```sh
 python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py schema
-python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py schema <block>
+python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py schema <block> [block ...]
 python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py examples minimal-prd
 ```
 
-Use `examples/minimal-prd.yaml` for syntax.
+Use multi-block `schema` instead of one call per block when you need several formats; each block schema includes an example fragment.
+Use `examples/minimal-prd.yaml` for the smallest valid manifest skeleton.
 Use `evals/fixtures/` for focused surface examples.
 Use `examples/basic-prd.yaml` only for broad mixed initiatives.
 Read [./references/manifest-contract.md](./references/manifest-contract.md) only when schema, fixtures, or validation output are insufficient.

@@ -8,11 +8,12 @@ For compact field details, prefer:
 
 ```sh
 python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py schema
-python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py schema <block>
+python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py schema <block> [block ...]
 python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py examples
 ```
 
-Use `examples/minimal-prd.yaml` for syntax.
+Block schema output includes tiny valid example fragments.
+Use `examples/minimal-prd.yaml` for the smallest valid manifest skeleton.
 Use `examples/basic-prd.yaml` only for broad mixed examples.
 Use `evals/fixtures/*.yaml` for focused document, UI, workflow, API, data, or architecture examples.
 
