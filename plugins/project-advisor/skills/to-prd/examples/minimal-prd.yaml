@@ -1,0 +1,27 @@
+schema_version: 1
+slug: minimal-prd
+title: Minimal PRD Example
+summary: A compact valid manifest for syntax reference.
+status: Draft for review
+initiative_type: small-feature
+review_surfaces:
+  - document
+metadata:
+  Owner: Example team
+blocks:
+  problem:
+    statement: Reviewers need a tiny manifest example before authoring a full PRD.
+    evidence:
+      - The example keeps only the fields needed to validate and generate.
+  requirements:
+    - id: REQ-01
+      title: Valid minimal bundle
+      description: Generate a portable review bundle from a compact manifest.
+      validation:
+        - TEST-01
+  testing_strategy:
+    - id: TEST-01
+      target: Bundle generation
+      expected_outcome: Validation succeeds and the bundle contains index.html, prd.yaml, and local assets.
+      validates:
+        - REQ-01

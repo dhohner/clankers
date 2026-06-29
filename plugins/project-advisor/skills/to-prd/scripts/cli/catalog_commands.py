@@ -98,8 +98,17 @@ def command_examples(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def _example_paths() -> list[Path]:
-    return sorted((SKILL_DIR / "examples").glob("*.yaml")) + sorted(
+    examples_dir = SKILL_DIR / "examples"
+    paths = sorted(examples_dir.glob("*.yaml")) + sorted(
         (SKILL_DIR / "evals" / "fixtures").glob("*.yaml")
+    )
+    return sorted(
+        paths,
+        key=lambda path: (
+            path.stem != "minimal-prd",
+            path.parent != examples_dir,
+            path.name,
+        ),
     )
 
 

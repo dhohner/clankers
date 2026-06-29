@@ -1,116 +1,103 @@
 ---
 name: to-prd
-description: "Use whenever the user needs a PRD, feature spec, requirements doc, planning brief, or a fuzzy product idea turned into a reviewable English product document. Also use it when the user needs scope, requirements, decisions, risks, acceptance criteria, or review feedback applied to an existing PRD bundle before implementation. Interview until the decisions that shape the plan are concrete, ground the document in the repository, then generate and validate the English-only local PRD bundle before offering issue splitting. When revising after review, make focused edits to the existing prd.yaml and regenerate rather than rewriting the full manifest. Preserve German only for codebase-backed identifiers, labels, or idioms."
+description: "Use when the user asks for a PRD, feature spec, requirements doc, planning brief, scope, acceptance criteria, risks, or review feedback on an existing PRD. Turn concrete product decisions into a repo-grounded English PRD bundle, validate it, and stop for review before issue splitting."
 ---
 
 # Write a PRD
 
-Treat product judgment as the main job. Keep the loop short: discover, draft, validate, then stop for human review.
+Product judgment is the job.
+Run the shortest loop that works: discover, draft, validate, stop for human review.
 
-## Working rules
+## Existing PRD first
 
-- Do not guess. Ask when an answer would materially change scope, behavior, rollout, or issue decomposition. Otherwise keep the uncertainty as an assumption or open question.
-- Maintain three buckets throughout the interaction:
-  - `Confirmed`: stated by the user or strongly evidenced by the repo.
-  - `Provisional`: working assumptions that keep planning moving.
-  - `Open`: unresolved decisions that could change the initiative shape.
-- Use an interactive question tool when available. Otherwise ask concise chat questions.
-- Keep interview rounds small. Ask at most 4 questions unless the user explicitly wants a broader intake.
-- Present updates in a scannable shape: short `Confirmed`, `Provisional`, and `Open` bullets, then numbered `Questions`.
-- Use repository evidence for terminology, current behavior, and durable constraints. Do not turn a helpful file path or symbol into a mandatory implementation plan unless that precision matters to the product decision.
-- Write every user-visible PRD string in English, even when the user prompt, repository comments, or existing planning artifacts are German.
-- Preserve German only for exact code identifiers, file names, API names, product labels, or domain idioms that already appear in the analyzed repository. When you keep German wording, treat it as quoted repository terminology and attach evidence where the manifest supports evidence.
-- After human review, treat `action-items/PRD-<slug>/prd.yaml` as the editable source. Read it, map feedback to the smallest YAML paths that need changes, and preserve unrelated text, ordering, and stable IDs.
+Use this path when the user provides `prd.yaml`, an `action-items/PRD-*` bundle, or feedback on a generated PRD.
 
-## 1. Discover the initiative
+1. Read the existing `prd.yaml`.
+2. Clarify only ambiguous feedback.
+3. Edit the smallest YAML paths that satisfy the request.
+4. Preserve unrelated text, ordering, initiative type, review surfaces, and stable IDs unless asked to change them.
+5. Regenerate with `--force`, validate, inspect, and reopen for review.
 
-Read [./references/interview-map.md](./references/interview-map.md) before the first serious interview round. Use it as a decision map, not a script.
+Rewrite the full manifest only for a new PRD, a broad initiative-shape change, or YAML that cannot be repaired safely.
 
-Start by extracting whatever is already known from the conversation: problem, users, desired outcome, constraints, deadlines, and non-goals. Inspect the repository early unless it is clearly irrelevant.
+## Rules
 
-Choose each next question by asking which missing answer would most change the PRD. After each round, summarize what moved between `Confirmed`, `Provisional`, and `Open`.
+- Do not guess decisions that materially change scope, behavior, rollout, risk, or issue decomposition.
+- Track `Confirmed`, `Provisional`, and `Open` while interviewing.
+- Ask at most 4 focused questions per round unless the user wants a broad intake.
+- Inspect the repo early for terminology, current behavior, and durable constraints unless irrelevant.
+- Write user-visible PRD text in English.
+- Preserve German only for exact repo-backed identifiers, filenames, API names, product labels, or domain idioms.
+- Do not split into issues until the user accepts the PRD or explicitly requests a PRD-to-issues flow.
 
-Before drafting, make sure the PRD can honestly describe:
+## 1. Discover
 
-- the main capability areas;
-- what is in scope and explicitly out of scope;
-- the key user-visible workflows, failure paths, and fallback behavior;
-- the decisions, risks, and regressions that need explicit validation;
-- which review surfaces matter: document, workflow, UI, API, data, and/or architecture.
+Extract what is already known: problem, users, outcome, constraints, non-goals, uncertainty, and likely review surfaces.
+Read [./references/interview-map.md](./references/interview-map.md) only when the request is vague, the interview stalls, or a broader decision map is needed.
 
-Stop interviewing once the remaining uncertainty can be labeled without changing the overall initiative shape.
+Ask the question whose answer would most change the PRD.
+After each round, summarize short `Confirmed`, `Provisional`, and `Open` bullets, then numbered `Questions`.
 
-## 2. Author the source of truth
+Draft once you can describe capability areas, scope boundaries, key workflows, failure paths, fallback behavior, risks, validation needs, and review surfaces.
+Leave remaining non-blocking uncertainty as assumptions or open questions.
 
-Read [./references/manifest-contract.md](./references/manifest-contract.md). Create a YAML manifest in a temporary workspace path or another non-colliding location. The manifest is the source of truth; do not hand-author `index.html`.
+## 2. Author YAML
 
-Your responsibilities:
+`prd.yaml` is the source of truth.
+Do not hand-author `index.html`.
 
-- synthesize the interview and repository evidence;
-- translate German user input and repository prose into natural English PRD text;
-- choose the initiative type, review surfaces, and only the blocks that improve review quality;
-- write requirements, decisions, risks, testing intent, and open questions with stable IDs and traceability where required;
-- include visuals only when they clarify a workflow, state, boundary, or contract better than prose alone.
-- prefer native diagram data for simple node-edge flows, and reserve Mermaid for branches, loops, boundaries, lifecycle states, or cross-system flows.
-- make Mermaid diagrams small, review-question focused, and explicit about decision, failure, fallback, and boundary paths.
-
-The generator is responsible for contract validation, canonical rendering, asset copying, bundle staging, and structural output validation.
-
-Use `python3` and keep the workflow portable:
+Prefer CLI output over loading docs:
 
 ```sh
-python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py validate \
-  /path/to/prd-manifest.yaml
-python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py generate \
-  /path/to/prd-manifest.yaml
+python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py schema
+python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py schema <block>
+python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py examples minimal-prd
 ```
 
-Use `--output-root <directory>` only when needed by the workspace.
-Use `--force` only when intentionally replacing an earlier draft after revising the manifest.
+Use `examples/minimal-prd.yaml` for syntax.
+Use `evals/fixtures/` for focused surface examples.
+Use `examples/basic-prd.yaml` only for broad mixed initiatives.
+Read [./references/manifest-contract.md](./references/manifest-contract.md) only when schema, fixtures, or validation output are insufficient.
 
-If `python3` is unavailable, report that deterministic generation is blocked and preserve the manifest for another environment. Do not recreate the bundle by hand.
+Create the manifest in a temporary or non-colliding path.
+Select initiative type, review surfaces, and blocks because they improve review quality, not to fill a template.
+Use stable IDs for requirements, decisions, risks, questions, and tests.
+Connect every requirement to validation outcomes or an explicit exception.
+Add repository evidence only when it materially supports a product statement.
 
-## 3. Validate deterministically
+Use visuals only when they clarify workflow, state, boundary, contract, or data better than prose.
+Prefer native node-edge data for simple diagrams and small Mermaid diagrams for branches, loops, boundaries, lifecycle states, or cross-system flows.
 
-Read [./references/review-checklist.md](./references/review-checklist.md). Generator success is necessary, not sufficient.
+## 3. Generate and validate
 
-After generation:
+From the repo root:
 
-1. Inspect the produced bundle and assets.
-2. Check the rendered PRD and `prd.yaml` for German prose. Translate it to English unless the exact phrase is a codebase-backed identifier, product label, or domain idiom.
-3. Treat deterministic validation as the gate for agent-side completion: the manifest must parse, the generator must succeed, and the staged bundle must satisfy the structural checks in the checklist.
-4. If validation fails, fix the manifest and regenerate. Leave responsive, print, and rendered accessibility judgment to the human reviewer unless the environment provides a low-cost preview path.
+```sh
+python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py validate /path/to/prd.yaml
+python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py generate /path/to/prd.yaml
+python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py inspect action-items/PRD-<slug>/
+```
 
-Fix structural or content issues by editing the manifest and regenerating. Treat `prd.yaml` as the planning source of truth and `index.html` as the review surface.
+Use `--output-root` only when needed and `--force` only for intentional replacement.
+If `python3` is unavailable, report the block and preserve the manifest.
+Never recreate the bundle by hand.
 
-## 4. Request human review
+Before review, validation and inspection must pass, local assets must exist, fragment links must resolve, requirement traceability must hold, and English-only prose must remain intact.
+Read [./references/review-checklist.md](./references/review-checklist.md) only when inspection fails, the bundle is unusual, or the full checklist is needed.
+Leave responsive, print, and rendered accessibility judgment to the human reviewer unless preview is cheap.
 
-Open the bundle for the user with:
+Fix issues in YAML, regenerate, and inspect again.
+Delete scratch manifests after success.
+Keep `action-items/PRD-<slug>/prd.yaml` beside `index.html`.
+
+## 4. Review and handoff
+
+Open the bundle when possible:
 
 ```sh
 open action-items/PRD-<slug>/index.html
 ```
 
-Ask the user to accept the PRD or request changes.
-
-When the user requests changes:
-
-1. Read the existing `action-items/PRD-<slug>/prd.yaml`.
-2. Restate the requested deltas only if the feedback is ambiguous.
-3. Apply focused YAML edits with the editing tool instead of rewriting the file from scratch.
-4. Preserve stable IDs for unchanged requirements, decisions, risks, questions, and tests.
-5. Regenerate from that edited `prd.yaml` with `--force`, rerun the relevant validation, and reopen the revised bundle.
-
-Only rewrite the full manifest when the user asks for a new PRD, changes the initiative shape so broadly that most blocks are obsolete, or the existing `prd.yaml` is invalid and cannot be repaired with targeted edits.
-
-Do not treat the draft as accepted until human review is complete. Keep `prd.yaml` beside `index.html` so the accepted source remains available.
-
-## 5. Offer issue splitting
-
-Only after the user accepts the PRD, offer to pass the accepted bundle to `to-issues`.
-
-Invoke `to-issues` only when the user asks for issue splitting, accepts the handoff, or originally requested an end-to-end PRD-to-issues flow. Pass the accepted `prd.yaml` as the planning source and include `index.html` as the reviewer-facing companion when it helps preserve context. If you mention only one bundle file during handoff, mention `prd.yaml`.
-
-## 6. Clean up temporary files
-
-After generation succeeds, delete the scratch YAML manifest created outside the bundle. Keep only the generated PRD bundle in `action-items/PRD-<slug>/`, including its preserved `prd.yaml`.
+If opening is unavailable, provide the absolute `index.html` path and name visual checks left for review.
+Ask the user to accept or request changes.
+After acceptance, offer `to-issues` and pass the accepted `prd.yaml` as the planning source.

@@ -176,6 +176,8 @@ class PrdBundleCliTests(unittest.TestCase):
         schema_payload = load_yaml(schema.stdout)
         examples = run_cli("examples", "api-heavy")
         examples_payload = load_yaml(examples.stdout)
+        all_examples = run_cli("examples")
+        all_examples_payload = load_yaml(all_examples.stdout)
 
         self.assertEqual(schema.returncode, 0, schema.stderr)
         self.assertEqual(schema_payload["block"], "requirements")
@@ -183,6 +185,8 @@ class PrdBundleCliTests(unittest.TestCase):
         self.assertEqual(examples.returncode, 0, examples.stderr)
         self.assertEqual(examples_payload["examples"][0]["name"], "api-heavy")
         self.assertIn(" validate", examples_payload["next"][0])
+        self.assertEqual(all_examples.returncode, 0, all_examples.stderr)
+        self.assertEqual(all_examples_payload["examples"][0]["name"], "minimal-prd")
 
     def test_manifest_content_is_html_escaped(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:

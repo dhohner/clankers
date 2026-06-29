@@ -1,85 +1,54 @@
 # Interview Map
 
-Use this map to drive the PRD interview until you and the user share the same mental model of the feature. Treat it as a decision map, not a script.
+Use this only when a PRD request is broad, vague, or stuck.
+It is a decision map, not an intake script.
+The right next question is the answer that would most change scope, behavior, rollout, risk, or validation.
 
-The right next question is the one whose answer would most change the PRD.
+## Target understanding
 
-## Target Understanding
+Before drafting, be able to explain:
 
-By the time you stop interviewing, you should be able to explain:
+- what problem matters enough to solve now;
+- who feels the pain and in which workflow;
+- what behavior changes after the solution ships;
+- what constraints or tradeoffs shape the solution;
+- where the feature begins and ends;
+- what must be true for the implementation to count as correct.
 
-- what problem matters enough to solve now
-- who feels the pain and in which workflow
-- what change in behavior the solution introduces
-- what constraints or tradeoffs shape the solution
-- where the feature begins and ends
-- what must be true for the implementation to be considered correct
+If an answer is missing and material, ask.
+If it is missing but not blocking, label it as `Provisional` or `Open` instead of inventing it.
 
-If one of those points is unclear, ask about it or carry it into the PRD as a labeled assumption or open question. Do not fill it with a plausible story.
-
-## Decision Clusters
+## Decision clusters
 
 ### Problem
 
-Clarify:
-
-- what is broken, painful, slow, risky, or missing today
-- why this matters now instead of later
-- what happens if the team does nothing
+Clarify what is broken, why now matters, and what happens if nothing changes.
 
 ### Users and actors
 
-Clarify:
-
-- the primary actor
-- secondary actors affected by the change
-- who benefits, who pays the cost, and who can block adoption
+Clarify the primary actor, affected secondary actors, beneficiaries, costs, and adoption blockers.
 
 ### Workflow
 
-Clarify:
-
-- what the user does today
-- where the handoff, delay, or confusion happens
-- what the improved flow should feel like end-to-end
+Clarify the current path, handoffs, waits, confusion, desired future flow, failure paths, and fallback behavior.
 
 ### Scope
 
-Clarify:
+Clarify what is in, what is out, and whether the request hides several initiatives.
 
-- what is explicitly in scope
-- what feels adjacent but should stay out of scope
-- whether the work is one coherent initiative or several hidden projects
+### Rules and states
 
-### Rules and States
-
-Clarify:
-
-- business rules
-- data or state transitions
-- important edge cases
-- failure paths and fallback behavior
+Clarify business rules, state transitions, edge cases, missing data, stale data, invalid data, and authorization boundaries.
 
 ### Constraints
 
-Clarify:
+Clarify technical, organizational, process, compliance, localization, rollout, migration, compatibility, and explicit tradeoff constraints.
 
-- technical constraints
-- organizational or process constraints
-- compliance, localization, rollout, migration, or compatibility concerns
-- explicit tradeoffs the team is willing to make
+### Quality bar
 
-### Quality Bar
+Clarify correctness, user-visible tests, and regressions the team most fears.
 
-Clarify:
-
-- what must be true for the feature to count as correct
-- what user-visible behavior deserves direct testing
-- what regressions the team is most worried about
-
-## Useful Question Patterns
-
-Use concrete prompts when the discussion is still abstract:
+## Useful questions
 
 - "Walk me through the current path step by step."
 - "Where does the user get stuck, wait, or guess?"
@@ -90,22 +59,23 @@ Use concrete prompts when the discussion is still abstract:
 - "What happens when data is missing, stale, or invalid?"
 - "What would make you confident this shipped correctly?"
 
-## Round structure
+## Round shape
 
-Run the interview in loops:
+Run short loops:
 
 1. Pick one unresolved decision cluster.
-2. Ask a focused round of 3-6 questions, fewer when one answer is likely decisive.
+2. Ask 1 to 4 focused questions.
 3. Summarize `Confirmed`, `Provisional`, and `Open`.
-4. Inspect the repo or think through implications.
-5. Choose the next cluster or draft if the remaining gaps are safe to label.
+4. Inspect repo evidence or draft if remaining gaps are safe to label.
 
-Present each round in a scannable format. Prefer short bucketed bullets followed by numbered questions. Do not bury multiple questions inside a narrative paragraph.
-
-Preferred shape:
+Preferred response shape:
 
 ```md
 Confirmed
+
+- ...
+
+Provisional
 
 - ...
 
@@ -116,18 +86,4 @@ Open
 Questions
 
 1. ...
-2. ...
 ```
-
-## Exit criteria
-
-You are ready to draft the PRD when all of the following are true:
-
-- the user agrees with the problem framing
-- the desired behavior is concrete enough to describe without vague filler
-- major scope boundaries are explicit
-- important constraints and edge cases are named
-- the likely module or capability breakdown is credible
-- the testing section can describe external behavior worth validating
-
-If one of these is still weak and would change planning, keep interviewing. If it is weak but not blocking, put it in `Further Notes` instead of inventing a decision.
