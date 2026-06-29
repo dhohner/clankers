@@ -15,7 +15,7 @@ from ..yaml_manifest import dumps
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="to-prd",
-        description="Validate, generate, and inspect YAML PRD review bundles.",
+        description="Validate, generate, inspect, and template YAML PRD review bundles.",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -54,6 +54,15 @@ def _build_parser() -> argparse.ArgumentParser:
     schema = subparsers.add_parser("schema", help="show manifest schema summary")
     schema.add_argument("blocks", nargs="*", help="optional block names, such as requirements")
     schema.add_argument("--format", choices=("yaml", "text"), default="yaml")
+
+    template = subparsers.add_parser("template", help="emit a placeholder PRD manifest")
+    template.add_argument(
+        "--blocks",
+        nargs="+",
+        required=True,
+        help="block names to include",
+    )
+    template.add_argument("--format", choices=("yaml",), default="yaml")
 
     examples = subparsers.add_parser("examples", help="list bundled example manifests")
     examples.add_argument("name", nargs="?", help="optional example name or stem")

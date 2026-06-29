@@ -51,9 +51,16 @@ Prefer CLI output over loading docs:
 ```sh
 python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py schema
 python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py schema <block> [block ...]
+python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py template --blocks <block> [block ...]
 python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py examples minimal-prd
 ```
 
+Before authoring, run `schema` with no args, choose `initiative_type`, then copy the required surfaces from `required_review_surfaces_by_initiative`.
+Do not hand-pick `review_surfaces` from memory; every initiative includes `document`, each `*-heavy` type also includes its matching surface, and `mixed` needs at least two non-document surfaces.
+After selecting blocks, run one multi-block `schema` call before writing YAML content.
+Follow `field_shapes`: `evidence`, `relates_to`, `validation`, and `validates` are arrays of strings, even for one item.
+For native diagrams, every node and edge label must be a meaningful non-empty string; do not use `label: ""`.
+Use `template --blocks` for new manifests once the useful blocks are known, then replace placeholders with product content.
 Use multi-block `schema` instead of one call per block when you need several formats; each block schema includes an example fragment.
 Use `examples/minimal-prd.yaml` for the smallest valid manifest skeleton.
 Use `evals/fixtures/` for focused surface examples.

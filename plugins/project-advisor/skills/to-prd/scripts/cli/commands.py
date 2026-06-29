@@ -6,7 +6,9 @@ import argparse
 from typing import Any, Callable
 
 from .bundle_commands import command_generate, command_inspect, command_status
-from .catalog_commands import command_examples, command_schema
+from .catalog_examples import command_examples
+from .catalog_schema import command_schema
+from .catalog_template import command_template
 from .support import load_manifest, validation_payload
 
 
@@ -22,6 +24,7 @@ COMMANDS: dict[str, Callable[[argparse.Namespace], dict[str, Any]]] = {
     "inspect": command_inspect,
     "schema": command_schema,
     "examples": command_examples,
+    "template": command_template,
 }
 
 __all__ = ["COMMANDS", "command_validate"]

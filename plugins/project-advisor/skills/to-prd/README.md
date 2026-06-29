@@ -39,6 +39,7 @@ From the repository root:
 python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py status
 python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py schema
 python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py schema requirements testing_strategy
+python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py template --blocks goals personas user_stories journeys failure_paths decisions rollout testing_strategy open_questions repository_grounding
 python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py examples minimal-prd
 python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py validate plugins/project-advisor/skills/to-prd/examples/minimal-prd.yaml
 python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py generate plugins/project-advisor/skills/to-prd/examples/minimal-prd.yaml
@@ -49,6 +50,7 @@ Useful commands:
 
 - `status`: workspace dashboard and no-argument default.
 - `schema [block ...]`: manifest fields, supported blocks, and block examples.
+- `template --blocks <block ...>`: valid placeholder manifest for selected blocks.
 - `examples [name]`: bundled manifest examples.
 - `validate <prd.yaml>`: validate without writing.
 - `generate <prd.yaml>`: generate after validation.
@@ -58,7 +60,7 @@ Useful options:
 
 - `--output-root <directory>` changes the bundle parent for `status` and `generate`.
 - `--force` replaces an existing bundle with the same slug after the new output validates.
-- `--format yaml|text` defaults to structured YAML.
+- `--format yaml|text` defaults to structured YAML for non-template commands.
 - `--full` expands large `validate` and `inspect` output.
 
 No virtual environment, package installation, Node.js, browser, or subagent capability is required.

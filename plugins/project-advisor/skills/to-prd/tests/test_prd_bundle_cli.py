@@ -171,9 +171,53 @@ class PrdBundleCliTests(unittest.TestCase):
             self.assertEqual(payload["anchors"]["broken"], [])
             self.assertEqual(payload["traceability"]["requirements"], "4")
 
+    def test_template_emits_valid_placeholder_manifest(self) -> None:
+        blocks = [
+            "goals",
+            "personas",
+            "user_stories",
+            "journeys",
+            "failure_paths",
+            "requirements",
+            "decisions",
+            "rollout",
+            "testing_strategy",
+            "open_questions",
+            "repository_grounding",
+        ]
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            manifest_path = Path(temporary_directory) / "prd.yaml"
+            result = run_cli("template", "--blocks", *blocks)
+            manifest_path.write_text(result.stdout, encoding="utf-8")
+            validation = run_cli("validate", str(manifest_path))
+            manifest = load_yaml(result.stdout)
+            validation_payload = load_yaml(validation.stdout)
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(manifest["slug"], "draft-prd")
+            self.assertEqual(list(manifest["blocks"]), blocks)
+            self.assertEqual(
+                manifest["blocks"]["goals"][0]["goal"],
+                "Replace with goal.",
+            )
+            self.assertEqual(
+                manifest["blocks"]["requirements"][0]["validation"],
+                ["TEST-01"],
+            )
+            self.assertEqual(
+                manifest["blocks"]["testing_strategy"][0]["validates"],
+                ["REQ-01"],
+            )
+            self.assertEqual(validation.returncode, 0, validation.stderr)
+            self.assertEqual(validation_payload["selected_blocks"], blocks)
+
     def test_schema_and_examples_are_structured(self) -> None:
+        top_level_schema = run_cli("schema")
+        top_level_payload = load_yaml(top_level_schema.stdout)
         schema = run_cli("schema", "requirements")
         schema_payload = load_yaml(schema.stdout)
+        event_schema = run_cli("schema", "event_lifecycle")
+        event_schema_payload = load_yaml(event_schema.stdout)
         multi_schema = run_cli("schema", "goals", "personas", "testing_strategy")
         multi_schema_payload = load_yaml(multi_schema.stdout)
         examples = run_cli("examples", "api-heavy")
@@ -181,13 +225,22 @@ class PrdBundleCliTests(unittest.TestCase):
         all_examples = run_cli("examples")
         all_examples_payload = load_yaml(all_examples.stdout)
 
+        self.assertEqual(top_level_schema.returncode, 0, top_level_schema.stderr)
+        self.assertEqual(
+            top_level_payload["required_review_surfaces_by_initiative"]["data-heavy"],
+            ["document", "data"],
+        )
         self.assertEqual(schema.returncode, 0, schema.stderr)
         self.assertEqual(schema_payload["block"], "requirements")
         self.assertIn("validation", schema_payload["optional_fields"])
+        self.assertIn("array", schema_payload["field_shapes"]["evidence"])
         self.assertEqual(
             schema_payload["example"]["requirements"][0]["id"],
             "REQ-01",
         )
+        self.assertEqual(event_schema.returncode, 0, event_schema.stderr)
+        self.assertIn("label", event_schema_payload["field_shapes"]["native.edges[]"])
+        self.assertIn("non-empty", event_schema_payload["field_shapes"]["native.edges[]"])
         self.assertEqual(multi_schema.returncode, 0, multi_schema.stderr)
         self.assertEqual(
             [item["block"] for item in multi_schema_payload["schemas"]],
