@@ -59,7 +59,7 @@ Before authoring, run `schema` with no args, choose `initiative_type`, then copy
 Do not hand-pick `review_surfaces` from memory; every initiative includes `document`, each `*-heavy` type also includes its matching surface, and `mixed` needs at least two non-document surfaces.
 After selecting blocks, run one multi-block `schema` call before writing YAML content.
 Follow `field_shapes`: `evidence`, `relates_to`, `validation`, and `validates` are arrays of strings, even for one item.
-For native diagrams, every node and edge label must be a meaningful non-empty string; do not use `label: ""`.
+For diagrams, write Mermaid `source` and keep every node and edge label meaningful.
 Use `template --blocks` for new manifests once the useful blocks are known, then replace placeholders with product content.
 Use multi-block `schema` instead of one call per block when you need several formats; each block schema includes an example fragment.
 Use `examples/minimal-prd.yaml` for the smallest valid manifest skeleton.
@@ -74,7 +74,7 @@ Connect every requirement to validation outcomes or an explicit exception.
 Add repository evidence only when it materially supports a product statement.
 
 Use visuals only when they clarify workflow, state, boundary, contract, or data better than prose.
-Prefer native node-edge data for simple diagrams and small Mermaid diagrams for branches, loops, boundaries, lifecycle states, or cross-system flows.
+Use Mermaid `source` for every diagram.
 
 ## 3. Generate and validate
 

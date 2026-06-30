@@ -239,8 +239,14 @@ class PrdBundleCliTests(unittest.TestCase):
             "REQ-01",
         )
         self.assertEqual(event_schema.returncode, 0, event_schema.stderr)
-        self.assertIn("label", event_schema_payload["field_shapes"]["native.edges[]"])
-        self.assertIn("non-empty", event_schema_payload["field_shapes"]["native.edges[]"])
+        self.assertEqual(
+            event_schema_payload["field_shapes"]["source"],
+            "Mermaid flowchart string",
+        )
+        self.assertIn("source", event_schema_payload["example"]["event_lifecycle"])
+        event_source = event_schema_payload["example"]["event_lifecycle"]["source"]
+        self.assertIn('finish["End"]', event_source)
+        self.assertNotIn(' end["End"]', event_source)
         self.assertEqual(multi_schema.returncode, 0, multi_schema.stderr)
         self.assertEqual(
             [item["block"] for item in multi_schema_payload["schemas"]],

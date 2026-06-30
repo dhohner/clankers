@@ -101,17 +101,19 @@ class PrdBundleRenderingTests(unittest.TestCase):
             self.assertEqual(before.count(f'id="{identity}"'), 1)
             self.assertEqual(after.count(f'id="{identity}"'), 1)
 
-    def test_diagram_source_is_optional(self) -> None:
+    def test_diagram_requires_source_or_native_input(self) -> None:
         manifest = base_manifest("workflow-heavy", ["document", "workflow"])
         manifest["blocks"] = {
             "workflow_diagram": {"description": "Actor submits and receives a result."}
         }
 
-        normalized = BUNDLE.validate_manifest(manifest)
-        document = BUNDLE.render_document(normalized)
+        with self.assertRaises(BUNDLE.ManifestError) as raised:
+            BUNDLE.validate_manifest(manifest)
 
-        self.assertIn("Actor submits and receives a result.", document)
-        self.assertNotIn("diagram-source", document)
+        self.assertIn(
+            "blocks.workflow_diagram.source must be a non-empty Mermaid string",
+            str(raised.exception),
+        )
 
     def test_diagram_text_remains_available_to_assistive_technology(self) -> None:
         manifest = base_manifest("workflow-heavy", ["document", "workflow"])
@@ -149,7 +151,7 @@ class PrdBundleRenderingTests(unittest.TestCase):
         self.assertIn("flowchart TB", document)
         self.assertNotIn("flowchart LR", document)
 
-    def test_native_diagram_renders_structured_svg_without_executable_markup(self) -> None:
+    def test_native_diagram_input_is_converted_to_mermaid(self) -> None:
         manifest = base_manifest("architecture-heavy", ["document", "architecture"])
         manifest["blocks"] = {
             "architecture_diagram": {
@@ -168,43 +170,23 @@ class PrdBundleRenderingTests(unittest.TestCase):
             }
         }
 
-        document = BUNDLE.render_document(BUNDLE.validate_manifest(manifest))
+        normalized = BUNDLE.validate_manifest(manifest)
+        document = BUNDLE.render_document(normalized)
 
-        self.assertIn('class="diagram-surface native-diagram"', document)
-        self.assertIn("<svg ", document)
+        self.assertEqual(
+            "flowchart TB\n"
+            '  n1["<Client>"]\n'
+            '  n2["Gateway"]\n'
+            '  n3["Service"]\n'
+            "  n1 -->|HTTPS| n2\n"
+            "  n2 -->|Route| n3",
+            normalized["blocks"]["architecture_diagram"]["source"],
+        )
+        self.assertIsNone(normalized["blocks"]["architecture_diagram"]["native"])
+        self.assertIn('class="diagram-surface mermaid-diagram"', document)
         self.assertIn("&lt;Client&gt;", document)
         self.assertNotIn("<Client>", document)
-        self.assertIn("Structured HTML and SVG generated from manifest content.", document)
-
-    def test_native_diagram_uses_snake_rows_for_sequential_flows(self) -> None:
-        manifest = base_manifest("architecture-heavy", ["document", "architecture"])
-        manifest["blocks"] = {
-            "architecture_diagram": {
-                "description": "A five-step sequential flow.",
-                "native": {
-                    "nodes": [
-                        {"id": "one", "label": "One"},
-                        {"id": "two", "label": "Two"},
-                        {"id": "three", "label": "Three"},
-                        {"id": "four", "label": "Four"},
-                        {"id": "five", "label": "Five"},
-                    ],
-                    "edges": [
-                        {"from": "one", "to": "two", "label": "1"},
-                        {"from": "two", "to": "three", "label": "2"},
-                        {"from": "three", "to": "four", "label": "3"},
-                        {"from": "four", "to": "five", "label": "4"},
-                    ],
-                },
-            }
-        }
-
-        document = BUNDLE.render_document(BUNDLE.validate_manifest(manifest))
-
-        self.assertIn('<rect x="528" y="151"', document)
-        self.assertIn('<rect x="290" y="151"', document)
-        self.assertIn('d="M 618 96 L 618 141"', document)
-        self.assertNotIn('d="M 618 61 L 142 176"', document)
+        self.assertNotIn('class="diagram-surface native-diagram"', document)
 
     def test_wireframes_render_as_labeled_read_only_review_aids(self) -> None:
         manifest = base_manifest("ui-heavy", ["document", "ui"])
@@ -243,4 +225,7 @@ class PrdBundleRenderingTests(unittest.TestCase):
         normalized = BUNDLE.validate_manifest(manifest)
 
         self.assertEqual([], normalized["blocks"]["wireframes"][0]["regions"])
-        self.assertEqual([], normalized["blocks"]["architecture_diagram"]["native"]["edges"])
+        self.assertEqual(
+            "flowchart TB\n  n1[\"Service\"]",
+            normalized["blocks"]["architecture_diagram"]["source"],
+        )

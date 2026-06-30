@@ -68,24 +68,15 @@ def _catalog_block(block: str, template: bool) -> Any:
             ],
         }
     if spec.kind == "diagram":
+        start = text("Start", "Replace with start")
+        end = text("End", "Replace with end")
+        flow = text("Leads to", "Replace with flow")
         return {
             "description": text(
                 f"{spec.title} showing the review-relevant flow.",
                 f"Replace with {spec.title.lower()} description.",
             ),
-            "native": {
-                "nodes": [
-                    {"id": "start", "label": text("Start", "Replace with start")},
-                    {"id": "end", "label": text("End", "Replace with end")},
-                ],
-                "edges": [
-                    {
-                        "from": "start",
-                        "to": "end",
-                        "label": text("Leads to", "Replace with flow"),
-                    }
-                ],
-            },
+            "source": f'flowchart TB\n  start["{start}"] -->|{flow}| finish["{end}"]',
         }
     if spec.kind == "frames":
         return [

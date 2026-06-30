@@ -113,7 +113,7 @@ blocks:
     in:
       - "Reference-aligned document shell and responsive navigation"
       - "Purpose-specific renderers for common PRD blocks"
-      - Mermaid and native visual review surfaces
+      - Mermaid visual review surfaces
       - "Print-safe output"
     out:
       - Persisted comments or approvals
@@ -142,31 +142,12 @@ blocks:
         - "REQ-04"
   architecture_diagram:
     description: "Interview state and repository evidence become a manifest, then a reusable generator produces and validates the portable review bundle."
-    native:
-      nodes:
-        - id: discovery
-          label: Discovery state
-        - id: manifest
-          label: YAML manifest
-        - id: generator
-          label: Reusable generator
-        - id: bundle
-          label: PRD bundle
-        - id: review
-          label: Review handoff
-      edges:
-        - from: discovery
-          to: manifest
-          label: Shape
-        - from: manifest
-          to: generator
-          label: Validate
-        - from: generator
-          to: bundle
-          label: Render
-        - from: bundle
-          to: review
-          label: Verify
+    source: |-
+      flowchart TB
+        discovery[Discovery state] -->|Shape| manifest[YAML manifest]
+        manifest -->|Validate| generator[Reusable generator]
+        generator -->|Render| bundle[PRD bundle]
+        bundle -->|Verify| review[Review handoff]
   risks:
     - id: "RISK-01"
       risk: A partial bundle appears complete.

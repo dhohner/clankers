@@ -16,48 +16,18 @@ blocks:
       - The workflow needs portable deterministic output without constraining agent discovery.
   architecture_diagram:
     description: Agent discovery produces a manifest; the generator validates and publishes a portable bundle for human review.
-    native:
-      nodes:
-        - id: agent
-          label: Agent judgment
-        - id: manifest
-          label: YAML manifest
-        - id: generator
-          label: Deterministic generator
-        - id: bundle
-          label: Review bundle
-      edges:
-        - from: agent
-          to: manifest
-          label: Author
-        - from: manifest
-          to: generator
-          label: Validate
-        - from: generator
-          to: bundle
-          label: Publish
+    source: |-
+      flowchart TB
+        agent[Agent judgment] -->|Author| manifest[YAML manifest]
+        manifest -->|Validate| generator[Deterministic generator]
+        generator -->|Publish| bundle[Review bundle]
   system_context:
     description: The workflow uses repository evidence and user decisions without requiring a particular agent harness.
-    native:
-      nodes:
-        - id: user
-          label: Reviewer
-        - id: agent
-          label: Planning agent
-        - id: repo
-          label: Repository
-        - id: bundle
-          label: Portable PRD bundle
-      edges:
-        - from: user
-          to: agent
-          label: Decisions
-        - from: repo
-          to: agent
-          label: Evidence
-        - from: agent
-          to: bundle
-          label: Generate
+    source: |-
+      flowchart TB
+        user[Reviewer] -->|Decisions| agent[Planning agent]
+        repo[Repository] -->|Evidence| agent
+        agent -->|Generate| bundle[Portable PRD bundle]
   decisions:
     - id: "DEC-RESPONSIBILITY-BOUNDARY"
       decision: Agents own product judgment; the generator owns deterministic publication.

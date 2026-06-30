@@ -12,11 +12,7 @@ from .helpers import (
     render_list,
     render_relationship_links,
 )
-from .visuals import (
-    render_frames,
-    render_mermaid_diagram,
-    render_native_diagram,
-)
+from .visuals import render_frames, render_mermaid_diagram
 
 
 def render_cards(name: str, items: list[dict[str, Any]], spec: BlockSpec) -> str:
@@ -174,8 +170,6 @@ def render_block_content(name: str, value: Any, spec: BlockSpec) -> str:
     if spec.kind == "diagram":
         if value["source"]:
             return render_mermaid_diagram(name, value)
-        if value["native"] is not None:
-            return render_native_diagram(name, value["description"], value["native"])
         return (
             '<figure class="diagram-brief">'
             '<div>'

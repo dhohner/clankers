@@ -125,9 +125,7 @@ def _field_shapes(block: str) -> dict[str, str]:
     if spec.kind == "diagram":
         return {
             "description": "non-empty string",
-            "source": "optional Mermaid string; omit when native is present",
-            "native.nodes[]": "objects with id and label as non-empty strings",
-            "native.edges[]": "optional objects with from, to, and label as non-empty strings",
+            "source": "Mermaid flowchart string",
         }
     if spec.kind == "frames":
         return {

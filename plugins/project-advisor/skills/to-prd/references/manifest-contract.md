@@ -67,8 +67,7 @@ Add `evidence` only when an exact repository reference materially supports the s
 ## Visual content
 
 Every diagram or visual surface needs a concise text description.
-Use native diagram data for simple node-edge flows.
-Use Mermaid only when branches, loops, boundaries, lifecycle states, or cross-system flows are clearer than native data.
+Use Mermaid `source` for every diagram.
 Keep Mermaid diagrams small, readable as source fallback, and focused on one review question.
 Show failure, fallback, decision, or boundary paths when they affect scope or acceptance.
 Avoid decorative styling and clever Mermaid features.

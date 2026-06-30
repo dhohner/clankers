@@ -350,7 +350,6 @@ details > :not(summary) { margin-left: 18px; margin-right: 18px; }
   padding: 0 0 14px;
   color: var(--muted);
 }
-.diagram-canvas,
 .mermaid-canvas {
   display: grid;
   place-items: center;
@@ -360,7 +359,6 @@ details > :not(summary) { margin-left: 18px; margin-right: 18px; }
   background: transparent;
   overflow: auto;
 }
-.diagram-canvas svg,
 .mermaid-canvas svg {
   display: block;
   width: 100%;
@@ -409,20 +407,6 @@ details > :not(summary) { margin-left: 18px; margin-right: 18px; }
 .mermaid-canvas .cluster-label {
   display: none;
 }
-.native-node rect { fill: var(--surface-soft); stroke: var(--accent); stroke-width: 2; }
-.native-node-label {
-  display: grid;
-  place-items: center;
-  height: 100%;
-  color: var(--ink);
-  font-size: 15px;
-  font-weight: 750;
-  line-height: 1.15;
-  text-align: center;
-}
-.native-edges path { fill: none; stroke: var(--accent); stroke-width: 2; }
-.native-diagram marker path { fill: var(--accent); stroke: none; }
-.native-edge-label { fill: var(--muted); font: 700 11px/1.2 "Avenir Next", Avenir, sans-serif; }
 .diagram-source-details {
   margin: 16px 0 0;
   overflow: hidden;
@@ -636,7 +620,7 @@ footer {
   }
   .requirement-list article { grid-template-columns: 1fr; gap: 4px; }
   .timeline li { grid-template-columns: 1fr; gap: 4px; }
-  .diagram-canvas, .mermaid-canvas { min-height: 300px; padding-inline: 0; }
+  .mermaid-canvas { min-height: 300px; padding-inline: 0; }
   .sidebar { padding-inline: 14px; }
   .sidebar-panel { padding-inline: 14px; }
   .sidebar nav { grid-template-columns: 1fr 1fr; }
@@ -650,6 +634,6 @@ footer {
   main { width: 100%; padding: 0; }
   .section { break-inside: auto; padding-top: 28px; }
   details > *:not(summary) { display: block !important; }
-  .diagram-canvas, .mermaid-canvas { min-height: 0; }
+  .mermaid-canvas { min-height: 0; }
   a { color: inherit; text-decoration: none; }
 }

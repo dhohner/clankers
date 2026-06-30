@@ -34,6 +34,28 @@ def _readable_mermaid_source(source: str) -> str:
     return "\n".join(lines)
 
 
+def _mermaid_label(value: str) -> str:
+    return " ".join(value.split()).replace('"', "'").replace("|", "/")
+
+
+def _native_diagram_to_mermaid(native: dict[str, Any]) -> str:
+    node_ids = {
+        node["id"]: f"n{index}"
+        for index, node in enumerate(native["nodes"], start=1)
+    }
+    lines = ["flowchart TB"]
+    lines.extend(
+        f'  {node_ids[node["id"]]}["{_mermaid_label(node["label"])}"]'
+        for node in native["nodes"]
+    )
+    lines.extend(
+        f'  {node_ids[edge["from"]]} -->|{_mermaid_label(edge["label"])}| {node_ids[edge["to"]]}'
+        for edge in native["edges"]
+        if edge["from"] in node_ids and edge["to"] in node_ids
+    )
+    return "\n".join(lines)
+
+
 class ManifestError(ValueError):
     """Raised when a manifest does not satisfy the version 1 contract."""
 
@@ -277,10 +299,14 @@ def _validate_block(name: str, value: Any, errors: list[str]) -> Any:
         native = _validate_native_diagram(value.get("native"), f"{path}.native", errors)
         if source.strip() and native is not None:
             errors.append(f"{path} must use either source or native, not both")
+        elif native is not None:
+            source = _native_diagram_to_mermaid(native)
+        elif not source.strip():
+            errors.append(f"{path}.source must be a non-empty Mermaid string")
         return {
             "description": _non_empty_string(value.get("description"), f"{path}.description", errors),
             "source": _readable_mermaid_source(source),
-            "native": native,
+            "native": None,
         }
     if spec.kind == "table":
         if not isinstance(value, dict):
