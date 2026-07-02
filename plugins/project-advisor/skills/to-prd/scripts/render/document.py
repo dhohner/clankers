@@ -7,7 +7,7 @@ from pathlib import Path
 
 from ..paths import TEMPLATE_PATH
 from ..spec import BLOCK_SPECS, TEMPLATE_MARKER_PATTERN
-from ..types import NormalizedManifest
+from ..manifest_types import NormalizedManifest
 from .blocks import render_block_content
 from .helpers import escape_html
 from .traceability import render_traceability_view

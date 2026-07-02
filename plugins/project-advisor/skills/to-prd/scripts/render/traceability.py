@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from ..spec import BLOCK_SPECS, entity_label
-from ..types import NormalizedBlocks
+from ..manifest_types import NormalizedBlocks
 from .helpers import escape_html
 
 

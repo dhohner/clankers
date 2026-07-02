@@ -23,7 +23,7 @@ from .spec import (
     TEMPLATE_MARKER_PATTERN,
     BlockSpec,
 )
-from .types import NormalizedBlocks, NormalizedManifest
+from .manifest_types import NormalizedBlocks, NormalizedManifest
 from .validation import ManifestError, validate_manifest
 from .yaml_manifest import _yaml_object, dumps as dump_yaml, loads as load_yaml
 

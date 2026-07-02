@@ -8,7 +8,7 @@ from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
 from .spec import BLOCK_SPECS
-from .types import NormalizedManifest
+from .manifest_types import NormalizedManifest
 from .validation import ManifestError, validate_manifest
 from .yaml_manifest import YamlError, loads
 

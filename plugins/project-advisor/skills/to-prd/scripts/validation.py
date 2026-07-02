@@ -17,7 +17,7 @@ from .spec import (
     entity_label,
     normalize_entity_id,
 )
-from .types import NormalizedBlocks, NormalizedManifest
+from .manifest_types import NormalizedBlocks, NormalizedManifest
 
 
 def _readable_mermaid_source(source: str) -> str:
