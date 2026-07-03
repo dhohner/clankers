@@ -1,6 +1,6 @@
 # PRD to Issues
 
-Break a Product Requirements Document into independently-grabbable Jira-ready work items using tracer-bullet vertical slices.
+Break a Product Requirements Document into independently implementable Jira-ready work items using tracer-bullet vertical slices.
 
 The generated items are written for experienced developers. They describe desired behavior and verifiable outcomes rather than agent-style step sequences or layer-by-layer implementation checklists.
 
@@ -8,20 +8,20 @@ The generated items are written for experienced developers. They describe desire
 
 This skill converts a PRD into a set of Jira-ready markdown files:
 
-1. **Locate the PRD** — reads the PRD from a workspace file or asks the user, preferring `prd.yaml` from a `to-prd` bundle over the rendered `index.html` when both exist; use `fast` mode for planning prose or feature briefs that are not packaged as `to-prd` artifacts
-2. **Explore the codebase** — verifies the current workflow, terminology, and constraints before splitting work
-3. **Draft vertical slices** — breaks the PRD or feature brief into thin end-to-end tracer-bullet slices, each demoable on its own
-4. **Review only what matters** — runs a full approval loop in `default` mode and a minimal clarification loop in `fast` mode
-5. **Create Jira-ready markdown files** — writes one file per slice into `action-items/jira-issues/`
+1. **Locate the PRD** - reads the PRD from a workspace file or asks the user, preferring `prd.yaml` from a `to-prd` bundle over the rendered `index.html` when both exist; use `fast` mode for planning prose or feature briefs that are not packaged as `to-prd` artifacts
+2. **Explore the codebase** - verifies the current workflow, terminology, and constraints before splitting work
+3. **Draft vertical slices** - breaks the PRD or feature brief into thin end-to-end tracer-bullet slices, each demoable on its own
+4. **Review only what matters** - runs a full approval loop in `default` mode and a minimal clarification loop in `fast` mode
+5. **Create Jira-ready markdown files** - writes one file per slice into `action-items/jira-issues/`
 
 ## Output Format
 
 Each generated file uses Jira-compatible HTML panels:
 
-- **User story header** — colored `Als / möchte ich / damit` format
-- **Acceptance criteria** (`jePanel_info`) — one scenario panel per criterion, phrased as observable behavior
-- **Scenario panels** (`jePanel_dashed`) — German Gherkin syntax with colored keywords (`Angenommen`, `Wenn`, `Dann`, `Und`)
-- **Notes panel** (`jePanel_idea`) — concise implementation context, assumptions, dependencies, risks, and open questions without turning the item into an execution script
+- **User story header** - colored `Als / möchte ich / damit` format
+- **Acceptance criteria** (`jePanel_info`) - one scenario panel per criterion, phrased as observable behavior
+- **Scenario panels** (`jePanel_dashed`) - German Gherkin syntax with colored keywords (`Angenommen`, `Wenn`, `Dann`, `Und`)
+- **Notes panel** (`jePanel_idea`) - concise implementation context, assumptions, dependencies, risks, and open questions without turning the item into an execution script
 
 ## Usage
 
@@ -31,6 +31,12 @@ Each generated file uses Jira-compatible HTML panels:
 "Create implementation tickets from the PRD"
 "Split the accepted prd.yaml from the to-prd bundle into Jira-ready slices"
 ```
+
+## Terminology
+
+Generated tickets use German as the base language, but they should keep English terms when those terms are established in the product, codebase, user-facing copy, or technical domain.
+Do not create clumsy literal translations for terms such as `Feature Flag`, `Dashboard`, `Template`, `Workflow`, `Audit Log`, `In-Product`, `Owner`, or `Business Unit` when the English term carries more meaning in context.
+Use natural German when it is clearer and aligns with the source terminology.
 
 ## Bundled References
 

@@ -38,7 +38,7 @@ Als <span style="color:#ff8c00"><persona></span> m&ouml;chte ich <span style="co
 <ul>
 <li><b>Was umgesetzt werden soll:</b> Kompakte Beschreibung dieses vertikalen Schnitts. Beschreibe das gew&uuml;nschte End-to-End-Verhalten, das erwartete Ergebnis und wichtige Randbedingungen. Verweise auf relevante Abschnitte des &uuml;bergeordneten PRD, statt Inhalte zu duplizieren. Kein schrittweiser Implementierungsplan.</li>
 <li><b>Blockiert durch:</b> <Titel oder Dateiname des erforderlichen Vorg&auml;nger-Slices></li>
-<li><b>Technische Hinweise:</b> Optional. Nur essentiellen Kontext, Schnittstellen oder nicht-offensichtliche Randbedingungen festhalten, die einem erfahrenen Entwickler bei der Umsetzung helfen. Keine Aufgabenlisten oder Agent-Anweisungen.</li>
+<li><b>Technische Hinweise:</b> Optional. Nur essenziellen Kontext, Schnittstellen oder nicht-offensichtliche Randbedingungen festhalten, die einem erfahrenen Entwickler bei der Umsetzung helfen. Keine Aufgabenlisten oder Agent-Anweisungen.</li>
 <li><b>Annahmen:</b>
 <ul>
 <li>...</li>
@@ -78,13 +78,14 @@ Als <span style="color:#ff8c00"><persona></span> m&ouml;chte ich <span style="co
 - Use one dashed scenario panel per acceptance criterion or tightly related scenario.
 - Scenario titles should be short and outcome-oriented.
 - Use `#27ae60` or `#16a085` for `Dann` and `#f39c12` or `#27ae60` for `Und`, depending on context.
-- Always include the notes panel. Within the notes, include only entries that carry real information. Omit entries entirely rather than writing `Keine` — if a slice has no risks, do not include a "Risiken" entry. `Was umgesetzt werden soll` should always be present. `Blockiert durch` should appear only when a real prerequisite slice exists; omit it for slices that can start immediately. All other entries (Technische Hinweise, Annahmen, Abhängigkeiten, Risiken, Offene Fragen) are optional.
+- Always include the notes panel. Within the notes, include only entries that carry real information. Omit entries entirely rather than writing `Keine`; if a slice has no risks, do not include a "Risiken" entry. `Was umgesetzt werden soll` should always be present. `Blockiert durch` should appear only when a real prerequisite slice exists; omit it for slices that can start immediately. All other entries (Technische Hinweise, Annahmen, Abhängigkeiten, Risiken, Offene Fragen) are optional.
 - Do not create checkbox lists for acceptance criteria.
 - Write for experienced human developers, not for autonomous agents.
 - Prefer statements about user-visible behavior, system responses, data outcomes, and constraints over instructions about which files, classes, layers, or methods to change.
 - Avoid imperative build plans such as `create`, `implement`, `wire`, `add endpoint`, `update schema`, or similar layer-by-layer task lists unless the user explicitly asks for that level of prescription.
-- Keep technical notes brief and decision-relevant; they should support implementation without dictating it. Only include information an experienced developer would not already infer from the slice description and scenarios — tech stack, standard auth rules, and other obvious facts do not belong in technical notes.
-- If the PRD includes implementation suggestions, translate them into constraints, dependencies, or assumptions instead of copying them as required tasks.
+- Keep technical notes brief and decision-relevant; they should support implementation without dictating it. Only include information an experienced developer would not already infer from the slice description and scenarios. Tech stack, standard auth rules, and other obvious facts do not belong in technical notes.
+- If the PRD includes implementation suggestions, convert them into constraints, dependencies, or assumptions instead of copying them as required tasks.
 - Before writing each file, do a final pass that removes step-by-step build language from the title, scenarios, and notes.
-- Scenarios must not contain internal code identifiers such as class names (`TimingNormalizationService`), method signatures (`performDummyHash()`), enum constants (`GEHEIMFRAGE`), or database artifacts. If the PRD names such identifiers, translate them into domain language or observable system behavior. The reader should understand *what* the system does, not *which code path* executes.
-- **All generated ticket content must be in German** — titles, user stories, scenario names, scenario text, note labels, and note content. The only exceptions are proper nouns, technical terms with no established German equivalent, and code identifiers.
+- Scenarios must not contain internal code identifiers such as class names (`TimingNormalizationService`), method signatures (`performDummyHash()`), enum constants (`GEHEIMFRAGE`), or database artifacts. If the PRD names such identifiers, convert them into domain language or observable system behavior. The reader should understand *what* the system does, not *which code path* executes.
+- Use German as the base language for generated ticket content: titles, user stories, scenario names, scenario text, note labels, and note content.
+- Keep proper nouns, visible UI labels, code identifiers, acronyms, and established English technical or product terms in English when a German translation would be uncommon, awkward, or less precise. Do not force verbatim translations for terms such as `API`, `Feature Flag`, `Dashboard`, `Template`, `Workflow`, `Audit Log`, `In-Product`, `Owner`, `Reviewer`, or `Business Unit` when the source or repository uses them meaningfully.

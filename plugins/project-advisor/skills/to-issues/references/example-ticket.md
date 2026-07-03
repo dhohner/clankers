@@ -4,7 +4,8 @@ Diese Datei dient als Referenz für Ton, Detailgrad und den Unterschied zwischen
 
 Domain-Details nicht wörtlich übernehmen, sofern sie nicht zum aktuellen PRD passen. Struktur, ergebnisorientierte Formulierung und Hinweis-Dichte wiederverwenden.
 
-Das gesamte Ticket ist auf Deutsch verfasst — Titel, User Story, Szenario-Namen, Szenario-Text, Hinweis-Labels und Hinweis-Inhalte. Nur Eigennamen, technische Fachbegriffe ohne etabliertes deutsches Äquivalent und Code-Bezeichner bleiben englisch.
+Das Ticket nutzt Deutsch als Basissprache für Titel, User Story, Szenario-Namen, Szenario-Text, Hinweis-Labels und Hinweis-Inhalte.
+Etablierte englische Produkt- oder Fachbegriffe bleiben englisch, wenn sie im Kontext präziser sind als eine wörtliche Übersetzung.
 
 ## Beispiel-Ausgabe
 
@@ -21,18 +22,18 @@ Als <span style="color:#ff8c00">angemeldeter Bestandskunde</span> m&ouml;chte ic
 
 <div class="jePanel_dashed" style="border:1px dashed #b4b4b4; padding:.5em 1em .5em 2.5em">
 <h2 dir="auto" style="color:#00095a; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,'Fira Sans','Droid Sans','Helvetica Neue',sans-serif; font-size:20px; font-weight:500; text-align:start; text-decoration:none">Szenario 1: Verf&uuml;gbare Rechnung &ouml;ffnen</h2>
-<p dir="auto"><span style="color:#2980b9"><b>Angenommen</b></span> ein angemeldeter Kunde betrachtet eine eigene Bestellung mit verf&uuml;gbarer Rechnung</p>
-<p dir="auto"><span style="color:#ff8c00"><b>Wenn</b></span> der Kunde die Rechnung aus der Bestellliste oder der Detailansicht &ouml;ffnet</p>
-<p dir="auto"><span style="color:#27ae60"><b>Dann</b></span> wird das zu dieser Bestellung geh&ouml;rende Rechnungsdokument ohne Supportkontakt bereitgestellt</p>
-<p dir="auto"><span style="color:#f39c12"><b>Und</b></span> der Zugriff ist nachvollziehbar protokolliert und nur f&uuml;r diese Kundenbestellung m&ouml;glich</p>
+<p dir="auto"><span style="color:#2980b9"><b>Angenommen</b></span> ich betrachte eine eigene Bestellung mit verf&uuml;gbarer Rechnung</p>
+<p dir="auto"><span style="color:#ff8c00"><b>Wenn</b></span> ich die Rechnung aus der Bestellliste oder der Detailansicht &ouml;ffne</p>
+<p dir="auto"><span style="color:#27ae60"><b>Dann</b></span> erhalte ich das zu dieser Bestellung geh&ouml;rende Rechnungsdokument ohne Supportkontakt</p>
+<p dir="auto"><span style="color:#f39c12"><b>Und</b></span> mein Zugriff ist nachvollziehbar protokolliert und nur f&uuml;r diese Kundenbestellung m&ouml;glich</p>
 </div>
 
 <div class="jePanel_dashed" style="border:1px dashed #b4b4b4; padding:.5em 1em .5em 2.5em">
 <h2 dir="auto" style="color:#00095a; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,'Fira Sans','Droid Sans','Helvetica Neue',sans-serif; font-size:20px; font-weight:500; text-align:start; text-decoration:none">Szenario 2: Fehlerfall ohne Kontextverlust</h2>
-<p dir="auto"><span style="color:#2980b9"><b>Angenommen</b></span> der Kunde befindet sich in der Bestellhistorie oder in einer Bestelldetailansicht und der Rechnungsabruf schl&auml;gt vor&uuml;bergehend fehl</p>
-<p dir="auto"><span style="color:#ff8c00"><b>Wenn</b></span> der Fehler angezeigt wird</p>
-<p dir="auto"><span style="color:#16a085"><b>Dann</b></span> erh&auml;lt der Kunde eine verst&auml;ndliche, erneut ausl&ouml;sbare Fehlersituation</p>
-<p dir="auto"><span style="color:#27ae60"><b>Und</b></span> die aktuelle Seite, der gew&auml;hlte Auftrag und bestehende Filter bleiben erhalten</p>
+<p dir="auto"><span style="color:#2980b9"><b>Angenommen</b></span> ich befinde mich in der Bestellhistorie oder in einer Bestelldetailansicht und der Rechnungsabruf schl&auml;gt vor&uuml;bergehend fehl</p>
+<p dir="auto"><span style="color:#ff8c00"><b>Wenn</b></span> ich den Fehler sehe</p>
+<p dir="auto"><span style="color:#16a085"><b>Dann</b></span> erhalte ich eine Fehlermeldung mit einer M&ouml;glichkeit zum erneuten Versuch</p>
+<p dir="auto"><span style="color:#27ae60"><b>Und</b></span> meine aktuelle Seite, die gew&auml;hlte Bestellung und bestehende Filter bleiben erhalten</p>
 </div>
 
 <div class="jePanel_idea" style="border:1px solid #d4d39e; padding:.5em 1em .5em 2.5em">
@@ -41,8 +42,8 @@ Als <span style="color:#ff8c00">angemeldeter Bestandskunde</span> m&ouml;chte ic
 
 <ul>
 <li><b>Was umgesetzt werden soll:</b> Kunden k&ouml;nnen Rechnungs-PDFs aus der Bestellhistorie und der Bestelldetailansicht &ouml;ffnen, wenn eine Rechnung verf&uuml;gbar ist. Ist noch keine Rechnung vorhanden, wird dies verst&auml;ndlich kommuniziert statt stillschweigend zu scheitern.</li>
-<li><b>Blockiert durch:</b> Slice Bestellhistorie-Browsing verf&uuml;gbar</li>
-<li><b>Technische Hinweise:</b> Fokus auf benutzersichtbaren Zugriff, Autorisierungsgrenzen, Nachvollziehbarkeit und wiederholbare Fehlerbehandlung. Speicher- und Transportdetails als Implementierungsentscheidung behandeln, sofern das PRD keine harte Vorgabe macht.</li>
+<li><b>Blockiert durch:</b> Slice Bestellhistorie anzeigen</li>
+<li><b>Technische Hinweise:</b> Fokus auf Zugriff aus Kundensicht, Autorisierungsgrenzen, Nachvollziehbarkeit im Audit Log und wiederholbare Fehlerbehandlung. Speicher- und Transportdetails als Implementierungsentscheidung behandeln, sofern das PRD keine harte Vorgabe macht.</li>
 <li><b>Annahmen:</b> Rechnungsdokumente existieren bereits f&uuml;r berechtigte Bestellungen und k&ouml;nnen auf Anfrage abgerufen werden.</li>
 <li><b>Abh&auml;ngigkeiten:</b> Authentifizierter Kundenkontext, Pr&uuml;fung der Bestellzugeh&ouml;rigkeit, Rechnungsdokumentquelle und Compliance-Protokollierung.</li>
 <li><b>Risiken:</b> Fehlerhafte oder mehrdeutige Rechnungslinks k&ouml;nnten das falsche Dokument anzeigen oder Supportkontakte erzeugen statt sie zu reduzieren.</li>
@@ -71,21 +72,21 @@ Als <span style="color:#ff8c00">Nutzer der B2B-Anwenderverwaltung</span> m&ouml;
 <h2 dir="auto" style="color:#00095a; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,'Fira Sans','Droid Sans','Helvetica Neue',sans-serif; font-size:20px; font-weight:500; text-align:start; text-decoration:none">Szenario 1: Filter&uuml;bernahme beim Export</h2>
 <p dir="auto"><span style="color:#2980b9"><b>Angenommen</b></span> ich befinde mich auf der Personen&uuml;bersicht und habe Filter gesetzt</p>
 <p dir="auto"><span style="color:#ff8c00"><b>Wenn</b></span> ich auf den Button &ldquo;Export&rdquo; klicke</p>
-<p dir="auto"><span style="color:#16a085"><b>Dann</b></span> enth&auml;lt die exportierte Datei ausschlie&szlig;lich Datens&auml;tze, die allen aktiven Filtern entsprechen</p>
+<p dir="auto"><span style="color:#16a085"><b>Dann</b></span> sehe ich in der exportierten Datei ausschlie&szlig;lich Datens&auml;tze, die allen aktiven Filtern entsprechen</p>
 </div>
 
 <div class="jePanel_dashed" style="border:1px dashed #b4b4b4; padding:.5em 1em .5em 2.5em">
 <h2 dir="auto" style="color:#00095a; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,'Fira Sans','Droid Sans','Helvetica Neue',sans-serif; font-size:20px; font-weight:500; text-align:start; text-decoration:none">Szenario 2: Keine Filter gesetzt</h2>
-<p dir="auto"><span style="color:#2980b9"><b>Angenommen</b></span> es sind keine Filter aktiv</p>
+<p dir="auto"><span style="color:#2980b9"><b>Angenommen</b></span> ich habe keine Filter gesetzt</p>
 <p dir="auto"><span style="color:#ff8c00"><b>Wenn</b></span> ich den Export starte</p>
-<p dir="auto"><span style="color:#16a085"><b>Dann</b></span> enth&auml;lt die exportierte Datei alle verf&uuml;gbaren Personen</p>
+<p dir="auto"><span style="color:#16a085"><b>Dann</b></span> sehe ich in der exportierten Datei alle verf&uuml;gbaren Personen</p>
 </div>
 
 <div class="jePanel_dashed" style="border:1px dashed #b4b4b4; padding:.5em 1em .5em 2.5em">
 <h2 dir="auto" style="color:#00095a; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,'Fira Sans','Droid Sans','Helvetica Neue',sans-serif; font-size:20px; font-weight:500; text-align:start; text-decoration:none">Szenario 3: Kombination mehrerer Filter</h2>
 <p dir="auto"><span style="color:#2980b9"><b>Angenommen</b></span> ich habe mehrere Filter gleichzeitig gesetzt</p>
 <p dir="auto"><span style="color:#ff8c00"><b>Wenn</b></span> ich exportiere</p>
-<p dir="auto"><span style="color:#16a085"><b>Dann</b></span> werden die Filter logisch korrekt kombiniert</p>
+<p dir="auto"><span style="color:#16a085"><b>Dann</b></span> sehe ich in der exportierten Datei nur Datens&auml;tze, die der kombinierten Filtermenge entsprechen</p>
 </div>
 
 <div class="jePanel_idea" style="border:1px solid #d4d39e; padding:.5em 1em .5em 2.5em">
@@ -93,6 +94,6 @@ Als <span style="color:#ff8c00">Nutzer der B2B-Anwenderverwaltung</span> m&ouml;
 </div>
 
 <ul>
-<li><b>Was umgesetzt werden soll:</b> Paginierung hat keinen Einfluss auf den Export &mdash; Export basiert auf gesamtem gefiltertem Resultset.</li>
+<li><b>Was umgesetzt werden soll:</b> Paginierung hat keinen Einfluss auf den Export. Der Export basiert auf dem gesamten gefilterten Resultset.</li>
 </ul>
 ```

@@ -3,57 +3,57 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Convert the accepted PRD manifest in plugins/project-advisor/skills/to-issues/evals/inputs/prd-order-history.yaml into Jira-ready vertical-slice action items. Use prd.yaml as the source of truth for scope, constraints, and success measures. Assume the slice breakdown is approved and write the markdown files directly.",
-      "expected_output": "Generated action items use outcome-oriented scenarios and avoid implementation-task wording such as file, endpoint, schema, component, or method changes.",
+      "prompt": "Convert the accepted PRD manifest in plugins/project-advisor/skills/to-issues/evals/inputs/prd-order-history.yaml into Jira-ready vertical-slice work items. Use prd.yaml as the source of truth for scope, constraints, and success measures. Assume the slice breakdown is approved and write the markdown files directly.",
+      "expected_output": "Generated work items use outcome-oriented scenarios and avoid implementation-task wording such as file, endpoint, schema, component, or method changes.",
       "files": [
         "plugins/project-advisor/skills/to-issues/evals/inputs/prd-order-history.yaml"
       ],
       "expectations": [
-        "At least one generated action item covers chronological order history with user-visible summary fields and a first-time empty state.",
-        "At least one generated action item covers invoice access together with auditable access and retryable recovery.",
-        "At least one generated action item preserves the PRD's ownership boundary that only the authenticated customer can access their own order history and invoice links.",
-        "The generated action items describe desired outcomes and constraints rather than instructing developers to add specific endpoints, schemas, tables, components, or methods.",
-        "All ticket content is written in German. No English labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' appear.",
+        "At least one generated work item covers chronological order history with user-visible summary fields and a first-time empty state.",
+        "At least one generated work item covers invoice access together with auditable access and retryable recovery.",
+        "At least one generated work item preserves the PRD's ownership boundary that only the authenticated customer can access their own order history and invoice links.",
+        "The generated work items describe desired outcomes and constraints rather than instructing developers to add specific endpoints, schemas, tables, components, or methods.",
+        "Ticket content uses German labels and German sentence framing. Established English product or technical terms may remain when they are source-backed; English note labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' do not appear.",
         "The Hinweise section follows the note structure from references/jira-issue-template.md: the panel header is followed by a `<ul>` with one `<li>` per included entry, and note entries with no real information are omitted instead of using placeholders such as `Keine`.",
         "Scenario text does not contain filler adjectives like nahtlos, robust, umfassend, zuverlässig, eindeutig, or sichergestellt.",
         "Scenarios use first-person perspective (ich befinde mich, ich klicke, ich sehe) rather than third-person (der Nutzer, der Kunde befindet sich).",
-        "Technische Hinweise only contain non-obvious information — no tech stack, standard auth rules, or other things a senior dev would assume."
+        "Technische Hinweise only contain non-obvious information - no tech stack, standard auth rules, or other things a senior dev would assume."
       ]
     },
     {
       "id": 2,
-      "prompt": "Convert the accepted PRD manifest in plugins/project-advisor/skills/to-issues/evals/inputs/prd-delegated-approvals.yaml into Jira-ready vertical-slice action items. Use prd.yaml as the source of truth for scope, constraints, and open questions. Assume the slice breakdown is approved and write the markdown files directly.",
-      "expected_output": "Generated action items describe user-visible behavior, constraints, and verifiable outcomes instead of prescribing implementation steps across layers.",
+      "prompt": "Convert the accepted PRD manifest in plugins/project-advisor/skills/to-issues/evals/inputs/prd-delegated-approvals.yaml into Jira-ready vertical-slice work items. Use prd.yaml as the source of truth for scope, constraints, and open questions. Assume the slice breakdown is approved and write the markdown files directly.",
+      "expected_output": "Generated work items describe user-visible behavior, constraints, and verifiable outcomes instead of prescribing implementation steps across layers.",
       "files": [
         "plugins/project-advisor/skills/to-issues/evals/inputs/prd-delegated-approvals.yaml"
       ],
       "expectations": [
-        "At least one generated action item covers delegation setup with eligibility checks and clear validation feedback.",
-        "At least one generated action item covers automatic delegated routing during the active window and automatic return to the original approver afterward.",
-        "At least one generated action item preserves a compliance-facing view of delegation history without requiring database access.",
-        "The generated action items describe behavior, ownership, and audit outcomes without prescribing specific APIs, schemas, tables, services, or UI components to change.",
-        "All ticket content is written in German. No English labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' appear.",
+        "At least one generated work item covers delegation setup with eligibility checks and clear validation feedback.",
+        "At least one generated work item covers automatic delegated routing during the active window and automatic return to the original approver afterward.",
+        "At least one generated work item preserves a compliance-facing view of delegation history without requiring database access.",
+        "The generated work items describe behavior, ownership, and audit outcomes without prescribing specific APIs, schemas, tables, services, or UI components to change.",
+        "Ticket content uses German labels and German sentence framing. Established English product or technical terms may remain when they are source-backed; English note labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' do not appear.",
         "The Hinweise section follows the note structure from references/jira-issue-template.md: the panel header is followed by a `<ul>` with one `<li>` per included entry, and note entries with no real information are omitted instead of using placeholders such as `Keine`.",
         "Scenario text does not contain filler adjectives like nahtlos, robust, umfassend, zuverlässig, eindeutig, or sichergestellt.",
         "Scenarios use first-person perspective (ich befinde mich, ich klicke, ich sehe) rather than third-person (der Nutzer, der Kunde befindet sich).",
-        "Technische Hinweise only contain non-obvious information — no tech stack, standard auth rules, or other things a senior dev would assume."
+        "Technische Hinweise only contain non-obvious information - no tech stack, standard auth rules, or other things a senior dev would assume."
       ]
     },
     {
       "id": 3,
-      "prompt": "Use fast mode. Convert the feature brief in plugins/project-advisor/skills/to-issues/evals/inputs/brief-saved-views.md into Jira-ready vertical-slice action items. Do not ask for a PRD. Assume the provided brief is sufficient unless one missing decision would materially change the slices, and write the markdown files directly.",
-      "expected_output": "Generated action items turn a non-PRD feature brief into lean, Jira-ready vertical slices without inventing a separate discovery or foundation phase.",
+      "prompt": "Use fast mode. Convert the feature brief in plugins/project-advisor/skills/to-issues/evals/inputs/brief-saved-views.md into Jira-ready vertical-slice work items. Do not ask for a PRD. Assume the provided brief is sufficient unless one missing decision would materially change the slices, and write the markdown files directly.",
+      "expected_output": "Generated work items turn a non-PRD feature brief into lean, Jira-ready vertical slices without inventing a separate discovery or foundation phase.",
       "files": [
         "plugins/project-advisor/skills/to-issues/evals/inputs/brief-saved-views.md"
       ],
       "expectations": [
-        "At least one generated action item covers saving a filtered view with a user-defined name and making it available from the existing people list workflow.",
-        "At least one generated action item covers reusing a saved view later, including clear handling when filter definitions are no longer valid.",
+        "At least one generated work item covers saving a filtered view with a user-defined name and making it available from the existing people list workflow.",
+        "At least one generated work item covers reusing a saved view later, including clear handling when filter definitions are no longer valid.",
         "The generated issue set does not introduce a generic discovery, PRD-writing, or architecture-foundation slice; it goes straight to product-facing work items.",
-        "The generated action items describe user-visible behavior and constraints rather than prescribing specific APIs, schemas, tables, services, components, or methods to change.",
-        "The generated action items do not invent additional product rules that are absent from the brief, such as naming validation, duplicate-name handling, sharing behavior, quotas, or special permission exceptions, unless they are clearly framed as assumptions or open questions.",
-        "The generated action items preserve that saved views are personal and not shared with other users.",
-        "All ticket content is written in German. No English labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' appear.",
+        "The generated work items describe user-visible behavior and constraints rather than prescribing specific APIs, schemas, tables, services, components, or methods to change.",
+        "The generated work items do not invent additional product rules that are absent from the brief, such as naming validation, duplicate-name handling, sharing behavior, quotas, or special permission exceptions, unless they are clearly framed as assumptions or open questions.",
+        "The generated work items preserve that saved views are personal and not shared with other users.",
+        "Ticket content uses German labels and German sentence framing. Established English product or technical terms may remain when they are source-backed; English note labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' do not appear.",
         "The Hinweise section follows the note structure from references/jira-issue-template.md: the panel header is followed by a `<ul>` with one `<li>` per included entry, and note entries with no real information are omitted instead of using placeholders such as `Keine`.",
         "Scenario text does not contain filler adjectives like nahtlos, robust, umfassend, zuverlässig, eindeutig, or sichergestellt.",
         "Scenarios use first-person perspective (ich befinde mich, ich klicke, ich sehe) rather than third-person (der Nutzer, der Kunde befindet sich)."
@@ -61,37 +61,37 @@
     },
     {
       "id": 4,
-      "prompt": "Use fast mode. Start from the thin feature brief in plugins/project-advisor/skills/to-issues/evals/inputs/brief-filter-presets-thin.md. Do not ask for a PRD. If a missing decision materially changes the slice breakdown, ask the smallest useful follow-up question before creating files. Otherwise write Jira-ready vertical-slice action items directly and keep unresolved product detail as assumptions or open questions instead of inventing it.",
-      "expected_output": "Generated output handles a thin brief cautiously: it either asks one tight clarification question when a missing decision changes slice shape, or it produces lean action items that defer unresolved product rules instead of silently inventing them.",
+      "prompt": "Use fast mode. Start from the thin feature brief in plugins/project-advisor/skills/to-issues/evals/inputs/brief-filter-presets-thin.md. Do not ask for a PRD. If a missing decision materially changes the slice breakdown, ask the smallest useful follow-up question before creating files. Otherwise write Jira-ready vertical-slice work items directly and keep unresolved product detail as assumptions or open questions instead of inventing it.",
+      "expected_output": "Generated output handles a thin brief cautiously: it either asks one tight clarification question when a missing decision changes slice shape, or it produces lean work items that defer unresolved product rules instead of silently inventing them.",
       "files": [
         "plugins/project-advisor/skills/to-issues/evals/inputs/brief-filter-presets-thin.md"
       ],
       "expectations": [
-        "The result either asks a small clarification about a missing decision that materially changes the slice breakdown, or it creates action items while surfacing unresolved decisions as Annahmen or Offene Fragen instead of treating them as settled requirements.",
-        "If action items are created, at least one generated action item covers getting back to recurring filter configurations faster from the existing Personenliste workflow.",
+        "The result either asks a small clarification about a missing decision that materially changes the slice breakdown, or it creates work items while surfacing unresolved decisions as Annahmen or Offene Fragen instead of treating them as settled requirements.",
+        "If work items are created, at least one generated work item covers getting back to recurring filter configurations faster from the existing Personenliste workflow.",
         "The generated issue set does not introduce a generic discovery, PRD-writing, or architecture-foundation slice just to compensate for the thin brief.",
-        "The generated action items do not invent unsupported product rules such as personal-versus-shared ownership, rename or delete behavior, quotas, duplicate-name handling, validation rules, or special permission exceptions unless they are clearly framed as assumptions or open questions.",
-        "The generated action items describe user-visible behavior and constraints rather than prescribing specific APIs, schemas, tables, services, components, or methods to change.",
-        "The generated action items preserve the thin brief's explicit scope constraints: the existing listen/filter experience is extended rather than replaced, and the first version is for internal users.",
-        "All ticket content is written in German. No English labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' appear.",
+        "The generated work items do not invent unsupported product rules such as personal-versus-shared ownership, rename or delete behavior, quotas, duplicate-name handling, validation rules, or special permission exceptions unless they are clearly framed as assumptions or open questions.",
+        "The generated work items describe user-visible behavior and constraints rather than prescribing specific APIs, schemas, tables, services, components, or methods to change.",
+        "The generated work items preserve the thin brief's explicit scope constraints: the existing list/filter experience is extended rather than replaced, and the first version is for internal users.",
+        "Ticket content uses German labels and German sentence framing. Established English product or technical terms may remain when they are source-backed; English note labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' do not appear.",
         "The Hinweise section follows the note structure from references/jira-issue-template.md: the panel header is followed by a `<ul>` with one `<li>` per included entry, and note entries with no real information are omitted instead of using placeholders such as `Keine`.",
         "Scenario text does not contain filler adjectives like nahtlos, robust, umfassend, zuverlässig, eindeutig, or sichergestellt."
       ]
     },
     {
       "id": 5,
-      "prompt": "Convert the accepted PRD manifest in plugins/project-advisor/skills/to-issues/evals/inputs/prd-support-reply-templates.yaml into Jira-ready vertical-slice action items. Treat prd.yaml as the source of truth for scope, constraints, and open questions, even if a styled HTML review surface also exists. Assume the slice breakdown is approved and write the markdown files directly.",
-      "expected_output": "Generated action items can start from a structured to-prd prd.yaml source and preserve constraints that might be abbreviated in a rendered review surface.",
+      "prompt": "Convert the accepted PRD manifest in plugins/project-advisor/skills/to-issues/evals/inputs/prd-support-reply-templates.yaml into Jira-ready vertical-slice work items. Treat prd.yaml as the source of truth for scope, constraints, and open questions, even if a styled HTML review surface also exists. Assume the slice breakdown is approved and write the markdown files directly.",
+      "expected_output": "Generated work items can start from a structured to-prd prd.yaml source and preserve constraints that might be abbreviated in a rendered review surface.",
       "files": [
         "plugins/project-advisor/skills/to-issues/evals/inputs/prd-support-reply-templates.yaml"
       ],
       "expectations": [
-        "At least one generated action item covers creating and maintaining personal Antwortvorlagen from the existing reply workflow rather than introducing a separate management surface first.",
-        "At least one generated action item covers applying a template with clear handling for missing placeholders before a reply is sent.",
-        "The generated action items preserve the manifest's explicit first-release constraint that templates are personal and not shared across the team.",
-        "The generated action items preserve the manifest's explicit non-goal that analytics and centrally managed default templates are out of scope for the first release.",
-        "The generated action items use prd.yaml as planning source and describe product behavior and constraints rather than prescribing specific APIs, schemas, tables, services, or components to change.",
-        "All ticket content is written in German. No English labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' appear.",
+        "At least one generated work item covers creating and maintaining personal Antwortvorlagen from the existing reply workflow rather than introducing a separate management surface first.",
+        "At least one generated work item covers applying a template with clear handling for missing placeholders before a reply is sent.",
+        "The generated work items preserve the manifest's explicit first-release constraint that templates are personal and not shared across the team.",
+        "The generated work items preserve the manifest's explicit non-goal that analytics and centrally managed default templates are out of scope for the first release.",
+        "The generated work items use prd.yaml as planning source and describe product behavior and constraints rather than prescribing specific APIs, schemas, tables, services, or components to change.",
+        "Ticket content uses German labels and German sentence framing. Established English product or technical terms may remain when they are source-backed; English note labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' do not appear.",
         "The Hinweise section follows the note structure from references/jira-issue-template.md: the panel header is followed by a `<ul>` with one `<li>` per included entry, and note entries with no real information are omitted instead of using placeholders such as `Keine`.",
         "Scenarios use first-person perspective (ich befinde mich, ich klicke, ich sehe) rather than third-person (der Nutzer, der Kunde befindet sich)."
       ]

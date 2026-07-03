@@ -1,121 +1,181 @@
 ---
 name: to-issues
-description: Break a PRD or feature brief into independently-grabbable Jira-ready work items using tracer-bullet vertical slices. Use this skill whenever the user wants to convert a PRD to issues, break a spec into work items, create Jira tickets, derive implementation tickets from a feature description, or move from planning prose to engineer-facing slices, even if they do not say "vertical slice" or "PRD". The output should still describe desired behavior, outcomes, and constraints for experienced developers rather than prescribing layer-by-layer implementation steps.
+description: Convert accepted PRDs, to-prd prd.yaml bundles, feature briefs, or planning prose into German Jira-ready markdown work items using tracer-bullet vertical slices. Use this skill whenever the user asks to turn a PRD, spec, feature brief, rough idea, or accepted planning artifact into Jira tickets, issues, work items, action items, implementation slices, or engineer-facing backlog items, including fast-mode requests that start from incomplete prose. Do not use it to write a new PRD or to create live Jira or GitHub issues. The output is copyable markdown files focused on behavior, outcomes, constraints, dependencies, and developer-relevant context, not layer-by-layer implementation tasks.
 argument-hint: "[default|fast]"
 ---
 
 # PRD to Issues
 
-Break a PRD into independently-grabbable Jira-ready work items using vertical slices (tracer bullets).
+Use this skill to turn settled product planning into independently implementable Jira-ready markdown work items.
+The work items should read like concise specifications from one strong teammate to another.
+They should describe desired behavior, observable outcomes, constraints, assumptions, dependencies, risks, and open questions.
+They should not read like step-by-step instructions for an autonomous coding agent.
 
-Write the resulting action items for experienced human developers. Describe desired product behavior, observable outcomes, constraints, and relevant context. Do not write them as step-by-step instructions for an autonomous coding agent.
+Do not create or modify Jira issues, GitHub issues, or any external tracker items.
+The output of this skill is a set of markdown files that the user can copy into Jira.
 
-## Modes
+## Mode selection
 
-Interpret the first argument as the mode. Valid values are `default` and `fast`. If no argument is provided, use `default`.
+Interpret the first argument as the mode when it is present.
+Valid values are `default` and `fast`.
+If no argument is provided, choose the mode from the source material.
 
-- `default`: Start from a full PRD. Locate or request the PRD, decompose it into vertical slices, review the breakdown with the user, then create Jira-ready files.
-- `fast`: Start directly from the user's input. Do not require, request, or synthesize a full PRD. Extract the feature goal, users or actors, expected behavior, constraints, dependencies, and known non-goals from the conversation and any referenced files, then create Jira action items from that context.
+Use `default` when the user provides or points to a full PRD, especially a `to-prd` bundle with `prd.yaml`.
+In `default` mode, locate or request the PRD, decompose it into vertical slices, review the breakdown with the user, then create Jira-ready files.
 
-In `fast` mode, query only missing information that materially changes the action items. If non-obvious pieces of information are missing, use the interactive `ask_question` tool like the `to-prd` skill does. Batch related questions into one round, offer predefined options when useful, and fall back to concise chat questions only if no interactive question tool exists. Do not interview for a complete PRD; resolve only the gaps needed to make the Jira items coherent and actionable. Only assume defaults that do not change the slice shape, ownership model, rollout model, or visible workflow. If a plausible answer would change which slices exist, whether the work is personal versus shared, whether the feature extends an existing surface versus adds a new one, or whether behavior is manual versus automatic, do not quietly pick a favorite interpretation. Ask, or record the uncertainty as an assumption or open question when the ticket can still stay stable without deciding it. Do not invent product rules, validation behavior, error handling, or edge cases just to make the tickets feel complete.
+Use `fast` when the user explicitly says `fast`, provides a feature brief, rough planning prose, a feature description, or any source that is not a packaged PRD artifact.
+In `fast` mode, start from the user's input, prior conversation, and referenced files.
+Do not require, request, or synthesize a full PRD.
+
+## Gather source context
+
+### Default mode
+
+Ask the user for the PRD source if it is not already in context.
+Prefer a PRD file that already exists in the workspace.
+When a `to-prd` bundle contains both `prd.yaml` and `index.html`, use `prd.yaml` as the planning source of truth and treat `index.html` as a reviewer-facing companion.
+When the user points at `index.html`, first look for a sibling `prd.yaml`.
+
+When the source is `prd.yaml`, preserve the structured planning data, including constraints, non-goals, open questions, success measures, and traceability that may be flatter in the rendered review surface.
+Use `index.html` only to recover reviewer-facing phrasing or confirm how the accepted bundle presents the material.
+
+When only HTML is available, extract the semantic planning content and ignore presentational markup, inline CSS, metadata pills, comments, and browser-review chrome.
+Use a structured parser when one is readily available.
+Otherwise, read the HTML carefully enough to preserve section intent without copying template scaffolding into tickets.
+
+If the user only has planning prose or a feature brief instead of a `to-prd` artifact, switch to `fast` mode.
+
+### Fast mode
 
 Before the first serious question round in `fast` mode, read [references/fast-mode-intake.md](./references/fast-mode-intake.md).
 
-## Process
+Extract settled facts before asking anything new.
+Carry forward the actor, desired behavior, rollout constraints, dependencies, non-goals, and source-backed product rules already present in the conversation or referenced files.
 
-### 1. Gather the source context
+Ask only for missing information that materially changes scope, behavior, dependencies, acceptance criteria, ownership, rollout risk, or the slice breakdown.
+Batch related questions into one round.
+Use the interactive `ask_question` tool when available, offer predefined options when useful, and fall back to concise chat questions only if no interactive question tool exists.
 
-In `default` mode, ask the user for the PRD source if it is not already in context. Prefer a PRD file that already exists in the workspace. `prd.yaml` manifests generated by `to-prd` and styled HTML PRDs generated by `to-prd` are valid input. When a `to-prd` bundle contains both `prd.yaml` and `index.html`, always use `prd.yaml` as the planning source of truth and treat `index.html` as a reviewer-facing companion. If the user only has planning prose or a feature brief instead of a `to-prd` artifact, switch to `fast` mode rather than treating ad hoc Markdown as a default-mode PRD.
+Treat these as decomposition-changing ambiguities unless the source settles them:
 
-If the PRD is already available in the workspace, read it directly. When the user points you at `index.html` from a `to-prd` bundle, look for a sibling `prd.yaml` before extracting anything from the HTML.
+- personal versus shared ownership
+- which actors receive the first usable version
+- whether the feature extends an existing workflow or adds a new management surface
+- whether behavior is manual, automatic, or mixed
+- whether unresolved invalid-state handling needs its own slice
+- whether rollout, compliance, or permission choices change which slices exist
 
-When the source PRD is `prd.yaml`, use its structured planning data as the source of truth. Preserve constraints, non-goals, open questions, and traceability that may be flatter or abbreviated in the rendered review surface. Use `index.html` only when it helps recover reviewer-facing phrasing or confirm how the accepted bundle presents the material.
+If a plausible answer would change the slices, ask before drafting.
+If clarification is impossible and the ticket set cannot stay stable without that answer, stop after surfacing the smallest blocking question.
+If a ticket can remain stable, record the uncertainty as an assumption or open question instead of silently choosing a favorite interpretation.
 
-When only HTML is available, extract the planning content from the semantic section text and ignore presentational markup, inline CSS, metadata pills, comments, and other browser-review chrome. Treat the document sections and their text as the fallback source of truth, not the surrounding layout. Use a structured parser when one is readily available; otherwise, read the HTML carefully enough to preserve section intent without copying template scaffolding into tickets.
+Do not invent product rules, validation behavior, naming rules, deduplication behavior, permission nuances, quotas, recovery flows, or edge cases just to make the tickets feel complete.
 
-In `fast` mode, use the user's current request, prior conversation, and any referenced files as the source. Do not ask for a PRD. If the input is too vague to derive stable tickets, ask only for the missing decisions that would affect scope, behavior, dependencies, acceptance criteria, or rollout risk.
+## Explore the codebase
 
-Extract settled facts before asking anything new. If the user already gave the actor, desired behavior, rollout constraints, dependencies, or non-goals, carry them forward instead of re-interviewing.
+Inspect the repository before drafting slices unless the workspace is empty or clearly unrelated.
+Use the codebase to verify product terms, existing workflows, system boundaries, role names, user-facing labels, and non-obvious constraints.
+Do not turn implementation details found in the repo into required work unless the source context supports them.
 
-If a potentially important behavior is not specified, do not quietly promote it into a requirement. Either leave it out, ask about it if it would materially change the slices, or record it as an assumption or open question.
+## Design vertical slices
 
-Treat these as decomposition-changing ambiguities in `fast` mode unless the source already settles them: personal versus shared ownership, who receives the first usable version, whether the work extends an existing workflow versus creating a new management surface, whether behavior is automatic versus user-triggered, and whether unresolved invalid-state handling needs its own slice. If one of these choices would materially reshape the ticket set, stop and clarify instead of drafting tickets around one interpretation.
+Before proposing or writing the slice breakdown, read [references/slice-design-checklist.md](./references/slice-design-checklist.md).
 
-### 2. Explore the codebase
+Create thin tracer-bullet slices.
+Each slice should cut through the relevant system boundaries end-to-end and produce a demoable or externally verifiable outcome.
+Prefer product outcomes over engineering layers.
+Avoid tickets that only prepare an API, database, UI, migration, service, test suite, or architecture foundation without a user-visible or reviewer-visible outcome.
 
-Inspect the repository before drafting slices unless the workspace is empty or clearly unrelated. Use it to verify product terms, existing workflows, system boundaries, and non-obvious constraints that should affect the issue breakdown.
+Classify each slice as `AFK` or `HITL`.
+Use `HITL` only when human interaction is materially required, such as a product decision, design review, architectural choice, policy review, or compliance sign-off.
+Default to `AFK` when the slice can be implemented and merged without a human decision beyond normal code review.
 
-### 3. Draft vertical slices
+Add dependencies only when one slice cannot be meaningfully implemented or verified without another.
+Avoid decorative dependency chains created only by preferred implementation order.
+If two slices can land independently behind partial exposure or a flag, keep them independent.
 
-Break the source context into **tracer bullet** issues. In `default` mode the source context is the PRD. In `fast` mode it is the user's input plus any answers gathered with `ask_question`. Each issue is a thin vertical slice that cuts through all relevant integration layers end-to-end, not a horizontal slice of one layer.
+## Review the breakdown
 
-Slices may be `HITL` or `AFK`. `HITL` slices require human interaction, such as an architectural decision or a design review. `AFK` slices can be implemented and merged without human interaction. Prefer `AFK` where possible.
-
-Before proposing the breakdown, read [references/slice-design-checklist.md](./references/slice-design-checklist.md).
-
-### 4. Quiz the user
-
-In `fast` mode, skip this review loop unless the source input leaves multiple plausible slice breakdowns and choosing the wrong one would materially change the Jira files. If the breakdown itself is ambiguous, ask the smallest useful set of questions with `ask_question`, then continue to file creation. If interactive clarification is not possible in the current context, stop after surfacing the blocking question instead of inventing a ticket set around one unconfirmed answer.
-
-In `default` mode, use the full review loop:
-
-Present the proposed breakdown as a numbered list. For each slice, show:
+In `default` mode, present the proposed breakdown before creating files unless the user explicitly says the breakdown is already approved or asks you to assume approval.
+For each slice, show:
 
 - **Title**: short descriptive name
-- **Type**: HITL / AFK
-- **Blocked by**: which other slices, if any, must complete first
-- **User stories covered**: which user stories from the PRD this addresses
+- **Type**: `HITL` or `AFK`
+- **Blocked by**: required predecessor slices, if any
+- **User stories covered**: the PRD user stories or source goals addressed
 
-Ask the user:
-
-- Does the granularity feel right? (too coarse / too fine)
-- Are the dependency relationships correct?
-- Should any slices be merged or split further?
-- Are the correct slices marked as HITL and AFK?
-
+Ask whether the granularity, dependencies, and HITL or AFK labels look right.
 Iterate until the user approves the breakdown.
 
-If the user explicitly says the breakdown is already approved, or the prompt says to assume approval, skip this review loop and move directly to file creation.
+In `fast` mode, skip the full review loop unless the source leaves multiple plausible breakdowns and choosing the wrong one would materially change the Jira files.
+If that happens, ask the smallest useful question and then continue.
 
-### 5. Create Jira-ready markdown files
+## Create Jira-ready markdown files
 
-For each approved slice, create a markdown file that the user can copy into Jira.
+Before drafting the first issue, read these references:
 
-Each file must describe the slice in terms of expected behavior and business or product outcome. Assume the reader is an experienced developer who can determine the implementation details. Avoid decomposing the work into prescriptive layer-by-layer instructions or agent-style execution steps.
+- In `fast` mode, [references/fast-mode-intake.md](./references/fast-mode-intake.md)
+- [references/slice-design-checklist.md](./references/slice-design-checklist.md)
+- [references/ticket-writing-checklist.md](./references/ticket-writing-checklist.md)
+- [references/jira-issue-template.md](./references/jira-issue-template.md)
+- [references/example-ticket.md](./references/example-ticket.md)
 
-If the PRD contains suggested solution details such as APIs, tables, schemas, services, UI components, jobs, view names, or other implementation ideas, treat them as context rather than as instructions to copy into the action item. Translate them into user-visible behavior or domain constraints before writing the ticket. Do not repeat architecture nouns such as workflow engines, notification services, assignment APIs, tables, React screens, list/detail view labels, or similar implementation surfaces in titles, user stories, scenarios, or `Was umgesetzt werden soll` unless the term is itself the user-visible product surface. Only keep such details under `Technische Hinweise` when omitting them would hide a real non-obvious integration constraint.
+Unless the user requests another location, create files in `action-items/jira-issues/`.
+Create one markdown file per approved slice.
+Create files in dependency order so later files can reference earlier slice titles or filenames in `Blockiert durch`.
+Use predictable filenames such as `01-short-slice-title.md`, `02-next-slice-title.md`, and so on.
 
-Especially in `fast` mode, prefer fidelity to the source over false completeness. Do not add acceptance criteria for naming rules, deduplication behavior, permission nuances, recovery flows, or other product details unless the source context, repo evidence, or explicit user answers support them.
-
-Before drafting the first issue, read these bundled references:
-
-- In `fast` mode, also read [references/fast-mode-intake.md](./references/fast-mode-intake.md)
-- [references/slice-design-checklist.md](./references/slice-design-checklist.md) for vertical-slice quality checks and dependency heuristics
-- [references/ticket-writing-checklist.md](./references/ticket-writing-checklist.md) for writing style, rewrite tests, and note hygiene
-- [references/jira-issue-template.md](./references/jira-issue-template.md) for the exact Jira-compatible raw HTML structure and template rules
-- [references/example-ticket.md](./references/example-ticket.md) for a fully worked example of the expected tone, scenario framing, and note density
-
-The markdown file should use Jira-compatible raw HTML blocks and must follow the exact structure from [references/jira-issue-template.md](references/jira-issue-template.md) unless the user explicitly asks for a different format.
-
-Unless the user requests another location, create the files in a `action-items/jira-issues/` directory in the workspace.
-
-Create files in dependency order so later files can reference earlier slice titles or filenames in the `Blockiert durch` entry when the template calls for it.
-
-Use a predictable filename pattern such as `01-short-slice-title.md`, `02-next-slice-title.md`, and so on.
+Every issue must follow the exact raw HTML structure and template rules in [references/jira-issue-template.md](./references/jira-issue-template.md) unless the user explicitly asks for a different format.
+Use the Jira-compatible panels, inline styles, German labels, and German Gherkin keywords from the template.
+Always include the notes panel.
+In the notes list, include only entries that carry real information.
+Omit empty entries rather than writing placeholders such as `Keine`.
 
 If the PRD does not already provide the user story in `Als ... moechte ich ... damit ...` form, derive it from the slice intent.
+Acceptance criteria must be named scenarios inside dashed panels, not a plain checklist.
+Each scenario must describe externally verifiable behavior, outcomes, and constraints.
+Write scenario lines from a participant's point of view, such as `ich sehe`, `ich erhalte`, `ich wähle`, `ich öffne`, or `ich befinde mich`.
+Avoid generic third-person phrasing such as `der Nutzer`, `der Genehmiger`, `die Anfrage`, or `es wird`, when first-person phrasing can express the same behavior.
 
-Acceptance criteria must be expressed as named scenarios inside dashed panels, not as a plain checklist.
-Acceptance criteria should describe externally verifiable behavior, outcomes, and constraints rather than internal implementation steps.
-Scenarios must not reference internal code artifacts such as class names, service names, method signatures, enum constants, configuration keys, or database table and column names. When the PRD names such identifiers, translate them into observable behavior or domain-level language before writing the scenario.
-Write every scenario line from a participant's point of view. Prefer `ich sehe`, `ich erhalte`, `ich wähle`, `ich öffne`, `ich befinde mich`, and similar first-person phrasing over generic statements about `der Genehmiger`, `die Anfrage`, or `es wird`.
+## Ticket writing rules
+
+Write for experienced human developers.
+Describe the intended behavior and relevant constraints, then let the developer decide the implementation details.
+
+If the source contains suggested solution details such as APIs, tables, schemas, services, UI components, jobs, view names, workflow engines, notification services, assignment APIs, React screens, or similar implementation ideas, treat them as context rather than instructions to copy into the work item.
+Convert them into user-visible behavior or domain constraints before writing titles, user stories, scenarios, or `Was umgesetzt werden soll`.
+Keep raw architecture terms only under `Technische Hinweise`, and only when omitting them would hide a real non-obvious integration constraint.
+
+Scenarios must not reference internal code artifacts such as class names, service names, method signatures, enum constants, configuration keys, database tables, or database columns.
+When the source names such identifiers, convert them into domain language or observable system behavior.
+
+Especially in `fast` mode, prefer fidelity to the source over false completeness.
+Do not add acceptance criteria for unsupported naming rules, deduplication behavior, permission exceptions, quotas, recovery flows, or other product details.
+Ask, omit, or record them as assumptions or open questions depending on whether they change the slice set.
+
+Keep `Technische Hinweise` brief and decision-relevant.
+Include only non-obvious implementation context, integration constraints, or source-backed technical facts that a senior developer would not already infer from the scenarios.
+Do not include tech stack, standard authentication rules, routine CRUD implications, or generic implementation advice.
 
 Use the rewrite test from [references/ticket-writing-checklist.md](./references/ticket-writing-checklist.md) before finalizing each slice.
+Remove layer-by-layer build language, filler adjectives, invented product rules, empty note sections, and internal code identifiers.
 
-Do not create or modify GitHub issues as part of this skill.
+## Language and terminology
 
-The output of this skill is the set of markdown files, not the Jira tickets themselves.
+Generated ticket content uses German as the base language.
+This applies to titles, user stories, scenario names, scenario body text, note labels, and note content.
 
-### Language: German throughout
+Do not force verbatim German translations when an English term is clearer, more precise, or established in the product, codebase, or team vocabulary.
+Keep proper nouns, visible UI labels, code identifiers, acronyms, and common technical or product terms in English when translating them would reduce meaning.
+Examples that may stay English when source or repo context supports them include `API`, `Feature Flag`, `Dashboard`, `Template`, `Workflow`, `Audit Log`, `Bulk Import`, `In-Product`, `Owner`, `Reviewer`, `Business Unit`, `Detail View`, `Design`, and `List View`.
 
-All generated ticket content must be written in German. This applies to titles, user stories, scenario names, scenario body text, note labels, and note content. The only exceptions are proper nouns, technical terms with no established German equivalent, and code identifiers. Translate common business and product jargon such as `Business Unit`, `Owner`, `Reviewer`, `In-Product`, `Detail View`, or `List View` when a natural German phrasing exists. The Gherkin keywords (`Angenommen`, `Wenn`, `Dann`, `Und`) and the user story frame (`Als`, `möchte ich`, `damit`) are already German in the template; the rest of the ticket must match.
+Prefer natural German where it is clearer and not contradicted by source terminology.
+For example, use `Fehlermeldung`, `Berechtigung`, `zuständige Person`, or `prüfende Person` when those are the product's natural words.
+Avoid awkward German compounds created only to translate an English term.
+
+The template labels and Gherkin keywords remain German: `Was umgesetzt werden soll`, `Blockiert durch`, `Technische Hinweise`, `Annahmen`, `Abhängigkeiten`, `Risiken`, `Offene Fragen`, `Angenommen`, `Wenn`, `Dann`, and `Und`.
+
+## Final response
+
+After writing the files, summarize the created filenames, the intended slice order, and any material assumptions or open questions.
+Make clear that the files are Jira-ready markdown, not live Jira tickets.

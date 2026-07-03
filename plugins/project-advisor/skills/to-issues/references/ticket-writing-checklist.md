@@ -35,9 +35,11 @@ If a title, scenario, or note reads like a build checklist for an autonomous age
 
 **Notes should earn their place.** `Was umgesetzt werden soll` should stay compact. When the template includes `Blockiert durch`, it should name an actual predecessor slice. `Technische Hinweise` should only contain non-obvious constraints or context that a senior developer would not infer from the scenarios alone.
 
-**Translate implementation surfaces before writing.** If the source mentions services, engines, APIs, tables, React components, list/detail views, or similar architecture terms, convert them into user-visible behavior or domain constraints. Keep those raw terms out of titles, user stories, scenarios, and `Was umgesetzt werden soll` unless the term is actually part of the user-facing product language.
+**Separate implementation surfaces from product language.** If the source mentions services, engines, APIs, tables, React components, view labels, or similar architecture terms, convert them into user-visible behavior or domain constraints. Keep those raw terms out of titles, user stories, scenarios, and `Was umgesetzt werden soll` unless the term is actually part of the user-facing product language.
 
-**Translate stray English business jargon too.** Even when a phrase is not an implementation surface, rewrite common mixed-language terms such as `Business Unit`, `Owner`, `Reviewer`, or `In-Product-Benachrichtigung` into natural German unless the English term is the established product term.
+**Use terminology that sounds like the product.** German is the base language, but established English terms are fine when they are clearer or already used by the product, codebase, or team. Do not force literal translations such as `Funktionsumschalter` for `Feature Flag`, `Massenimport` if the product says `Bulk Import`, or `Prüfprotokoll` if the domain says `Audit Log`. Prefer natural German for generic terms when it improves readability, such as `Fehlermeldung`, `Berechtigung`, or `zuständige Person`.
+
+**Preserve user-facing labels and role names.** If the source or repository uses `Owner`, `Reviewer`, `Business Unit`, `Dashboard`, `In-Product`, `Detail View`, or `List View` as visible product terminology, keep that wording and write the surrounding sentence in German. If those words are only generic English filler, replace them with a natural German phrase.
 
 **Do not fabricate product detail.** If the source does not mention a validation rule, quota, permission exception, duplicate-handling rule, or special error path, do not introduce it as if it were settled product intent. Either omit it, ask about it when it changes the slice shape, or place it under `Annahmen` or `Offene Fragen` when it genuinely needs to be surfaced.
 
@@ -47,7 +49,7 @@ Before saving each ticket, remove:
 
 - layer-by-layer implementation steps
 - internal code identifiers in scenarios
-- architecture nouns copied from the source when a domain or user-visible phrasing would say the same thing
+- architecture nouns copied from the source when domain or user-visible phrasing would say the same thing
 - empty note sections or placeholder values such as `Keine`
 - generic adjectives that do not change the meaning
 - invented product rules that are not supported by the source or repo context
