@@ -37,9 +37,20 @@ When a `to-prd` bundle contains both `prd.yaml` and `index.html`, use `prd.yaml`
 When the user points at `index.html`, first look for a sibling `prd.yaml`.
 
 When the source is `prd.yaml`, preserve the structured planning data, including constraints, non-goals, open questions, success measures, and traceability that may be flatter in the rendered review surface.
+Treat the current `to-prd` manifest shape as authoritative:
+
+- `blocks.requirements` is the primary source for deliverable behavior.
+- Each requirement is an object with `id`, `title`, `description`, optional `relates_to`, `evidence`, `validation`, and optional `exception`.
+- `blocks.testing_strategy` contains validation outcomes with `id`, `target`, `expected_outcome`, and optional `validates`.
+- `requirements[].validation` and `testing_strategy[].validates` are traceability links, not separate implementation tasks.
+- `blocks.user_stories` may be absent; do not require it before splitting issues.
+
+Use requirement IDs such as `REQ-01`, related decisions, risks, questions, and testing outcomes to keep slices traceable.
+Group related requirements into vertical slices when they produce one demoable outcome, and do not create one Jira issue per requirement by default.
 Use `index.html` only to recover reviewer-facing phrasing or confirm how the accepted bundle presents the material.
 
 When only HTML is available, extract the semantic planning content and ignore presentational markup, inline CSS, metadata pills, comments, and browser-review chrome.
+For current `to-prd` HTML, preserve requirement cards rendered as anchors or articles for `REQ-*` elements, including titles, descriptions, validation links, related links, evidence, and validation exceptions.
 Use a structured parser when one is readily available.
 Otherwise, read the HTML carefully enough to preserve section intent without copying template scaffolding into tickets.
 
@@ -102,7 +113,7 @@ For each slice, show:
 - **Title**: short descriptive name
 - **Type**: `HITL` or `AFK`
 - **Blocked by**: required predecessor slices, if any
-- **User stories covered**: the PRD user stories or source goals addressed
+- **Requirements covered**: the PRD requirement IDs and source goals addressed
 
 Ask whether the granularity, dependencies, and HITL or AFK labels look right.
 Iterate until the user approves the breakdown.

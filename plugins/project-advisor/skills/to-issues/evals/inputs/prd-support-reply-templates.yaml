@@ -76,20 +76,24 @@ blocks:
     - id: "RISK-01"
       risk: "Wenn Platzhalterhinweise zu unklar sind, werden Antworten trotz Vorlagen weiter manuell geprüft und der Zeitgewinn verpufft."
       mitigation: "Die erste Version muss deutlich machen, welche Teile noch bearbeitet werden müssen, bevor die Antwort verschickt wird."
-  testing:
+  testing_strategy:
     - id: "TEST-01"
+      target: Vorlage aus laufender Antwort speichern
       expected_outcome: "Eine Support-Mitarbeiterin kann aus einer laufenden Antwort eine persönliche Vorlage speichern und sie später erneut finden."
       validates:
         - "REQ-01"
     - id: "TEST-02"
+      target: Persönliche Vorlage wiederverwenden
       expected_outcome: "Eine ausgewählte persönliche Vorlage wird in den bestehenden Antwort-Composer übernommen."
       validates:
         - "REQ-02"
     - id: "TEST-03"
+      target: Fehlende Platzhalter vor Versand sichtbar machen
       expected_outcome: "Ungelöste Platzhalter sind vor dem Versand sichtbar, sodass die Mitarbeiterin weiß, was noch ergänzt werden muss."
       validates:
         - "REQ-03"
     - id: "TEST-04"
+      target: Persönliche Besitzgrenze bewahren
       expected_outcome: "Vorlagen einer Person tauchen nicht im Antwortablauf anderer Support-Mitarbeitender auf."
       validates:
         - "REQ-04"

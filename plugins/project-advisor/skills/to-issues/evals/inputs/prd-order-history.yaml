@@ -7,6 +7,7 @@ initiative_type: mixed
 review_surfaces:
   - document
   - workflow
+  - ui
 metadata:
   Owner: Customer Portal
   Primary user: Returning customer
@@ -65,24 +66,29 @@ blocks:
     - id: "RISK-01"
       risk: "Wenn der Rechnungsabruf instabil ist oder den Seitenzustand zurücksetzt, verlieren Kunden Vertrauen in die Selbstbedienung."
       mitigation: "Fehler müssen sichtbar und wiederholbar sein, ohne die aktuelle Navigationsposition zu verlieren."
-  testing:
+  testing_strategy:
     - id: "TEST-01"
+      target: Chronologische Bestellübersicht
       expected_outcome: Ein Kunde findet im Kontobereich eine chronologisch sortierte Bestellübersicht mit den wichtigsten Feldern.
       validates:
         - "REQ-01"
     - id: "TEST-02"
+      target: Filter mit Rücksprung-Verhalten
       expected_outcome: "Status- und Datumsfilter lassen sich anwenden und bleiben beim Wechsel in eine Bestellung und zurück erhalten."
       validates:
         - "REQ-02"
     - id: "TEST-03"
+      target: Detailansicht und Rechnungszugriff
       expected_outcome: Aus Liste und Detailansicht lässt sich eine vorhandene Rechnung öffnen; fehlende Rechnungen werden verständlich erklärt.
       validates:
         - "REQ-03"
     - id: "TEST-04"
+      target: Leere Zustände und Fehler ohne Kontextverlust
       expected_outcome: "Bei keinem Bestand, leer gefilterter Liste oder fehlgeschlagenem Rechnungsabruf sehen Kunden passende Rückmeldungen, ohne ihren aktuellen Kontext zu verlieren."
       validates:
         - "REQ-04"
     - id: "TEST-05"
+      target: Zugriffsgrenze und Auditierbarkeit
       expected_outcome: Ein Kunde kann nur den eigenen Bestellverlauf und die eigenen Rechnungen öffnen; Rechnungszugriffe werden nachvollziehbar protokolliert.
       validates:
         - "REQ-05"

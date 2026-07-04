@@ -71,28 +71,34 @@ blocks:
     - id: "RISK-02"
       risk: "Wenn Verantwortlichkeiten in Liste und Detailansicht unterschiedlich erscheinen, verlieren Requester Vertrauen in den Ablauf."
       mitigation: Die sichtbare Verantwortlichkeit muss in allen relevanten Ansichten konsistent sein.
-  testing:
+  testing_strategy:
     - id: "TEST-01"
+      target: Delegation einrichten und pflegen
       expected_outcome: "Eine approvende Person kann eine zukünftige Delegation anlegen, bearbeiten oder abbrechen; ungeeignete Delegierte, ungültige Daten und Überschneidungen werden verständlich erklärt."
       validates:
         - "REQ-01"
     - id: "TEST-02"
+      target: Automatische Weiterleitung während des aktiven Fensters
       expected_outcome: Neue Anfragen innerhalb des aktiven Delegationsfensters werden automatisch an die Vertretung geleitet.
       validates:
         - "REQ-02"
     - id: "TEST-03"
+      target: Verantwortliche Person in laufenden Anfragen sichtbar halten
       expected_outcome: "Bereits laufende Anfragen zeigen in Listen- und Detailansichten konsistent, wer aktuell verantwortlich ist."
       validates:
         - "REQ-03"
     - id: "TEST-04"
+      target: Automatische Rückkehr nach Ende der Delegation
       expected_outcome: Nach Ende der Delegation gehen neue Anfragen automatisch wieder an die ursprüngliche approvende Person.
       validates:
         - "REQ-04"
     - id: "TEST-05"
+      target: Auditierbarkeit und Benachrichtigungen
       expected_outcome: "Delegationsereignisse und daraus entstehende Freigabehandlungen sind nachvollziehbar protokolliert, und beteiligte Personen werden bei Start und Ende informiert."
       validates:
         - "REQ-05"
     - id: "TEST-06"
+      target: Delegationshistorie ohne Datenbankzugriff einsehbar machen
       expected_outcome: "Compliance-Nutzende können Delegationshistorien für anfragende oder approvende Personen prüfen, ohne direkten Datenbankzugriff zu benötigen."
       validates:
         - "REQ-06"
