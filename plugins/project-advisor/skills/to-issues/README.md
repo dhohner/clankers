@@ -42,6 +42,7 @@ Use natural German when it is clearer and aligns with the source terminology.
 
 - `references/jira-issue-template.md` contains the authoritative Jira-compatible HTML template and formatting rules.
 - `references/example-ticket.md` contains a fully worked sample ticket that demonstrates the expected phrasing and level of detail.
+- `references/default-source-intake.md` contains source-resolution and HTML-only fallback rules for default mode.
 - `references/fast-mode-intake.md` keeps `fast` mode from turning into a full PRD interview.
 - `references/slice-design-checklist.md` defines what counts as a strong vertical slice and how to handle dependencies.
 - `references/ticket-writing-checklist.md` keeps ticket tone, scenario phrasing, and note density consistent.
@@ -50,7 +51,7 @@ Use natural German when it is clearer and aligns with the source terminology.
 
 The skill keeps all guidance inside the skill directory so it packages cleanly:
 
-- `SKILL.md` handles triggering, mode selection, and the high-level process.
+- `SKILL.md` handles triggering, mode selection, phase gates, and the high-level process.
 - `references/` holds the durable guidance for intake, slice design, writing rules, and the Jira HTML template.
 - `evals/` contains realistic prompts and expectations for regression checks.
 
