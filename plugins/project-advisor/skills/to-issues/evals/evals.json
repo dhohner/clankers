@@ -41,7 +41,7 @@
     },
     {
       "id": 3,
-      "prompt": "Use fast mode. Convert the feature brief in plugins/project-advisor/skills/to-issues/evals/inputs/brief-saved-views.md into Jira-ready vertical-slice work items. Do not ask for a PRD. Assume the provided brief is sufficient unless one missing decision would materially change the slices, and write the markdown files directly.",
+      "prompt": "Use brief mode. Convert the feature brief in plugins/project-advisor/skills/to-issues/evals/inputs/brief-saved-views.md into Jira-ready vertical-slice work items. Do not ask for a PRD. Assume the provided brief is sufficient unless one missing decision would materially change the slices, and write the markdown files directly.",
       "expected_output": "Generated work items turn a non-PRD feature brief into lean, Jira-ready vertical slices without inventing a separate discovery or foundation phase.",
       "files": [
         "plugins/project-advisor/skills/to-issues/evals/inputs/brief-saved-views.md"
@@ -61,7 +61,7 @@
     },
     {
       "id": 4,
-      "prompt": "Use fast mode. Start from the thin feature brief in plugins/project-advisor/skills/to-issues/evals/inputs/brief-filter-presets-thin.md. Do not ask for a PRD. If a missing decision materially changes the slice breakdown, ask the smallest useful follow-up question before creating files. Otherwise write Jira-ready vertical-slice work items directly and keep unresolved product detail as assumptions or open questions instead of inventing it.",
+      "prompt": "Use brief mode. Start from the thin feature brief in plugins/project-advisor/skills/to-issues/evals/inputs/brief-filter-presets-thin.md. Do not ask for a PRD. If a missing decision materially changes the slice breakdown, ask the smallest useful follow-up question before creating files. Otherwise write Jira-ready vertical-slice work items directly and keep unresolved product detail as assumptions or open questions instead of inventing it.",
       "expected_output": "Generated output handles a thin brief cautiously: it either asks one tight clarification question when a missing decision changes slice shape, or it produces lean work items that defer unresolved product rules instead of silently inventing them.",
       "files": [
         "plugins/project-advisor/skills/to-issues/evals/inputs/brief-filter-presets-thin.md"

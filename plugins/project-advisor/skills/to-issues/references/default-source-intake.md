@@ -11,7 +11,7 @@ Prefer a PRD file that already exists in the workspace.
 When a `to-prd` bundle contains both `prd.yaml` and `index.html`, use `prd.yaml` as the planning source of truth and treat `index.html` as a reviewer-facing companion.
 When the user points at `index.html`, first look for a sibling `prd.yaml`.
 Use `index.html` only to recover reviewer-facing phrasing or confirm how the accepted bundle presents the material.
-If the user only has planning prose or a feature brief instead of a `to-prd` artifact, switch to `fast` mode.
+If the user only has planning prose or a feature brief instead of a `to-prd` artifact, switch to `brief` mode.
 
 ## HTML-only sources
 

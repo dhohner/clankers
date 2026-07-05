@@ -1,7 +1,7 @@
 ---
 name: to-issues
-description: Convert accepted or settled PRDs, to-prd prd.yaml bundles, specs, feature briefs, or rough planning prose into German Jira-ready markdown issues using tracer-bullet vertical slices. Use this skill whenever the user asks to turn planning material into Jira tickets, issues, work items, action items, implementation slices, or engineer-facing backlog, including fast-mode requests from incomplete prose. Do not use to write PRDs or create live tracker items. Output copyable behavior-focused markdown, not implementation checklists.
-argument-hint: "[default|fast]"
+description: Convert accepted or settled PRDs, to-prd prd.yaml bundles, specs, feature briefs, or rough planning prose into German Jira-ready markdown issues using tracer-bullet vertical slices. Use this skill whenever the user asks to turn planning material into Jira tickets, issues, work items, action items, implementation slices, or engineer-facing backlog, including brief-mode requests from incomplete prose. Do not use to write PRDs or create live tracker items. Output copyable behavior-focused markdown, not implementation checklists.
+argument-hint: "[default|brief]"
 ---
 
 # PRD to Issues
@@ -15,7 +15,7 @@ Do not change the ticket HTML structure, panel classes, inline styles, label ord
 
 ## Runbook
 
-1. Select `default` or `fast` mode.
+1. Select `default` or `brief` mode.
 2. Load only references needed for the current phase, and read each reference once per invocation.
 3. Resolve the source.
 4. Draft thin vertical slices with traceability, AFK or HITL type, and real dependencies only.
@@ -27,13 +27,13 @@ Do not change the ticket HTML structure, panel classes, inline styles, label ord
 ## Mode selection
 
 Interpret the first argument as the mode when it is present.
-Valid values are `default` and `fast`.
+Valid values are `default` and `brief`.
 If no argument is provided, choose from the source material.
 
 Use `default` for a full PRD, especially a `to-prd` bundle with `prd.yaml`.
-Use `fast` when the user explicitly says `fast`, provides a feature brief, rough planning prose, a feature description, or any source that is not a packaged PRD artifact.
-Fast mode starts from the user's input, prior conversation, and referenced files.
-Do not require, request, or synthesize a full PRD in fast mode.
+Use `brief` when the user explicitly says `brief`, provides a feature brief, rough planning prose, a feature description, or any source that is not a packaged PRD artifact.
+Brief mode starts from the user's input, prior conversation, and referenced files.
+Do not require, request, or synthesize a full PRD in brief mode.
 
 ## Source handling
 
@@ -43,7 +43,7 @@ If the user provides a readable PRD file, especially `prd.yaml`, read that file 
 With an explicit `prd.yaml` and an approved or assumed-approved breakdown, use the short path: read PRD, read the slice checklist, draft slices, load writing references, write files.
 Do not ask for the source, read a sibling `index.html`, load default source-resolution guidance, or perform broad repository exploration when an explicit `prd.yaml` is available.
 Read [references/default-source-intake.md](./references/default-source-intake.md) only when the PRD source is missing, ambiguous, points at `index.html`, or HTML-only.
-If the source is planning prose or a feature brief instead of a PRD artifact, switch to `fast` mode.
+If the source is planning prose or a feature brief instead of a PRD artifact, switch to `brief` mode.
 
 For `prd.yaml`, preserve structured planning data such as constraints, non-goals, open questions, success measures, and traceability.
 Use `blocks.requirements` as the primary source for deliverable behavior.
@@ -52,9 +52,9 @@ Use `blocks.testing_strategy` and validation links as validation traceability, n
 Group related requirements into vertical slices when they produce one demoable outcome.
 Do not create one Jira issue per requirement by default.
 
-### Fast mode
+### Brief mode
 
-Before the first serious question round, read [references/fast-mode-intake.md](./references/fast-mode-intake.md).
+Before the first serious question round, read [references/brief-mode-intake.md](./references/brief-mode-intake.md).
 Extract settled facts before asking anything new.
 Ask only for missing information that materially changes scope, behavior, dependencies, acceptance criteria, ownership, rollout risk, or the slice breakdown.
 Batch related questions into one round.
@@ -96,7 +96,7 @@ For each slice, show:
 Ask whether the granularity, dependencies, and HITL or AFK labels look right.
 Do not create files in default mode until the user approves the breakdown or has already told you to assume approval.
 
-In `fast` mode, skip the full review loop unless the source leaves multiple plausible breakdowns and choosing the wrong one would materially change the Jira files.
+In `brief` mode, skip the full review loop unless the source leaves multiple plausible breakdowns and choosing the wrong one would materially change the Jira files.
 If that happens, ask the smallest useful question and then continue.
 
 ## Create Jira-ready markdown files
@@ -127,7 +127,7 @@ Apply these core rules before saving each file:
 - Write for experienced human developers by describing behavior and constraints, not implementation plans.
 - Treat implementation ideas as context; convert them into user-visible behavior or domain constraints.
 - Keep internal code artifacts out of scenarios.
-- In `fast` mode, prefer source fidelity over false completeness.
+- In `brief` mode, prefer source fidelity over false completeness.
 - Ask, omit, or record uncertainty instead of inventing product rules.
 - Keep `Technische Hinweise` brief, decision-relevant, and limited to non-obvious source-backed constraints.
 - Use German as the base language while keeping established English product or technical terms when clearer.

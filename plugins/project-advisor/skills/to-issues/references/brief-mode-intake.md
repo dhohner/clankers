@@ -1,8 +1,8 @@
-# Fast Mode Intake
+# Brief Mode Intake
 
-Use this guide before the first serious interview round in `fast` mode.
+Use this guide before the first serious interview round in `brief` mode.
 
-The goal of `fast` mode is not to reconstruct a full PRD. The goal is to collect only the decisions that materially change the resulting slices.
+The goal of `brief` mode is not to reconstruct a full PRD. The goal is to collect only the decisions that materially change the resulting slices.
 
 ## Extract first
 
@@ -18,7 +18,7 @@ If these are already settled, do not re-ask them.
 
 ## Ask only for missing decisions that change the tickets
 
-Good `fast` mode questions resolve ambiguity around:
+Good `brief` mode questions resolve ambiguity around:
 
 - scope boundaries that change how many slices exist
 - rollout or migration constraints

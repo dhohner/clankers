@@ -8,10 +8,10 @@ The generated items are written for experienced developers. They describe desire
 
 This skill converts a PRD into a set of Jira-ready markdown files:
 
-1. **Locate the PRD** - reads the PRD from a workspace file or asks the user, preferring current `to-prd` `prd.yaml` manifests over the rendered `index.html` when both exist; use `fast` mode for planning prose or feature briefs that are not packaged as `to-prd` artifacts
+1. **Locate the PRD** - reads the PRD from a workspace file or asks the user, preferring current `to-prd` `prd.yaml` manifests over the rendered `index.html` when both exist; use `brief` mode for planning prose or feature briefs that are not packaged as `to-prd` artifacts
 2. **Explore the codebase** - verifies the current workflow, terminology, and constraints before splitting work
 3. **Draft vertical slices** - uses `blocks.requirements`, `blocks.testing_strategy`, and traceability links as the main PRD source, then breaks the PRD or feature brief into thin end-to-end tracer-bullet slices, each demoable on its own
-4. **Review only what matters** - runs a full approval loop in `default` mode and a minimal clarification loop in `fast` mode
+4. **Review only what matters** - runs a full approval loop in `default` mode and a minimal clarification loop in `brief` mode
 5. **Create Jira-ready markdown files** - writes one file per slice into `action-items/jira-issues/`
 
 ## Output Format
@@ -43,7 +43,7 @@ Use natural German when it is clearer and aligns with the source terminology.
 - `references/jira-issue-template.md` contains the authoritative Jira-compatible HTML template and formatting rules.
 - `references/example-ticket.md` contains a fully worked sample ticket that demonstrates the expected phrasing and level of detail.
 - `references/default-source-intake.md` contains source-resolution and HTML-only fallback rules for default mode.
-- `references/fast-mode-intake.md` keeps `fast` mode from turning into a full PRD interview.
+- `references/brief-mode-intake.md` keeps `brief` mode from turning into a full PRD interview.
 - `references/slice-design-checklist.md` defines what counts as a strong vertical slice and how to handle dependencies.
 - `references/ticket-writing-checklist.md` keeps ticket tone, scenario phrasing, and note density consistent.
 
