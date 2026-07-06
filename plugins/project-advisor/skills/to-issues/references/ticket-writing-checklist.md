@@ -33,7 +33,7 @@ If a title, scenario, or note reads like a build checklist for an autonomous age
 
 **Keep scenarios tight.** Three lines (`Angenommen`, `Wenn`, `Dann`) is often enough. Add `Und` only when it introduces distinct, testable information.
 
-**Notes should earn their place.** `Was umgesetzt werden soll` should stay compact. When the template includes `Blockiert durch`, it should name an actual predecessor slice. `Technische Hinweise` should only contain non-obvious constraints or context that a senior developer would not infer from the scenarios alone.
+**Notes should earn their place.** `Was umgesetzt werden soll` should stay compact and self-contained. A developer should understand the slice without opening the PRD, brief, or planning source. Do not write `siehe PRD`, `laut PRD`, or references to source sections that are not provided with the Jira story. When the template includes `Blockiert durch`, it should name an actual predecessor slice. `Technische Hinweise` should only contain non-obvious constraints or context that a senior developer would not infer from the scenarios alone.
 
 **Separate implementation surfaces from product language.** If the source mentions services, engines, APIs, tables, React components, view labels, or similar architecture terms, convert them into user-visible behavior or domain constraints. Keep those raw terms out of titles, user stories, scenarios, and `Was umgesetzt werden soll` unless the term is actually part of the user-facing product language.
 
@@ -52,4 +52,5 @@ Before saving each ticket, remove:
 - architecture nouns copied from the source when domain or user-visible phrasing would say the same thing
 - empty note sections or placeholder values such as `Keine`
 - generic adjectives that do not change the meaning
+- references to PRDs, briefs, source documents, or source sections that will not be available from the Jira story
 - invented product rules that are not supported by the source or repo context

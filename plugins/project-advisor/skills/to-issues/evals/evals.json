@@ -15,6 +15,7 @@
         "The generated work items describe desired outcomes and constraints rather than instructing developers to add specific endpoints, schemas, tables, components, or methods.",
         "Ticket content uses German labels and German sentence framing. Established English product or technical terms may remain when they are source-backed; English note labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' do not appear.",
         "The Hinweise section follows the note structure from references/jira-issue-template.md: the panel header is followed by a `<ul>` with one `<li>` per included entry, and note entries with no real information are omitted instead of using placeholders such as `Keine`.",
+        "Generated Jira stories are self-contained: ticket bodies and Hinweise do not reference the PRD, brief, source document, or source sections that are not included with the story; cross-ticket references appear only for real prerequisites or delivery dependencies.",
         "Scenario text does not contain filler adjectives like nahtlos, robust, umfassend, zuverlässig, eindeutig, or sichergestellt.",
         "Scenarios use first-person perspective (ich befinde mich, ich klicke, ich sehe) rather than third-person (der Nutzer, der Kunde befindet sich).",
         "Technische Hinweise only contain non-obvious information - no tech stack, standard auth rules, or other things a senior dev would assume."
@@ -34,6 +35,7 @@
         "The generated work items describe behavior, ownership, and audit outcomes without prescribing specific APIs, schemas, tables, services, or UI components to change.",
         "Ticket content uses German labels and German sentence framing. Established English product or technical terms may remain when they are source-backed; English note labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' do not appear.",
         "The Hinweise section follows the note structure from references/jira-issue-template.md: the panel header is followed by a `<ul>` with one `<li>` per included entry, and note entries with no real information are omitted instead of using placeholders such as `Keine`.",
+        "Generated Jira stories are self-contained: ticket bodies and Hinweise do not reference the PRD, brief, source document, or source sections that are not included with the story; cross-ticket references appear only for real prerequisites or delivery dependencies.",
         "Scenario text does not contain filler adjectives like nahtlos, robust, umfassend, zuverlässig, eindeutig, or sichergestellt.",
         "Scenarios use first-person perspective (ich befinde mich, ich klicke, ich sehe) rather than third-person (der Nutzer, der Kunde befindet sich).",
         "Technische Hinweise only contain non-obvious information - no tech stack, standard auth rules, or other things a senior dev would assume."
@@ -55,6 +57,7 @@
         "The generated work items preserve that saved views are personal and not shared with other users.",
         "Ticket content uses German labels and German sentence framing. Established English product or technical terms may remain when they are source-backed; English note labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' do not appear.",
         "The Hinweise section follows the note structure from references/jira-issue-template.md: the panel header is followed by a `<ul>` with one `<li>` per included entry, and note entries with no real information are omitted instead of using placeholders such as `Keine`.",
+        "Generated Jira stories are self-contained: ticket bodies and Hinweise do not reference the PRD, brief, source document, or source sections that are not included with the story; cross-ticket references appear only for real prerequisites or delivery dependencies.",
         "Scenario text does not contain filler adjectives like nahtlos, robust, umfassend, zuverlässig, eindeutig, or sichergestellt.",
         "Scenarios use first-person perspective (ich befinde mich, ich klicke, ich sehe) rather than third-person (der Nutzer, der Kunde befindet sich)."
       ]
@@ -75,6 +78,7 @@
         "The generated work items preserve the thin brief's explicit scope constraints: the existing list/filter experience is extended rather than replaced, and the first version is for internal users.",
         "Ticket content uses German labels and German sentence framing. Established English product or technical terms may remain when they are source-backed; English note labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' do not appear.",
         "The Hinweise section follows the note structure from references/jira-issue-template.md: the panel header is followed by a `<ul>` with one `<li>` per included entry, and note entries with no real information are omitted instead of using placeholders such as `Keine`.",
+        "Generated Jira stories are self-contained: ticket bodies and Hinweise do not reference the PRD, brief, source document, or source sections that are not included with the story; cross-ticket references appear only for real prerequisites or delivery dependencies.",
         "Scenario text does not contain filler adjectives like nahtlos, robust, umfassend, zuverlässig, eindeutig, or sichergestellt."
       ]
     },
@@ -93,6 +97,7 @@
         "The generated work items use prd.yaml as planning source and describe product behavior and constraints rather than prescribing specific APIs, schemas, tables, services, or components to change.",
         "Ticket content uses German labels and German sentence framing. Established English product or technical terms may remain when they are source-backed; English note labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' do not appear.",
         "The Hinweise section follows the note structure from references/jira-issue-template.md: the panel header is followed by a `<ul>` with one `<li>` per included entry, and note entries with no real information are omitted instead of using placeholders such as `Keine`.",
+        "Generated Jira stories are self-contained: ticket bodies and Hinweise do not reference the PRD, brief, source document, or source sections that are not included with the story; cross-ticket references appear only for real prerequisites or delivery dependencies.",
         "Scenarios use first-person perspective (ich befinde mich, ich klicke, ich sehe) rather than third-person (der Nutzer, der Kunde befindet sich)."
       ]
     }
