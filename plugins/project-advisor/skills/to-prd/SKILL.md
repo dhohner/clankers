@@ -10,14 +10,17 @@ Run the shortest loop that works: discover, draft, validate, stop for human revi
 
 ## Existing PRD first
 
-Use this path when the user provides `prd.yaml`, an `action-items/PRD-*` bundle, or feedback on a generated PRD.
+Use this path when the user provides `prd.yaml`, an `action-items/PRD-*` bundle, feedback on a generated PRD, or answers to open questions after reviewing the generated HTML.
 
 1. Read the existing `prd.yaml`.
-2. Clarify only ambiguous feedback.
-3. Edit the smallest YAML paths that satisfy the request.
-4. Preserve unrelated text, ordering, initiative type, review surfaces, and stable IDs unless asked to change them.
-5. Regenerate with `--force`, validate, inspect, and reopen for review.
+2. Copy it to a scratch manifest outside the generated `action-items/PRD-*` folder before editing.
+3. Clarify only ambiguous feedback.
+4. Edit the smallest YAML paths in the scratch manifest that satisfy the request.
+5. Preserve unrelated text, ordering, initiative type, review surfaces, and stable IDs unless asked to change them.
+6. Regenerate from the scratch manifest with `--force`, validate, inspect, and reopen for review.
 
+Do not edit `action-items/PRD-*/prd.yaml` in place during revision loops.
+The generator replaces the bundle on `--force`, so editing the generated copy can create VS Code or Copilot version conflicts.
 Rewrite the full manifest only for a new PRD, a broad initiative-shape change, or YAML that cannot be repaired safely.
 
 ## Rules
@@ -25,6 +28,7 @@ Rewrite the full manifest only for a new PRD, a broad initiative-shape change, o
 - Do not guess decisions that materially change scope, behavior, rollout, risk, or issue decomposition.
 - Track `Confirmed`, `Provisional`, and `Open` while interviewing.
 - Ask at most 4 focused questions per round unless the user wants a broad intake.
+- Use the available interactive question tool for user questions, especially `vscode_askQuestions` in GitHub Copilot for VS Code or `ask_question` in similar harnesses; if no such tool exists, ask concise chat questions.
 - Inspect the repo early for terminology, current behavior, and durable constraints unless irrelevant.
 - Write user-visible PRD text in English.
 - Preserve German only for exact repo-backed identifiers, filenames, API names, product labels, or domain idioms.
@@ -67,7 +71,8 @@ Use `evals/fixtures/` for focused surface examples.
 Use `examples/basic-prd.yaml` only for broad mixed initiatives.
 Read [./references/manifest-contract.md](./references/manifest-contract.md) only when schema, fixtures, or validation output are insufficient.
 
-Create the manifest in a temporary or non-colliding path.
+Create and revise the working manifest in a temporary or non-colliding path outside `action-items/PRD-*`.
+Treat the generated `action-items/PRD-*/prd.yaml` as a published copy, not the live editing buffer.
 Select initiative type, review surfaces, and blocks because they improve review quality, not to fill a template.
 Use stable IDs for requirements, decisions, risks, questions, and tests.
 Connect every requirement to validation outcomes or an explicit exception.
@@ -95,8 +100,8 @@ Read [./references/review-checklist.md](./references/review-checklist.md) only w
 Leave responsive, print, and rendered accessibility judgment to the human reviewer unless preview is cheap.
 
 Fix issues in YAML, regenerate, and inspect again.
-Delete scratch manifests after success.
-Keep `action-items/PRD-<slug>/prd.yaml` beside `index.html`.
+Delete scratch manifests after success unless the user needs the draft path for continued editing.
+Keep the generated `action-items/PRD-<slug>/prd.yaml` beside `index.html` as the reviewable source copy.
 
 ## 4. Review and handoff
 
@@ -108,4 +113,6 @@ open action-items/PRD-<slug>/index.html
 
 If opening is unavailable, provide the absolute `index.html` path and name visual checks left for review.
 Ask the user to accept or request changes.
+Use the interactive question tool when available, with options such as `Accept PRD`, `Request changes`, and `Let me review first`.
+When the user answers open questions or requests changes, return to the existing-PRD path and revise a scratch manifest rather than editing the generated copy.
 After acceptance, offer `to-issues` and pass the accepted `prd.yaml` as the planning source.
