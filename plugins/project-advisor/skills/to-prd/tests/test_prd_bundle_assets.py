@@ -38,25 +38,24 @@ class PrdBundleAssetsTests(unittest.TestCase):
         self.assertIn("@media (max-width: 980px)", styles)
         self.assertIn("position: fixed", styles)
         self.assertIn("height: 100dvh", styles)
-        self.assertIn("grid-template-columns: 275px minmax(0, 1fr)", styles)
+        self.assertIn("grid-template-columns: 288px minmax(0, 1fr)", styles)
         self.assertIn("main {\n  grid-column: 2", styles)
         self.assertIn("width: 100%", styles)
         self.assertNotIn("width: min(1160px, 100%)", styles)
         self.assertNotIn("max-width: 850px", styles)
         self.assertNotIn("max-width: 820px", styles)
-        self.assertIn("padding: 42px clamp(54px, 4vw, 88px) 70px", styles)
-        self.assertNotIn(
-            "main {\n  grid-column: 2;\n  width: 100%;\n"
-            "  min-width: 0;\n"
-            "  padding: 42px clamp(54px, 4vw, 88px) 70px;\n  background:",
-            styles,
-        )
-        self.assertNotIn(
-            ".hero {\n  position: relative;\n  padding: 42px 2px 38px;\n"
-            "  border-bottom: 1px solid var(--line);\n  background:",
-            styles,
-        )
+        self.assertIn("padding: 38px clamp(42px, 4vw, 84px) 72px", styles)
+        self.assertIn(".hero {\n  position: relative;\n  padding: 20px 0 36px;", styles)
+        self.assertIn("border-bottom: 2px solid var(--ink);", styles)
+        self.assertNotIn(".hero::before", styles)
+        self.assertNotIn(".metadata div { padding: 12px 16px 12px 0; border-right", styles)
         self.assertIn(".requirement-list article", styles)
+        self.assertIn(".section-heading > span {\n  display: block;\n  margin-bottom: 9px;", styles)
+        self.assertIn("font-variant-numeric: tabular-nums;", styles)
+        self.assertNotIn("grid-template-columns: 3.5rem minmax(0, 1fr)", styles)
+        self.assertIn(".block-grid {\n  display: grid;\n  grid-template-columns: repeat(3, minmax(0, 1fr));\n  gap: 1px;", styles)
+        self.assertIn("background: var(--line);", styles)
+        self.assertNotIn(".block-grid article:nth-child(even) { padding-left: 28px; }", styles)
         self.assertIn(".metric-grid { grid-template-columns: repeat(3", styles)
         self.assertIn(
             ".timeline li { display: grid; grid-template-columns: 100px",
