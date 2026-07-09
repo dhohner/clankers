@@ -18,6 +18,22 @@ from ..spec import (
 
 def command_schema(args: argparse.Namespace) -> dict[str, Any]:
     blocks = list(getattr(args, "blocks", []))
+    if getattr(args, "authoring", False):
+        if blocks:
+            raise CliFailure(
+                {
+                    "status": "error",
+                    "code": "schema_authoring_with_blocks",
+                    "errors": [
+                        {
+                            "path": "blocks",
+                            "message": "--authoring cannot be combined with block names",
+                            "fix": "Use schema --authoring or schema <block> [block ...].",
+                        }
+                    ],
+                }
+            )
+        return _authoring_schema()
     if blocks:
         if len(blocks) == 1:
             return _block_schema(blocks[0])
@@ -56,6 +72,23 @@ def command_schema(args: argparse.Namespace) -> dict[str, Any]:
         "next": [
             next_command("schema requirements testing_strategy"),
             next_command("examples minimal-prd"),
+        ],
+    }
+
+
+def _authoring_schema() -> dict[str, Any]:
+    return {
+        "status": "ok",
+        "schema_version": 1,
+        "initiative_types": sorted(INITIATIVE_TYPES),
+        "required_review_surfaces_by_initiative": {
+            name: _ordered_surfaces(surfaces)
+            for name, surfaces in sorted(REQUIRED_SURFACES_BY_INITIATIVE.items())
+        },
+        "blocks": sorted(BLOCK_SPECS),
+        "next": [
+            next_command("schema requirements testing_strategy"),
+            next_command("template --blocks <block> [block ...]"),
         ],
     }
 

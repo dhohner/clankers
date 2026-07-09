@@ -214,6 +214,8 @@ class PrdBundleCliTests(unittest.TestCase):
     def test_schema_and_examples_are_structured(self) -> None:
         top_level_schema = run_cli("schema")
         top_level_payload = load_yaml(top_level_schema.stdout)
+        authoring_schema = run_cli("schema", "--authoring")
+        authoring_payload = load_yaml(authoring_schema.stdout)
         schema = run_cli("schema", "requirements")
         schema_payload = load_yaml(schema.stdout)
         event_schema = run_cli("schema", "event_lifecycle")
@@ -226,6 +228,14 @@ class PrdBundleCliTests(unittest.TestCase):
         all_examples_payload = load_yaml(all_examples.stdout)
 
         self.assertEqual(top_level_schema.returncode, 0, top_level_schema.stderr)
+        self.assertEqual(authoring_schema.returncode, 0, authoring_schema.stderr)
+        self.assertIn("mixed", authoring_payload["initiative_types"])
+        self.assertIn(
+            "document",
+            authoring_payload["required_review_surfaces_by_initiative"]["mixed"],
+        )
+        self.assertIn("requirements", authoring_payload["blocks"])
+        self.assertNotIn("review_surfaces", authoring_payload)
         self.assertEqual(
             top_level_payload["required_review_surfaces_by_initiative"]["data-heavy"],
             ["document", "data"],

@@ -53,6 +53,11 @@ def _build_parser() -> argparse.ArgumentParser:
 
     schema = subparsers.add_parser("schema", help="show manifest schema summary")
     schema.add_argument("blocks", nargs="*", help="optional block names, such as requirements")
+    schema.add_argument(
+        "--authoring",
+        action="store_true",
+        help="show the compact initiative and block selection guide",
+    )
     schema.add_argument("--format", choices=("yaml", "text"), default="yaml")
 
     template = subparsers.add_parser("template", help="emit a placeholder PRD manifest")

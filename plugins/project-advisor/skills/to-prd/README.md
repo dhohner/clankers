@@ -29,7 +29,7 @@ Assets are copied into the bundle so it can be reviewed without installing the p
 6. Request human acceptance.
 7. Offer issue splitting only after acceptance or when the user explicitly asks for the handoff.
 
-For review feedback on an existing PRD, edit `prd.yaml` directly, preserve stable IDs and unrelated content, regenerate with `--force`, and request review again.
+For review feedback on an existing PRD, copy `prd.yaml` to a scratch manifest outside the generated bundle, preserve stable IDs and unrelated content, regenerate with `--force`, and request review again.
 
 ## CLI
 
