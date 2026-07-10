@@ -95,7 +95,6 @@ blocks:
         - "TEST-04"
       relates_to:
         - "DEC-04"
-        - "RISK-04"
   capability_map:
     - capability: Framing
       outcome: "Summary, status, metadata, problem evidence, goals, and non-goals."
@@ -164,11 +163,6 @@ blocks:
       mitigation: Label generated surfaces as review aids and never persist state.
       relates_to:
         - "REQ-03"
-    - id: "RISK-04"
-      risk: Generated links imply false coverage.
-      mitigation: Validate references and require semantically reviewed relationships.
-      relates_to:
-        - "REQ-04"
   rollout:
     - phase: Shell alignment
       outcome: "Align the shell, hero, metadata, section rhythm, and responsive navigation."

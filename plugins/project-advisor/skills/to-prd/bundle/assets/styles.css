@@ -221,6 +221,11 @@ h1 code { padding: 0; border: 0; background: none; color: var(--accent); font-si
   background: var(--line);
 }
 .metric-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.risk-list:has(> article:nth-child(odd):last-child)::after {
+  display: block;
+  background: var(--surface);
+  content: "";
+}
 .metric,
 .card,
 .decision-grid article,
