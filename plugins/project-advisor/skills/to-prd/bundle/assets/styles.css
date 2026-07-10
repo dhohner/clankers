@@ -163,7 +163,7 @@ main {
 }
 .status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--gold); }
 h1 {
-  max-width: 21ch;
+  max-width: min(100%, 34ch);
   margin: 22px 0 14px;
   font-size: clamp(2.25rem, 4vw, 3.75rem);
   line-height: 1.1;
@@ -171,7 +171,7 @@ h1 {
   font-weight: 750;
 }
 h1 code { padding: 0; border: 0; background: none; color: var(--accent); font-size: .82em; }
-.lede { max-width: 70ch; color: #526174; font-size: 1.08rem; }
+.lede { max-width: min(100%, 90ch); color: #526174; font-size: 1.08rem; }
 .metadata {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -290,6 +290,13 @@ li + li { margin-top: 8px; }
   background: var(--line);
 }
 .block-grid article { min-width: 0; padding: 26px 28px; border: 0; background: var(--surface); }
+.block-grid:has(> article:nth-child(4):last-child)::after,
+.block-grid:has(> article:nth-child(5):last-child)::after {
+  display: block;
+  background: var(--surface);
+  content: "";
+}
+.block-grid:has(> article:nth-child(4):last-child)::after { grid-column: span 2; }
 .block-grid ul { margin: 8px 0 0; padding-left: 20px; color: #536159; }
 .entity-card,
 .question-list article { scroll-margin-top: 12px; }
@@ -566,6 +573,13 @@ footer {
   .sidebar-actions { grid-template-columns: repeat(2, 1fr); margin-top: 14px; }
   main { grid-column: auto; padding: 30px; margin: 0 auto; }
   .metadata, .metric-grid, .block-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .block-grid::after { content: none; }
+  .block-grid:has(> article:nth-child(odd):last-child):has(> article:nth-child(2))::after {
+    display: block;
+    grid-column: auto;
+    background: var(--surface);
+    content: "";
+  }
   .section,
   .requirement-list article,
   .entity-card,

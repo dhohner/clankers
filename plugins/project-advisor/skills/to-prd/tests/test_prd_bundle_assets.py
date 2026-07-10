@@ -47,6 +47,8 @@ class PrdBundleAssetsTests(unittest.TestCase):
         self.assertIn("padding: 38px clamp(42px, 4vw, 84px) 72px", styles)
         self.assertIn(".hero {\n  position: relative;\n  padding: 20px 0 36px;", styles)
         self.assertIn("border-bottom: 2px solid var(--ink);", styles)
+        self.assertIn("max-width: min(100%, 34ch);", styles)
+        self.assertIn("max-width: min(100%, 90ch);", styles)
         self.assertNotIn(".hero::before", styles)
         self.assertNotIn(".metadata div { padding: 12px 16px 12px 0; border-right", styles)
         self.assertIn(".requirement-list article", styles)
@@ -55,6 +57,8 @@ class PrdBundleAssetsTests(unittest.TestCase):
         self.assertNotIn("grid-template-columns: 3.5rem minmax(0, 1fr)", styles)
         self.assertIn(".block-grid {\n  display: grid;\n  grid-template-columns: repeat(3, minmax(0, 1fr));\n  gap: 1px;", styles)
         self.assertIn("background: var(--line);", styles)
+        self.assertIn(".block-grid:has(> article:nth-child(4):last-child)::after", styles)
+        self.assertIn("grid-column: span 2;", styles)
         self.assertNotIn(".block-grid article:nth-child(even) { padding-left: 28px; }", styles)
         self.assertIn(".metric-grid { grid-template-columns: repeat(3", styles)
         self.assertIn(
