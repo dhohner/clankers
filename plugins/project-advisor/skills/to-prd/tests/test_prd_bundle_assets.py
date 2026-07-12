@@ -57,12 +57,19 @@ class PrdBundleAssetsTests(unittest.TestCase):
         self.assertNotIn("grid-template-columns: 3.5rem minmax(0, 1fr)", styles)
         self.assertIn(".block-grid {\n  display: grid;\n  grid-template-columns: repeat(3, minmax(0, 1fr));\n  gap: 1px;", styles)
         self.assertIn("background: var(--line);", styles)
+        for grid in (
+            "card-grid",
+            "decision-grid",
+            "risk-list",
+            "validation-list",
+            "question-list",
+        ):
+            self.assertIn(
+                f".{grid}:has(> :nth-child(odd):last-child)::after",
+                styles,
+            )
         self.assertIn(
-            ".risk-list:has(> article:nth-child(odd):last-child)::after",
-            styles,
-        )
-        self.assertIn(
-            ".risk-list:has(> article:nth-child(odd):last-child)::after {\n"
+            ".question-list:has(> :nth-child(odd):last-child)::after {\n"
             "  display: block;\n"
             "  background: var(--surface);",
             styles,
