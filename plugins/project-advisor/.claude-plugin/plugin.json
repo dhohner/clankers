@@ -10,6 +10,8 @@
     "planning",
     "prd",
     "jira",
-    "roadmap"
+    "roadmap",
+    "task",
+    "agent-task"
   ]
 }

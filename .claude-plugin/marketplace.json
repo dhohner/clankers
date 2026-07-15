@@ -13,7 +13,7 @@
       "source": "project-advisor",
       "description": "Project planning skills for recommending what to build next, writing PRDs, and turning approved PRDs into Jira-ready work items.",
       "category": "productivity",
-      "tags": ["planning", "prd", "jira"]
+      "tags": ["planning", "prd", "jira", "task"]
     },
     {
       "name": "refactor-tools",

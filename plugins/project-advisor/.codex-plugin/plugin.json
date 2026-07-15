@@ -1,7 +1,7 @@
 {
   "name": "project-advisor",
-  "version": "0.1.0",
-  "description": "Project planning skills for recommending what to build next, writing PRDs, and turning approved PRDs into Jira-ready work items.",
+  "version": "0.1.0+codex.20260710123016",
+  "description": "Project planning skills for recommending what to build next, writing PRDs, and turning approved PRDs into Jira-ready work items or coding-agent task files.",
   "author": {
     "name": "dhohner",
     "url": "https://github.com/dhohner"
@@ -13,13 +13,14 @@
     "planning",
     "prd",
     "jira",
-    "roadmap"
+    "roadmap",
+    "coding-agents"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Project Advisor",
     "shortDescription": "Product planning and PRD workflow skills.",
-    "longDescription": "Packages a project-advice workflow that moves from identifying the best next product bet to writing a PRD and slicing it into Jira-ready work items.",
+    "longDescription": "Packages a project-advice workflow that moves from identifying the best next product bet to writing a PRD and slicing it into Jira-ready work items or autonomous coding-agent tasks.",
     "developerName": "dhohner",
     "category": "Productivity",
     "capabilities": [
@@ -28,7 +29,8 @@
     "defaultPrompt": [
       "Use the next-thing skill to recommend the best next improvement for this repo.",
       "Help me write a PRD for this feature idea using the to-prd skill.",
-      "Break this PRD into Jira-ready vertical slices with the to-issues skill."
+      "Break this PRD into Jira-ready vertical slices with the to-issues skill.",
+      "Turn this accepted prd.yaml into self-contained implementation tasks with the to-agent-tasks skill."
     ],
     "brandColor": "#0F766E",
     "composerIcon": "./assets/icon.png",
