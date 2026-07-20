@@ -4,7 +4,7 @@ Turn an accepted `to-prd` `prd.yaml` bundle into dependency-ordered, self-contai
 
 ## What It Does
 
-This skill converts an accepted PRD into a small set of executable vertical slices:
+This skill converts an accepted PRD into a small set of executable tracer-bullet slices:
 
 1. **Read the source manifest** - uses `prd.yaml` as the source of truth rather than the generated `index.html`.
 2. **Extract implementation boundaries** - carries forward required behavior, Gherkin scenarios, constraints, non-goals, risks, open questions, success measures, and validation context when they affect delivery.
@@ -59,16 +59,17 @@ Unknown decisions that materially affect behavior are surfaced as blockers rathe
 
 ## Bundled References
 
-- `references/slice-design-checklist.md` defines strong vertical slices, sequencing, and when to combine or split work.
+- `references/slice-design-checklist.md` defines tracer-bullet slices, sequencing, and when to combine or split work.
+- `references/contract-precision.md` defines durable record, boundary, retry, atomicity, and isolation rules for contract-sensitive slices.
 - `references/agent-task-template.md` is the authoritative Markdown structure for generated tasks.
-- `references/task-writing-checklist.md` checks source grounding, acceptance criteria, contracts, validation, and handoff quality.
+- `references/task-writing-checklist.md` is the final quality gate for source grounding, autonomy, acceptance, validation, and handoff quality.
 
 ## File Structure
 
 The skill keeps its guidance inside the skill directory so it packages cleanly:
 
-- `SKILL.md` handles triggering, source rules, workflow, and task-writing requirements.
-- `references/` holds the slice-design checklist, task template, and writing checklist.
+- `SKILL.md` handles triggering, source invariants, the phased process, and context pointers.
+- `references/` holds the slice-design checklist, conditional contract guidance, task template, and writing quality gate.
 
 ## Boundaries
 

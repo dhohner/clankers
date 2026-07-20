@@ -1,17 +1,22 @@
-# Agent task slice checklist
+# Tracer-bullet slice checklist
 
-Use this before proposing or writing tasks.
+Apply every item before proposing or writing tasks.
 
-A strong task:
+A tracer-bullet task:
 
-- produces a user-visible or system-verifiable outcome;
-- can be implemented and validated in one focused coding-agent run;
-- includes the smallest end-to-end change that makes the outcome real;
-- has acceptance criteria that can be checked against the running system, tests, or repository artifacts; and
-- depends only on tasks whose completed behavior it genuinely needs.
+- produces one user-visible or system-verifiable outcome;
+- contains the smallest end-to-end change that makes that outcome real;
+- fits one focused coding-agent run;
+- has completion evidence observable in the running system, tests, or repository artifacts; and
+- depends only on predecessor capabilities required for its own outcome.
 
-Avoid tasks that only prepare a database, API, UI, migration, component, refactor, or test suite. Fold such work into the outcome it enables unless the separation is a real prerequisite.
+Fold database, API, UI, migration, component, refactor, and test work into the outcome they enable.
+Use an engineering layer as a standalone slice only when it provides an independently verifiable capability that a later slice genuinely requires.
 
-Split a task only when it has independently releasable behavior, materially different risk or validation, or an unavoidable sequencing boundary. Combine related requirements when their behavior is best delivered and demonstrated together.
+Split a candidate when it contains independently releasable outcomes, materially different risk or validation, or an unavoidable sequencing boundary.
+Combine related requirements when one end-to-end demonstration proves them together more clearly than separate tasks would.
 
-Use a blocked task only when no safe repository-grounded implementation can start without a human decision, external access, design artifact, or prerequisite delivery. Put the exact blocker in the task; do not manufacture a task merely to ask a question.
+Mark a task blocked only when implementation cannot safely start without a human decision, external access, design artifact, or prerequisite capability.
+Name the exact blocker in the affected task.
+
+Slicing is complete when every required behavior appears in the coverage ledger, every slice passes all five tracer-bullet tests above, and the dependency graph contains only outcome-enabling edges.

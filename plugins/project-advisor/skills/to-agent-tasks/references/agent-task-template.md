@@ -2,29 +2,29 @@
 
 ## Outcome
 
-<One sentence describing the observable completed behavior and why it matters.>
+<Describe one observable completed behavior and why it matters.>
 
 ## Scope
 
 ### Required behavior
 
-- <Source-backed behavior, rule, or boundary.>
+- <State a source-backed behavior, rule, or boundary.>
 
 ### Non-goals
 
-<Optional. Include only exclusions that clarify the boundary.>
+<Include only exclusions that clarify the task boundary; remove this optional section when none apply.>
 
 ### Constraints and dependencies
 
-<Optional. State source-backed constraints, prerequisite capabilities, risks, or blockers. Describe what a predecessor must provide, not merely its task number.>
+<State source-backed constraints, risks, blockers, and prerequisite capabilities, describing what a predecessor must provide rather than referring only to its task number; remove this optional section when none apply.>
 
 ### Contract details
 
-<Optional. Include when this task changes durable records, state transitions, retries, or authorization. Define controlled vocabulary semantics, entity and field contracts, optionality, units or precision, authoritative time, required lookup paths, boundary behavior, operation-specific retry guarantees, atomicity, and access scope. Include only applicable details supported by the PRD or repository; identify unresolved material decisions as blockers.>
+<Insert the concrete durable-record, state-transition, retry, atomicity, and authorization clauses established for this slice, including unresolved material decisions as blockers; remove this optional section when the contract branch does not apply.>
 
 ## Repository context
 
-<Decision-relevant findings from repository inspection: existing workflows, integration points, conventions, and validation commands. Clearly label any non-binding implementation idea.>
+<Record only inspected, decision-relevant integration points, conventions, data contracts, and validation commands; label non-binding implementation ideas explicitly.>
 
 ## Acceptance criteria
 
@@ -35,14 +35,17 @@ Scenario: <Observable outcome>
   Then <observable result>
 ```
 
-<Add only scenarios needed to establish completion.>
+<Add only the scenarios needed to establish completion and important boundaries.>
 
 ## Validation
 
-- <Concrete command, targeted test, or focused observable check. For durable state transitions, cover applicable threshold boundaries, missing-state replays, exact record counts, rollback or no-partial-write behavior, and authorization scope. Use direct persistence assertions when no read interface is in scope.>
+- <Provide a concrete command, targeted test, or focused observable check, including expected evidence.>
 
 ## Execution and handoff
 
-Implement the required behavior using established repository conventions.
-Run the validation above and any directly relevant checks.
-Report changed files, validation results, and unresolved blockers or assumptions.
+Deliver the outcome and run the validation above plus any directly relevant repository checks.
+Report:
+
+- changed files;
+- exact validation commands and observed results; and
+- unresolved blockers or assumptions.

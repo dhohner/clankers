@@ -1,21 +1,36 @@
-# Agent-task writing checklist
+# Autonomous task quality gate
 
-Before saving each task, verify that it:
+Every applicable item must pass before a task file is saved.
 
-- states one observable outcome and its required behavior;
-- is understandable without the PRD or other task files;
-- names only repository context and validation commands confirmed by inspection;
-- preserves requirement IDs only when they aid traceability;
-- separates hard constraints and non-goals from non-binding implementation ideas;
-- uses observable, source-backed acceptance criteria;
-- includes concrete validation and handoff requirements;
-- describes prerequisite capabilities and external blockers explicitly;
-- defines applicable controlled vocabularies as domain concepts rather than leaving them confused with UI labels or operation names;
-- makes applicable durable contracts executable by naming the entity, fields, relationships, optionality, units or precision, authoritative time source, and required lookup paths without inventing storage architecture;
-- preserves required legacy values and optional fields without silent normalization;
-- states applicable below, equal, above, missing-state, and over-availability behavior, including resulting state and event classification;
-- limits retry guarantees to what the operation can actually distinguish, requiring a request identity for replay-safe cumulative changes or narrowing the guarantee;
-- states applicable server-enforced invariants, authorization scope, atomic write boundary, and rollback expectations;
-- validates applicable boundary branches, replay record counts, no-partial-write behavior, and isolation at the interface level actually introduced by the task;
-- uses compact fragments or `cause -> effect -> action` notes only where they remain unambiguous; and
-- contains no placeholders, generic advice, speculative architecture, framework assumptions, or layer-by-layer build sequence.
+## Outcome and grounding
+
+- The task states one observable outcome and the source-backed behavior needed to deliver it.
+- The task is understandable with repository access alone and embeds all needed PRD context and prerequisite capability contracts.
+- Requirement IDs are retained only where they provide useful traceability.
+- Hard constraints, non-goals, assumptions, blockers, and non-binding implementation ideas are distinguishable.
+- Every template placeholder has been replaced or its optional section removed.
+
+## Execution autonomy
+
+- Repository findings, paths, contracts, and commands come from inspection rather than inference.
+- Dependencies describe completed prerequisite capabilities and explain why this outcome needs them.
+- Product semantics, edge behavior, durable contracts, and completion evidence are explicit.
+- Architecture, framework, and implementation choices remain open unless source evidence constrains them.
+- The task describes an end-to-end outcome rather than a layer-by-layer build sequence.
+
+## Acceptance and validation
+
+- Acceptance criteria are observable, source-backed, and cover the important success, boundary, and failure behavior.
+- Gherkin scenarios identify the relevant starting state, action, and observable result without prescribing implementation.
+- Validation names concrete commands or focused checks and the evidence that establishes completion.
+- The handoff requires changed files, exact validation commands with observed results, and unresolved blockers or assumptions.
+
+## Precision and style
+
+- Repository findings and constraints use compact bullets or `cause -> effect -> action` notes only where the actor, behavior, condition, rationale, and boundary stay unambiguous.
+- Identifiers, commands, Gherkin, qualifiers, blockers, and acceptance details remain exact.
+- Every sentence contributes execution context instead of project-management framing, generic coding advice, or unavailable material.
+
+## Contract branch
+
+When the contract branch applies, confirm that the saved task meets the completion criterion in [contract-precision.md](contract-precision.md).

@@ -1,78 +1,56 @@
 ---
 name: to-agent-tasks
-description: >-
-  Convert an accepted to-prd prd.yaml bundle into dependency-ordered, self-contained Markdown implementation tasks for autonomous coding agents such as Codex or Pi.
-  Use when the user asks to turn an accepted PRD into coding-agent tasks, autonomous work packages, implementation briefs, or executable implementation slices.
-  Do not use for Jira tickets, live tracker items, PRD authoring, or unaccepted planning material.
+description: Convert accepted `to-prd` `prd.yaml` bundles into dependency-ordered, self-contained Markdown tasks for autonomous repository coding agents such as Codex or Pi. Use for requests that explicitly name coding-agent tasks or autonomous implementation work packages.
 ---
 
-# PRD to Agent Tasks
+# PRD to Autonomous Tasks
 
-Turn an accepted `prd.yaml` into a small set of implementation tasks that coding agents can execute without opening the PRD.
+Turn an accepted `prd.yaml` into a small set of tracer-bullet tasks that coding agents can execute with repository access but without the PRD or sibling task files.
 Write tasks to `action-items/agent-tasks/` unless the user chooses another location.
 
-## Source rules
+## Invariants
 
-Use `prd.yaml` as the source of truth, not the generated `index.html`.
-If the PRD's acceptance status is unknown, confirm it before proceeding.
-Do not invent behavior or constraints absent from the PRD and repository.
+- Proceed from a `prd.yaml` that the user or prior conversation marks accepted.
+  When acceptance is unestablished, ask for confirmation and stop at this gate.
+- Treat `prd.yaml` as the source of truth and `index.html` as a review surface.
+- Ground behavior in `blocks.requirements` and the Gherkin scenarios they contain.
+  Carry forward constraints, non-goals, risks, open questions, success measures, and validation links when they affect implementation or completion.
+- Use `blocks.testing_strategy` as validation context inside behavioral tasks.
+- Resolve material product and contract decisions from the PRD first and established repository behavior second.
+  Turn any remaining material ambiguity into a focused question or explicit blocker.
+- Preserve ordinary implementation choices for the executing agent while making behavior, durable contracts, boundaries, and completion evidence explicit.
 
-Use `blocks.requirements` and their Gherkin scenarios for required behavior and acceptance criteria.
-Carry forward constraints, non-goals, risks, open questions, success measures, and validation links only when they affect implementation or completion.
-Use `blocks.testing_strategy` as validation context rather than creating a separate testing task.
+## Process
 
-## Workflow
+1. **Gate and inventory the source.**
+   Read the accepted manifest and build a coverage ledger of requirement IDs, scenarios, boundaries, dependencies, blockers, and validation evidence.
+   This step is complete when every requirement and every material qualifier elsewhere in the PRD appears in the ledger.
 
-1. Read the accepted `prd.yaml` and extract behavior, boundaries, dependencies, blockers, and validation evidence.
-2. Read `references/slice-design-checklist.md`, then define the smallest dependency-ordered vertical slices that each deliver one observable outcome.
-3. Inspect only the repository areas needed to identify real integration points, conventions, data contracts, and validation commands.
-4. Close behavior and contract ambiguities that would otherwise force the executing agent to make a product decision. Resolve them from the PRD first, then established repository behavior. Ask a focused question or mark a blocker when neither source answers them.
-5. Unless the user has authorized direct file creation, present the proposed breakdown with each task's title, outcome, requirement IDs, predecessors, and material blockers, then obtain approval.
-6. Read `references/agent-task-template.md` and `references/task-writing-checklist.md`, then write one file per approved task in dependency order, using names such as `01-short-task-title.md`.
-7. Check every task against the writing checklist and summarize the files, execution order, assumptions, and unresolved blockers.
+2. **Inspect the repository.**
+   Trace only the code, configuration, tests, and documentation needed to locate real integration points, conventions, data contracts, and safe validation commands.
+   This step is complete when every candidate outcome has the applicable integration, convention, contract, and validation evidence needed for execution, with each material evidence gap recorded as a blocker.
 
-Ask only about decisions that materially change scope, ordering, or acceptance.
+3. **Design tracer bullets.**
+   Read and apply [references/slice-design-checklist.md](references/slice-design-checklist.md), then map the coverage ledger into the smallest dependency-ordered slices that each deliver one observable outcome.
+   This step is complete when every required behavior maps to at least one slice, every slice has focused completion evidence, and every dependency names a genuinely required predecessor capability.
 
-## Task rules
+4. **Run the contract branch.**
+   For every slice that creates or changes durable records, state transitions, metering, audit history, inventory, retries, or authorization boundaries, read and apply [references/contract-precision.md](references/contract-precision.md).
+   Resolve unknowns from source evidence or surface them before writing.
+   This step is complete when the reference's completion criterion passes against the coverage ledger.
 
-Each task must be actionable by a coding agent with repository access but no access to the PRD or other task files.
-When a predecessor is required, describe the completed capability this task depends on rather than relying on a cross-file reference alone.
+5. **Approve the breakdown.**
+   Treat an explicit request to write files now, skip review, or assume approval as approval.
+   Otherwise present each proposed task's title, outcome, covered requirement IDs, predecessor capabilities, and material blockers, then wait for approval.
+   This step is complete when the conversation contains approval for the exact breakdown being written.
 
-Follow the task template's section order and remove optional sections that have no content.
-Each task must include:
+6. **Write autonomous task files.**
+   Read [references/agent-task-template.md](references/agent-task-template.md) and [references/task-writing-checklist.md](references/task-writing-checklist.md), then apply them to one file per approved slice in dependency order, using names such as `01-short-task-title.md`.
+   Describe required predecessor capabilities inside each dependent task rather than relying on task numbers or sibling files.
+   This step is complete when every saved file passes every applicable quality-gate item.
 
-- one observable outcome and a source-backed scope boundary;
-- inspected, decision-relevant repository context;
-- source-backed behavioral acceptance criteria, using Gherkin where it expresses the behavior clearly;
-- concrete validation commands or focused checks; and
-- a handoff requiring changed files, validation results, and unresolved blockers or assumptions.
+7. **Report the handoff.**
+   Summarize the created files, execution order, source-backed assumptions, and unresolved blockers.
+   The handoff is complete when every created file and every unresolved blocker is accounted for.
 
-Leave ordinary implementation choices to the executing agent.
-Do not prescribe speculative architecture or a layer-by-layer build sequence.
-Do not leave product semantics, durable contracts, edge behavior, or completion evidence as implementation choices.
-Mark missing material decisions as blockers instead of making silent assumptions.
-Present optional implementation ideas as non-binding context.
-
-## Contract precision
-
-Apply this section when a slice creates or changes durable records, state transitions, metering, audit history, inventory, retries, or authorization boundaries.
-Keep the task technology-neutral unless a repository fact is needed to make it executable.
-
-- Define controlled vocabularies and the meaning of every value. State whether values classify domain events, represent persisted state, label UI, or name operations so one concept is not mistaken for another.
-- State the durable record contract needed by this slice and accepted successors: the repository-grounded entity name, field names and meanings, identifiers and relationships, optionality, units or precision, and lookup paths. Name concrete indexes only when confirmed by the repository or required by an accepted access pattern.
-- Identify the authoritative observation time. Prefer a datastore-managed creation time when the repository provides one, and explicitly avoid a redundant application-managed timestamp unless the source requires distinct domain time.
-- Preserve legacy values exactly when compatibility is required, including absent optional fields. Do not silently normalize, synthesize, or discard them.
-- Spell out boundary behavior for values below, equal to, and above a threshold, plus already-missing state when relevant. State whether values are rejected, capped, retained, transitioned, or removed, and which durable event classification results.
-- Make retry claims operation-specific. Naturally convergent operations may be replay-safe without a request identity; cumulative or decrementing operations generally need a caller-supplied action identity to distinguish a replay from a second intentional action. If no identity exists, narrow the guarantee instead of claiming generic idempotency.
-- State which availability and invariant checks the server enforces even when the client also validates them. Define the amount recorded when a request exceeds available state and preserve any source-backed transition behavior.
-- Require coupled state and history writes to occur in one atomic operation when partial success would violate the contract. Define rollback expectations and validate both success and failure paths.
-- Scope isolation to interfaces introduced by the slice. If no read interface is added, require authenticated, tenant-scoped writes and direct persistence assertions rather than inventing a read API. If reads are in scope, state their authorization boundary explicitly.
-
-Contract details must come from the PRD or repository evidence.
-If an exact-zero rule, retry identity, event meaning, field optionality, access path, or authorization boundary materially affects behavior and remains unknown, surface it before writing or record it as a blocker.
-
-Compress language where the meaning remains explicit.
-Prefer short bullets and compact `cause -> effect -> action` notes for repository findings, constraints, and implementation context, for example: `Inline options object -> new ref each render -> memoized child rerenders. Stabilize the reference.`
-Use complete sentences when fragments could obscure the actor, required behavior, condition, rationale, or scope boundary.
-Never compress identifiers, commands, Gherkin, qualifiers, blockers, or acceptance details.
-Avoid project-management prose, generic coding advice, placeholders, and references to unavailable source material or credentials.
+Ask only for decisions that materially change scope, ordering, contracts, or acceptance.
