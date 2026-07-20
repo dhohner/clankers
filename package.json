@@ -2,7 +2,7 @@
   "name": "clankers",
   "version": "0.1.0",
   "private": true,
-  "description": "Codex plugin collection.",
+  "description": "Agent plugin collection.",
   "keywords": [
     "pi-package"
   ],
@@ -17,24 +17,16 @@
   },
   "pi": {
     "extensions": [
-      "./plugins/security-guard/index.ts",
-      "./plugins/block-package-managers/extensions/block-package-managers.ts",
-      "./plugins/caveman/index.ts"
+      "./plugins/security-guard/index.ts"
     ]
   },
   "files": [
     "README.md",
     "LICENSE",
-    "plugins/security-guard/extensions/**",
+    "plugins/security-guard/index.ts",
+    "plugins/security-guard/lib/**",
     "plugins/security-guard/package.json",
-    "plugins/security-guard/README.md",
-    "plugins/block-package-managers/extensions/**",
-    "plugins/block-package-managers/package.json",
-    "plugins/block-package-managers/README.md",
-    "plugins/caveman/index.ts",
-    "plugins/caveman/src/**",
-    "plugins/caveman/package.json",
-    "plugins/caveman/README.md"
+    "plugins/security-guard/README.md"
   ],
   "packageManager": "pnpm@10.33.2"
 }

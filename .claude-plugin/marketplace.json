@@ -23,13 +23,6 @@
       "tags": ["refactor", "quality"]
     },
     {
-      "name": "block-package-managers",
-      "source": "block-package-managers",
-      "description": "Block npm and npx terminal commands and redirect usage toward pnpm.",
-      "category": "development",
-      "tags": ["hooks", "pnpm"]
-    },
-    {
       "name": "security-guard",
       "source": "security-guard",
       "description": "Block terminal commands that try to print the current user environment or read common secrets, tokens, keys, credential stores, and shell history.",
@@ -37,38 +30,6 @@
       "repository": "https://github.com/dhohner/clankers",
       "category": "development",
       "tags": ["hooks", "security", "environment"]
-    },
-    {
-      "name": "lint-and-format",
-      "source": "lint-and-format",
-      "description": "Run pnpm format and pnpm lint after code-changing tools when package scripts exist.",
-      "category": "development",
-      "tags": ["hooks", "quality"]
-    },
-    {
-      "name": "caveman",
-      "source": "caveman",
-      "description": "Provide a concise-response skill for VS Code and other Claude-format hosts.",
-      "category": "development",
-      "tags": ["skill", "style"]
-    },
-    {
-      "name": "documentation",
-      "source": "documentation",
-      "description": "Markdown documentation skill for README files, guides, reference docs, and architecture notes.",
-      "homepage": "https://github.com/dhohner/clankers/tree/main/plugins/documentation",
-      "repository": "https://github.com/dhohner/clankers",
-      "category": "development",
-      "tags": ["skill", "documentation", "markdown", "readme"]
-    },
-    {
-      "name": "crap",
-      "source": "crap",
-      "description": "Change Risk Anti Patterns analysis for codebases, diffs, and feature work.",
-      "homepage": "https://github.com/dhohner/clankers/tree/main/plugins/crap",
-      "repository": "https://github.com/dhohner/clankers",
-      "category": "development",
-      "tags": ["skill", "risk", "review", "quality", "anti-patterns"]
     }
   ]
 }

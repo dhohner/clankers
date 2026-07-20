@@ -19,24 +19,16 @@ The repository packages small, focused plugins instead of one large bundle. Whic
 
 - `project-advisor` for PRDs, issue slicing, and planning workflows
 - `refactor-tools` for safe cleanup and simplification work
-- `documentation` for README files, guides, reference docs, and other project documentation
-- `block-package-managers` to block `npm` and `npx` and steer agents toward `pnpm`
 - `security-guard` to block environment dumps and common credential reads
-- `lint-and-format` to run lint and format hooks at the end of coding turns
-- `caveman` for ultra-concise chat behavior
 
 ### Codex App Marketplace
 
 - `project-advisor`
 - `refactor-tools`
-- `documentation`
-- `caveman`
 
 ### Pi Coding Agent
 
 - `security-guard`
-- `block-package-managers`
-- `caveman`
 
 See the plugin directories in [plugins](./plugins) for usage details and host-specific behavior.
 
@@ -129,16 +121,12 @@ Install individual Pi plugins from a local checkout:
 
 ```bash
 pi install ./plugins/security-guard
-pi install ./plugins/block-package-managers
-pi install ./plugins/caveman
 ```
 
 For project-local installation that writes to `.pi/settings.json`:
 
 ```bash
 pi install -l ./plugins/security-guard
-pi install -l ./plugins/block-package-managers
-pi install -l ./plugins/caveman
 ```
 
 ## Repository Layout
