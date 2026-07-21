@@ -1,28 +1,23 @@
 # PRD Bundle Review Checklist
 
-Use this only when `inspect` is not enough, a bundle is unusual, or validation reports a problem.
-For the normal path, run:
+## Bundle integrity
 
-```sh
-python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py validate action-items/PRD-<slug>/prd.yaml
-python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py inspect action-items/PRD-<slug>/
-```
+- `index.html`, `prd.yaml`, and every referenced local asset exist under `action-items/PRD-<slug>/`.
+- Versioned assets are copied into the bundle without machine-specific absolute paths.
+- Fragment links resolve, and local asset links remain inside the bundle.
+- Placeholder and template markers are absent.
+- Normalized `prd.yaml` matches rendered `index.html`.
 
-## Deterministic checks
+## Identity and traceability
 
-Fix these before requesting human acceptance:
+- Stable IDs are unique and unchanged across regeneration while their entities retain the same meaning.
+- Every requirement has validation coverage or an explicit exception.
+- Every relationship resolves to an existing stable ID before publication.
 
-- `index.html`, `prd.yaml`, and referenced local assets exist under `action-items/PRD-<slug>/`.
-- The bundle uses copied versioned assets and no machine-specific absolute asset paths.
-- Fragment links resolve and local asset links stay inside the bundle.
-- No placeholder or template marker remains.
-- The normalized `prd.yaml` matches the content shown in `index.html`.
-- Stable IDs are unique and preserved across regeneration when meaning has not changed.
-- Each requirement has validation coverage or an explicit exception.
-- Broken relationships are fixed before publication.
-- Every diagram has a useful text description.
-- Mermaid source is small, readable, and shows decision, failure, fallback, or boundary paths when those paths affect acceptance.
-- User-visible PRD prose is English.
-- German appears only as exact repository-backed terminology and has evidence where supported.
+## Content integrity
 
-Leave responsive layout, print polish, and rendered accessibility judgment to human review unless the environment already provides a low-cost preview path.
+- Every visual has a useful text description.
+- Mermaid source is readable and shows decision, failure, fallback, or boundary paths when they affect acceptance.
+- User-visible prose is English; German is limited to exact repository-backed terminology, with evidence where its field supports it.
+
+**Complete when:** every deterministic check passes, and responsive layout, print polish, and rendered accessibility have been previewed or assigned to human review.

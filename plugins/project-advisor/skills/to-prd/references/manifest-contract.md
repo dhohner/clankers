@@ -1,84 +1,60 @@
 # PRD Manifest Contract
 
-Use this when `schema`, focused fixtures, or validation output are not enough.
-The bundled generator validates and renders the YAML manifest.
-Do not hand-author generated HTML.
+`prd.yaml` is the authoring source; generated `index.html` is the review surface.
+The CLI is authoritative for field shapes and supported blocks.
 
-For compact field details, prefer:
-
-```sh
-python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py schema
-python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py schema <block> [block ...]
-python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py template --blocks <block> [block ...]
-python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py examples
-```
-
-Block schema output includes tiny valid example fragments.
-Use `template --blocks` for a valid placeholder manifest with selected blocks already shaped.
-Use `examples/minimal-prd.yaml` for the smallest valid manifest skeleton.
-Use `examples/basic-prd.yaml` only for broad mixed examples.
-Use `evals/fixtures/*.yaml` for focused document, UI, workflow, API, data, or architecture examples.
-
-## Required top-level fields
+## Top level
 
 - `schema_version`: `1`
 - `slug`: lowercase kebab-case, published as `action-items/PRD-<slug>/`
 - `title`, `summary`, `status`: non-empty strings
 - `initiative_type`: `small-feature`, `ui-heavy`, `workflow-heavy`, `api-heavy`, `data-heavy`, `architecture-heavy`, or `mixed`
-- `review_surfaces`: include `document`, include the matching surface for `*-heavy`, and use at least two non-document surfaces for `mixed`
-- `metadata`: string labels only, excluding generated labels such as `Initiative`, `Review surfaces`, and `Output`
+- `review_surfaces`: every initiative includes `document`; `*-heavy` adds its matching surface; `mixed` adds at least two non-document surfaces
+- `metadata`: string labels excluding generated `Initiative`, `Review surfaces`, and `Output` labels
 - `blocks`: non-empty mapping of supported block names
 
 ## Language
 
-Write every user-visible field in English.
-This includes titles, summaries, statuses, metadata, block content, table labels, diagram descriptions, wireframe labels, and Mermaid labels.
-Preserve German only for exact repository-backed identifiers, filenames, API names, product labels, or domain idioms.
-When a retained German phrase supports evidence, attach the relevant repository evidence.
-Otherwise quote it visibly as repository terminology.
+Use English in every user-visible field, including titles, summaries, statuses, metadata, block content, tables, visual descriptions, wireframes, and Mermaid labels.
+Reserve German for exact repository-backed identifiers, filenames, API names, product labels, or domain idioms.
+For retained German, attach evidence when its field supports it; otherwise quote it as repository terminology.
 
-## Block selection
+## Blocks
 
-Pick blocks because they improve a product decision.
-Omit empty or irrelevant blocks.
-The generator renders selected blocks in canonical order.
+Select only decision-relevant blocks; the generator renders them in canonical order.
 
-- Document-only: problem, goals, scope, requirements, decisions, risks, testing, and open questions as needed.
+- Document: problem, goals, scope, requirements, decisions, risks, testing, and open questions as needed.
 - UI: wireframes, annotated screens, UI flow, and design direction when visual state alignment matters.
 - Workflow: journeys, workflow diagram, transition matrix, business rules, and failure paths.
-- API: API contract, dependencies, security/privacy, failure paths, and observable testing outcomes.
-- Data: data flow, data model, lifecycle, privacy, migration, and validation.
-- Architecture: system context, architecture diagram, decisions, dependencies, risks, and repository grounding.
+- API: contract, dependencies, security and privacy, failure paths, and observable testing outcomes.
+- Data: flow, model, lifecycle, privacy, migration, and validation.
+- Architecture: system context, diagram, decisions, dependencies, risks, and repository grounding.
 
-## Stable entities and traceability
+## Identity and traceability
 
-Use stable IDs for durable entities:
+Assign durable IDs:
 
-- requirements: `REQ-*`
-- decisions: `DEC-*`
-- risks: `RISK-*`
-- open questions: `QUESTION-*`
-- testing outcomes: `TEST-*`
+- `REQ-*`: requirements
+- `DEC-*`: decisions
+- `RISK-*`: risks
+- `QUESTION-*`: open questions
+- `TEST-*`: testing outcomes
 
-Connect entities with `relates_to`, `validation`, and `validates` where supported.
-Every requirement must connect to a validation outcome or include an explicit `exception`.
+Preserve an ID while its entity's meaning remains stable.
+Connect entities through supported `relates_to`, `validation`, and `validates` fields.
+Connect every requirement to a validation outcome or explicit `exception`.
 Add `evidence` only when an exact repository reference materially supports the statement.
 
-## Visual content
+## Visuals
 
-Every diagram or visual surface needs a concise text description.
-Use Mermaid `source` for every diagram.
-Keep Mermaid diagrams small, readable as source fallback, and focused on one review question.
-Show failure, fallback, decision, or boundary paths when they affect scope or acceptance.
-Avoid decorative styling and clever Mermaid features.
+Give every visual a concise text description.
+Represent each diagram as small, readable Mermaid `source` focused on one review question.
+Use meaningful labels and include failure, fallback, decision, or boundary paths when they affect scope or acceptance.
+Keep styling and Mermaid features simple.
 
-## Generation
+## Publication
 
-From the repository root:
+The generator validates the manifest, renders canonical HTML, preserves normalized YAML as `prd.yaml`, copies versioned assets, validates staged output, and then publishes atomically.
+It alone writes generated HTML from the working manifest.
 
-```sh
-python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py validate /path/to/prd.yaml
-python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py generate /path/to/prd.yaml
-```
-
-The generator validates the manifest, renders the bundle, preserves normalized YAML as `prd.yaml`, copies versioned assets, validates staged output, and publishes the bundle directory only after checks pass.
+**Complete when:** every applicable contract above is satisfied.
