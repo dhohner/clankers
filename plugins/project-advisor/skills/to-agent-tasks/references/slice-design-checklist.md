@@ -1,22 +1,32 @@
-# Tracer-bullet slice checklist
+# Tracer-bullet slice design
 
-Apply every item before proposing or writing tasks.
+Apply this reference to the coverage ledger before proposing or writing tasks.
 
-A tracer-bullet task:
+## Five tests
 
-- produces one user-visible or system-verifiable outcome;
-- contains the smallest end-to-end change that makes that outcome real;
-- fits one focused coding-agent run;
-- has completion evidence observable in the running system, tests, or repository artifacts; and
-- depends only on predecessor capabilities required for its own outcome.
+Every tracer-bullet slice must:
 
-Fold database, API, UI, migration, component, refactor, and test work into the outcome they enable.
-Use an engineering layer as a standalone slice only when it provides an independently verifiable capability that a later slice genuinely requires.
+1. Deliver one user-visible or system-verifiable outcome.
+2. Contain the smallest end-to-end change that makes that outcome real.
+3. Remain cohesive enough for one coding-agent run, with no second independently valuable outcome hidden inside it.
+4. Have focused completion evidence in behavior, tests, or repository artifacts.
+5. Depend only on predecessor capabilities required to produce its own outcome.
+
+## Shaping rules
+
+Start from observable scenarios and outcomes, then fold database, API, UI, migration, refactor, documentation, and test work into the outcome they enable.
+Use an engineering capability as a standalone slice only when it is independently verifiable and a later outcome genuinely requires it first.
 
 Split a candidate when it contains independently releasable outcomes, materially different risk or validation, or an unavoidable sequencing boundary.
-Combine related requirements when one end-to-end demonstration proves them together more clearly than separate tasks would.
+Combine requirements when one end-to-end demonstration proves them more clearly and without hiding a second outcome.
+Keep testing-strategy items with the behavioral slice whose completion they prove.
 
-Mark a task blocked only when implementation cannot safely start without a human decision, external access, design artifact, or prerequisite capability.
-Name the exact blocker in the affected task.
+Express dependencies as capabilities that must already exist, including the reason each capability is required.
+Remove ordering edges based only on task numbering, preferred implementation sequence, or shared files.
 
-Slicing is complete when every required behavior appears in the coverage ledger, every slice passes all five tracer-bullet tests above, and the dependency graph contains only outcome-enabling edges.
+Mark a slice blocked only when safe implementation requires a human decision, external access, unavailable artifact, unresolved contract, or predecessor capability.
+Name the exact missing input and the decision or evidence needed to unblock it.
+
+## Completion criterion
+
+Slicing is complete when every implementable ledger item maps to at least one slice, every non-implementation item has an explicit disposition, every slice passes all five tests, and every dependency edge enables an outcome that otherwise cannot be completed.

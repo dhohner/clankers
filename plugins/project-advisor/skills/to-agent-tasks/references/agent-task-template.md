@@ -8,23 +8,26 @@
 
 ### Required behavior
 
-- <State a source-backed behavior, rule, or boundary.>
+- <State each source-backed behavior, rule, and boundary needed for this outcome; retain requirement IDs when useful for traceability.>
 
 ### Non-goals
 
-<Include only exclusions that clarify the task boundary; remove this optional section when none apply.>
+<Include only exclusions that clarify this task boundary; remove this optional section when none apply.>
 
 ### Constraints and dependencies
 
-<State source-backed constraints, risks, blockers, and prerequisite capabilities, describing what a predecessor must provide rather than referring only to its task number; remove this optional section when none apply.>
+<State source-backed constraints and risks, clearly labeled assumptions and blockers, and prerequisite capabilities.
+Describe what each predecessor must provide and why this outcome needs it; remove this optional section when none apply.>
 
 ### Contract details
 
-<Insert the concrete durable-record, state-transition, retry, atomicity, and authorization clauses established for this slice, including unresolved material decisions as blockers; remove this optional section when the contract branch does not apply.>
+<State the applicable vocabulary, durable data, state transition, boundary, replay, concurrency, atomicity, failure, and authorization clauses.
+Name unresolved material decisions as blockers; remove this optional section when the contract branch does not apply.>
 
 ## Repository context
 
-<Record only inspected, decision-relevant integration points, conventions, data contracts, and validation commands; label non-binding implementation ideas explicitly.>
+<Record only inspected, decision-relevant paths, integration points, conventions, existing contracts, and safe validation commands.
+Label any non-binding implementation option as such.>
 
 ## Acceptance criteria
 
@@ -35,17 +38,19 @@ Scenario: <Observable outcome>
   Then <observable result>
 ```
 
-<Add only the scenarios needed to establish completion and important boundaries.>
+<Add the source-backed scenarios needed to prove completion and material success, boundary, and failure behavior.>
 
 ## Validation
 
-- <Provide a concrete command, targeted test, or focused observable check, including expected evidence.>
+- <Name an exact command, targeted test, or focused observable check and the expected evidence.>
+- <Include directly relevant regression coverage, or remove this item when none applies.>
 
 ## Execution and handoff
 
-Deliver the outcome and run the validation above plus any directly relevant repository checks.
+Deliver the outcome above and run the listed validation plus directly relevant repository checks.
 Report:
 
 - changed files;
-- exact validation commands and observed results; and
+- exact validation commands and observed results;
+- manual checks performed and their observations; and
 - unresolved blockers or assumptions.

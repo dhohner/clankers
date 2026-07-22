@@ -1,36 +1,49 @@
-# Contract precision
+# Contract precision pass
 
-Apply every relevant rule in this contract pass.
-Ground each detail in the PRD or repository evidence, and keep the task technology-neutral unless that evidence makes a technology detail necessary for execution.
+Evaluate every heading for each triggered slice.
+Give each applicable decision one of the dispositions in the completion criterion.
+Ground details in the PRD or inspected repository evidence, and keep the task technology-neutral where the evidence leaves implementation open.
 
-## Domain and record contract
+## Vocabulary and state
 
-- Define each controlled vocabulary and each value's meaning.
-  Distinguish domain-event classifications, persisted state, UI labels, and operation names.
-- Specify the durable record contract needed by this slice and its accepted successors: repository-grounded entity name, fields and meanings, identifiers and relationships, optionality, units or precision, and lookup paths.
-- Name an index only when repository evidence confirms it or an accepted access pattern requires it.
-- Name the authoritative observation time.
-  Use a datastore-managed creation time when the repository provides one; state any distinct source-required domain time separately.
-- Preserve required legacy values and absent optional fields exactly.
+- Define controlled vocabularies and the meaning of every allowed value.
+  Distinguish persisted state, domain-event classification, operation name, and user-facing label when they differ.
+- Define legal state transitions, actors, preconditions, terminal states, and behavior for invalid or repeated transitions.
+- Define behavior below, at, and above each threshold, including zero, missing, expired, or already-completed state where applicable.
 
-## Boundary and retry behavior
+## Durable data and authority
 
-- Define behavior below, at, and above each threshold, plus already-missing state when applicable.
-  State whether each value is rejected, capped, retained, transitioned, or removed, and the resulting durable event classification.
-- Make retry guarantees operation-specific.
-  A naturally convergent operation can be replay-safe without request identity.
-  A cumulative or decrementing operation needs a caller-supplied action identity to distinguish a replay from a second intentional action.
-  When no identity exists, state the narrower guarantee.
-- State server-enforced availability and invariant checks, including checks duplicated by a client.
-- For a request beyond available state, define the amount recorded and every source-backed transition.
+- Define each durable entity needed by the slice: repository-grounded name, identifiers, fields and meanings, relationships, optionality, defaults, units, precision, and lifecycle.
+- State compatibility requirements for existing records, legacy values, migrations, and absent optional fields.
+- Name the authoritative source for time, identity, ordering, quantities, and derived values.
+  Distinguish observation time from domain-event time when both matter.
+- State required lookup and uniqueness behavior.
+  Name a physical index only when repository evidence or an accepted access pattern requires one.
 
-## Atomicity and isolation
+## Operations, replay, and concurrency
 
-- Put coupled state and history writes in one atomic operation when partial success violates the contract.
-  Define rollback expectations and validate success and failure paths.
-- Scope isolation to interfaces introduced by the slice.
-  A write-only slice needs authenticated tenant-scoped writes and direct persistence assertions.
-  A slice that adds reads states the read authorization boundary explicitly.
+- Define each operation's inputs, preconditions, recorded result, and behavior when requested state exceeds available state.
+- Make replay guarantees operation-specific.
+  Naturally convergent operations may be replay-safe without request identity; cumulative, decrementing, or externally visible operations require an action identity for true idempotency.
+- Define concurrent-request behavior, conflict resolution, ordering guarantees, and server-enforced invariants.
+- State the narrower guarantee explicitly when the available identity or storage contract cannot support full idempotency or ordering.
 
-The contract pass is complete when every applicable rule is captured for the task as an explicit contract clause and validation check, or as a blocker naming the unresolved decision.
-Exact-zero behavior, retry identity, event meaning, field optionality, access paths, and authorization boundaries all count as material decisions.
+## Atomicity and failure
+
+- Identify state changes and history records that must become visible together.
+  Define the atomic boundary, rollback behavior, and success and failure evidence.
+- For external side effects outside that boundary, define dispatch ordering, duplicate handling, retry policy, and reconciliation after partial failure.
+- Define recovery behavior for interrupted operations and partially completed legacy state when applicable.
+
+## Authorization and isolation
+
+- Define the authenticated actor, authorization rule, ownership or tenant scope, and role distinctions for every interface introduced or changed.
+- Cover read, list, write, retry, and administrative paths that the slice exposes.
+- Define observable behavior for denied and cross-scope access without exposing protected information.
+
+## Completion criterion
+
+The contract pass is complete when every applicable item above has exactly one disposition:
+
+1. **Resolved:** an explicit task clause grounded in source evidence, plus focused validation for its success, boundary, and failure behavior, including replay, concurrency, and authorization where applicable.
+2. **Blocked:** a blocker naming the unresolved decision and the evidence needed to resolve it.
