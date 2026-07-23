@@ -66,26 +66,17 @@ Als <span style="color:#ff8c00"><persona></span> m&ouml;chte ich <span style="co
 </ul>
 ```
 
-## Template rules
+## Structural rules
 
-- Preserve the exact panel classes: `jePanel_info`, `jePanel_dashed`, `jePanel_idea`.
-- The `jePanel_info` panel contains ONLY the "Akzeptanzkriterien" header paragraph. The dashed scenario panels (`jePanel_dashed`) come AFTER the closing `</div>` of `jePanel_info`, not nested inside it.
-- The `jePanel_idea` panel contains ONLY the "Hinweise" header paragraph. The note content follows AFTER the closing `</div>` of `jePanel_idea` as a `<ul>` bullet list with one `<li>` per entry, not nested inside the panel.
-- When a note entry (e.g. Annahmen, Abhängigkeiten, Risiken, Offene Fragen) contains multiple points, render them as a nested `<ul>` sub-list inside the parent `<li>`. If only a single point exists, a nested list is still acceptable but inline text is also fine.
-- Preserve the exact inline styles unless the user explicitly asks for a different visual format.
-- The user story header must color the semantic parts: `#ff8c00` (orange) for the **Persona**, `#008000` (green) for the **Capability**, `#2980b9` (blue) for the **Benefit**. The connecting words `Als`, `m&ouml;chte ich`, `damit` remain uncolored.
-- Every acceptance criterion must be written in German Gherkin syntax using `Angenommen`, `Wenn`, `Dann`, and optionally `Und`.
-- Use one dashed scenario panel per acceptance criterion or tightly related scenario.
-- Scenario titles should be short and outcome-oriented.
-- Use `#27ae60` or `#16a085` for `Dann` and `#f39c12` or `#27ae60` for `Und`, depending on context.
-- Always include the notes panel. Within the notes, include only entries that carry real information. Omit entries entirely rather than writing `Keine`; if a slice has no risks, do not include a "Risiken" entry. `Was umgesetzt werden soll` should always be present and self-contained. Do not refer to a PRD, brief, source document, or unavailable source section from ticket content. `Blockiert durch` should appear only when a real prerequisite slice exists; omit it for slices that can start immediately. Cross-ticket references are only appropriate when they describe a real prerequisite or delivery dependency. All other entries (Technische Hinweise, Annahmen, Abhängigkeiten, Risiken, Offene Fragen) are optional.
-- Do not create checkbox lists for acceptance criteria.
-- Write for experienced human developers, not for autonomous agents.
-- Prefer statements about user-visible behavior, system responses, data outcomes, and constraints over instructions about which files, classes, layers, or methods to change.
-- Avoid imperative build plans such as `create`, `implement`, `wire`, `add endpoint`, `update schema`, or similar layer-by-layer task lists unless the user explicitly asks for that level of prescription.
-- Keep technical notes brief and decision-relevant; they should support implementation without dictating it. Only include information an experienced developer would not already infer from the slice description and scenarios. Tech stack, standard auth rules, and other obvious facts do not belong in technical notes.
-- If the source includes implementation suggestions, convert them into constraints, dependencies, or assumptions instead of copying them as required tasks.
-- Before writing each file, do a final pass that removes step-by-step build language from the title, scenarios, and notes.
-- Scenarios must not contain internal code identifiers such as class names (`TimingNormalizationService`), method signatures (`performDummyHash()`), enum constants (`GEHEIMFRAGE`), or database artifacts. If the PRD names such identifiers, convert them into domain language or observable system behavior. The reader should understand *what* the system does, not *which code path* executes.
-- Use German as the base language for generated ticket content: titles, user stories, scenario names, scenario text, note labels, and note content.
-- Keep proper nouns, visible UI labels, code identifiers, acronyms, and established English technical or product terms in English when a German translation would be uncommon, awkward, or less precise. Do not force verbatim translations for terms such as `API`, `Feature Flag`, `Dashboard`, `Template`, `Workflow`, `Audit Log`, `In-Product`, `Owner`, `Reviewer`, or `Business Unit` when the source or repository uses them meaningfully.
+- Preserve the exact panel classes, inline styles, and section order shown above unless the user explicitly requests another format.
+- Keep `jePanel_info` limited to the `Akzeptanzkriterien` header paragraph, then close it before all `jePanel_dashed` scenario panels.
+- Render one `jePanel_dashed` panel per named acceptance scenario.
+- Use German Gherkin keywords with the displayed colors: `Angenommen`, `Wenn`, `Dann`, and optional `Und` lines.
+- Keep the user-story connectors uncolored and use `#ff8c00` for the persona, `#008000` for the capability, and `#2980b9` for the benefit.
+- Always render `jePanel_idea` with only the `Hinweise` header paragraph, close it, then render note content as a sibling `<ul>` with one `<li>` per included entry.
+- Always include `Was umgesetzt werden soll`.
+- Include `Blockiert durch`, `Technische Hinweise`, `Annahmen`, `Abh&auml;ngigkeiten`, `Risiken`, and `Offene Fragen` only when they carry real information.
+- Render multiple points inside one note entry as a nested `<ul>`; a single point may be inline.
+- Acceptance criteria use scenario panels rather than checkbox lists.
+
+The content rules and per-ticket final gate live in [`ticket-writing-checklist.md`](ticket-writing-checklist.md).

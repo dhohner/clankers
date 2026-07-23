@@ -1,169 +1,70 @@
 ---
 name: to-issues
 description: >-
-  Convert PRDs, accepted to-prd prd.yaml bundles, specs, feature briefs, rough planning prose, or Gherkin scenarios into German Jira-ready markdown issues using tracer-bullet vertical slices.
-  Use whenever the user asks to turn product requirements or planning material into Jira tickets, issues, work items, backlog items, action items, implementation tickets, implementation slices, or engineer-facing delivery stories, including brief requests from incomplete prose.
-  Do not use it to write PRDs or create live tracker items.
-  Output copyable behavior-focused markdown, not implementation checklists.
+  Create German Jira-ready tracer-bullet issues from product requirements and planning material.
+  Use when the user wants a PRD or accepted to-prd bundle converted into tickets, or a feature brief, rough planning prose, or Gherkin scenarios converted into engineer-facing backlog items.
+  Produces copyable Markdown rather than creating live tracker items.
 argument-hint: "[default|brief]"
 ---
 
-# PRD to Issues
+# To Issues
 
-Convert settled product planning into independently implementable Jira-ready markdown stories for experienced human developers.
-Do not create or modify Jira issues, GitHub issues, or other external tracker items.
-Create copyable markdown files in `action-items/jira-issues/` unless the user requests another location.
+Convert settled product planning into independently demoable Jira stories for experienced human developers.
+Write local Markdown files to `action-items/jira-issues/` unless the user chooses another location.
+German is the base language; retain established source-backed English product, UI, and technical terms when they are clearer.
 
-Generated issues use German as the base language and follow `references/jira-issue-template.md` exactly.
-Write each story as a concise product specification for senior engineers: outcome-driven, self-contained, explicit about acceptance boundaries, and clear about why the behavior matters.
-Avoid PM theater, stakeholder prose, roadmap language, and task-manager instructions.
-Keep established English product, UI, and technical terms when they are clearer or source-backed.
+## Process
 
-## Reference loading
+### 1. Build the source ledger
 
-Use this file as the router and load deeper guidance only when the phase needs it.
-Do not pre-load every reference.
+Treat the first argument as the mode only when it is `default` or `brief`.
+Otherwise use `default` for a full PRD or accepted `to-prd` bundle and `brief` for feature briefs, rough planning prose, feature descriptions, or other unpackaged requirements.
 
-- `references/default-source-intake.md`: use only when default mode has no readable PRD, points at `index.html`, or is HTML-only.
-- `references/brief-mode-intake.md`: use before asking questions in brief mode.
-- `references/slice-design-checklist.md`: use before proposing or writing slices.
-- `references/ticket-writing-checklist.md`, `references/jira-issue-template.md`, and `references/example-ticket.md`: use before drafting Jira files.
+Load the intake reference for the selected mode before extracting requirements:
 
-## Workflow
+- In `default` mode, read [`references/default-source-intake.md`](references/default-source-intake.md).
+- In `brief` mode, read [`references/brief-mode-intake.md`](references/brief-mode-intake.md) before asking questions.
 
-1. Select `default` or `brief` mode.
-2. Resolve the source with the lightest viable intake path.
-3. Extract source-backed behavior, constraints, dependencies, assumptions, risks, open questions, and traceability.
-4. Inspect repository context only when source terminology, existing workflow names, role names, user-facing labels, or non-obvious constraints are ambiguous or explicitly referenced.
-5. Create thin vertical slices with demoable outcomes and real dependencies.
-6. In default mode, get breakdown approval unless approval is already given or explicitly assumed.
-7. Create one Jira-ready markdown file per approved slice.
-8. Run the final quality gate before saving or responding.
-9. Summarize created files, intended slice order, material assumptions, and open questions.
+If intake changes the mode, load the new mode's reference before continuing.
 
-## Mode and source rules
+Build a source ledger of behavior, constraints, non-goals, dependencies, assumptions, risks, open questions, success measures, and traceability.
+Treat Gherkin scenarios as the functional source of truth when present.
+Inspect repository context only to resolve source-backed terminology, workflow names, roles, labels, system boundaries, or non-obvious constraints, and keep that inspection bounded to the ambiguity.
 
-Interpret the first argument as the mode when present.
-Valid values are `default` and `brief`.
-If no argument is provided, choose from the source material.
+**Complete when:** the mode and source are resolved, and the ledger accounts for every source item that can affect ticket behavior, acceptance boundaries, slicing, or delivery order.
 
-Use `default` for a full PRD, especially a `to-prd` bundle with `prd.yaml`.
-Use `brief` for explicit brief requests, feature briefs, rough planning prose, feature descriptions, or any source that is not a packaged PRD artifact.
-Brief mode starts from the user's input, prior conversation, and referenced files.
-Do not require, request, or synthesize a full PRD in brief mode.
-Prefer stable assumptions and open questions over trying to reconstruct a full PRD.
+### 2. Design tracer bullets
 
-Treat phrases like `assume the breakdown is approved`, `write the files directly`, `no review needed`, `skip review`, or `assume approval` as approval to skip the default-mode breakdown review.
-If the user asks for a proposed breakdown, review, or confirmation, do not skip it.
+Read [`references/slice-design-checklist.md`](references/slice-design-checklist.md), then map the source ledger into thin vertical slices.
+Each slice must produce one user-visible or system-verifiable outcome across the system boundaries needed to demonstrate it.
+Classify slices as `AFK` or `HITL` for planning, and add only prerequisite dependencies.
+Follow the checklist's mode-specific approval gate.
 
-### Default mode
+**Complete when:** every deliverable requirement maps to at least one slice, every slice is independently demoable or names a real predecessor, all material uncertainty is surfaced, and any required breakdown approval has been received.
 
-If the user provides a readable PRD file, especially `prd.yaml`, read that file directly.
-With an explicit `prd.yaml` and an approved or assumed-approved breakdown, use the short path: read the PRD, read the slice checklist, draft slices, load writing references, and write files.
-Do not ask for the source, read a sibling `index.html`, load default source-resolution guidance, perform broad repository exploration, or start a review loop when the user has already authorized direct writing.
+### 3. Draft every approved issue
 
-For `prd.yaml`, use `blocks.requirements` as the primary source for deliverable behavior.
-Use Gherkin in requirements as the acceptance-criteria source of truth.
-Preserve constraints, non-goals, open questions, success measures, validation links, and traceability when they affect tickets.
-Use `blocks.testing_strategy` as validation traceability, not as separate implementation work.
-Group related requirements into vertical slices when they produce one demoable outcome.
-Do not create one Jira issue per requirement by default.
+Before drafting, read:
 
-If the source is missing, ambiguous, `index.html`, or HTML-only, use the default source-intake reference.
-If the source is planning prose or a feature brief instead of a PRD artifact, switch to `brief` mode.
+- [`references/ticket-writing-checklist.md`](references/ticket-writing-checklist.md)
+- [`references/jira-issue-template.md`](references/jira-issue-template.md)
 
-### Brief mode
+Consult [`references/example-ticket.md`](references/example-ticket.md) only when phrasing, note density, or lean-ticket shape remains uncertain after reading the checklist and template.
+Create one file per approved slice in dependency order with predictable names such as `01-short-slice-title.md`.
+Use the template as the authoritative raw structure and the writing checklist as the authoritative content standard.
 
-Extract settled facts before asking anything new.
-Ask only for missing information that materially changes scope, behavior, dependencies, acceptance criteria, ownership, rollout risk, or slice breakdown.
-Batch related questions into one round.
-Use `ask_question` when available, with predefined options when useful.
-If no interactive question tool exists, ask concise chat questions.
+**Complete when:** every approved slice has a complete draft and every ledger item is represented in an acceptance scenario, a decision-relevant note, another mapped slice, or an explicit exclusion.
 
-If clarification is impossible and the ticket set cannot stay stable without that answer, stop after surfacing the smallest blocking question.
-If a ticket can remain stable, record uncertainty as an assumption or open question instead of silently choosing an interpretation.
-Skip the full review loop unless multiple plausible breakdowns would materially change the Jira files.
+### 4. Validate, then save
 
-## Product guardrails
+Apply every structural rule in the Jira template and every final-gate rule in the ticket-writing checklist to each complete draft.
+Fix each violation before saving the files.
 
-Use only behavior, constraints, dependencies, assumptions, risks, and open questions that are explicit or directly implied by the source.
-Treat Gherkin scenarios as the source of truth for functional behavior and acceptance criteria.
-Describe what the system should do and why it matters, not how engineering should build it.
-Make every ticket self-contained for someone who has not read the PRD, brief, or planning artifact.
-Do not refer to the source PRD, brief, planning artifact, or unavailable source sections from ticket content.
+**Complete when:** every generated file has been checked against every applicable rule, all checks pass, and the files exist in dependency order at the chosen destination.
 
-Keep repository exploration optional and bounded.
-Use it only to confirm product terminology, workflow names, system boundaries, role names, user-facing labels, and non-obvious constraints.
-Do not turn repository implementation details into required work unless the source supports them.
+### 5. Report the result
 
-Trust the engineering audience to choose the implementation approach unless the source contains a real product, compliance, architecture, or integration constraint.
-Use precise, confident, collaborative language rather than instructional, managerial, or stakeholder-facing prose.
+Summarize the created filenames, intended slice order, material assumptions, and open questions.
+If the process paused for clarification or approval, state the single pending decision instead of claiming files were created.
 
-## Slice design and review
-
-Create thin tracer-bullet slices with demoable outcomes.
-Organize slices around user-visible or system-verifiable outcomes, not around engineering layers.
-Use engineering boundaries only when they improve quality, simplicity, robustness, scalability, or long-term maintainability without turning the ticket into an implementation checklist.
-Avoid tickets that only prepare an API, database, UI, migration, service, test suite, or architecture foundation.
-
-Read `references/slice-design-checklist.md` before proposing or writing slices.
-Classify each proposed slice as `AFK` or `HITL` using the checklist.
-Default to `AFK` unless a product, design, architecture, policy, or compliance decision is materially required.
-Use AFK and HITL labels for planning and review only.
-Do not include those labels in final Jira issue content unless the user asks for them.
-Add only real dependencies, not decorative sequencing.
-
-In `default` mode, present the proposed breakdown before creating files unless the user explicitly says the breakdown is already approved or asks you to assume approval.
-For each slice, show:
-
-- **Title**: short descriptive name
-- **Type**: `HITL` or `AFK`
-- **Blocked by**: required predecessor slices, if any
-- **Requirements covered**: PRD requirement IDs and source goals addressed
-
-Ask whether the granularity, dependencies, and HITL or AFK labels look right.
-Do not create files in default mode until the user approves the breakdown or has already told you to assume approval.
-
-In `brief` mode, skip the full review loop unless multiple plausible breakdowns would materially change the Jira files.
-If that happens, ask the smallest useful question and then continue.
-
-## Jira file creation
-
-Create one markdown file per approved slice in dependency order.
-Use predictable filenames such as `01-short-slice-title.md`, `02-next-slice-title.md`, and so on.
-
-Before drafting Jira files, read `references/ticket-writing-checklist.md`, `references/jira-issue-template.md`, and `references/example-ticket.md`.
-Use the Jira template as the authoritative raw structure for every generated issue.
-Preserve the raw HTML structure, panel classes, inline styles, section order, German labels, German Gherkin keywords, and notes-panel structure from the template.
-Acceptance criteria must be named scenarios inside dashed panels, not a checklist.
-Always include the notes panel.
-Within the notes list, include only entries that carry real information.
-Omit empty entries rather than writing placeholders such as `Keine`.
-
-Shape each ticket around explicit delivery properties:
-
-- The title and user story name the product outcome, not the implementation surface.
-- The benefit explains why the behavior matters to the user, operator, business, compliance posture, or delivery risk.
-- Acceptance scenarios define observable completion and important boundaries without enumerating the build sequence.
-- Notes provide decision-relevant context, dependencies, assumptions, risks, and open questions, not a decomposition of engineering tasks.
-- Technical hints appear only when they narrow an important source-backed constraint or expose context that senior engineers would not reasonably infer.
-
-## Final quality gate
-
-Before saving each file, check the complete issue against these rules:
-
-- German labels and German sentence framing are used throughout, while established source-backed English terms remain English when clearer.
-- The Hinweise section follows `references/jira-issue-template.md`: the `jePanel_idea` header is closed before a `<ul>` with one `<li>` per included note entry.
-- Empty note entries and placeholder values such as `Keine` are omitted.
-- Ticket content is self-contained and does not mention the PRD, brief, source document, source section, or unavailable planning artifact.
-- Cross-ticket references appear only for real prerequisites or delivery dependencies.
-- Scenario text uses first-person participant phrasing where natural, such as `ich sehe`, `ich erhalte`, `ich wähle`, `ich öffne`, or `ich befinde mich`.
-- Scenario text avoids filler adjectives such as `nahtlos`, `robust`, `umfassend`, `zuverlässig`, `eindeutig`, and `sichergestellt`.
-- Titles, scenarios, and notes describe outcomes, behavior, constraints, and acceptance boundaries instead of API, schema, table, service, component, method, file, test-suite, or layer-by-layer changes.
-- Product rules, validations, quotas, permission nuances, recovery flows, and edge cases are source-backed, directly implied, or explicitly framed as assumptions or open questions.
-- `Technische Hinweise` are brief, decision-relevant, and limited to non-obvious source-backed constraints.
-- The final files are written in dependency order with predictable filenames.
-
-## Final response
-
-After writing the files, summarize the created filenames, intended slice order, material assumptions, and open questions.
+**Complete when:** the response accurately distinguishes created output from pending work.

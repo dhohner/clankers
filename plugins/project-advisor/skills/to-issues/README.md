@@ -42,7 +42,7 @@ Use natural German when it is clearer and aligns with the source terminology.
 
 - `references/jira-issue-template.md` contains the authoritative Jira-compatible HTML template and formatting rules.
 - `references/example-ticket.md` contains a fully worked sample ticket that demonstrates the expected phrasing and level of detail.
-- `references/default-source-intake.md` contains source-resolution and HTML-only fallback rules for default mode.
+- `references/default-source-intake.md` contains source precedence, PRD extraction, HTML fallback, and short-path rules for default mode.
 - `references/brief-mode-intake.md` keeps `brief` mode from turning into a full PRD interview.
 - `references/slice-design-checklist.md` defines what counts as a strong vertical slice and how to handle dependencies.
 - `references/ticket-writing-checklist.md` keeps ticket tone, scenario phrasing, and note density consistent.

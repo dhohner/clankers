@@ -1,54 +1,33 @@
 # Brief Mode Intake
 
-Use this guide before the first serious interview round in `brief` mode.
+The goal is stable ticket slices, not a reconstructed PRD.
 
-The goal of `brief` mode is not to reconstruct a full PRD. The goal is to collect only the decisions that materially change the resulting slices.
+## Extract before asking
 
-## Extract first
+Build the initial source ledger from the prompt, prior conversation, and referenced files.
+Capture:
 
-Before asking anything, extract from the current conversation and any referenced files:
-
-- the user or actor
-- the capability or business outcome
-- obvious constraints or deadlines
+- actors and desired outcomes
+- settled behavior and acceptance examples
+- scope boundaries and non-goals
+- rollout, migration, deadline, policy, or compliance constraints
 - dependencies on existing systems or workflows
-- explicit non-goals
+- assumptions, risks, and open questions already stated
 
-If these are already settled, do not re-ask them.
+Treat extracted facts as settled and spend questions only on missing decisions.
 
-## Ask only for missing decisions that change the tickets
+## Question threshold
 
-Good `brief` mode questions resolve ambiguity around:
+Ask when competing answers would materially change scope, behavior, acceptance criteria, dependencies, ownership, rollout risk, or the slice breakdown.
+Typical high-impact ambiguities include personal versus shared ownership, limited versus broad rollout, automatic versus manual behavior, migration needs, prerequisite approvals, and extending an existing workflow versus adding a separate management surface.
+Batch related questions into one concise round, using `ask_question` with useful predefined options when available.
 
-- scope boundaries that change how many slices exist
-- rollout or migration constraints
-- approval or compliance requirements
-- critical dependencies or prerequisite work
-- acceptance-criteria differences between plausible behaviors
-- ownership or visibility models such as personal versus shared
-- whether the feature extends an existing workflow or needs a separate management surface
-- whether the first version is automatic, manual, or mixed when that changes the slice set
+When a ticket set remains stable without an answer, record the uncertainty as an assumption or open question.
+Leave unsupported naming rules, quotas, deduplication behavior, permission exceptions, and recovery flows unsettled unless the source or bounded repository context directly implies them.
 
-Avoid asking for background that does not change the decomposition.
+## Stop asking
 
-Do not paper over missing product decisions by inventing them. If the brief does not specify things like naming rules, deduplication, sharing behavior, permission exceptions, or special recovery flows, leave them out unless they are strongly implied by the repo context or are required to produce a stable slice breakdown.
+Proceed as soon as the source ledger supports stable outcome-oriented slices with credible dependencies and acceptance boundaries.
+When one missing decision prevents a stable breakdown, ask the smallest blocking question and pause.
 
-If a missing decision would change the decomposition, ask about it even when one answer feels more likely. Common examples are personal-versus-shared ownership, whether invalid configurations need visible handling in V1, and whether users stay in the existing workflow or switch to a new management surface.
-
-## Good question shapes
-
-Batch related questions into one round when possible.
-
-- Which actors need the first usable version: internal operators, end users, or both?
-- Is this intended for a limited rollout, or should the first slice already be production-ready for everyone?
-- Are there hard dependencies or existing flows this must extend rather than replace?
-
-## When to stop asking
-
-Stop as soon as you can produce stable, outcome-oriented slices with credible dependencies and acceptance criteria.
-
-If the user input is strong enough to do that already, do not ask anything.
-
-If a missing detail would change the decomposition, ask about it. If it would not change the decomposition, do not silently turn it into a requirement just because it sounds plausible.
-
-If clarification is impossible in the current context, surface the smallest blocking question and stop rather than drafting tickets around an invented answer.
+**Complete when:** every missing decision that could change the slices has either been answered or isolated as the pending blocker, while lower-impact uncertainty is explicitly recorded rather than silently settled.
