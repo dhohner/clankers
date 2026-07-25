@@ -4,19 +4,25 @@ const mobileQuery = window.matchMedia("(max-width: 980px)");
 const sidebar = document.querySelector(".sidebar");
 const navToggle = document.querySelector("#nav-toggle");
 const sidebarPanel = document.querySelector("#sidebar-panel");
+const navigation = document.querySelector(".sidebar nav");
 const navLinks = [...document.querySelectorAll(".sidebar nav a")];
-const internalLinks = [...document.querySelectorAll('a[href^="#"]')];
 const sections = [...document.querySelectorAll("main > section[id]")];
 const supportingDetails = [...document.querySelectorAll("details")];
 const detailsToggle = document.querySelector("#collapse-all");
 const printButton = document.querySelector("#print-document");
 let anchorObserver;
 
+const categoryLabels = {
+  framing: "Context",
+  "people-workflow": "People & workflow",
+  "product-definition": "Product contract",
+  "visual-experience": "Visual experience",
+  "technical-contracts": "Technical contracts",
+  "delivery-assurance": "Assurance & evidence",
+};
+
 function navigationIsOpen() {
-  return (
-    mobileQuery.matches
-    && navToggle?.getAttribute("aria-expanded") === "true"
-  );
+  return navToggle?.getAttribute("aria-expanded") === "true";
 }
 
 function focusableNavigationItems() {
@@ -33,7 +39,7 @@ function setNavigationOpen(open, restoreFocus = false) {
     open ? "Close document navigation" : "Open document navigation",
   );
   sidebarPanel.classList.toggle("open", open);
-  document.body.classList.toggle("navigation-open", open && mobileQuery.matches);
+  document.body.classList.toggle("navigation-open", open);
   if (open) navLinks[0]?.focus();
   if (!open && restoreFocus) navToggle.focus();
 }
@@ -75,17 +81,193 @@ document.addEventListener("click", (event) => {
 
 mobileQuery.addEventListener("change", () => setNavigationOpen(false));
 
+function categoryLabel(category) {
+  return categoryLabels[category] || "Document";
+}
+
+function addSectionCategoryLabels() {
+  sections.forEach((section) => {
+    const heading = section.querySelector(".section-heading");
+    if (!heading || heading.querySelector(".section-category")) return;
+    const label = document.createElement("span");
+    label.className = "section-category";
+    label.textContent = categoryLabel(section.dataset.blockCategory);
+    heading.prepend(label);
+  });
+}
+
+function buildReviewOverview() {
+  const hero = document.querySelector(".hero");
+  if (!hero || document.querySelector(".review-overview")) return;
+
+  const requirementItems = [
+    ...document.querySelectorAll("#requirements article"),
+  ];
+  const validatedRequirements = requirementItems.filter((item) =>
+    item.querySelector('a[href^="#test-"]'),
+  ).length;
+  const openQuestions = document.querySelectorAll(
+    "#open_questions article",
+  ).length;
+  const risks = document.querySelectorAll("#risks article").length;
+  if (!requirementItems.length && !openQuestions && !risks) return;
+
+  const overview = document.createElement("aside");
+  overview.className = "review-overview";
+  overview.setAttribute("aria-labelledby", "review-overview-title");
+  overview.innerHTML = `
+    <div class="review-overview-intro">
+      <span class="review-overview-eyebrow">Review focus</span>
+      <h2 id="review-overview-title">Move from context to decision.</h2>
+      <p>Resolve open questions, challenge material risks, then confirm validation coverage.</p>
+    </div>
+    <a class="review-stat review-stat--questions" href="#open_questions">
+      <strong>${openQuestions}</strong>
+      <span>Open ${openQuestions === 1 ? "question" : "questions"}</span>
+    </a>
+    <a class="review-stat" href="#risks">
+      <strong>${risks}</strong>
+      <span>Known ${risks === 1 ? "risk" : "risks"}</span>
+    </a>
+    <a class="review-stat" href="#testing_strategy">
+      <strong>${validatedRequirements}/${requirementItems.length}</strong>
+      <span>Requirements validated</span>
+    </a>
+  `;
+  hero.after(overview);
+}
+
+function groupNavigation() {
+  if (!navigation || navigation.classList.contains("is-grouped")) return;
+
+  const summaryLink = navLinks.find((link) => link.hash === "#summary");
+  const groups = new Map();
+  navLinks.forEach((link) => {
+    if (link === summaryLink) return;
+    const target = document.getElementById(link.hash.slice(1));
+    if (!target) return;
+    const category = target.dataset.blockCategory || "document";
+    link.dataset.reviewArea = target.dataset.reviewArea || "all";
+    if (!groups.has(category)) groups.set(category, []);
+    groups.get(category).push(link);
+  });
+
+  navigation.replaceChildren();
+  navigation.classList.add("is-grouped");
+  if (summaryLink) {
+    summaryLink.classList.add("nav-summary-link");
+    navigation.append(summaryLink);
+  }
+
+  const groupsContainer = document.createElement("div");
+  groupsContainer.className = "nav-groups";
+  const groupElements = [];
+  groups.forEach((links, category) => {
+    const group = document.createElement("div");
+    group.className = "nav-group";
+    group.dataset.reviewCategory = category;
+    const label = document.createElement("span");
+    label.className = "nav-group-label";
+    label.textContent = categoryLabel(category);
+    group.append(label, ...links);
+    groupsContainer.append(group);
+    groupElements.push(group);
+  });
+  navigation.append(groupsContainer);
+
+  if (!sidebarPanel || !groupElements.length) return;
+  const lenses = document.createElement("div");
+  lenses.className = "review-lenses";
+  lenses.setAttribute("role", "group");
+  lenses.setAttribute("aria-label", "Filter document navigation");
+  lenses.innerHTML = `
+    <span>Review lens</span>
+    <button type="button" data-review-lens="all" aria-pressed="true">All</button>
+    <button type="button" data-review-lens="decisions" aria-pressed="false">Decisions</button>
+    <button type="button" data-review-lens="validation" aria-pressed="false">Validation</button>
+    <span class="review-lens-status sr-only" aria-live="polite"></span>
+  `;
+  sidebarPanel.prepend(lenses);
+
+  const lensButtons = [...lenses.querySelectorAll("[data-review-lens]")];
+  const lensStatus = lenses.querySelector(".review-lens-status");
+  function applyReviewLens(lens) {
+    navLinks.forEach((link) => {
+      if (link === summaryLink) {
+        link.hidden = false;
+        return;
+      }
+      const reviewAreas = (link.dataset.reviewArea || "all").split(/\s+/);
+      link.hidden = lens !== "all"
+        && !reviewAreas.includes("all")
+        && !reviewAreas.includes(lens);
+    });
+    groupElements.forEach((group) => {
+      group.hidden = ![...group.querySelectorAll("a")].some(
+        (link) => !link.hidden,
+      );
+    });
+    lensButtons.forEach((button) => {
+      button.setAttribute(
+        "aria-pressed",
+        String(button.dataset.reviewLens === lens),
+      );
+    });
+    const visibleCount = navLinks.filter(
+      (link) => link !== summaryLink && !link.hidden,
+    ).length;
+    if (lensStatus) {
+      lensStatus.textContent = lens === "all"
+        ? `Showing all ${visibleCount} document sections.`
+        : `Showing ${visibleCount} ${lens} sections.`;
+    }
+  }
+
+  lenses.addEventListener("click", (event) => {
+    const button = event.target.closest?.("[data-review-lens]");
+    if (!button) return;
+    applyReviewLens(button.dataset.reviewLens);
+  });
+}
+
+function makeTablesResponsive() {
+  document.querySelectorAll(".table-wrap table").forEach((table) => {
+    const labels = [...table.querySelectorAll("thead th")]
+      .map((header) => header.textContent.trim());
+    if (!labels.length) return;
+    table.classList.add("responsive-table");
+    table.querySelectorAll("tbody tr").forEach((row) => {
+      [...row.children].forEach((cell, index) => {
+        cell.dataset.label = labels[index] || "";
+        if (!cell.querySelector(":scope > .responsive-cell-content")) {
+          const content = document.createElement("span");
+          content.className = "responsive-cell-content";
+          content.append(...cell.childNodes);
+          cell.append(content);
+        }
+      });
+    });
+  });
+}
+
+addSectionCategoryLabels();
+buildReviewOverview();
+groupNavigation();
+makeTablesResponsive();
+
 function headerOffset() {
-  return mobileQuery.matches && sidebar
-    ? sidebar.getBoundingClientRect().height + 12
-    : 12;
+  return sidebar ? sidebar.getBoundingClientRect().height : 0;
+}
+
+function anchorScrollTop(target) {
+  if (target.id === "summary") return 0;
+  return target.getBoundingClientRect().top + window.scrollY - headerOffset();
 }
 
 function positionAnchor(target, behavior = "auto") {
-  const top = target.getBoundingClientRect().top + window.scrollY - headerOffset();
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   window.scrollTo({
-    top: Math.max(0, top),
+    top: Math.max(0, anchorScrollTop(target)),
     behavior: reducedMotion ? "auto" : behavior,
   });
 }
@@ -137,16 +319,16 @@ function focusAnchorTarget(hash) {
 });
 window.addEventListener("keydown", stopAnchorStabilization);
 
-internalLinks.forEach((link) => {
-  link.addEventListener("click", (event) => {
-    const hash = link.getAttribute("href");
-    if (!targetForHash(hash)) return;
-    event.preventDefault();
-    history.pushState(null, "", hash);
-    navigateToHash(hash);
-    if (mobileQuery.matches) setNavigationOpen(false);
-    focusAnchorTarget(hash);
-  });
+document.addEventListener("click", (event) => {
+  const link = event.target.closest?.('a[href^="#"]');
+  if (!link) return;
+  const hash = link.getAttribute("href");
+  if (!targetForHash(hash)) return;
+  event.preventDefault();
+  history.pushState(null, "", hash);
+  navigateToHash(hash);
+  setNavigationOpen(false);
+  focusAnchorTarget(hash);
 });
 
 window.addEventListener("hashchange", () => navigateToHash(location.hash, "auto"));
@@ -247,12 +429,12 @@ async function renderMermaidDiagrams() {
         curve: "basis",
       },
       themeVariables: {
-        fontFamily: '"Avenir Next", Avenir, sans-serif',
-        primaryColor: "#f7f9f7",
-        primaryBorderColor: "#176b52",
-        primaryTextColor: "#17201c",
-        lineColor: "#176b52",
-        tertiaryColor: "#dff3ea",
+        fontFamily: '"Helvetica Neue", "Avenir Next", sans-serif',
+        primaryColor: "#fbfbff",
+        primaryBorderColor: "#114d83",
+        primaryTextColor: "#17182c",
+        lineColor: "#114d83",
+        tertiaryColor: "#e4e7ff",
         clusterBkg: "transparent",
         clusterBorder: "transparent",
       },

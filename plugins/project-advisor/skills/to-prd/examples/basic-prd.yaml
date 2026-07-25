@@ -74,7 +74,7 @@ blocks:
         - "RISK-01"
     - id: "REQ-02"
       title: "Reference-aligned layout"
-      description: "Render a persistent navigation rail, outcome-first hero, flat content hierarchy, and purpose-specific section layouts."
+      description: "Render a persistent navigation masthead, spatial document-context hero, clear content hierarchy, and purpose-specific section layouts."
       validation:
         - "TEST-02"
       relates_to:
@@ -204,7 +204,7 @@ blocks:
         - "REQ-02"
   repository_grounding:
     - reference: "plugins/project-advisor/skills/to-prd/bundle/index.template.html"
-      observation: "The template defines the persistent rail, hero metadata, content shell, and review controls."
+      observation: "The template defines the responsive navigation masthead, spatial hero metadata, content shell, and review controls."
       implication: The generator shell must encode those structures directly.
     - reference: "plugins/project-advisor/skills/to-prd/bundle/assets/styles.css"
       observation: "Ordinary content is flat while diagrams, tables, details, and callouts are visually bounded."

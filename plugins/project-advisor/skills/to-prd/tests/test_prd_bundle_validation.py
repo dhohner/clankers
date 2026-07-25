@@ -174,6 +174,7 @@ class PrdBundleValidationTests(unittest.TestCase):
         self.assertNotIn(f'href="#{EVIDENCE_REFERENCE}"', document)
         self.assertIn('href="#traceability"', document)
         self.assertIn("Traceability view", document)
+        self.assertNotIn('<div class="section-heading"><span>TR</span>', document)
         self.assertIn("Evidence only:", document)
         self.assertIn("not mandatory implementation instructions", document)
         self.assertIn("scripts/bundle.py::generate_bundle", document)

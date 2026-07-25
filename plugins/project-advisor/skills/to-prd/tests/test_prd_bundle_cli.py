@@ -49,8 +49,8 @@ class PrdBundleCliTests(unittest.TestCase):
             self.assertIn("style-src-elem 'self' 'unsafe-inline'", document)
             self.assertIn("style-src-attr 'unsafe-inline'", document)
             self.assertIn('name="referrer" content="no-referrer"', document)
-            self.assertIn('href="./assets/styles.css"', document)
-            self.assertIn('src="./assets/app.js"', document)
+            self.assertIn('href="./assets/styles.css?v=', document)
+            self.assertIn('src="./assets/app.js?v=', document)
             self.assertIn('class="brand-mark"', document)
             self.assertIn('aria-label="PRD navigation"', document)
             self.assertIn('id="nav-toggle"', document)
@@ -60,12 +60,31 @@ class PrdBundleCliTests(unittest.TestCase):
             self.assertIn('href="#req-01"', document)
             self.assertIn('id="dec-01"', document)
             self.assertIn('id="risk-01"', document)
+            self.assertIn(
+                'class="risk-list divider-grid divider-grid--3"',
+                document,
+            )
+            self.assertNotIn('<div class="section-heading"><span>', document)
             self.assertIn('id="question-01"', document)
             self.assertIn('id="test-01"', document)
-            self.assertIn('class="metric-grid"', document)
+            self.assertIn(
+                'class="metric-grid divider-grid divider-grid--3"',
+                document,
+            )
             self.assertIn('class="requirement-list"', document)
             self.assertIn('class="timeline"', document)
-            self.assertIn('class="decision-grid"', document)
+            self.assertIn('class="timeline-marker"', document)
+            self.assertIn('class="timeline-content"', document)
+            self.assertIn('>Phase 01</span>', document)
+            self.assertNotIn('<span>01</span>', document)
+            self.assertIn(
+                'class="decision-grid divider-grid divider-grid--2"',
+                document,
+            )
+            self.assertIn(
+                'class="question-list divider-grid divider-grid--2"',
+                document,
+            )
             self.assertNotIn('class="prototype prototype-surface"', document)
             self.assertNotIn('class="document-header"', document)
             self.assertEqual(preserved_manifest["slug"], "example-review-bundle")

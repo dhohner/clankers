@@ -93,8 +93,10 @@ def render_cards(name: str, items: list[dict[str, Any]], spec: BlockSpec) -> str
         )
     if name == "rollout":
         return '<ol class="timeline">' + "".join(
-            f"<li><span>Phase {index}</span>"
-            f"<div><h3>{escape_html(item['phase'])}</h3>"
+            f'<li aria-label="Phase {index}: {escape_html(item["phase"])}">'
+            f'<span class="timeline-marker" aria-hidden="true">Phase {index:02d}</span>'
+            f'<div class="timeline-content">'
+            f'<h3>{escape_html(item["phase"])}</h3>'
             f"<p>{escape_html(item['outcome'])}</p></div></li>"
             for index, item in enumerate(items, start=1)
         ) + "</ol>"
@@ -113,13 +115,17 @@ def render_cards(name: str, items: list[dict[str, Any]], spec: BlockSpec) -> str
             f"</tr></thead><tbody>{rows}</tbody></table></div>"
         )
 
-    grid_class = {
-        "decisions": "decision-grid",
-        "risks": "risk-list",
-        "testing_strategy": "validation-list",
-        "capability_map": "block-grid",
-    }.get(name, "card-grid")
-    return f'<div class="{grid_class}">' + "".join(cards) + "</div>"
+    grid_class, columns = {
+        "decisions": ("decision-grid", 2),
+        "risks": ("risk-list", 3),
+        "testing_strategy": ("validation-list", 2),
+        "capability_map": ("block-grid", 3),
+    }.get(name, ("card-grid", 2))
+    return (
+        f'<div class="{grid_class} divider-grid divider-grid--{columns}">'
+        + "".join(cards)
+        + "</div>"
+    )
 
 
 def render_table(value: dict[str, Any]) -> str:
@@ -145,7 +151,7 @@ def render_block_content(name: str, value: Any, spec: BlockSpec) -> str:
             for item in value["metrics"]
         )
         return (
-            f'<div class="metric-grid">{metrics}</div>'
+            f'<div class="metric-grid divider-grid divider-grid--3">{metrics}</div>'
             '<div class="callout"><strong>Recommendation</strong>'
             f"<p>{escape_html(value['recommendation'])}</p></div>"
         )
@@ -196,7 +202,10 @@ def render_block_content(name: str, value: Any, spec: BlockSpec) -> str:
                 f'aria-label="Link to {escape_html(label)}">{escape_html(label)}</a>'
                 f"<h3>{escape_html(question['question'])}</h3>{links}</article>"
             )
-        return f'<div class="question-list">{"".join(rows)}</div>'
+        return (
+            '<div class="question-list divider-grid divider-grid--2">'
+            f'{"".join(rows)}</div>'
+        )
     if spec.kind == "code":
         snippets = "".join(
             '<article class="code-sample">'

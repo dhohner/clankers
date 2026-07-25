@@ -35,64 +35,172 @@ class PrdBundleAssetsTests(unittest.TestCase):
         self.assertIn("initMermaidZoom(canvas)", script)
         self.assertIn('data-zoom="in"', script)
         self.assertIn('window.matchMedia("(prefers-reduced-motion: reduce)")', script)
-        self.assertIn("@media (max-width: 980px)", styles)
-        self.assertIn("position: fixed", styles)
-        self.assertIn("height: 100dvh", styles)
-        self.assertIn("grid-template-columns: 288px minmax(0, 1fr)", styles)
-        self.assertIn("main {\n  grid-column: 2", styles)
-        self.assertIn("width: 100%", styles)
-        self.assertNotIn("width: min(1160px, 100%)", styles)
-        self.assertNotIn("max-width: 850px", styles)
-        self.assertNotIn("max-width: 820px", styles)
-        self.assertIn("padding: 38px clamp(42px, 4vw, 84px) 72px", styles)
-        self.assertIn(".hero {\n  position: relative;\n  padding: 20px 0 36px;", styles)
-        self.assertIn("border-bottom: 2px solid var(--ink);", styles)
-        self.assertIn("max-width: min(100%, 34ch);", styles)
-        self.assertIn("max-width: min(100%, 90ch);", styles)
-        self.assertNotIn(".hero::before", styles)
-        self.assertNotIn(".metadata div { padding: 12px 16px 12px 0; border-right", styles)
-        self.assertIn(".requirement-list article", styles)
-        self.assertIn(".section-heading > span {\n  display: block;\n  margin-bottom: 9px;", styles)
-        self.assertIn("font-variant-numeric: tabular-nums;", styles)
-        self.assertNotIn("grid-template-columns: 3.5rem minmax(0, 1fr)", styles)
-        self.assertIn(".block-grid {\n  display: grid;\n  grid-template-columns: repeat(3, minmax(0, 1fr));\n  gap: 1px;", styles)
-        self.assertIn("background: var(--line);", styles)
-        for grid in (
-            "card-grid",
-            "decision-grid",
-            "risk-list",
-            "validation-list",
-            "question-list",
-        ):
-            self.assertIn(
-                f".{grid}:has(> :nth-child(odd):last-child)::after",
-                styles,
-            )
         self.assertIn(
-            ".question-list:has(> :nth-child(odd):last-child)::after {\n"
-            "  display: block;\n"
-            "  background: var(--surface);",
+            "sidebar ? sidebar.getBoundingClientRect().height : 0",
+            script,
+        )
+        self.assertIn('if (target.id === "summary") return 0', script)
+        self.assertIn("top: Math.max(0, anchorScrollTop(target))", script)
+        self.assertIn(
+            'return navToggle?.getAttribute("aria-expanded") === "true"',
+            script,
+        )
+        self.assertIn('document.body.classList.toggle("navigation-open", open)', script)
+        self.assertIn('primaryColor: "#fbfbff"', script)
+        self.assertIn('primaryBorderColor: "#114d83"', script)
+        self.assertIn("buildReviewOverview()", script)
+        self.assertIn("groupNavigation()", script)
+        self.assertIn('data-review-lens="decisions"', script)
+        self.assertIn('data-review-lens="validation"', script)
+        self.assertIn("makeTablesResponsive()", script)
+        self.assertIn('cell.dataset.label = labels[index] || ""', script)
+        self.assertIn('content.className = "responsive-cell-content"', script)
+        self.assertIn("addSectionCategoryLabels()", script)
+
+        self.assertIn("--canvas: #dfe5f2", styles)
+        self.assertIn("--ink: #111327", styles)
+        self.assertIn("--muted: #494d64", styles)
+        self.assertIn("--grid-line: rgb(17 77 131 / 7%)", styles)
+        self.assertIn("--line: #d5d9ee", styles)
+        self.assertIn("--line-strong: #9fa7ca", styles)
+        self.assertIn("--accent: #114d83", styles)
+        self.assertIn("--coral: #f18473", styles)
+        self.assertIn("--section-space: clamp(88px, 9vw, 132px)", styles)
+        self.assertIn("--cluster-space: clamp(34px, 4vw, 52px)", styles)
+        self.assertIn("--panel-space: clamp(28px, 3vw, 42px)", styles)
+        self.assertIn("radial-gradient(circle at 12% 7%", styles)
+        self.assertIn("linear-gradient(var(--grid-line) 1px, transparent 1px)", styles)
+        self.assertIn(
+            "var(--grid-size) var(--grid-size),\n"
+            "    var(--grid-size) var(--grid-size);",
             styles,
         )
-        self.assertIn(".block-grid:has(> article:nth-child(4):last-child)::after", styles)
-        self.assertIn("grid-column: span 2;", styles)
-        self.assertNotIn(".block-grid article:nth-child(even) { padding-left: 28px; }", styles)
-        self.assertIn(".metric-grid { grid-template-columns: repeat(3", styles)
-        self.assertIn(
-            ".timeline li { display: grid; grid-template-columns: 100px",
-            styles,
-        )
+        self.assertIn("background-repeat: no-repeat, no-repeat, repeat, repeat", styles)
+        self.assertIn("background-attachment: fixed", styles)
+        self.assertIn(".sidebar {\n  position: sticky;", styles)
+        self.assertIn("backdrop-filter: blur(18px)", styles)
+        self.assertIn(".nav-toggle {\n  display: inline-flex;", styles)
+        self.assertIn(".sidebar-panel {\n  position: absolute;", styles)
+        self.assertIn("max-height: calc(100dvh - 78px)", styles)
+        self.assertIn(".sidebar nav {\n  display: grid;", styles)
         self.assertIn("grid-template-columns: repeat(4, minmax(0, 1fr))", styles)
+        self.assertIn(".sidebar nav a.active", styles)
+        self.assertIn(".sidebar nav.is-grouped", styles)
+        self.assertIn(".review-lenses button[aria-pressed=\"true\"]", styles)
+        self.assertIn(".review-overview {", styles)
+        self.assertIn(".section-category", styles)
+        self.assertNotIn("scrollbar-width: thin", styles)
+        self.assertNotIn("white-space: nowrap;\n}", styles)
+
+        self.assertIn(".hero {\n  display: grid;", styles)
+        self.assertIn(
+            "grid-template-columns: minmax(0, .84fr) minmax(500px, 1.16fr)",
+            styles,
+        )
+        self.assertIn("min-height: min(780px, calc(100dvh - 142px))", styles)
+        self.assertIn("font-size: clamp(4.4rem, 7.35vw, 8.2rem)", styles)
+        self.assertIn(".hero-map {", styles)
+        self.assertIn("grid-template-rows: auto minmax(210px, 1fr) auto", styles)
+        self.assertIn("border-radius: 160px 34px 34px 34px", styles)
+        self.assertIn(".map-core {", styles)
+        self.assertIn(".metadata {\n  position: relative;", styles)
+        self.assertIn("grid-template-columns: repeat(3, minmax(0, 1fr))", styles)
+        self.assertIn("pointer-events: none", styles)
+
+        self.assertIn(".section-heading {\n  margin-bottom: var(--cluster-space)", styles)
+        self.assertIn("margin: var(--section-space) auto 0", styles)
+        self.assertIn("padding: 0", styles)
+        self.assertIn("max-width: min(24ch, 100%)", styles)
+        self.assertIn("overflow-wrap: break-word", styles)
+        self.assertNotIn(".section-heading > span", styles)
+        self.assertIn(
+            ".section-heading {\n  margin-bottom: var(--cluster-space);\n  padding-top: 22px;\n  border-top: 1px solid var(--line-strong);",
+            styles,
+        )
+        self.assertIn(".divider-grid {", styles)
+        self.assertIn("grid-template-columns: repeat(4", styles)
+        self.assertIn(".divider-grid--3 { grid-template-columns: repeat(6", styles)
+        self.assertIn(".divider-grid--2 > :last-child:nth-child(odd)", styles)
+        self.assertIn(
+            ".divider-grid--2 > :last-child:nth-child(odd) { grid-column: 1 / span 2; }",
+            styles,
+        )
+        self.assertIn(
+            ".divider-grid--2 > :last-child:nth-child(odd):not(:first-child)::before",
+            styles,
+        )
+        self.assertIn(".divider-grid--3 > :last-child:nth-child(3n + 1)", styles)
+        self.assertIn(".divider-grid--3 > :nth-last-child(2):nth-child(3n + 1)", styles)
+        self.assertIn(
+            ".divider-grid--3 > :last-child:nth-child(3n + 1) {\n"
+            "  grid-column: 1 / span 2;",
+            styles,
+        )
+        self.assertIn(
+            ".divider-grid--3 > :nth-last-child(2):nth-child(3n + 1) {\n"
+            "  grid-column: 1 / span 2;",
+            styles,
+        )
+        self.assertIn(
+            ".divider-grid--3 > :last-child:nth-child(3n + 2) {\n"
+            "  grid-column: 3 / span 2;",
+            styles,
+        )
+        self.assertIn("width: 300%", styles)
+        self.assertIn("border-block: 1px solid var(--line-strong)", styles)
+        self.assertIn("border-left: 1px solid var(--line-strong)", styles)
+        self.assertIn(".divider-grid--3 > :nth-child(n + 4)", styles)
+        self.assertIn(".divider-grid > :last-child:nth-child(odd)", styles)
+        self.assertIn("background: var(--surface)", styles)
+        self.assertIn("main {\n  width: 100%;", styles)
+        self.assertIn("main {\n  width: 100%;\n  min-width: 0;\n  margin: 0;", styles)
+        self.assertNotIn("--sheet-shadow", styles)
+        self.assertNotIn("border-radius: 48px 48px 0 0", styles)
+        self.assertIn(".section > .callout {\n  width: 100%;\n  max-width: none;", styles)
+        self.assertIn(
+            "grid-template-columns: minmax(150px, 190px) minmax(0, 1fr)",
+            styles,
+        )
+        self.assertIn(".requirement-list article", styles)
+        self.assertIn("grid-template-columns: 106px minmax(0, 1fr)", styles)
+        self.assertIn(".timeline li {", styles)
+        self.assertIn("grid-template-columns: 90px minmax(0, 1fr)", styles)
+        self.assertIn(".timeline::before {", styles)
+        self.assertIn(".timeline-marker {", styles)
+        self.assertIn("border-radius: 999px", styles)
+        self.assertIn("border-block: 1px solid var(--line-strong)", styles)
         self.assertIn("background: transparent", styles)
-        self.assertIn("max-height: calc(100vh - 66px)", styles)
-        self.assertIn("max-height: calc(100dvh - 66px)", styles)
+        self.assertIn(".id-table th { white-space: nowrap; overflow-wrap: normal; }", styles)
+
+        self.assertIn("@media (max-width: 980px)", styles)
+        self.assertIn(
+            ".divider-grid,\n  .divider-grid--3 { grid-template-columns: repeat(4",
+            styles,
+        )
+        self.assertNotIn("grid-column: 1 / -1", styles)
+        self.assertIn("position: fixed", styles)
+        self.assertIn("max-height: calc(100vh - 72px)", styles)
+        self.assertIn("max-height: calc(100dvh - 72px)", styles)
+        self.assertIn("@media (max-width: 700px)", styles)
+        self.assertIn("--panel-space: 22px 20px", styles)
+        self.assertIn(".divider-grid > :nth-child(n) {", styles)
+        self.assertIn(".divider-grid > :nth-child(n + 2)", styles)
+        self.assertIn(
+            ".supporting-detail .split {\n  margin: 0;\n  border-block: 0;",
+            styles,
+        )
+        self.assertIn("@media (max-width: 460px)", styles)
+        self.assertIn(".metadata {\n    grid-template-columns: repeat(2", styles)
         self.assertIn("overflow-x: hidden", styles)
         self.assertIn("overflow-wrap: anywhere", styles)
-        self.assertIn(".id-table th { white-space: nowrap; overflow-wrap: normal; }", styles)
         self.assertIn("@media (prefers-reduced-motion: reduce)", styles)
         self.assertIn("@media print", styles)
         self.assertIn("details > *:not(summary)", styles)
         self.assertIn(".visual-surface", styles)
+        self.assertIn("table.responsive-table", styles)
+        self.assertIn(".responsive-table td::before", styles)
+        self.assertIn("@media (prefers-contrast: more)", styles)
+        self.assertIn("@media (forced-colors: active)", styles)
         self.assertIn(".mermaid-canvas svg", styles)
         self.assertIn(".mermaid-toolbar", styles)
         self.assertIn(".mermaid-canvas .cluster rect", styles)

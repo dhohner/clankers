@@ -53,7 +53,7 @@ def render_traceability_view(blocks: NormalizedBlocks) -> str:
     return (
         '<section id="traceability" class="section" data-block="traceability" data-block-category="delivery-assurance" '
         'data-review-area="validation decisions" aria-labelledby="traceability-heading">'
-        '<div class="section-heading"><span>TR</span><div><h2 id="traceability-heading">'
+        '<div class="section-heading"><div><h2 id="traceability-heading">'
         '<a href="#traceability">Traceability view</a></h2>'
         '<p>Generated relationships between requirements, decisions, risks, questions, and validation outcomes.</p>'
         '</div></div><div class="table-wrap traceability-table"><table class="id-table"><thead><tr>'

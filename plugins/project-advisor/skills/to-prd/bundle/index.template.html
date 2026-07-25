@@ -7,8 +7,8 @@
     <meta name="referrer" content="no-referrer" />
     <meta name="description" content="{{SUMMARY}}" />
     <title>PRD · {{TITLE}}</title>
-    <link rel="stylesheet" href="./assets/styles.css" />
-    <script src="./assets/app.js" defer></script>
+    <link rel="stylesheet" href="./assets/styles.css?v={{ASSET_VERSION}}" />
+    <script src="./assets/app.js?v={{ASSET_VERSION}}" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#content">Skip to content</a>
@@ -17,16 +17,18 @@
         <div class="sidebar-header">
           <a class="brand" href="#summary" aria-label="Project Advisor PRD home">
             <svg class="brand-mark" viewBox="0 0 44 44" aria-hidden="true">
-              <path d="M7 7h12v12H7zM25 7h12v12H25zM7 25h12v12H7z" />
-              <path class="brand-mark-accent" d="M25 25h12v12H25z" />
+              <circle cx="22" cy="22" r="13.5" />
+              <path d="M4 29.5 40 14.5" />
+              <circle class="brand-mark-accent" cx="34" cy="17" r="3.5" />
             </svg>
-            <span><strong>Project Advisor</strong><small>Product review surface</small></span>
+            <span><strong>Project Advisor</strong><small>Decision review</small></span>
           </a>
-          <button id="nav-toggle" class="nav-toggle" type="button" aria-expanded="false"
-            aria-controls="sidebar-panel" aria-label="Open document navigation">
-            <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
-          </button>
         </div>
+        <button id="nav-toggle" class="nav-toggle" type="button" aria-expanded="false"
+          aria-controls="sidebar-panel" aria-label="Open document navigation">
+          <span class="nav-toggle-label">Contents</span>
+          <span class="nav-toggle-icon" aria-hidden="true"></span>
+        </button>
         <div id="sidebar-panel" class="sidebar-panel">
           <nav aria-label="Document sections">{{NAVIGATION}}</nav>
           <div class="sidebar-actions" role="group" aria-label="Review controls">
@@ -37,18 +39,28 @@
       </aside>
       <main id="content" tabindex="-1">
         <header id="summary" class="hero" aria-labelledby="document-title">
-          <div class="hero-topline">
-            <span class="eyebrow">Product Requirements Document</span>
-            <span class="status" role="status" aria-label="Document status: {{STATUS}}">{{STATUS}}</span>
+          <div class="hero-copy">
+            <div class="hero-topline">
+              <span class="eyebrow">Product requirements document</span>
+              <span class="status" role="status" aria-label="Document status: {{STATUS}}">{{STATUS}}</span>
+            </div>
+            <h1 id="document-title">{{TITLE}}</h1>
+            <p class="lede">{{SUMMARY}}</p>
           </div>
-          <h1 id="document-title">{{TITLE}}</h1>
-          <p class="lede">{{SUMMARY}}</p>
-          <dl class="metadata">{{METADATA}}</dl>
+          <div class="hero-map" aria-label="Document context">
+            <span class="map-label">Review map</span>
+            <div class="map-core">
+              <span>Working document</span>
+              <strong>{{STATUS}}</strong>
+              <small>Product direction, connected</small>
+            </div>
+            <dl class="metadata">{{METADATA}}</dl>
+          </div>
         </header>
         {{BLOCKS}}
         <footer>
-          <span>{{STATUS}}</span>
-          <a href="#summary">Back to top</a>
+          <div><small>Review state</small><strong>{{STATUS}}</strong></div>
+          <a href="#summary">Back to the beginning <span aria-hidden="true">↗</span></a>
         </footer>
       </main>
     </div>

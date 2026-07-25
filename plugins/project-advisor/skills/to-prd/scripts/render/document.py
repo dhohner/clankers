@@ -2,15 +2,26 @@
 
 from __future__ import annotations
 
+import hashlib
 import html
 from pathlib import Path
 
-from ..paths import TEMPLATE_PATH
+from ..paths import ASSET_DIR, TEMPLATE_PATH
 from ..spec import BLOCK_SPECS, TEMPLATE_MARKER_PATTERN
 from ..manifest_types import NormalizedManifest
 from .blocks import render_block_content
 from .helpers import escape_html
 from .traceability import render_traceability_view
+
+
+def asset_version() -> str:
+    digest = hashlib.sha256()
+    for asset_path in sorted(ASSET_DIR.iterdir()):
+        if not asset_path.is_file():
+            continue
+        digest.update(asset_path.name.encode("utf-8"))
+        digest.update(asset_path.read_bytes())
+    return digest.hexdigest()[:12]
 
 
 def render_document(
@@ -35,7 +46,7 @@ def render_document(
 
     navigation = ['<a href="#summary">Summary</a>']
     rendered_blocks: list[str] = []
-    for number, (name, value) in enumerate(manifest["blocks"].items(), start=1):
+    for name, value in manifest["blocks"].items():
         spec = BLOCK_SPECS[name]
         heading_id = f"{name}-heading"
         content = render_block_content(name, value, spec)
@@ -56,7 +67,7 @@ def render_document(
             f'data-block-category="{spec.category}" data-review-area="{spec.review_area}" '
             f'aria-labelledby="{heading_id}">'
             '<div class="section-heading">'
-            f'<span>{number:02d}</span><div><h2 id="{heading_id}">'
+            f'<div><h2 id="{heading_id}">'
             f'<a href="#{name}">{escape_html(spec.title)}</a></h2>'
             f"<p>{escape_html(spec.description)}</p></div></div>"
             f"{content}</section>"
@@ -75,6 +86,7 @@ def render_document(
         "{{TITLE}}": escape_html(manifest["title"]),
         "{{SUMMARY}}": escape_html(manifest["summary"]),
         "{{STATUS}}": escape_html(manifest["status"]),
+        "{{ASSET_VERSION}}": asset_version(),
         "{{METADATA}}": metadata,
         "{{NAVIGATION}}": "\n".join(navigation),
         "{{DETAILS_CONTROL}}": (
