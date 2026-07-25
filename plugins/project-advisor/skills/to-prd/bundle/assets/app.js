@@ -143,10 +143,11 @@ function groupNavigation() {
   const summaryLink = navLinks.find((link) => link.hash === "#summary");
   const groups = new Map();
   navLinks.forEach((link) => {
-    if (link === summaryLink) return;
     const target = document.getElementById(link.hash.slice(1));
     if (!target) return;
-    const category = target.dataset.blockCategory || "document";
+    const category = link === summaryLink
+      ? "framing"
+      : target.dataset.blockCategory || "document";
     link.dataset.reviewArea = target.dataset.reviewArea || "all";
     if (!groups.has(category)) groups.set(category, []);
     groups.get(category).push(link);
@@ -154,10 +155,6 @@ function groupNavigation() {
 
   navigation.replaceChildren();
   navigation.classList.add("is-grouped");
-  if (summaryLink) {
-    summaryLink.classList.add("nav-summary-link");
-    navigation.append(summaryLink);
-  }
 
   const groupsContainer = document.createElement("div");
   groupsContainer.className = "nav-groups";
