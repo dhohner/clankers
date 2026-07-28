@@ -11,7 +11,7 @@ from .helpers import escape_html, field_label
 def render_visual_heading(kind: str, description: str, description_id: str) -> str:
     return (
         '<div class="visual-heading">'
-        f'<span class="review-aid-label">{escape_html(kind)} · Review aid</span>'
+        f'<span class="review-aid-label">{escape_html(kind)}: Review aid</span>'
         "<span>Behavioral intent, not final production design</span>"
         "</div>"
         f'<p id="{description_id}" class="visual-description">{escape_html(description)}</p>'
@@ -30,19 +30,18 @@ def render_frames(name: str, items: list[dict[str, Any]], spec: BlockSpec) -> st
             }
         ]
         rendered_regions = "".join(
-            '<div class="screen-region">'
-            f"<strong>{escape_html(region['label'])}</strong>"
-            f"<span>{escape_html(region['detail'])}</span></div>"
+            '<div class="review-region">'
+            f"<dt>{escape_html(region['label'])}</dt>"
+            f"<dd>{escape_html(region['detail'])}</dd></div>"
             for region in regions
         )
         description_id = f"{name}-visual-{index}-description"
         frames.append(
             f'<figure class="visual-surface screen-surface" aria-labelledby="{description_id}">'
             f"{render_visual_heading(visual_kind, item[secondary], description_id)}"
-            '<div class="screen-chrome">'
-            '<div class="screen-toolbar" aria-hidden="true"><i></i><i></i><i></i></div>'
-            f'<div class="screen-canvas"><span class="screen-title">'
-            f"{escape_html(item[primary])}</span>{rendered_regions}</div></div>"
+            '<div class="review-frame">'
+            f'<h3 class="review-frame-title">{escape_html(item[primary])}</h3>'
+            f'<dl class="review-regions">{rendered_regions}</dl></div>'
             f"<figcaption>{escape_html(item[primary])}</figcaption></figure>"
         )
     return '<div class="visual-grid">' + "".join(frames) + "</div>"

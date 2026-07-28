@@ -85,17 +85,6 @@ function categoryLabel(category) {
   return categoryLabels[category] || "Document";
 }
 
-function addSectionCategoryLabels() {
-  sections.forEach((section) => {
-    const heading = section.querySelector(".section-heading");
-    if (!heading || heading.querySelector(".section-category")) return;
-    const label = document.createElement("span");
-    label.className = "section-category";
-    label.textContent = categoryLabel(section.dataset.blockCategory);
-    heading.prepend(label);
-  });
-}
-
 function buildReviewOverview() {
   const hero = document.querySelector(".hero");
   if (!hero || document.querySelector(".review-overview")) return;
@@ -117,7 +106,6 @@ function buildReviewOverview() {
   overview.setAttribute("aria-labelledby", "review-overview-title");
   overview.innerHTML = `
     <div class="review-overview-intro">
-      <span class="review-overview-eyebrow">Review focus</span>
       <h2 id="review-overview-title">Move from context to decision.</h2>
       <p>Resolve open questions, challenge material risks, then confirm validation coverage.</p>
     </div>
@@ -247,7 +235,6 @@ function makeTablesResponsive() {
   });
 }
 
-addSectionCategoryLabels();
 buildReviewOverview();
 groupNavigation();
 makeTablesResponsive();
@@ -416,6 +403,22 @@ async function renderMermaidDiagrams() {
   try {
     const module = await import(MERMAID_CDN);
     mermaid = module.default;
+    const darkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const diagramPalette = darkMode
+      ? {
+          primaryColor: "#182331",
+          primaryBorderColor: "#6da9cf",
+          primaryTextColor: "#edf2f7",
+          lineColor: "#6da9cf",
+          tertiaryColor: "#1d3546",
+        }
+      : {
+          primaryColor: "#f8fafc",
+          primaryBorderColor: "#175986",
+          primaryTextColor: "#121827",
+          lineColor: "#175986",
+          tertiaryColor: "#d9e7f1",
+        };
     mermaid.initialize({
       startOnLoad: false,
       securityLevel: "strict",
@@ -426,12 +429,8 @@ async function renderMermaidDiagrams() {
         curve: "basis",
       },
       themeVariables: {
-        fontFamily: '"Helvetica Neue", "Avenir Next", sans-serif',
-        primaryColor: "#fbfbff",
-        primaryBorderColor: "#114d83",
-        primaryTextColor: "#17182c",
-        lineColor: "#114d83",
-        tertiaryColor: "#e4e7ff",
+        fontFamily: '"Avenir Next", Avenir, "Helvetica Neue", sans-serif',
+        ...diagramPalette,
         clusterBkg: "transparent",
         clusterBorder: "transparent",
       },

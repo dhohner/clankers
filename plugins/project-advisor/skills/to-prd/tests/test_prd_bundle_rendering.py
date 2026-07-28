@@ -197,11 +197,12 @@ class PrdBundleRenderingTests(unittest.TestCase):
 
         document = BUNDLE.render_document(BUNDLE.validate_manifest(manifest))
 
-        self.assertIn("Wireframe · Review aid", document)
-        self.assertIn("Annotated state · Review aid", document)
+        self.assertIn("Wireframe: Review aid", document)
+        self.assertIn("Annotated state: Review aid", document)
         self.assertIn("Behavioral intent, not final production design", document)
-        self.assertIn('<div class="screen-chrome">', document)
-        self.assertNotIn('<div class="screen-chrome" aria-hidden="true">', document)
+        self.assertIn('<dl class="review-regions">', document)
+        self.assertIn('<div class="review-region">', document)
+        self.assertNotIn("screen-chrome", document)
 
     def test_optional_visual_collections_accept_explicit_empty_arrays(self) -> None:
         manifest = base_manifest("mixed", ["document", "ui", "architecture"])

@@ -6,7 +6,10 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self'; style-src-elem 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'" />
     <meta name="referrer" content="no-referrer" />
     <meta name="description" content="{{SUMMARY}}" />
+    <meta name="theme-color" content="#e8edf4" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#101722" media="(prefers-color-scheme: dark)" />
     <title>PRD · {{TITLE}}</title>
+    <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./assets/styles.css?v={{ASSET_VERSION}}" />
     <script src="./assets/app.js?v={{ASSET_VERSION}}" defer></script>
   </head>
@@ -16,18 +19,12 @@
       <aside class="sidebar" aria-label="PRD navigation">
         <div class="sidebar-header">
           <a class="brand" href="#summary" aria-label="Project Advisor PRD home">
-            <svg class="brand-mark" viewBox="0 0 44 44" aria-hidden="true">
-              <circle cx="22" cy="22" r="13.5" />
-              <path d="M4 29.5 40 14.5" />
-              <circle class="brand-mark-accent" cx="34" cy="17" r="3.5" />
-            </svg>
             <span><strong>Project Advisor</strong><small>Decision review</small></span>
           </a>
         </div>
         <button id="nav-toggle" class="nav-toggle" type="button" aria-expanded="false"
           aria-controls="sidebar-panel" aria-label="Open document navigation">
           <span class="nav-toggle-label">Contents</span>
-          <span class="nav-toggle-icon" aria-hidden="true"></span>
         </button>
         <div id="sidebar-panel" class="sidebar-panel">
           <nav aria-label="Document sections">{{NAVIGATION}}</nav>
@@ -47,20 +44,12 @@
             <h1 id="document-title">{{TITLE}}</h1>
             <p class="lede">{{SUMMARY}}</p>
           </div>
-          <div class="hero-map" aria-label="Document context">
-            <span class="map-label">Review map</span>
-            <div class="map-core">
-              <span>Working document</span>
-              <strong>{{STATUS}}</strong>
-              <small>Product direction, connected</small>
-            </div>
-            <dl class="metadata">{{METADATA}}</dl>
-          </div>
+          <dl class="metadata" aria-label="Document context">{{METADATA}}</dl>
         </header>
         {{BLOCKS}}
         <footer>
           <div><small>Review state</small><strong>{{STATUS}}</strong></div>
-          <a href="#summary">Back to the beginning <span aria-hidden="true">↗</span></a>
+          <a href="#summary">Back to the beginning</a>
         </footer>
       </main>
     </div>
