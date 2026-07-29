@@ -364,27 +364,110 @@ function showMermaidFailure(canvas, error) {
   console.warn("A Mermaid diagram could not be rendered.", error);
 }
 
+const DIAGRAM_HEIGHT_RATIO = 0.72;
+const DIAGRAM_MIN_HEIGHT = 260;
+const EDGE_SAMPLE_STEP = 2;
+const diagramRefits = [];
+
+function clusterBoxes(svg) {
+  return [...svg.querySelectorAll("g.cluster")]
+    .map((cluster) => {
+      const shape = cluster.querySelector("rect, polygon, path");
+      if (!shape) return null;
+      const box = shape.getBoundingClientRect();
+      if (!box.width || !box.height) return null;
+      return { box, area: box.width * box.height };
+    })
+    .filter(Boolean);
+}
+
+function boxContains(box, point) {
+  return point.x >= box.left
+    && point.x <= box.right
+    && point.y >= box.top
+    && point.y <= box.bottom;
+}
+
+// An edge that ends on a node inside a subgraph would otherwise tunnel through
+// the subgraph border and its title. Cut the drawn path at the boundary so the
+// arrowhead lands on the enclosing box instead.
+function clipEdgesAtClusterBoundaries(svg) {
+  const clusters = clusterBoxes(svg);
+  if (!clusters.length) return;
+  svg.querySelectorAll("g.edgePaths path").forEach((path) => {
+    const totalLength = path.getTotalLength();
+    const matrix = path.getScreenCTM();
+    if (!totalLength || !matrix) return;
+    const samples = [];
+    for (let length = 0; length < totalLength; length += EDGE_SAMPLE_STEP) {
+      samples.push(path.getPointAtLength(length));
+    }
+    samples.push(path.getPointAtLength(totalLength));
+    const toScreen = (point) => ({
+      x: matrix.a * point.x + matrix.c * point.y + matrix.e,
+      y: matrix.b * point.x + matrix.d * point.y + matrix.f,
+    });
+    const start = toScreen(samples[0]);
+    const end = toScreen(samples.at(-1));
+    const enclosing = clusters
+      .filter((cluster) => boxContains(cluster.box, end) && !boxContains(cluster.box, start))
+      .sort((left, right) => right.area - left.area)[0];
+    if (!enclosing) return;
+    const cutIndex = samples.findIndex((point) => boxContains(enclosing.box, toScreen(point)));
+    if (cutIndex < 1) return;
+    const kept = samples.slice(0, cutIndex + 1);
+    path.setAttribute(
+      "d",
+      kept
+        .map((point, index) => `${index ? "L" : "M"}${point.x.toFixed(2)},${point.y.toFixed(2)}`)
+        .join(" "),
+    );
+  });
+}
+
+function diagramFitScale(canvas, naturalWidth, naturalHeight) {
+  if (!naturalWidth || !naturalHeight) return 1;
+  const styles = window.getComputedStyle(canvas);
+  const availableWidth = canvas.clientWidth
+    - (parseFloat(styles.paddingLeft) || 0)
+    - (parseFloat(styles.paddingRight) || 0);
+  const availableHeight = Math.max(
+    DIAGRAM_MIN_HEIGHT,
+    window.innerHeight * DIAGRAM_HEIGHT_RATIO,
+  );
+  if (availableWidth <= 0) return 1;
+  return Math.min(1, availableWidth / naturalWidth, availableHeight / naturalHeight);
+}
+
 function initMermaidZoom(canvas) {
   const svg = canvas.querySelector("svg");
   if (!svg) return;
   const viewBox = svg.viewBox.baseVal;
-  const baseWidth = viewBox?.width || svg.getBoundingClientRect().width;
+  const bounds = svg.getBoundingClientRect();
+  const naturalWidth = viewBox?.width || bounds.width;
+  const naturalHeight = viewBox?.height || bounds.height;
   svg.style.maxWidth = "none";
   svg.style.maxHeight = "none";
+  let fitScale = diagramFitScale(canvas, naturalWidth, naturalHeight);
   let zoom = 1;
   const toolbar = document.createElement("div");
   toolbar.className = "mermaid-toolbar";
   toolbar.innerHTML = `
     <button type="button" data-zoom="out" aria-label="Zoom diagram out">−</button>
-    <span>100%</span>
+    <span>Fit</span>
     <button type="button" data-zoom="in" aria-label="Zoom diagram in">+</button>
     <button type="button" data-zoom="reset">Reset</button>
   `;
   const label = toolbar.querySelector("span");
+  function applyScale() {
+    const scale = fitScale * zoom;
+    svg.style.width = `${Math.round(naturalWidth * scale)}px`;
+    svg.style.height = `${Math.round(naturalHeight * scale)}px`;
+    if (label) label.textContent = zoom === 1 ? "Fit" : `${Math.round(zoom * 100)}%`;
+  }
   function setZoom(nextZoom) {
-    zoom = Math.min(3, Math.max(0.5, nextZoom));
-    svg.style.width = `${Math.round(baseWidth * zoom)}px`;
-    if (label) label.textContent = `${Math.round(zoom * 100)}%`;
+    zoom = Math.min(4, Math.max(0.5, Math.round(nextZoom * 100) / 100));
+    applyScale();
   }
   toolbar.addEventListener("click", (event) => {
     const action = event.target.dataset?.zoom;
@@ -393,8 +476,22 @@ function initMermaidZoom(canvas) {
     if (action === "reset") setZoom(1);
   });
   canvas.prepend(toolbar);
-  setZoom(1);
+  applyScale();
+  diagramRefits.push(() => {
+    if (zoom !== 1) return;
+    fitScale = diagramFitScale(canvas, naturalWidth, naturalHeight);
+    applyScale();
+  });
 }
+
+let refitTimer;
+window.addEventListener("resize", () => {
+  window.clearTimeout(refitTimer);
+  refitTimer = window.setTimeout(
+    () => diagramRefits.forEach((refit) => refit()),
+    150,
+  );
+});
 
 async function renderMermaidDiagrams() {
   const canvases = [...document.querySelectorAll(".mermaid-canvas")];
@@ -411,6 +508,11 @@ async function renderMermaidDiagrams() {
           primaryTextColor: "#edf2f7",
           lineColor: "#6da9cf",
           tertiaryColor: "#1d3546",
+          edgeLabelBackground: "#101a26",
+          clusterBkg: "#141f2c",
+          clusterBorder: "#3c4d61",
+          titleColor: "#c3d2e0",
+          clusterTextColor: "#c3d2e0",
         }
       : {
           primaryColor: "#f8fafc",
@@ -418,21 +520,27 @@ async function renderMermaidDiagrams() {
           primaryTextColor: "#121827",
           lineColor: "#175986",
           tertiaryColor: "#d9e7f1",
+          edgeLabelBackground: "#f3f7fa",
+          clusterBkg: "#e6edf4",
+          clusterBorder: "#a8bccd",
+          titleColor: "#374a5e",
+          clusterTextColor: "#374a5e",
         };
     mermaid.initialize({
       startOnLoad: false,
       securityLevel: "strict",
       theme: "base",
       flowchart: {
-        nodeSpacing: 90,
-        rankSpacing: 120,
+        nodeSpacing: 46,
+        rankSpacing: 48,
+        padding: 12,
         curve: "basis",
+        useMaxWidth: false,
+        subGraphTitleMargin: { top: 6, bottom: 14 },
       },
       themeVariables: {
         fontFamily: '"Avenir Next", Avenir, "Helvetica Neue", sans-serif',
         ...diagramPalette,
-        clusterBkg: "transparent",
-        clusterBorder: "transparent",
       },
     });
   } catch (error) {
@@ -449,6 +557,8 @@ async function renderMermaidDiagrams() {
         source.textContent,
       );
       canvas.innerHTML = result.svg;
+      const svg = canvas.querySelector("svg");
+      if (svg) clipEdgesAtClusterBoundaries(svg);
       initMermaidZoom(canvas);
       canvas.closest(".mermaid-diagram")?.classList.add("rendered");
       const details = source.closest("details");

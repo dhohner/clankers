@@ -173,11 +173,97 @@ class PrdBundleValidationTests(unittest.TestCase):
         self.assertIn('href="#test-assets"', document)
         self.assertNotIn(f'href="#{EVIDENCE_REFERENCE}"', document)
         self.assertIn('href="#traceability"', document)
-        self.assertIn("Traceability view", document)
+        self.assertIn("Traceability and coverage", document)
+        self.assertIn("Coverage complete", document)
+        self.assertIn("All 4 tracked entities connect", document)
         self.assertNotIn('<div class="section-heading"><span>TR</span>', document)
         self.assertIn("Evidence only:", document)
         self.assertIn("not mandatory implementation instructions", document)
         self.assertIn("scripts/bundle.py::generate_bundle", document)
+
+    def test_traceability_reports_only_entities_with_a_coverage_gap(self) -> None:
+        manifest = base_manifest()
+        manifest["blocks"] = {
+            "requirements": [
+                {
+                    "id": "REQ-COVERED",
+                    "title": "Covered requirement",
+                    "description": "Connected to a decision and a test.",
+                    "validation": ["TEST-COVERED"],
+                    "relates_to": ["DEC-CONTEXT"],
+                },
+                {
+                    "id": "REQ-DEFERRED",
+                    "title": "Deferred requirement",
+                    "description": "Validation is not designed yet.",
+                    "exception": "Validation design is pending the rollout decision.",
+                    "relates_to": ["DEC-CONTEXT"],
+                },
+            ],
+            "decisions": [
+                {
+                    "id": "DEC-CONTEXT",
+                    "decision": "Keep generation portable.",
+                    "rationale": "Bundles must open without installation.",
+                },
+                {
+                    "id": "DEC-ORPHAN",
+                    "decision": "Adopt a review lens control.",
+                    "rationale": "Reviewers filter by concern.",
+                },
+            ],
+            "testing_strategy": [
+                {
+                    "id": "TEST-COVERED",
+                    "target": "Asset links",
+                    "expected_outcome": "Every local asset exists.",
+                    "validates": ["REQ-COVERED"],
+                }
+            ],
+        }
+
+        document = BUNDLE.render_document(BUNDLE.validate_manifest(manifest))
+        section = document.split('<section id="traceability"', 1)[1]
+
+        self.assertIn("2 of 5 tracked entities", section)
+        self.assertIn('<th>Coverage gap</th>', section)
+        self.assertIn('href="#req-deferred"', section)
+        self.assertIn("Validation deferred", section)
+        self.assertIn("Validation design is pending the rollout decision.", section)
+        self.assertIn('href="#dec-orphan"', section)
+        self.assertIn("Not connected to a requirement", section)
+        self.assertNotIn('href="#req-covered"', section)
+        self.assertNotIn('href="#test-covered"', section)
+        self.assertNotIn('href="#dec-context"', section)
+        self.assertNotIn("Coverage complete", section)
+
+    def test_traceability_flags_requirements_without_decision_or_risk_context(self) -> None:
+        manifest = base_manifest()
+        manifest["blocks"] = {
+            "requirements": [
+                {
+                    "id": "REQ-BARE",
+                    "title": "Bare requirement",
+                    "description": "Validated but unexplained.",
+                    "validation": ["TEST-BARE"],
+                }
+            ],
+            "testing_strategy": [
+                {
+                    "id": "TEST-BARE",
+                    "target": "Behavior",
+                    "expected_outcome": "The behavior is observable.",
+                    "validates": ["REQ-BARE"],
+                }
+            ],
+        }
+
+        document = BUNDLE.render_document(BUNDLE.validate_manifest(manifest))
+        section = document.split('<section id="traceability"', 1)[1]
+
+        self.assertIn("1 of 2 tracked entities", section)
+        self.assertIn("No decision or risk context", section)
+        self.assertNotIn('href="#test-bare"', section)
 
     def test_traceability_rejects_entity_fields_on_wrong_block_types(self) -> None:
         manifest = base_manifest()
