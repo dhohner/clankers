@@ -57,7 +57,7 @@ def render_mermaid_diagram(name: str, value: dict[str, Any]) -> str:
         '<details class="diagram-source-details" open>'
         '<summary>Diagram source and text fallback</summary>'
         f'<pre id="{source_id}" class="diagram-source"><code>{escape_html(value["source"])}</code></pre></details>'
-        '<figcaption>Rendered from Mermaid source using the approved CDN.</figcaption>'
+        '<figcaption>Rendered from the diagram source below.</figcaption>'
         "</figure>"
     )
 

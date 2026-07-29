@@ -84,6 +84,12 @@ class PrdBundleAssetsTests(unittest.TestCase):
         self.assertNotIn("--gold:", styles)
         self.assertIn("--radius-control: 8px", styles)
         self.assertIn("--radius-surface: 16px", styles)
+        self.assertIn(
+            '--font-mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace',
+            styles,
+        )
+        self.assertIn("code {\n  padding: .12rem .38rem;", styles)
+        self.assertIn("font-family: var(--font-mono)", styles)
         self.assertIn("--section-space: clamp(72px, 7vw, 104px)", styles)
         self.assertIn("--cluster-space: clamp(28px, 3vw, 44px)", styles)
         self.assertIn("--panel-space: clamp(28px, 3vw, 42px)", styles)
@@ -118,6 +124,15 @@ class PrdBundleAssetsTests(unittest.TestCase):
         self.assertIn(".metadata {\n  display: grid;", styles)
         self.assertIn("grid-template-columns: repeat(3, minmax(0, 1fr))", styles)
         self.assertIn(".metadata div:nth-child(3n + 1)", styles)
+        self.assertIn(
+            ".metadata div:nth-child(3n + 1):not(:first-child)::before {\n"
+            "  position: absolute;\n"
+            "  top: 0;\n"
+            "  left: 0;\n"
+            "  width: 300%;",
+            styles,
+        )
+        self.assertNotIn(".metadata div:nth-child(n + 4)", styles)
         self.assertIn("pointer-events: none", styles)
 
         self.assertIn(".section-heading {\n  margin-bottom: var(--cluster-space)", styles)
@@ -176,10 +191,21 @@ class PrdBundleAssetsTests(unittest.TestCase):
         )
         self.assertIn(".requirement-list article", styles)
         self.assertIn("grid-template-columns: 106px minmax(0, 1fr)", styles)
+        self.assertIn(
+            ".status {\n  display: inline-flex;\n  align-items: center;\n  padding: 6px 10px 5px;\n  border: 1.5px solid var(--accent);",
+            styles,
+        )
+        self.assertIn(
+            ".entity-id {\n  display: inline-block;\n  margin-bottom: 9px;\n  padding: 4px 7px 3px;\n  border: 1px solid var(--line-strong);",
+            styles,
+        )
+        self.assertIn(".entity-id:hover,\n.entity-id:focus-visible {", styles)
+        self.assertIn(".entity-links a {\n  font-family: var(--font-mono);", styles)
         self.assertIn(".timeline li {", styles)
         self.assertIn("grid-template-columns: 90px minmax(0, 1fr)", styles)
         self.assertIn(".timeline::before {", styles)
         self.assertIn(".timeline-marker {", styles)
+        self.assertIn("background: var(--canvas);\n  color: var(--accent-dark);", styles)
         self.assertIn("border-radius: 999px", styles)
         self.assertIn("border-block: 1px solid var(--line-strong)", styles)
         self.assertIn("background: transparent", styles)
@@ -204,6 +230,16 @@ class PrdBundleAssetsTests(unittest.TestCase):
         )
         self.assertIn("@media (max-width: 460px)", styles)
         self.assertIn(".metadata { grid-template-columns: repeat(2", styles)
+        self.assertIn(
+            "  .metadata div:nth-child(3n + 1):not(:first-child)::before { content: none; }\n"
+            "  .metadata div:nth-child(odd):not(:first-child)::before {\n"
+            "    position: absolute;\n"
+            "    top: 0;\n"
+            "    left: 0;\n"
+            "    width: 200%;",
+            styles,
+        )
+        self.assertNotIn(".metadata div:nth-child(n + 3)", styles)
         self.assertIn("overflow-x: hidden", styles)
         self.assertIn("overflow-wrap: anywhere", styles)
         self.assertIn("@media (prefers-color-scheme: dark)", styles)
