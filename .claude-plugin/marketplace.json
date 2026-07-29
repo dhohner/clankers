@@ -10,21 +10,21 @@
   "plugins": [
     {
       "name": "project-advisor",
-      "source": "project-advisor",
+      "source": "./plugins/project-advisor",
       "description": "Project planning skills for recommending what to build next, writing PRDs, and turning approved PRDs into Jira-ready work items.",
       "category": "productivity",
       "tags": ["planning", "prd", "jira", "task"]
     },
     {
       "name": "refactor-tools",
-      "source": "refactor-tools",
+      "source": "./plugins/refactor-tools",
       "description": "Refactoring and cleanup skills for safe, behavior-preserving code improvements.",
       "category": "development",
       "tags": ["refactor", "quality"]
     },
     {
       "name": "security-guard",
-      "source": "security-guard",
+      "source": "./plugins/security-guard",
       "description": "Block terminal commands that try to print the current user environment or read common secrets, tokens, keys, credential stores, and shell history.",
       "homepage": "https://github.com/dhohner/clankers/tree/main/plugins/security-guard",
       "repository": "https://github.com/dhohner/clankers",

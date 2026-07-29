@@ -1,5 +1,6 @@
 {
   "name": "security-guard",
+  "version": "0.1.0",
   "description": "Block terminal commands that try to print the current user environment or read common secrets, tokens, keys, credential stores, and shell history.",
   "author": {
     "name": "dhohner"
