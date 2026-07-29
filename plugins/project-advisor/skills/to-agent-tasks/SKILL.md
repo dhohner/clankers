@@ -1,6 +1,6 @@
 ---
 name: to-agent-tasks
-description: Create self-contained, dependency-ordered coding-agent tasks from accepted `to-prd` `prd.yaml` bundles. Use when the user explicitly requests autonomous implementation work packages.
+description: Convert an accepted `to-prd` `prd.yaml` bundle into self-contained, dependency-ordered tracer-bullet tasks for autonomous coding agents. Use when the user asks to break an accepted PRD into coding-agent tasks, agent work packages, or implementation slices for an autonomous agent such as Codex or Pi. Jira or tracker tickets belong to `to-issues`, not this skill.
 ---
 
 # Accepted PRD to Agent Tasks

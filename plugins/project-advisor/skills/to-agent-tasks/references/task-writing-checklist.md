@@ -11,10 +11,8 @@ Check every applicable item against the complete task before saving it.
 ## Coverage and grounding
 
 - Every statement is traceable to the PRD, inspected repository evidence, or a clearly labeled assumption or blocker.
-- The task embeds all product context needed for execution with repository access alone.
-- The task is self-contained for an agent whose only external context is repository access.
+- The task is self-contained: it embeds every product decision an agent needs when its only external context is repository access.
 - Every ledger item assigned to the slice appears in scope, acceptance, validation, or an explicit blocker.
-- Requirement IDs remain only where they provide useful traceability.
 
 ## Execution autonomy
 
@@ -23,7 +21,6 @@ Check every applicable item against the complete task before saving it.
 - Dependencies name completed predecessor capabilities and explain why this outcome needs them.
 - Product semantics, edge behavior, durable contracts, and completion evidence are explicit.
 - Architecture, framework, and implementation choices remain open wherever source evidence leaves them open.
-- The task specifies one end-to-end outcome, with layer work included only as context that enables it.
 
 ## Acceptance
 
