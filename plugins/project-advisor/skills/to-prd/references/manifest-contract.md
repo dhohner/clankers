@@ -13,6 +13,15 @@ The CLI is authoritative for field shapes and supported blocks.
 - `metadata`: string labels excluding generated `Initiative`, `Review surfaces`, and `Output` labels
 - `blocks`: non-empty mapping of supported block names
 
+## Status lifecycle
+
+`status` is free-form prose and the durable record of the review gate, so downstream skills read it to decide whether a PRD may be split into issues or agent tasks.
+
+- A draft value such as `Draft for review` before review, and again whenever a revision or withdrawal reopens the decision.
+- Exactly `Accepted` once the user accepts.
+
+Any other wording reads as unaccepted.
+
 ## Language
 
 Use English in every user-visible field, including titles, summaries, statuses, metadata, block content, tables, visual descriptions, wireframes, and Mermaid labels.

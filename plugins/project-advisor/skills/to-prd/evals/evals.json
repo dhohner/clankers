@@ -106,6 +106,21 @@
         "The existing initiative type, review surfaces, requirement ID REQ-STABLE-TRACE, and test ID TEST-STABLE-TRACE remain unchanged.",
         "Unrelated blocks remain semantically unchanged and the revised bundle is regenerated and validated before review."
       ]
+    },
+    {
+      "id": 9,
+      "prompt": "Here is the PRD source in evals/fixtures/workflow-heavy.yaml. Publish the review bundle from it, then treat this message as my acceptance: I accept the PRD as it stands, no changes. Get it into the state the downstream skills need and tell me what to run next.",
+      "expected_output": "A published bundle whose manifest records the acceptance, followed by an explicit handoff offer rather than an acceptance that exists only in conversation.",
+      "files": [
+        "plugins/project-advisor/skills/to-prd/evals/fixtures/workflow-heavy.yaml"
+      ],
+      "expectations": [
+        "The run publishes the bundle from the supplied manifest before acting on the acceptance.",
+        "The top-level status is changed to Accepted in the manifest rather than left at its draft value.",
+        "The bundle is regenerated with --force so the published action-items/PRD-<slug>/prd.yaml also reads status: Accepted.",
+        "No other manifest content, stable ID, initiative type, or review surface is changed by the acceptance transition.",
+        "The run reports the accepted prd.yaml path and offers to-issues or to-agent-tasks as the next step."
+      ]
     }
   ]
 }

@@ -13,6 +13,9 @@ Ask for a source only when no usable source can be found from the prompt, conver
 
 ## Read `prd.yaml`
 
+Check the top-level `status` first: `to-prd` publishes `Accepted` there once a reviewer accepts the PRD.
+Any other value means the source can still change, so name that and confirm the user wants tickets from it before slicing.
+
 Use `blocks.requirements` as the primary source for deliverable behavior and its Gherkin as the acceptance-criteria source of truth.
 Capture constraints, non-goals, open questions, success measures, validation links, related links, and traceability whenever they affect a ticket or slice boundary.
 Treat `blocks.testing_strategy` as validation traceability; derive delivery work from requirements rather than creating separate testing slices.

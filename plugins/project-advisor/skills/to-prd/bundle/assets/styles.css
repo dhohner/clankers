@@ -499,7 +499,7 @@ h1 code {
   display: grid;
   grid-template-columns: minmax(260px, 1.3fr) repeat(3, minmax(148px, .9fr));
   width: min(100%, 1320px);
-  margin: 24px auto 0;
+  margin: -1px auto 0;
   border-block: 1px solid var(--line-strong);
   background: var(--surface);
 }
@@ -1331,7 +1331,6 @@ footer a:hover {
   }
   .review-overview {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-
   }
   .review-overview-intro {
     grid-column: span 3;

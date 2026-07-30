@@ -86,8 +86,21 @@ Open `action-items/PRD-<slug>/index.html` when possible.
 Otherwise provide its absolute path and list the visual checks left for human review.
 Use the interactive question tool to offer `Accept PRD` and `Request changes`.
 Return requested changes or answered questions to step 1 as an existing-PRD revision.
-After acceptance, offer `to-issues` using the accepted `prd.yaml`.
-Issue splitting remains behind PRD acceptance unless the user explicitly requests a combined PRD-to-issues flow.
 Stop at the review gate while acceptance is pending.
 
-**Complete when:** the user has the review bundle, unresolved questions and unperformed visual checks are visible, and the next action is explicit.
+### Publish the acceptance
+
+Acceptance is a state of the PRD, not of the conversation.
+`to-issues` and `to-agent-tasks` read the published `prd.yaml`, so an acceptance that stays in the chat blocks the handoff it was meant to unlock.
+
+The user's decision is the only thing that sets `Accepted`.
+On that decision, before offering any handoff:
+
+1. Set `status: Accepted` in the working manifest, leaving every other field untouched.
+2. Rerun the step 3 commands with `generate --force` and the original `--output-root`, so the reviewed bundle carries the accepted source.
+3. Report the published `action-items/PRD-<slug>/prd.yaml` that downstream skills should read.
+
+Then offer `to-issues` for Jira-ready tickets or `to-agent-tasks` for autonomous coding-agent work packages, both reading that manifest.
+Issue splitting and task generation stay behind acceptance unless the user explicitly requests a combined flow.
+
+**Complete when:** the user has the review bundle, unresolved questions and unperformed visual checks are visible, an accepted PRD reads `status: Accepted` in the published `prd.yaml`, and the next action is explicit.

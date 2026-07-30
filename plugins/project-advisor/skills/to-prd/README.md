@@ -27,7 +27,8 @@ Assets are copied into the bundle so it can be reviewed without installing the p
 4. Write YAML and generate the bundle.
 5. Validate and inspect the bundle.
 6. Request human acceptance.
-7. Offer issue splitting only after acceptance or when the user explicitly asks for the handoff.
+7. Publish the acceptance: set `status: Accepted` and regenerate with `--force`, since `to-issues` and `to-agent-tasks` gate on the published `prd.yaml`.
+8. Offer issue splitting or agent-task generation only after acceptance or when the user explicitly asks for the handoff.
 
 For review feedback on an existing PRD, copy `prd.yaml` to a scratch manifest outside the generated bundle, preserve stable IDs and unrelated content, regenerate with `--force`, and request review again.
 

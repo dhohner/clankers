@@ -12,9 +12,10 @@ Write tasks to `action-items/agent-tasks/` unless the user chooses another desti
 
 ### 1. Gate the source and build the coverage ledger
 
-Locate the requested `prd.yaml` and require explicit acceptance from the user or prior conversation.
+Locate the requested `prd.yaml` and establish acceptance.
+A top-level `status` of `Accepted` is the durable record the `to-prd` review gate publishes; explicit acceptance from the user or prior conversation also counts, since a PRD can be accepted outside that workflow.
 Source acceptance is independent of later breakdown approval.
-When acceptance is unestablished, ask for confirmation and stop at this gate.
+When acceptance is unestablished, ask for confirmation and stop at this gate; when the user confirms a PRD whose manifest still reads as a draft, point them at `to-prd` so the acceptance gets published.
 
 Treat `prd.yaml` as the source of truth and `index.html` as its review surface.
 Build a coverage ledger containing every requirement ID, every Gherkin scenario, and every implementation-relevant constraint, non-goal, decision, risk, open question, success measure, dependency, and validation link.
