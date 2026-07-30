@@ -41,8 +41,14 @@ class PrdBundleAssetsTests(unittest.TestCase):
         self.assertIn("showMermaidFailure(canvas, error)", script)
         self.assertIn("initMermaidZoom(canvas)", script)
         self.assertIn("diagramFitScale(canvas, naturalWidth, naturalHeight)", script)
-        self.assertIn("DIAGRAM_HEIGHT_RATIO", script)
+        # The canvas stylesheet is the only source of the diagram fit bounds.
+        self.assertNotIn("DIAGRAM_HEIGHT_RATIO", script)
+        self.assertNotIn("DIAGRAM_MIN_HEIGHT", script)
+        self.assertIn("parseFloat(styles.maxHeight)", script)
         self.assertIn('data-zoom="in"', script)
+        self.assertIn('toolbar.setAttribute("aria-label", "Diagram zoom")', script)
+        self.assertIn('aria-label="Reset diagram zoom to fit"', script)
+        self.assertIn('class="mermaid-zoom-level" role="status" aria-live="polite"', script)
         self.assertIn('window.matchMedia("(prefers-reduced-motion: reduce)")', script)
         self.assertIn(
             "sidebar ? sidebar.getBoundingClientRect().height : 0",
@@ -62,6 +68,12 @@ class PrdBundleAssetsTests(unittest.TestCase):
         self.assertIn('primaryBorderColor: "#6da9cf"', script)
         self.assertIn("...diagramPalette", script)
         self.assertIn("buildReviewOverview()", script)
+        # The label precedes its count so the plinth can hang the figures.
+        self.assertIn(
+            '<span>Known ${risks === 1 ? "risk" : "risks"}</span>\n'
+            "      <strong>${risks}</strong>",
+            script,
+        )
         self.assertIn("groupNavigation()", script)
         self.assertIn('link === summaryLink\n      ? "framing"', script)
         self.assertNotIn('summaryLink.classList.add("nav-summary-link")', script)
@@ -111,6 +123,13 @@ class PrdBundleAssetsTests(unittest.TestCase):
         self.assertNotIn(".nav-summary-link", styles)
         self.assertIn(".review-lenses button[aria-pressed=\"true\"]", styles)
         self.assertIn(".review-overview {", styles)
+        self.assertIn(
+            ".review-stat {\n"
+            "  display: flex;\n"
+            "  flex-direction: column;\n"
+            "  justify-content: space-between;",
+            styles,
+        )
         self.assertNotIn(".section-category", styles)
         self.assertNotIn("scrollbar-width: thin", styles)
         self.assertNotIn("white-space: nowrap;\n}", styles)
@@ -118,11 +137,25 @@ class PrdBundleAssetsTests(unittest.TestCase):
         self.assertIn(".hero {\n  width: min(100%, 1320px);", styles)
         self.assertIn("width: min(100%, 1320px)", styles)
         self.assertNotIn("min-height: min(780px", styles)
-        self.assertIn("font-size: clamp(3.25rem, 5.4vw, 4.9rem)", styles)
+        self.assertIn("font-size: clamp(3.25rem, 6.6vw, 6rem)", styles)
         self.assertNotIn(".hero-map", styles)
         self.assertNotIn(".map-core", styles)
+        # The masthead is a labelled band closed by its own rule, not a kicker.
+        self.assertIn(
+            ".hero-topline {\n"
+            "  display: flex;\n"
+            "  align-items: center;\n"
+            "  justify-content: space-between;",
+            styles,
+        )
+        self.assertIn("  border-bottom: 1px solid var(--line-strong);\n}", styles)
         self.assertIn(".metadata {\n  display: grid;", styles)
         self.assertIn("grid-template-columns: repeat(3, minmax(0, 1fr))", styles)
+        # Document context and review verdict share one filled plinth.
+        self.assertIn("--plinth-inset: 24px", styles)
+        self.assertIn("  border-block: 1px solid var(--line-strong);\n  background: var(--surface);\n}", styles)
+        self.assertIn("padding: 19px var(--plinth-inset)", styles)
+        self.assertIn("  margin: -1px auto 0;", styles)
         self.assertIn(".metadata div:nth-child(3n + 1)", styles)
         self.assertIn(
             ".metadata div:nth-child(3n + 1):not(:first-child)::before {\n"
@@ -201,9 +234,20 @@ class PrdBundleAssetsTests(unittest.TestCase):
         )
         self.assertIn(".entity-id:hover,\n.entity-id:focus-visible {", styles)
         self.assertIn(".entity-links a {\n  font-family: var(--font-mono);", styles)
+        # Prose bullet spacing must stay scoped so it cannot reach the timeline.
+        self.assertNotIn("\nli + li {", styles)
+        self.assertIn(".content-list li + li,\n.block-grid li + li { margin-top: 8px; }", styles)
         self.assertIn(".timeline li {", styles)
-        self.assertIn("grid-template-columns: 90px minmax(0, 1fr)", styles)
-        self.assertIn(".timeline::before {", styles)
+        self.assertIn(
+            "grid-template-columns: var(--timeline-marker-width) minmax(0, 1fr)",
+            styles,
+        )
+        # The connector runs marker to marker, so it cannot depend on how long
+        # the phase descriptions are.
+        self.assertNotIn(".timeline::before {", styles)
+        self.assertIn(".timeline li:not(:last-child)::before {", styles)
+        self.assertIn("top: calc(var(--timeline-offset) + var(--timeline-marker-height))", styles)
+        self.assertIn("left: calc(var(--timeline-marker-width) / 2)", styles)
         self.assertIn(".timeline-marker {", styles)
         self.assertIn("background: var(--canvas);\n  color: var(--accent-dark);", styles)
         self.assertIn("border-radius: 999px", styles)
@@ -220,6 +264,12 @@ class PrdBundleAssetsTests(unittest.TestCase):
         self.assertIn("position: fixed", styles)
         self.assertIn("max-height: calc(100vh - 72px)", styles)
         self.assertIn("max-height: calc(100dvh - 72px)", styles)
+        # The panel is the only scroll container in the mobile navigation.
+        self.assertNotIn("max-height: 56vh", styles)
+        self.assertIn(
+            ".sidebar nav.is-grouped .nav-group a:last-of-type { border-bottom: 0; }",
+            styles,
+        )
         self.assertIn("@media (max-width: 700px)", styles)
         self.assertIn("--panel-space: 22px 20px", styles)
         self.assertIn(".divider-grid > :nth-child(n) {", styles)

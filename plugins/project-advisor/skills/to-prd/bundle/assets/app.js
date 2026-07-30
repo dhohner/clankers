@@ -110,16 +110,16 @@ function buildReviewOverview() {
       <p>Resolve open questions, challenge material risks, then confirm validation coverage.</p>
     </div>
     <a class="review-stat review-stat--questions" href="#open_questions">
-      <strong>${openQuestions}</strong>
       <span>Open ${openQuestions === 1 ? "question" : "questions"}</span>
+      <strong>${openQuestions}</strong>
     </a>
     <a class="review-stat" href="#risks">
-      <strong>${risks}</strong>
       <span>Known ${risks === 1 ? "risk" : "risks"}</span>
+      <strong>${risks}</strong>
     </a>
     <a class="review-stat" href="#testing_strategy">
-      <strong>${validatedRequirements}/${requirementItems.length}</strong>
       <span>Requirements validated</span>
+      <strong>${validatedRequirements}/${requirementItems.length}</strong>
     </a>
   `;
   hero.after(overview);
@@ -364,8 +364,6 @@ function showMermaidFailure(canvas, error) {
   console.warn("A Mermaid diagram could not be rendered.", error);
 }
 
-const DIAGRAM_HEIGHT_RATIO = 0.72;
-const DIAGRAM_MIN_HEIGHT = 260;
 const EDGE_SAMPLE_STEP = 2;
 const diagramRefits = [];
 
@@ -425,17 +423,29 @@ function clipEdgesAtClusterBoundaries(svg) {
   });
 }
 
+// The canvas stylesheet already declares how much room a diagram may occupy.
+// Read that box back rather than keeping a second height budget here, so the
+// fitted diagram fills the frame it is given instead of undershooting it.
 function diagramFitScale(canvas, naturalWidth, naturalHeight) {
   if (!naturalWidth || !naturalHeight) return 1;
   const styles = window.getComputedStyle(canvas);
-  const availableWidth = canvas.clientWidth
-    - (parseFloat(styles.paddingLeft) || 0)
-    - (parseFloat(styles.paddingRight) || 0);
+  const horizontalPadding = (parseFloat(styles.paddingLeft) || 0)
+    + (parseFloat(styles.paddingRight) || 0);
+  // min-height and max-height are border-box measurements here, so the frame
+  // and the padding both come off the room a diagram actually gets.
+  const verticalChrome = (parseFloat(styles.paddingTop) || 0)
+    + (parseFloat(styles.paddingBottom) || 0)
+    + (parseFloat(styles.borderTopWidth) || 0)
+    + (parseFloat(styles.borderBottomWidth) || 0);
+  const reservedHeight = [...canvas.children]
+    .filter((child) => child.tagName.toLowerCase() !== "svg")
+    .reduce((total, child) => total + child.getBoundingClientRect().height, 0);
+  const availableWidth = canvas.clientWidth - horizontalPadding;
   const availableHeight = Math.max(
-    DIAGRAM_MIN_HEIGHT,
-    window.innerHeight * DIAGRAM_HEIGHT_RATIO,
+    (parseFloat(styles.minHeight) || 0) - verticalChrome,
+    (parseFloat(styles.maxHeight) || 0) - verticalChrome - reservedHeight,
   );
-  if (availableWidth <= 0) return 1;
+  if (availableWidth <= 0 || availableHeight <= 0) return 1;
   return Math.min(1, availableWidth / naturalWidth, availableHeight / naturalHeight);
 }
 
@@ -448,21 +458,25 @@ function initMermaidZoom(canvas) {
   const naturalHeight = viewBox?.height || bounds.height;
   svg.style.maxWidth = "none";
   svg.style.maxHeight = "none";
-  let fitScale = diagramFitScale(canvas, naturalWidth, naturalHeight);
+  let fitScale = 1;
   let zoom = 1;
   const toolbar = document.createElement("div");
   toolbar.className = "mermaid-toolbar";
+  toolbar.setAttribute("role", "group");
+  toolbar.setAttribute("aria-label", "Diagram zoom");
   toolbar.innerHTML = `
     <button type="button" data-zoom="out" aria-label="Zoom diagram out">−</button>
-    <span>Fit</span>
+    <span class="mermaid-zoom-level" role="status" aria-live="polite">Fit</span>
     <button type="button" data-zoom="in" aria-label="Zoom diagram in">+</button>
-    <button type="button" data-zoom="reset">Reset</button>
+    <button type="button" data-zoom="reset" aria-label="Reset diagram zoom to fit">Reset</button>
   `;
-  const label = toolbar.querySelector("span");
+  const label = toolbar.querySelector(".mermaid-zoom-level");
   function applyScale() {
     const scale = fitScale * zoom;
-    svg.style.width = `${Math.round(naturalWidth * scale)}px`;
-    svg.style.height = `${Math.round(naturalHeight * scale)}px`;
+    // Round down so a fitted diagram can never overflow the canvas by a
+    // subpixel and introduce a scrollbar at rest.
+    svg.style.width = `${Math.floor(naturalWidth * scale)}px`;
+    svg.style.height = `${Math.floor(naturalHeight * scale)}px`;
     if (label) label.textContent = zoom === 1 ? "Fit" : `${Math.round(zoom * 100)}%`;
   }
   function setZoom(nextZoom) {
@@ -476,6 +490,7 @@ function initMermaidZoom(canvas) {
     if (action === "reset") setZoom(1);
   });
   canvas.prepend(toolbar);
+  fitScale = diagramFitScale(canvas, naturalWidth, naturalHeight);
   applyScale();
   diagramRefits.push(() => {
     if (zoom !== 1) return;

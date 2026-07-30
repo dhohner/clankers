@@ -33,6 +33,7 @@
   --section-space: clamp(72px, 7vw, 104px);
   --cluster-space: clamp(28px, 3vw, 44px);
   --panel-space: clamp(28px, 3vw, 42px);
+  --plinth-inset: 24px;
   --radius-control: 8px;
   --radius-surface: 16px;
   --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
@@ -282,6 +283,12 @@ code {
   padding-block: 9px;
 }
 
+/*
+ * Each group is delimited by its own top rule, so a trailing rule under the
+ * last link only doubles the hairline wherever groups stack into a column.
+ */
+.sidebar nav.is-grouped .nav-group a:last-of-type { border-bottom: 0; }
+
 .review-lenses {
   display: flex;
   align-items: center;
@@ -364,17 +371,26 @@ main {
   padding: clamp(44px, 5vw, 68px) 0 0;
 }
 
-.hero-copy { max-width: 980px; }
+.hero-copy { max-width: none; }
 
+/*
+ * The document masthead: type on the left, review state on the right, closed by
+ * a rule that runs the full measure. It labels the document rather than
+ * introducing the title.
+ */
 .hero-topline {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   flex-wrap: wrap;
   gap: 12px;
-  margin-bottom: 24px;
+  margin-bottom: clamp(30px, 3.4vw, 46px);
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--line-strong);
 }
 
 .eyebrow {
+  color: var(--muted-strong);
   font-family: var(--font-mono);
   font-size: .68rem;
   font-weight: 600;
@@ -388,8 +404,8 @@ main {
   padding: 6px 10px 5px;
   border: 1.5px solid var(--accent);
   border-radius: 4px;
-  background: transparent;
-  color: var(--accent-dark);
+  background: var(--accent);
+  color: var(--on-accent);
   font-family: var(--font-mono);
   font-size: .66rem;
   font-weight: 700;
@@ -401,10 +417,10 @@ main {
 h1 {
   max-width: 18ch;
   margin: 0;
-  font-size: clamp(3.25rem, 5.4vw, 4.9rem);
+  font-size: clamp(3.25rem, 6.6vw, 6rem);
   font-weight: 460;
   letter-spacing: -.06em;
-  line-height: .95;
+  line-height: .92;
   text-wrap: balance;
 }
 
@@ -425,18 +441,25 @@ h1 code {
   line-height: 1.55;
 }
 
+/*
+ * Document context and review verdict are one grounded plinth under the title:
+ * the metadata ledger on top, the counts that decide where review starts along
+ * its bottom edge. They share the fill and outer rules the page gives every
+ * other structured grid.
+ */
 .metadata {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0;
-  margin: clamp(28px, 3.5vw, 44px) 0 0;
+  margin: clamp(34px, 4vw, 54px) 0 0;
   border-block: 1px solid var(--line-strong);
+  background: var(--surface);
 }
 
 .metadata div {
   position: relative;
   min-width: 0;
-  padding: 16px 18px;
+  padding: 19px var(--plinth-inset);
   border-left: 1px solid var(--line);
 }
 
@@ -458,36 +481,33 @@ h1 code {
 .metadata dt {
   color: var(--accent-dark);
   font-family: var(--font-mono);
-  font-size: .56rem;
+  font-size: .58rem;
   font-weight: 600;
   letter-spacing: .1em;
   text-transform: uppercase;
 }
 
 .metadata dd {
-  margin: 5px 0 0;
+  margin: 6px 0 0;
   color: var(--ink);
-  font-size: .78rem;
+  font-size: .86rem;
   font-weight: 700;
   line-height: 1.35;
 }
 
 .review-overview {
   display: grid;
-  grid-template-columns: minmax(260px, 1.35fr) repeat(3, minmax(132px, .65fr));
+  grid-template-columns: minmax(260px, 1.3fr) repeat(3, minmax(148px, .9fr));
   width: min(100%, 1320px);
-  margin: clamp(50px, 6vw, 82px) auto 0;
+  margin: 24px auto 0;
   border-block: 1px solid var(--line-strong);
+  background: var(--surface);
 }
 
 .review-overview-intro,
 .review-stat {
   min-width: 0;
-  padding: clamp(24px, 3vw, 38px);
-}
-
-.review-overview-intro {
-  padding-left: 0;
+  padding: clamp(26px, 3vw, 40px) var(--plinth-inset);
 }
 
 .review-overview h2 {
@@ -506,10 +526,15 @@ h1 code {
   font-size: .94rem;
 }
 
+/*
+ * Label on the plinth's top edge, count hanging from its bottom edge, so the
+ * three figures share one baseline and read as a tabulation, not three tiles.
+ */
 .review-stat {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 16px;
   border-left: 1px solid var(--line-strong);
   color: inherit;
   text-decoration: none;
@@ -522,16 +547,16 @@ h1 code {
 
 .review-stat strong {
   color: var(--accent-dark);
-  font-size: clamp(2rem, 4vw, 4rem);
-  font-weight: 460;
+  font-size: clamp(2.6rem, 5.2vw, 5.25rem);
+  font-weight: 450;
   letter-spacing: -.065em;
-  line-height: .9;
+  line-height: .8;
 }
 
 .review-stat--questions strong { color: var(--danger); }
 
 .review-stat span {
-  margin-top: 12px;
+  margin: 0;
   color: var(--muted-strong);
   font-family: var(--font-mono);
   font-size: .66rem;
@@ -761,7 +786,10 @@ h1 code {
 .split article + article { border-left: 1px solid var(--line-strong); }
 .split h3 { margin: 5px 0 8px; }
 .content-list { margin: 8px 0 0; padding-left: 20px; color: var(--muted-strong); }
-li + li { margin-top: 8px; }
+
+/* Scoped to prose bullets: an unqualified `li + li` also spaced timeline phases. */
+.content-list li + li,
+.block-grid li + li { margin-top: 8px; }
 
 .requirement-list { display: grid; gap: 0; }
 .requirement-list article {
@@ -882,10 +910,15 @@ details > :not(summary) { margin-left: 0; margin-right: 0; }
 .diagram-brief,
 .diagram-surface,
 .visual-surface { margin: 0; }
+/*
+ * This paragraph is the diagram's text equivalent, not a second section deck,
+ * so it carries more weight than the heading subtitle above it.
+ */
 .diagram-surface > .visual-description {
   margin: 0;
   padding: 0 0 14px;
-  color: var(--muted);
+  color: var(--muted-strong);
+  font-weight: 600;
 }
 
 .mermaid-canvas {
@@ -932,6 +965,17 @@ details > :not(summary) { margin-left: 0; margin-right: 0; }
 }
 .mermaid-toolbar button:hover,
 .mermaid-toolbar button:focus-visible { border-color: var(--accent); }
+
+/* A readout, not a control: reserve its widest value so the toolbar keeps still. */
+.mermaid-zoom-level {
+  min-width: 3.5rem;
+  color: var(--muted-strong);
+  font-family: var(--font-mono);
+  font-size: .7rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-align: center;
+}
 .mermaid-canvas .cluster rect {
   rx: 10;
   ry: 10;
@@ -993,7 +1037,6 @@ details > :not(summary) { margin-left: 0; margin-right: 0; }
   font: inherit;
   white-space: pre;
 }
-.diagram-surface figcaption,
 .visual-surface figcaption {
   margin-top: 8px;
   color: var(--muted);
@@ -1034,10 +1077,14 @@ details > :not(summary) { margin-left: 0; margin-right: 0; }
   text-transform: uppercase;
 }
 .visual-surface .visual-description { margin: 0; padding: 18px 20px 0; font-weight: 700; }
+/*
+ * Bounded like every other review surface: a full-bleed hairline rather than a
+ * one-sided accent stripe. The frame title already carries the accent.
+ */
 .review-frame {
   margin: 16px 0 20px;
   padding: 20px;
-  border-left: 3px solid var(--accent);
+  border-block: 1px solid var(--line-strong);
   background: var(--surface);
 }
 .review-frame-title {
@@ -1058,38 +1105,52 @@ details > :not(summary) { margin-left: 0; margin-right: 0; }
 .review-region dd { margin: 0; color: var(--muted); }
 
 .timeline {
-  position: relative;
+  --timeline-marker-width: 90px;
+  --timeline-marker-height: 38px;
+  --timeline-lead: 12px;
+  --timeline-gap: 36px;
   margin: 0;
   padding: 28px 0 20px;
   border-block: 1px solid var(--line-strong);
   background: transparent;
   list-style: none;
 }
-.timeline::before {
+.timeline li {
+  --timeline-offset: var(--timeline-lead);
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--timeline-marker-width) minmax(0, 1fr);
+  gap: clamp(20px, 3vw, 32px);
+  padding: var(--timeline-lead) 0 34px;
+}
+.timeline li + li {
+  --timeline-offset: var(--timeline-gap);
+  padding-top: var(--timeline-gap);
+}
+.timeline li:last-child { padding-bottom: 10px; }
+
+/*
+ * The connector is drawn once per phase, from this marker's bottom edge to the
+ * next marker's top edge, so it always terminates at the final marker however
+ * long the phase descriptions run.
+ */
+.timeline li:not(:last-child)::before {
   position: absolute;
-  top: 50px;
-  bottom: 46px;
-  left: 45px;
+  top: calc(var(--timeline-offset) + var(--timeline-marker-height));
+  bottom: calc(var(--timeline-gap) * -1);
+  left: calc(var(--timeline-marker-width) / 2);
   width: 1px;
   background: var(--line-strong);
   content: "";
+  transform: translateX(-50%);
 }
-.timeline li {
-  position: relative;
-  display: grid;
-  grid-template-columns: 90px minmax(0, 1fr);
-  gap: clamp(20px, 3vw, 32px);
-  padding: 12px 0 34px;
-}
-.timeline li + li { padding-top: 28px; }
-.timeline li:last-child { padding-bottom: 10px; }
 .timeline-marker {
   position: relative;
   z-index: 1;
   display: grid;
   place-items: center;
-  width: 90px;
-  height: 38px;
+  width: var(--timeline-marker-width);
+  height: var(--timeline-marker-height);
   border: 1px solid var(--accent);
   border-radius: 4px;
   background: var(--canvas);
@@ -1239,10 +1300,12 @@ footer a:hover {
     max-height: calc(100dvh - 72px);
     padding: 20px 24px 24px;
   }
+  /*
+   * The panel is the only scroll container. A nested scroller here cut the
+   * contents list mid-panel, which read as the end of the document.
+   */
   .sidebar nav {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    max-height: 56vh;
-    overflow-y: auto;
   }
   .nav-groups {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1268,10 +1331,10 @@ footer a:hover {
   }
   .review-overview {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+
   }
   .review-overview-intro {
     grid-column: span 3;
-    padding-right: 0;
     border-bottom: 1px solid var(--line-strong);
   }
   .review-stat:first-of-type { border-left: 0; }
@@ -1322,6 +1385,7 @@ footer a:hover {
     --section-space: 64px;
     --cluster-space: 26px;
     --panel-space: 22px 20px;
+    --plinth-inset: 18px;
   }
   main { padding-inline: 16px; }
   .brand small { display: none; }
@@ -1337,31 +1401,29 @@ footer a:hover {
     line-height: .96;
   }
   .lede { margin-top: 22px; font-size: 1.05rem; }
-  .metadata div { padding: 12px; }
-  .metadata dd { font-size: .7rem; }
+  .metadata div { padding: 14px var(--plinth-inset); }
+  .metadata dd { font-size: .78rem; }
   .section { margin-top: var(--section-space); }
   .section-heading { margin-bottom: var(--cluster-space); }
   .section-heading h2 { font-size: clamp(2.2rem, 10.5vw, 3.55rem); }
-  .review-overview {
-    grid-template-columns: 1fr;
-    margin-top: 54px;
-  }
+  .review-overview { grid-template-columns: 1fr; }
   .review-overview-intro,
   .review-stat {
-    padding: 22px 0;
+    padding: 22px var(--plinth-inset);
   }
   .review-overview-intro {
     grid-column: auto;
   }
   .review-stat {
     display: grid;
-    grid-template-columns: minmax(76px, .34fr) 1fr;
+    grid-template-columns: minmax(96px, .34fr) 1fr;
     align-items: center;
+    gap: 16px;
     border-top: 1px solid var(--line-strong);
     border-left: 0;
   }
-  .review-stat strong { font-size: 2.6rem; }
-  .review-stat span { margin-top: 0; }
+  .review-stat strong { grid-area: 1 / 1; font-size: 3rem; }
+  .review-stat span { grid-area: 1 / 2; }
   .split,
   .visual-grid { grid-template-columns: 1fr; }
   .divider-grid,
@@ -1412,16 +1474,15 @@ footer a:hover {
   .requirement-list article,
   .review-region { grid-template-columns: 1fr; gap: 6px; }
   .timeline {
+    --timeline-marker-width: 84px;
+    --timeline-lead: 8px;
+    --timeline-gap: 32px;
     padding: 22px 0 12px;
   }
-  .timeline::before { left: 42px; top: 44px; bottom: 36px; }
   .timeline li {
-    grid-template-columns: 84px minmax(0, 1fr);
     gap: 14px;
-    padding: 8px 0 28px;
+    padding: var(--timeline-lead) 0 28px;
   }
-  .timeline-marker { width: 84px; }
-  .timeline li + li { padding-top: 24px; }
   .timeline li:last-child { padding-bottom: 8px; }
   .table-wrap {
     border: 0;
@@ -1568,6 +1629,8 @@ footer a:hover {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 12px;
+    border-block: 0;
+    background: none;
   }
   .metadata div { max-width: none; padding: 0; border: 0; box-shadow: none; }
   .metadata div::before { content: none; }
@@ -1575,6 +1638,7 @@ footer a:hover {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     margin-top: 24px;
+    background: none;
   }
   .review-overview-intro,
   .review-stat {
@@ -1584,6 +1648,7 @@ footer a:hover {
   }
   .review-stat strong,
   .review-stat span { display: block; }
+  .review-stat strong { margin-top: 6px; line-height: 1; }
   .review-overview-intro { grid-column: auto; border-bottom: 0; }
   .section { break-inside: auto; margin-top: 28px; padding: 0; }
   table.responsive-table { display: table; min-width: 0; }
