@@ -11,14 +11,16 @@ Check every applicable item against the complete task before saving it.
 ## Coverage and grounding
 
 - Every statement is traceable to the PRD, inspected repository evidence, or a clearly labeled assumption or blocker.
-- The task is self-contained: it embeds every product decision an agent needs when its only external context is repository access.
+- The task survives an airgapped executor: it embeds every product decision an agent needs when its only external context is repository access, and never points at the PRD, sibling task files, or task numbers.
 - Every ledger item assigned to the slice appears in scope, acceptance, validation, or an explicit blocker.
 
 ## Execution autonomy
 
 - Repository paths, symbols, contracts, conventions, and commands come from inspection.
+- Claims about repository wiring or behavior are verified in the code; a plausible convention that inspection does not confirm is stated as absent or as an assumption, not as fact.
 - Repository context includes only decision-relevant facts and clearly labels non-binding implementation options.
 - Dependencies name completed predecessor capabilities and explain why this outcome needs them.
+- Prerequisite capabilities are described by their guaranteed contract; an implementation choice left non-binding in any task stays non-binding in every task that mentions it.
 - Product semantics, edge behavior, durable contracts, and completion evidence are explicit.
 - Architecture, framework, and implementation choices remain open wherever source evidence leaves them open.
 
@@ -26,6 +28,7 @@ Check every applicable item against the complete task before saving it.
 
 - Every source scenario assigned to the slice is preserved semantically in at least one acceptance scenario.
 - Scenarios state relevant starting state, action, and observable result in behavioral, technology-neutral language.
+- Scenario starting state agrees with inspected repository fixture data, or the scenario explicitly establishes the state it assumes.
 - Scenarios cover material success, exact boundaries, failure behavior, permissions, and recovery applicable to the outcome.
 - Added scenarios are direct implications of source-backed behavior.
 

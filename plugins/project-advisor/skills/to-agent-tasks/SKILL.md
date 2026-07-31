@@ -1,19 +1,19 @@
 ---
 name: to-agent-tasks
-description: Convert an accepted `to-prd` `prd.yaml` bundle into self-contained, dependency-ordered tracer-bullet tasks for autonomous coding agents. Use when the user asks to break an accepted PRD into coding-agent tasks, agent work packages, or implementation slices for an autonomous agent such as Codex or Pi. Jira or tracker tickets belong to `to-issues`, not this skill.
+description: Convert an accepted `to-prd` `prd.yaml` bundle into self-contained, dependency-ordered tracer-bullet tasks for autonomous coding agents. Use when the user asks to break an accepted PRD into coding-agent tasks for an autonomous agent such as Codex or Pi. For Jira or tracker tickets, use `to-issues`.
 ---
 
 # Accepted PRD to Agent Tasks
 
-Convert one explicitly accepted `prd.yaml` into a small set of tracer-bullet Markdown tasks that coding agents can execute with repository access alone.
+Convert one explicitly accepted `prd.yaml` into a small set of tracer-bullet Markdown tasks for an airgapped executor: a coding agent with repository access and this one task file, nothing else.
 Write tasks to `action-items/agent-tasks/` unless the user chooses another destination.
+Ask only for decisions that materially change scope, ordering, contracts, or acceptance.
 
 ## Process
 
 ### 1. Gate the source and build the coverage ledger
 
-Locate the requested `prd.yaml` and establish acceptance.
-A top-level `status` of `Accepted` is the durable record the `to-prd` review gate publishes; explicit acceptance from the user or prior conversation also counts, since a PRD can be accepted outside that workflow.
+Locate the requested `prd.yaml` and establish acceptance: a top-level `status` of `Accepted`, or explicit acceptance from the user or prior conversation.
 Source acceptance is independent of later breakdown approval.
 When acceptance is unestablished, ask for confirmation and stop at this gate; when the user confirms a PRD whose manifest still reads as a draft, point them at `to-prd` so the acceptance gets published.
 
@@ -59,8 +59,7 @@ Otherwise present each proposed task's title, observable outcome, covered requir
 
 Read [references/agent-task-template.md](references/agent-task-template.md) and [references/task-writing-checklist.md](references/task-writing-checklist.md).
 Inspect the destination, preserve existing files, and choose non-colliding dependency-ordered names such as `01-short-task-title.md`.
-Write one file per approved slice with all needed product context, repository findings, prerequisite capability contracts, and completion evidence.
-Describe prerequisite capabilities inside dependent tasks so execution never relies on sibling task files or task numbers.
+Write one file per approved slice for an airgapped executor: embed all needed product context, repository findings, prerequisite capability contracts, and completion evidence, and describe prerequisite capabilities inside each dependent task.
 Fix observable behavior, durable contracts, boundaries, and completion evidence while leaving ordinary implementation choices to the executing agent.
 Audit every draft against the coverage ledger and every applicable quality-gate item before saving it.
 
@@ -71,5 +70,3 @@ Audit every draft against the coverage ledger and every applicable quality-gate 
 Report the created files in execution order, source-backed assumptions, and unresolved blockers.
 
 **Complete when:** every created file and every unresolved blocker is accounted for.
-
-Ask only for decisions that materially change scope, ordering, contracts, or acceptance.

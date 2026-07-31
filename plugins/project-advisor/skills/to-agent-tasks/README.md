@@ -49,14 +49,6 @@ They leave ordinary implementation choices to the executing agent while making p
 Unless direct file creation is authorized, the skill first presents the proposed breakdown for approval.
 The proposal includes each task's title, outcome, requirement IDs, predecessors, and material blockers.
 
-## Contract Precision
-
-For tasks involving durable records, state transitions, metering, audit history, inventory, retries, or authorization boundaries, the skill defines the applicable contract precisely.
-This includes controlled vocabularies, fields and relationships, optionality, units, authoritative time, lookup paths, threshold behavior, retry guarantees, server-enforced invariants, atomicity, rollback, and authorization scope.
-
-These details are grounded in the PRD or repository evidence.
-Unknown decisions that materially affect behavior are surfaced as blockers rather than silently invented.
-
 ## Bundled References
 
 - `references/slice-design-checklist.md` defines tracer-bullet slices, sequencing, and when to combine or split work.

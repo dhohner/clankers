@@ -6,15 +6,17 @@
       "prompt": "The PRD bundle at inputs/prd.yaml went through review and I accept it. Break it into coding-agent tasks for the repository at outputs/repo. I approve your breakdown in advance - write the task files directly to action-items/agent-tasks/ inside that repository without presenting the breakdown first.",
       "expected_output": "Dependency-ordered, self-contained Markdown task files under action-items/agent-tasks/ that cover all five PRD requirements, ground repository context in real fixture paths, and define authorization and audit contracts.",
       "files": [
-        "evals/inputs/prd-order-history.yaml (copy of to-issues fixture, status Accepted)",
-        "fixture repo: minimal Express customer portal (see to-agent-tasks-workspace/fixtures/customer-portal)"
+        "evals/inputs/prd-order-history.yaml (copy of the to-issues fixture, status Accepted)",
+        "fixture repo: minimal Express customer portal at ../to-agent-tasks-workspace/fixtures/customer-portal (git repo; auth middleware, in-memory data layer, jest + supertest)"
       ],
       "assertions": [
         "Task files exist under action-items/agent-tasks/ with dependency-ordered numeric prefixes such as 01-.",
         "Every requirement REQ-01 through REQ-05 is covered by at least one task's scope or acceptance criteria.",
         "Each task file contains the template's required sections: Outcome, Scope with Required behavior, Repository context, Acceptance criteria with Gherkin scenarios, Validation, Execution and handoff.",
         "Tasks are self-contained: no task instructs the executor to read prd.yaml, the PRD bundle, or sibling task files; prerequisite capabilities are described inline.",
-        "Repository context cites only paths that exist in the fixture repo; no invented files or symbols are presented as inspected fact.",
+        "Repository context cites only paths and symbols that exist in the fixture repo; nothing invented is presented as inspected fact.",
+        "No repository behavior, wiring, or convention is misstated as inspected fact (e.g. claiming a layout mechanism is wired when it is not).",
+        "Gherkin Given clauses are consistent with the fixture data they reference, or the scenario explicitly sets up the state it assumes.",
         "REQ-05 produces explicit authorization and audit contract clauses (authenticated actor, ownership scope, audit record content) or named blockers rather than silence.",
         "REQ-04's invoice-fetch failure behavior (retryable error without losing page state) appears in some task's acceptance criteria.",
         "Validation sections name commands that exist in the fixture repo (npm test / jest) and stay local."
@@ -25,7 +27,7 @@
       "prompt": "Create coding-agent tasks from inputs/prd.yaml for the repository at outputs/repo.",
       "expected_output": "The skill stops at the acceptance gate because the PRD status is 'In Review' and no acceptance was given in conversation; it asks for confirmation and writes no files.",
       "files": [
-        "evals/inputs/prd-order-history.yaml with status changed to 'In Review'"
+        "evals/inputs/prd-order-history-in-review.yaml (same PRD with status 'In Review')"
       ],
       "assertions": [
         "No files are created or modified in the target repository; in particular no action-items/ directory appears.",
