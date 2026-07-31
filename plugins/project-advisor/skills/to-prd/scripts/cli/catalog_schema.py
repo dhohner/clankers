@@ -5,8 +5,6 @@ from __future__ import annotations
 import argparse
 from typing import Any
 
-from .catalog_blocks import example_block
-from .support import CliFailure, next_command
 from ..spec import (
     BLOCK_SPECS,
     ENTITY_OPTIONAL_FIELDS_BY_BLOCK,
@@ -14,6 +12,8 @@ from ..spec import (
     REQUIRED_SURFACES_BY_INITIATIVE,
     REVIEW_SURFACES,
 )
+from .catalog_blocks import example_block
+from .support import CliFailure, next_command
 
 
 def command_schema(args: argparse.Namespace) -> dict[str, Any]:

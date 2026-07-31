@@ -5,10 +5,10 @@ from __future__ import annotations
 import argparse
 from typing import Any
 
-from .catalog_blocks import template_block
-from .support import CliFailure, next_command
 from ..spec import BLOCK_SPECS
 from ..validation import ManifestError, validate_manifest
+from .catalog_blocks import template_block
+from .support import CliFailure, next_command
 
 
 def command_template(args: argparse.Namespace) -> dict[str, Any]:

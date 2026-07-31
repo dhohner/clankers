@@ -174,7 +174,7 @@ class PrdBundleValidationTests(unittest.TestCase):
         self.assertNotIn(f'href="#{EVIDENCE_REFERENCE}"', document)
         self.assertIn('href="#traceability"', document)
         self.assertIn("Traceability and coverage", document)
-        self.assertIn("Coverage complete", document)
+        self.assertIn("Board clear", document)
         self.assertIn("All 4 tracked entities connect", document)
         self.assertNotIn('<div class="section-heading"><span>TR</span>', document)
         self.assertIn("Evidence only:", document)

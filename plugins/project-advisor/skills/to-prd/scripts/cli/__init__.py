@@ -7,9 +7,9 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from ..yaml_manifest import dumps
 from .commands import COMMANDS
 from .support import CliFailure
-from ..yaml_manifest import dumps
 
 
 def _build_parser() -> argparse.ArgumentParser:

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from .manifest_types import NormalizedBlocks, NormalizedManifest
 from .spec import (
     BLOCK_SPECS,
     ENTITY_ID_PATTERN,
@@ -17,7 +18,6 @@ from .spec import (
     entity_label,
     normalize_entity_id,
 )
-from .manifest_types import NormalizedBlocks, NormalizedManifest
 
 
 def _readable_mermaid_source(source: str) -> str:

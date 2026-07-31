@@ -8,9 +8,10 @@ package or run the bundled CLI from the skill root.
 from __future__ import annotations
 
 from .bundle import generate_bundle
+from .manifest_types import NormalizedBlocks, NormalizedManifest
 from .output_validation import BundleValidationError, validate_generated_bundle
 from .paths import ASSET_DIR, SCRIPT_DIR, SOURCE_DIR, TEMPLATE_PATH
-from .render import render_document
+from .render import category_label, category_level, render_document
 from .spec import (
     BLOCK_SPECS,
     ENTITY_ID_PATTERN,
@@ -23,9 +24,10 @@ from .spec import (
     TEMPLATE_MARKER_PATTERN,
     BlockSpec,
 )
-from .manifest_types import NormalizedBlocks, NormalizedManifest
 from .validation import ManifestError, validate_manifest
-from .yaml_manifest import _yaml_object, dumps as dump_yaml, loads as load_yaml
+from .yaml_manifest import _yaml_object
+from .yaml_manifest import dumps as dump_yaml
+from .yaml_manifest import loads as load_yaml
 
 
 def parse_args(argv: list[str] | None = None):
@@ -47,9 +49,6 @@ __all__ = [
     "GENERATED_METADATA_LABELS",
     "INITIATIVE_TYPES",
     "MANIFEST_FIELDS",
-    "ManifestError",
-    "NormalizedBlocks",
-    "NormalizedManifest",
     "REQUIRED_SURFACES_BY_INITIATIVE",
     "REVIEW_SURFACES",
     "SCRIPT_DIR",
@@ -58,14 +57,19 @@ __all__ = [
     "TEMPLATE_MARKER_PATTERN",
     "TEMPLATE_PATH",
     "BlockSpec",
-    "_yaml_object",
-    "dump_yaml",
-    "load_yaml",
-    "generate_bundle",
     "BundleValidationError",
-    "validate_generated_bundle",
+    "ManifestError",
+    "NormalizedBlocks",
+    "NormalizedManifest",
+    "_yaml_object",
+    "category_label",
+    "category_level",
+    "dump_yaml",
+    "generate_bundle",
+    "load_yaml",
     "main",
     "parse_args",
     "render_document",
+    "validate_generated_bundle",
     "validate_manifest",
 ]

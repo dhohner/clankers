@@ -5,9 +5,9 @@ import unittest
 from pathlib import Path
 
 from support import (
-    AnchorParser,
     EXAMPLE,
     SOURCE_ASSETS,
+    AnchorParser,
     dump_yaml,
     load_example_manifest,
     load_yaml,
@@ -53,42 +53,33 @@ class PrdBundleCliTests(unittest.TestCase):
             self.assertIn('href="./assets/styles.css?v=', document)
             self.assertIn('src="./assets/app.js?v=', document)
             self.assertNotIn("<svg", document)
-            self.assertIn("<strong>Project Advisor</strong>", document)
-            self.assertIn('aria-label="PRD navigation"', document)
+            self.assertIn('<span class="brand-name">Project Advisor</span>', document)
+            self.assertNotIn("brand-mark", document)
+            self.assertIn('aria-label="Cue sheet"', document)
             self.assertIn('id="nav-toggle"', document)
             self.assertIn('id="collapse-all"', document)
-            self.assertIn('class="hero-topline"', document)
+            self.assertNotIn('class="eyebrow"', document)
+            self.assertIn('<h1 id="document-title">', document)
+            self.assertIn('class="houselights"', document)
             self.assertIn('id="req-01"', document)
             self.assertIn('href="#req-01"', document)
             self.assertIn('id="dec-01"', document)
             self.assertIn('id="risk-01"', document)
-            self.assertIn(
-                'class="risk-list divider-grid divider-grid--3"',
-                document,
-            )
-            self.assertNotIn('<div class="section-heading"><span>', document)
+            self.assertNotIn('plate-grid--3', document)
             self.assertIn('id="question-01"', document)
             self.assertIn('id="test-01"', document)
-            self.assertIn(
-                'class="metric-grid divider-grid divider-grid--3"',
-                document,
-            )
+            self.assertIn('class="readout-grid"', document)
             self.assertIn('class="requirement-list"', document)
-            self.assertIn('class="timeline"', document)
-            self.assertIn('class="timeline-marker"', document)
-            self.assertIn('class="timeline-content"', document)
-            self.assertIn('>Phase 01</span>', document)
-            self.assertNotIn('<span>01</span>', document)
-            self.assertIn(
-                'class="decision-grid divider-grid divider-grid--2"',
-                document,
-            )
-            self.assertIn(
-                'class="question-list divider-grid divider-grid--2"',
-                document,
-            )
+            self.assertIn('class="sequence"', document)
+            self.assertIn('class="sequence-index" aria-hidden="true">01</span>', document)
+            self.assertIn('class="sequence-content"', document)
+            self.assertIn('class="plate-grid plate-grid--2"', document)
+            self.assertIn('class="cue-number">01</span>', document)
+            self.assertIn('data-level="0"', document)
+            self.assertIn('data-level="50"', document)
             self.assertNotIn('class="prototype prototype-surface"', document)
             self.assertNotIn('class="document-header"', document)
+            self.assertNotIn('id="print-document"', document)
             self.assertEqual(preserved_manifest["slug"], "example-review-bundle")
             self.assertEqual(preserved_manifest["schema_version"], 1)
 

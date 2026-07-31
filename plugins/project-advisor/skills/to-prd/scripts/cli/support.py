@@ -208,9 +208,9 @@ def _count_german_candidates(value: Any) -> int:
 
 
 __all__ = [
-    "CliFailure",
     "ENTRYPOINT",
     "SKILL_DIR",
+    "CliFailure",
     "display_path",
     "load_manifest",
     "next_command",

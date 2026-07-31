@@ -6,50 +6,53 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self'; style-src-elem 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'" />
     <meta name="referrer" content="no-referrer" />
     <meta name="description" content="{{SUMMARY}}" />
-    <meta name="theme-color" content="#e8edf4" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#101722" media="(prefers-color-scheme: dark)" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#050506" />
     <title>PRD · {{TITLE}}</title>
     <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./assets/styles.css?v={{ASSET_VERSION}}" />
     <script src="./assets/app.js?v={{ASSET_VERSION}}" defer></script>
   </head>
   <body>
-    <a class="skip-link" href="#content">Skip to content</a>
-    <div class="app-shell">
-      <aside class="sidebar" aria-label="PRD navigation">
-        <div class="sidebar-header">
-          <a class="brand" href="#summary" aria-label="Project Advisor PRD home">
-            <span><strong>Project Advisor</strong><small>Decision review</small></span>
-          </a>
-        </div>
+    <a class="skip-link" href="#content">Skip to the document</a>
+    <div class="cyclorama" aria-hidden="true">
+      <span class="cyc-wash"></span>
+    </div>
+    <header class="plot-bar">
+      <a class="brand" href="#summary">
+        <span class="brand-name">Project Advisor</span>
+        <span class="brand-role">Decision review</span>
+      </a>
+      <p class="doc-status" data-state="{{STATUS_STATE}}">
+        <span class="lamp" aria-hidden="true"></span>
+        <span class="sr-only">Document status:</span>
+        <span class="doc-status-word">{{STATUS}}</span>
+      </p>
+    </header>
+    <div class="stage">
+      <aside class="cue-sheet" aria-label="Cue sheet">
         <button id="nav-toggle" class="nav-toggle" type="button" aria-expanded="false"
-          aria-controls="sidebar-panel" aria-label="Open document navigation">
-          <span class="nav-toggle-label">Contents</span>
+          aria-controls="sidebar-panel">
+          <span class="nav-toggle-label">Cue sheet</span>
+          <span class="nav-toggle-count">{{CUE_COUNT}}</span>
         </button>
-        <div id="sidebar-panel" class="sidebar-panel">
-          <nav aria-label="Document sections">{{NAVIGATION}}</nav>
-          <div class="sidebar-actions" role="group" aria-label="Review controls">
+        <div id="sidebar-panel" class="cue-sheet-panel">
+          <nav aria-label="Document cues">{{NAVIGATION}}</nav>
+          <div class="cue-actions" role="group" aria-label="Review controls">
             {{DETAILS_CONTROL}}
-            <button id="print-document" type="button">Print / Save PDF</button>
           </div>
         </div>
       </aside>
       <main id="content" tabindex="-1">
-        <header id="summary" class="hero" aria-labelledby="document-title">
-          <div class="hero-copy">
-            <div class="hero-topline">
-              <span class="eyebrow">Product requirements document</span>
-              <span class="status" role="status" aria-label="Document status: {{STATUS}}">{{STATUS}}</span>
-            </div>
-            <h1 id="document-title">{{TITLE}}</h1>
-            <p class="lede">{{SUMMARY}}</p>
-          </div>
-          <dl class="metadata" aria-label="Document context">{{METADATA}}</dl>
+        <header id="summary" class="horizon" aria-labelledby="document-title">
+          <h1 id="document-title">{{TITLE}}</h1>
+          <p class="lede">{{SUMMARY}}</p>
+          {{BOARD}}
+          <dl class="plot-sheet" aria-label="Document context">{{METADATA}}</dl>
         </header>
         {{BLOCKS}}
-        <footer>
-          <div><small>Review state</small><strong>{{STATUS}}</strong></div>
-          <a href="#summary">Back to the beginning</a>
+        <footer class="houselights">
+          <a class="houselights-link" href="#summary">Back to the top of the sheet</a>
         </footer>
       </main>
     </div>

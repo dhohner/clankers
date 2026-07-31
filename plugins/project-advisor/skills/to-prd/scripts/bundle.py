@@ -6,10 +6,10 @@ import shutil
 import tempfile
 from pathlib import Path
 
+from .manifest_types import NormalizedManifest
 from .output_validation import validate_generated_bundle
 from .paths import ASSET_DIR
 from .render import render_document
-from .manifest_types import NormalizedManifest
 from .yaml_manifest import dumps
 
 

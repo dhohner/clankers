@@ -5,7 +5,6 @@ import sys
 from html.parser import HTMLParser
 from pathlib import Path
 
-
 SKILL_DIR = Path(__file__).resolve().parents[1]
 SCRIPT_DIR = SKILL_DIR / "scripts"
 EXAMPLE = SKILL_DIR / "examples" / "basic-prd.yaml"
@@ -17,7 +16,7 @@ EVIDENCE_REFERENCE = (
 if str(SKILL_DIR) not in sys.path:
     sys.path.insert(0, str(SKILL_DIR))
 
-import scripts as BUNDLE  # noqa: E402
+import scripts as BUNDLE
 
 
 def run_cli(*args: str) -> subprocess.CompletedProcess[str]:

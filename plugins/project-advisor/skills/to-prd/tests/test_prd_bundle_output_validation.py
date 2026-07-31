@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from support import dump_yaml, BUNDLE
+from support import BUNDLE, dump_yaml
 
 
 class PrdBundleOutputValidationTests(unittest.TestCase):

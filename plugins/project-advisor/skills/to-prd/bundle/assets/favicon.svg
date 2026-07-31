@@ -1,5 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="6" fill="#121827"/>
-  <path d="M9 23V9h7.4c4.3 0 6.6 2.2 6.6 5.7s-2.3 5.8-6.6 5.8h-3.2V23H9Zm4.2-6h2.9c1.8 0 2.7-.8 2.7-2.3 0-1.4-.9-2.2-2.7-2.2h-2.9V17Z" fill="#f4f7fa"/>
-  <path d="M9 9h4.2v14H9z" fill="#6da9cf"/>
+  <defs>
+    <radialGradient id="dawn" cx="50%" cy="100%" r="78%">
+      <stop offset="0%" stop-color="#ffd7e6"/>
+      <stop offset="28%" stop-color="#ff5c93"/>
+      <stop offset="58%" stop-color="#b45cff"/>
+      <stop offset="86%" stop-color="#2f4bff" stop-opacity=".5"/>
+      <stop offset="100%" stop-color="#2f4bff" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="frame">
+      <rect width="32" height="32" rx="7"/>
+    </clipPath>
+  </defs>
+  <rect width="32" height="32" rx="7" fill="#05060a"/>
+  <g clip-path="url(#frame)">
+    <rect y="1" width="32" height="22" fill="url(#dawn)"/>
+    <rect y="22.3" width="32" height="1.1" fill="#ffffff"/>
+    <rect y="23.4" width="32" height="8.6" fill="#010207"/>
+  </g>
+  <rect x=".5" y=".5" width="31" height="31" rx="6.5" fill="none" stroke="#ffffff" stroke-opacity=".18"/>
 </svg>

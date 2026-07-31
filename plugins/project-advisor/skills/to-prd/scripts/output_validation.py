@@ -7,8 +7,8 @@ from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
-from .spec import BLOCK_SPECS
 from .manifest_types import NormalizedManifest
+from .spec import BLOCK_SPECS
 from .validation import ManifestError, validate_manifest
 from .yaml_manifest import YamlError, loads
 

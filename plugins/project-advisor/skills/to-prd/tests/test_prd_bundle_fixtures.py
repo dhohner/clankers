@@ -4,8 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from support import load_yaml, SKILL_DIR, run_generator
-
+from support import SKILL_DIR, load_yaml, run_generator
 
 FIXTURE_DIR = SKILL_DIR / "evals" / "fixtures"
 

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-
 SCRIPT_DIR = Path(__file__).resolve().parent
 SOURCE_DIR = SCRIPT_DIR.parent / "bundle"
 TEMPLATE_PATH = SOURCE_DIR / "index.template.html"

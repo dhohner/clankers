@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import argparse
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from .bundle_commands import command_generate, command_inspect, command_status
 from .catalog_examples import command_examples

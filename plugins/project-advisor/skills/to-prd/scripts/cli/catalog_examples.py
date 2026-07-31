@@ -6,8 +6,8 @@ import argparse
 from pathlib import Path
 from typing import Any
 
-from .support import CliFailure, SKILL_DIR, display_path, next_command
 from ..yaml_manifest import YamlError, loads
+from .support import SKILL_DIR, CliFailure, display_path, next_command
 
 
 def command_examples(args: argparse.Namespace) -> dict[str, Any]:

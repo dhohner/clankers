@@ -37,12 +37,12 @@ def render_frames(name: str, items: list[dict[str, Any]], spec: BlockSpec) -> st
         )
         description_id = f"{name}-visual-{index}-description"
         frames.append(
-            f'<figure class="visual-surface screen-surface" aria-labelledby="{description_id}">'
+            f'<figure class="visual-surface" aria-labelledby="{description_id}">'
             f"{render_visual_heading(visual_kind, item[secondary], description_id)}"
             '<div class="review-frame">'
             f'<h3 class="review-frame-title">{escape_html(item[primary])}</h3>'
             f'<dl class="review-regions">{rendered_regions}</dl></div>'
-            f"<figcaption>{escape_html(item[primary])}</figcaption></figure>"
+            "</figure>"
         )
     return '<div class="visual-grid">' + "".join(frames) + "</div>"
 
@@ -52,11 +52,14 @@ def render_mermaid_diagram(name: str, value: dict[str, Any]) -> str:
     source_id = f"{name}-mermaid-source"
     return (
         f'<figure class="diagram-surface mermaid-diagram" aria-labelledby="{description_id}">'
-        f'<p id="{description_id}" class="visual-description">{escape_html(value["description"])}</p>'
-        f'<div class="mermaid-canvas" data-mermaid-source="{source_id}" aria-hidden="true"><p class="visual-loading">Rendering diagram…</p></div>'
-        '<details class="diagram-source-details" open>'
-        '<summary>Diagram source and text fallback</summary>'
-        f'<pre id="{source_id}" class="diagram-source"><code>{escape_html(value["source"])}</code></pre></details>'
+        f'<p id="{description_id}" class="visual-description">'
+        f'{escape_html(value["description"])}</p>'
+        f'<div class="mermaid-canvas" data-mermaid-source="{source_id}" aria-hidden="true">'
+        '<p class="visual-loading">Bringing up diagram</p></div>'
+        '<details class="diagram-source-details">'
+        "<summary>Diagram source and text fallback</summary>"
+        f'<pre id="{source_id}" class="diagram-source"><code>'
+        f'{escape_html(value["source"])}</code></pre></details>'
         "</figure>"
     )
 

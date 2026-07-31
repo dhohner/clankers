@@ -20,4 +20,4 @@
 - Mermaid source is readable and shows decision, failure, fallback, or boundary paths when they affect acceptance.
 - User-visible prose is English; German is limited to exact repository-backed terminology, with evidence where its field supports it.
 
-**Complete when:** every deterministic check passes, and responsive layout, print polish, and rendered accessibility have been previewed or assigned to human review.
+**Complete when:** every deterministic check passes, and responsive layout and rendered accessibility have been previewed or assigned to human review.

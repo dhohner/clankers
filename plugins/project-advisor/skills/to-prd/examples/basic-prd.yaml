@@ -82,7 +82,7 @@ blocks:
         - "RISK-02"
     - id: "REQ-03"
       title: "Review-only interaction"
-      description: "Support navigation, details, anchors, and printing without persisting reviewer data."
+      description: "Support navigation, details, anchors, and diagram inspection without persisting reviewer data."
       validation:
         - "TEST-03"
       relates_to:
@@ -113,7 +113,7 @@ blocks:
       - "Reference-aligned document shell and responsive navigation"
       - "Purpose-specific renderers for common PRD blocks"
       - Mermaid visual review surfaces
-      - "Print-safe output"
+      - "Self-contained typography and rendered atmosphere"
     out:
       - Persisted comments or approvals
       - Editable PRD content in the generated artifact
@@ -169,7 +169,7 @@ blocks:
     - phase: "Purpose-specific renderers"
       outcome: "Introduce purpose-specific block renderers and representative fixture content."
     - phase: Interaction and visual verification
-      outcome: "Verify diagrams, anchors, mobile behavior, and printing."
+      outcome: "Verify diagrams, anchors, mobile behavior, and reduced-motion rendering."
     - phase: Regression fixture adoption
       outcome: Use the fixture as a regression artifact for future generator changes.
   testing_strategy:
@@ -185,7 +185,7 @@ blocks:
         - "REQ-02"
     - id: "TEST-03"
       target: Review controls
-      expected_outcome: "Navigation, details, anchors, and print behavior work without persistence."
+      expected_outcome: "Navigation, details, anchors, and diagram zoom work without persistence."
       validates:
         - "REQ-03"
     - id: "TEST-04"
@@ -210,7 +210,7 @@ blocks:
       observation: "Ordinary content is flat while diagrams, tables, details, and callouts are visually bounded."
       implication: Generic card styling cannot be the default content renderer.
     - reference: "plugins/project-advisor/skills/to-prd/bundle/assets/app.js"
-      observation: "Interaction is limited to navigation, details, anchors, Mermaid rendering, and print behavior."
+      observation: "Interaction is limited to navigation, details, anchors, and Mermaid rendering."
       implication: "Generated JavaScript should preserve the same review-only interaction boundary."
     - reference: "plugins/project-advisor/skills/to-prd/scripts/bundle.py::generate_bundle"
       observation: The generator validates manifests, copies versioned assets, and publishes only after structural checks pass.

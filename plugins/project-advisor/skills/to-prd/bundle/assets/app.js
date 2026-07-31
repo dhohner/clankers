@@ -1,351 +1,191 @@
-document.documentElement.classList.add("js");
-
-const mobileQuery = window.matchMedia("(max-width: 980px)");
-const sidebar = document.querySelector(".sidebar");
+const mobileQuery = window.matchMedia("(max-width: 67.99rem)");
+const cueSheet = document.querySelector(".cue-sheet");
 const navToggle = document.querySelector("#nav-toggle");
 const sidebarPanel = document.querySelector("#sidebar-panel");
-const navigation = document.querySelector(".sidebar nav");
-const navLinks = [...document.querySelectorAll(".sidebar nav a")];
-const sections = [...document.querySelectorAll("main > section[id]")];
+const navLinks = [...document.querySelectorAll(".cue-group a")];
+const cues = [...document.querySelectorAll("main > section.cue")];
 const supportingDetails = [...document.querySelectorAll("details")];
 const detailsToggle = document.querySelector("#collapse-all");
-const printButton = document.querySelector("#print-document");
-let anchorObserver;
 
-const categoryLabels = {
-  framing: "Context",
-  "people-workflow": "People & workflow",
-  "product-definition": "Product contract",
-  "visual-experience": "Visual experience",
-  "technical-contracts": "Technical contracts",
-  "delivery-assurance": "Assurance & evidence",
-};
+/* ---------- Cue sheet ---------- */
 
 function navigationIsOpen() {
   return navToggle?.getAttribute("aria-expanded") === "true";
 }
 
-function focusableNavigationItems() {
-  if (!sidebar) return [];
-  return [...sidebar.querySelectorAll("a[href], button:not([disabled])")]
-    .filter((element) => element.getClientRects().length > 0);
-}
-
 function setNavigationOpen(open, restoreFocus = false) {
   if (!navToggle || !sidebarPanel) return;
   navToggle.setAttribute("aria-expanded", String(open));
-  navToggle.setAttribute(
-    "aria-label",
-    open ? "Close document navigation" : "Open document navigation",
-  );
-  sidebarPanel.classList.toggle("open", open);
-  document.body.classList.toggle("navigation-open", open);
-  if (open) navLinks[0]?.focus();
-  if (!open && restoreFocus) navToggle.focus();
+  sidebarPanel.classList.toggle("is-open", open);
+  if (restoreFocus) navToggle.focus();
 }
 
-navToggle?.addEventListener("click", () => {
-  const open = navToggle.getAttribute("aria-expanded") !== "true";
-  setNavigationOpen(open, !open);
-});
+navToggle?.addEventListener("click", () => setNavigationOpen(!navigationIsOpen()));
 
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && navigationIsOpen()) {
-    setNavigationOpen(false, true);
-    return;
-  }
-  if (event.key !== "Tab" || !navigationIsOpen()) return;
-
-  const focusableItems = focusableNavigationItems();
-  const firstItem = focusableItems[0];
-  const lastItem = focusableItems.at(-1);
-  if (!firstItem || !lastItem) return;
-  if (event.shiftKey && document.activeElement === firstItem) {
-    event.preventDefault();
-    lastItem.focus();
-  } else if (!event.shiftKey && document.activeElement === lastItem) {
-    event.preventDefault();
-    firstItem.focus();
-  }
+  if (event.key === "Escape" && navigationIsOpen()) setNavigationOpen(false, true);
 });
 
 document.addEventListener("click", (event) => {
-  if (
-    navigationIsOpen()
-    && sidebar
-    && !sidebar.contains(event.target)
-  ) {
-    setNavigationOpen(false);
-  }
+  if (!navigationIsOpen() || !mobileQuery.matches) return;
+  if (!cueSheet?.contains(event.target)) setNavigationOpen(false);
 });
 
 mobileQuery.addEventListener("change", () => setNavigationOpen(false));
 
-function categoryLabel(category) {
-  return categoryLabels[category] || "Document";
-}
+/* ---------- The light follows the reader ---------- */
 
-function buildReviewOverview() {
-  const hero = document.querySelector(".hero");
-  if (!hero || document.querySelector(".review-overview")) return;
-
-  const requirementItems = [
-    ...document.querySelectorAll("#requirements article"),
-  ];
-  const validatedRequirements = requirementItems.filter((item) =>
-    item.querySelector('a[href^="#test-"]'),
-  ).length;
-  const openQuestions = document.querySelectorAll(
-    "#open_questions article",
-  ).length;
-  const risks = document.querySelectorAll("#risks article").length;
-  if (!requirementItems.length && !openQuestions && !risks) return;
-
-  const overview = document.createElement("aside");
-  overview.className = "review-overview";
-  overview.setAttribute("aria-labelledby", "review-overview-title");
-  overview.innerHTML = `
-    <div class="review-overview-intro">
-      <h2 id="review-overview-title">Move from context to decision.</h2>
-      <p>Resolve open questions, challenge material risks, then confirm validation coverage.</p>
-    </div>
-    <a class="review-stat review-stat--questions" href="#open_questions">
-      <span>Open ${openQuestions === 1 ? "question" : "questions"}</span>
-      <strong>${openQuestions}</strong>
-    </a>
-    <a class="review-stat" href="#risks">
-      <span>Known ${risks === 1 ? "risk" : "risks"}</span>
-      <strong>${risks}</strong>
-    </a>
-    <a class="review-stat" href="#testing_strategy">
-      <span>Requirements validated</span>
-      <strong>${validatedRequirements}/${requirementItems.length}</strong>
-    </a>
-  `;
-  hero.after(overview);
-}
-
-function groupNavigation() {
-  if (!navigation || navigation.classList.contains("is-grouped")) return;
-
-  const summaryLink = navLinks.find((link) => link.hash === "#summary");
-  const groups = new Map();
-  navLinks.forEach((link) => {
-    const target = document.getElementById(link.hash.slice(1));
-    if (!target) return;
-    const category = link === summaryLink
-      ? "framing"
-      : target.dataset.blockCategory || "document";
-    link.dataset.reviewArea = target.dataset.reviewArea || "all";
-    if (!groups.has(category)) groups.set(category, []);
-    groups.get(category).push(link);
-  });
-
-  navigation.replaceChildren();
-  navigation.classList.add("is-grouped");
-
-  const groupsContainer = document.createElement("div");
-  groupsContainer.className = "nav-groups";
-  const groupElements = [];
-  groups.forEach((links, category) => {
-    const group = document.createElement("div");
-    group.className = "nav-group";
-    group.dataset.reviewCategory = category;
-    const label = document.createElement("span");
-    label.className = "nav-group-label";
-    label.textContent = categoryLabel(category);
-    group.append(label, ...links);
-    groupsContainer.append(group);
-    groupElements.push(group);
-  });
-  navigation.append(groupsContainer);
-
-  if (!sidebarPanel || !groupElements.length) return;
-  const lenses = document.createElement("div");
-  lenses.className = "review-lenses";
-  lenses.setAttribute("role", "group");
-  lenses.setAttribute("aria-label", "Filter document navigation");
-  lenses.innerHTML = `
-    <span>Review lens</span>
-    <button type="button" data-review-lens="all" aria-pressed="true">All</button>
-    <button type="button" data-review-lens="decisions" aria-pressed="false">Decisions</button>
-    <button type="button" data-review-lens="validation" aria-pressed="false">Validation</button>
-    <span class="review-lens-status sr-only" aria-live="polite"></span>
-  `;
-  sidebarPanel.prepend(lenses);
-
-  const lensButtons = [...lenses.querySelectorAll("[data-review-lens]")];
-  const lensStatus = lenses.querySelector(".review-lens-status");
-  function applyReviewLens(lens) {
-    navLinks.forEach((link) => {
-      if (link === summaryLink) {
-        link.hidden = false;
-        return;
-      }
-      const reviewAreas = (link.dataset.reviewArea || "all").split(/\s+/);
-      link.hidden = lens !== "all"
-        && !reviewAreas.includes("all")
-        && !reviewAreas.includes(lens);
+// A cue raises its horizon band once it is genuinely in the frame, so the page
+// lights up in reading order rather than all at once.
+const lightObserver = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add("is-lit");
+      lightObserver.unobserve(entry.target);
     });
-    groupElements.forEach((group) => {
-      group.hidden = ![...group.querySelectorAll("a")].some(
-        (link) => !link.hidden,
-      );
-    });
-    lensButtons.forEach((button) => {
-      button.setAttribute(
-        "aria-pressed",
-        String(button.dataset.reviewLens === lens),
-      );
-    });
-    const visibleCount = navLinks.filter(
-      (link) => link !== summaryLink && !link.hidden,
-    ).length;
-    if (lensStatus) {
-      lensStatus.textContent = lens === "all"
-        ? `Showing all ${visibleCount} document sections.`
-        : `Showing ${visibleCount} ${lens} sections.`;
-    }
+  },
+  { rootMargin: "-10% 0px -25% 0px" },
+);
+cues.forEach((cue) => lightObserver.observe(cue));
+
+const linkById = new Map(
+  navLinks.map((link) => [decodeURIComponent(link.hash.slice(1)), link]),
+);
+let currentCueId;
+
+function markCurrent(id) {
+  const link = linkById.get(id);
+  if (id !== currentCueId) {
+    currentCueId = id;
+    navLinks.forEach((navLink) => navLink.removeAttribute("aria-current"));
+    cues.forEach((cue) => cue.classList.toggle("is-current", cue.id === id));
+    if (link) link.setAttribute("aria-current", "true");
   }
-
-  lenses.addEventListener("click", (event) => {
-    const button = event.target.closest?.("[data-review-lens]");
-    if (!button) return;
-    applyReviewLens(button.dataset.reviewLens);
-  });
+  if (!link || mobileQuery.matches || !cueSheet) return;
+  const linkBox = link.getBoundingClientRect();
+  const railBox = cueSheet.getBoundingClientRect();
+  if (linkBox.top < railBox.top || linkBox.bottom > railBox.bottom) {
+    link.scrollIntoView({ block: "nearest" });
+  }
 }
 
-function makeTablesResponsive() {
+function headerOffset() {
+  const bar = document.querySelector(".plot-bar");
+  const barHeight = bar ? bar.getBoundingClientRect().height : 0;
+  const railHeight = mobileQuery.matches && cueSheet
+    ? cueSheet.getBoundingClientRect().height
+    : 0;
+  return barHeight + railHeight + 16;
+}
+
+function updateCurrentCue() {
+  const line = headerOffset() + 24;
+  let current = "";
+  for (const cue of cues) {
+    if (cue.getBoundingClientRect().top > line) break;
+    current = cue.id;
+  }
+  markCurrent(current);
+}
+
+let spyFrame = 0;
+window.addEventListener(
+  "scroll",
+  () => {
+    if (spyFrame) return;
+    spyFrame = window.requestAnimationFrame(() => {
+      spyFrame = 0;
+      updateCurrentCue();
+    });
+  },
+  { passive: true },
+);
+window.addEventListener("resize", updateCurrentCue);
+updateCurrentCue();
+
+/* ---------- Anchors ---------- */
+
+function positionAnchor(target, behavior = "smooth") {
+  const top = window.scrollY + target.getBoundingClientRect().top - headerOffset();
+  window.scrollTo({ top: Math.max(0, top), behavior });
+}
+
+function focusAnchorTarget(target) {
+  if (!target.hasAttribute("tabindex")) {
+    target.setAttribute("tabindex", "-1");
+    target.addEventListener("blur", () => target.removeAttribute("tabindex"), { once: true });
+  }
+  target.focus({ preventScroll: true });
+}
+
+function targetForHash(hash) {
+  const id = decodeURIComponent(hash.slice(1));
+  return id ? document.getElementById(id) : null;
+}
+
+document.addEventListener("click", (event) => {
+  const link = event.target.closest?.('a[href^="#"]');
+  if (!link || link.classList.contains("skip-link")) return;
+  const target = targetForHash(link.hash);
+  if (!target) return;
+  event.preventDefault();
+  if (mobileQuery.matches && navigationIsOpen()) setNavigationOpen(false);
+  history.replaceState(null, "", link.hash);
+  positionAnchor(target);
+  focusAnchorTarget(target);
+  updateCurrentCue();
+});
+
+window.addEventListener("hashchange", () => {
+  const target = targetForHash(location.hash);
+  if (target) positionAnchor(target, "auto");
+});
+
+window.addEventListener("load", () => {
+  const target = targetForHash(location.hash);
+  if (target) positionAnchor(target, "auto");
+  updateCurrentCue();
+});
+
+/* ---------- Notes ---------- */
+
+function syncDetailsToggle() {
+  if (!detailsToggle) return;
+  const anyOpen = supportingDetails.some((detail) => detail.open);
+  detailsToggle.setAttribute("aria-pressed", String(!anyOpen));
+  detailsToggle.textContent = anyOpen ? "Collapse notes" : "Expand notes";
+}
+
+detailsToggle?.addEventListener("click", () => {
+  const anyOpen = supportingDetails.some((detail) => detail.open);
+  supportingDetails.forEach((detail) => {
+    detail.open = !anyOpen;
+  });
+  syncDetailsToggle();
+});
+
+supportingDetails.forEach((detail) => detail.addEventListener("toggle", syncDetailsToggle));
+syncDetailsToggle();
+
+/* ---------- Tables ---------- */
+
+// Narrow screens drop the header row, so every cell carries its own label.
+function labelTableCells() {
   document.querySelectorAll(".table-wrap table").forEach((table) => {
-    const labels = [...table.querySelectorAll("thead th")]
-      .map((header) => header.textContent.trim());
-    if (!labels.length) return;
-    table.classList.add("responsive-table");
+    const headings = [...table.querySelectorAll("thead th")].map((cell) => cell.textContent.trim());
+    if (!headings.length) return;
     table.querySelectorAll("tbody tr").forEach((row) => {
       [...row.children].forEach((cell, index) => {
-        cell.dataset.label = labels[index] || "";
-        if (!cell.querySelector(":scope > .responsive-cell-content")) {
-          const content = document.createElement("span");
-          content.className = "responsive-cell-content";
-          content.append(...cell.childNodes);
-          cell.append(content);
-        }
+        if (headings[index]) cell.setAttribute("data-label", headings[index]);
       });
     });
   });
 }
 
-buildReviewOverview();
-groupNavigation();
-makeTablesResponsive();
+labelTableCells();
 
-function headerOffset() {
-  return sidebar ? sidebar.getBoundingClientRect().height : 0;
-}
-
-function anchorScrollTop(target) {
-  if (target.id === "summary") return 0;
-  return target.getBoundingClientRect().top + window.scrollY - headerOffset();
-}
-
-function positionAnchor(target, behavior = "auto") {
-  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  window.scrollTo({
-    top: Math.max(0, anchorScrollTop(target)),
-    behavior: reducedMotion ? "auto" : behavior,
-  });
-}
-
-function stopAnchorStabilization() {
-  anchorObserver?.disconnect();
-  anchorObserver = undefined;
-}
-
-function stabilizeAnchor(target) {
-  stopAnchorStabilization();
-  if (!("ResizeObserver" in window)) return;
-  anchorObserver = new ResizeObserver(() => positionAnchor(target));
-  anchorObserver.observe(document.body);
-}
-
-function targetForHash(hash) {
-  if (!hash || hash === "#" || !hash.startsWith("#")) return null;
-  try {
-    return document.getElementById(decodeURIComponent(hash.slice(1)));
-  } catch {
-    return null;
-  }
-}
-
-function navigateToHash(hash, behavior = "smooth") {
-  const target = targetForHash(hash);
-  if (!target) return false;
-  positionAnchor(target, behavior);
-  stabilizeAnchor(target);
-  return true;
-}
-
-function focusAnchorTarget(hash) {
-  const target = targetForHash(hash);
-  if (!target) return;
-  const hadTabIndex = target.hasAttribute("tabindex");
-  if (!hadTabIndex) target.setAttribute("tabindex", "-1");
-  target.focus({ preventScroll: true });
-  if (!hadTabIndex) {
-    target.addEventListener("blur", () => target.removeAttribute("tabindex"), {
-      once: true,
-    });
-  }
-}
-
-["wheel", "touchstart", "pointerdown"].forEach((eventName) => {
-  window.addEventListener(eventName, stopAnchorStabilization, { passive: true });
-});
-window.addEventListener("keydown", stopAnchorStabilization);
-
-document.addEventListener("click", (event) => {
-  const link = event.target.closest?.('a[href^="#"]');
-  if (!link) return;
-  const hash = link.getAttribute("href");
-  if (!targetForHash(hash)) return;
-  event.preventDefault();
-  history.pushState(null, "", hash);
-  navigateToHash(hash);
-  setNavigationOpen(false);
-  focusAnchorTarget(hash);
-});
-
-window.addEventListener("hashchange", () => navigateToHash(location.hash, "auto"));
-window.addEventListener("load", () => {
-  if (location.hash) navigateToHash(location.hash, "auto");
-});
-
-const sectionObserver = new IntersectionObserver(
-  (entries) => {
-    const visible = entries
-      .filter((entry) => entry.isIntersecting)
-      .sort((left, right) => right.intersectionRatio - left.intersectionRatio)[0];
-    if (!visible) return;
-    navLinks.forEach((link) => {
-      const active = link.hash === `#${visible.target.id}`;
-      link.classList.toggle("active", active);
-      if (active) link.setAttribute("aria-current", "location");
-      else link.removeAttribute("aria-current");
-    });
-  },
-  { rootMargin: "-18% 0px -68% 0px", threshold: [0.05, 0.25, 0.5] },
-);
-sections.forEach((section) => sectionObserver.observe(section));
-
-detailsToggle?.addEventListener("click", () => {
-  const collapse = detailsToggle.getAttribute("aria-pressed") !== "true";
-  supportingDetails.forEach((detail) => {
-    detail.open = !collapse;
-  });
-  detailsToggle.setAttribute("aria-pressed", String(collapse));
-  detailsToggle.textContent = collapse ? "Expand details" : "Collapse details";
-});
-
+/* ---------- Diagrams ---------- */
 
 const MERMAID_CDN =
   "https://cdn.jsdelivr.net/npm/mermaid@11.15.0/dist/mermaid.esm.min.mjs";
@@ -354,8 +194,7 @@ function showMermaidFailure(canvas, error) {
   canvas.replaceChildren();
   const message = document.createElement("p");
   message.className = "visual-loading";
-  message.textContent =
-    "Diagram rendering unavailable. Review the source fallback below.";
+  message.textContent = "Diagram rendering unavailable. Review the source fallback below.";
   canvas.append(message);
   canvas.closest(".mermaid-diagram")?.classList.add("render-failed");
   const source = document.getElementById(canvas.dataset.mermaidSource);
@@ -464,11 +303,15 @@ function initMermaidZoom(canvas) {
   toolbar.className = "mermaid-toolbar";
   toolbar.setAttribute("role", "group");
   toolbar.setAttribute("aria-label", "Diagram zoom");
+  const minus = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8h9"/></svg>';
+  const plus = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8h9M8 3.5v9"/></svg>';
+  const reset = '<svg viewBox="0 0 16 16" aria-hidden="true">'
+    + '<path d="M13 8a5 5 0 1 1-1.6-3.7"/><path d="M13 2.5V5h-2.5"/></svg>';
   toolbar.innerHTML = `
-    <button type="button" data-zoom="out" aria-label="Zoom diagram out">−</button>
+    <button type="button" data-zoom="out" aria-label="Zoom diagram out">${minus}</button>
     <span class="mermaid-zoom-level" role="status" aria-live="polite">Fit</span>
-    <button type="button" data-zoom="in" aria-label="Zoom diagram in">+</button>
-    <button type="button" data-zoom="reset" aria-label="Reset diagram zoom to fit">Reset</button>
+    <button type="button" data-zoom="in" aria-label="Zoom diagram in">${plus}</button>
+    <button type="button" data-zoom="reset" aria-label="Reset diagram zoom to fit">${reset}</button>
   `;
   const label = toolbar.querySelector(".mermaid-zoom-level");
   function applyScale() {
@@ -484,7 +327,7 @@ function initMermaidZoom(canvas) {
     applyScale();
   }
   toolbar.addEventListener("click", (event) => {
-    const action = event.target.dataset?.zoom;
+    const action = event.target.closest?.("button")?.dataset?.zoom;
     if (action === "in") setZoom(zoom + 0.25);
     if (action === "out") setZoom(zoom - 0.25);
     if (action === "reset") setZoom(1);
@@ -502,10 +345,7 @@ function initMermaidZoom(canvas) {
 let refitTimer;
 window.addEventListener("resize", () => {
   window.clearTimeout(refitTimer);
-  refitTimer = window.setTimeout(
-    () => diagramRefits.forEach((refit) => refit()),
-    150,
-  );
+  refitTimer = window.setTimeout(() => diagramRefits.forEach((refit) => refit()), 150);
 });
 
 async function renderMermaidDiagrams() {
@@ -515,32 +355,6 @@ async function renderMermaidDiagrams() {
   try {
     const module = await import(MERMAID_CDN);
     mermaid = module.default;
-    const darkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const diagramPalette = darkMode
-      ? {
-          primaryColor: "#182331",
-          primaryBorderColor: "#6da9cf",
-          primaryTextColor: "#edf2f7",
-          lineColor: "#6da9cf",
-          tertiaryColor: "#1d3546",
-          edgeLabelBackground: "#101a26",
-          clusterBkg: "#141f2c",
-          clusterBorder: "#3c4d61",
-          titleColor: "#c3d2e0",
-          clusterTextColor: "#c3d2e0",
-        }
-      : {
-          primaryColor: "#f8fafc",
-          primaryBorderColor: "#175986",
-          primaryTextColor: "#121827",
-          lineColor: "#175986",
-          tertiaryColor: "#d9e7f1",
-          edgeLabelBackground: "#f3f7fa",
-          clusterBkg: "#e6edf4",
-          clusterBorder: "#a8bccd",
-          titleColor: "#374a5e",
-          clusterTextColor: "#374a5e",
-        };
     mermaid.initialize({
       startOnLoad: false,
       securityLevel: "strict",
@@ -554,8 +368,21 @@ async function renderMermaidDiagrams() {
         subGraphTitleMargin: { top: 6, bottom: 14 },
       },
       themeVariables: {
-        fontFamily: '"Avenir Next", Avenir, "Helvetica Neue", sans-serif',
-        ...diagramPalette,
+        fontFamily: 'Archivo, ui-sans-serif, system-ui, sans-serif',
+        fontSize: "14px",
+        background: "#010207",
+        primaryColor: "#0e1220",
+        primaryBorderColor: "#6f86ff",
+        primaryTextColor: "#e7e9f2",
+        secondaryColor: "#141a2e",
+        tertiaryColor: "#101828",
+        lineColor: "#8497ff",
+        textColor: "#e7e9f2",
+        edgeLabelBackground: "#05060a",
+        clusterBkg: "#0a0d18",
+        clusterBorder: "#39406b",
+        titleColor: "#ffb3cd",
+        nodeTextColor: "#e7e9f2",
       },
     });
   } catch (error) {
@@ -567,36 +394,17 @@ async function renderMermaidDiagrams() {
     try {
       const source = document.getElementById(canvas.dataset.mermaidSource);
       if (!source) throw new Error("Mermaid source is missing");
-      const result = await mermaid.render(
-        `prd-mermaid-${index + 1}`,
-        source.textContent,
-      );
+      const result = await mermaid.render(`prd-mermaid-${index + 1}`, source.textContent);
       canvas.innerHTML = result.svg;
       const svg = canvas.querySelector("svg");
       if (svg) clipEdgesAtClusterBoundaries(svg);
       initMermaidZoom(canvas);
       canvas.closest(".mermaid-diagram")?.classList.add("rendered");
-      const details = source.closest("details");
-      if (details) details.open = false;
     } catch (error) {
       showMermaidFailure(canvas, error);
     }
   }));
+  syncDetailsToggle();
 }
 
 renderMermaidDiagrams();
-
-let printDetailState = [];
-window.addEventListener("beforeprint", () => {
-  printDetailState = supportingDetails.map((detail) => detail.open);
-  supportingDetails.forEach((detail) => {
-    detail.open = true;
-  });
-});
-window.addEventListener("afterprint", () => {
-  supportingDetails.forEach((detail, index) => {
-    detail.open = printDetailState[index];
-  });
-});
-
-printButton?.addEventListener("click", () => window.print());

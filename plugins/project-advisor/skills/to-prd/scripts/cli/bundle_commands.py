@@ -11,8 +11,8 @@ from ..bundle import generate_bundle
 from ..output_validation import BundleValidationError, validate_generated_bundle
 from ..spec import BLOCK_SPECS
 from .support import (
-    CliFailure,
     ENTRYPOINT,
+    CliFailure,
     display_path,
     load_manifest,
     next_command,

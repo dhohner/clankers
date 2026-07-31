@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, TypedDict
 
-from ..spec import BLOCK_SPECS, entity_label
 from ..manifest_types import NormalizedBlocks
+from ..spec import BLOCK_SPECS, entity_label
 from .helpers import escape_html
-
 
 RELATIONSHIP_FIELDS = ("relates_to", "validation", "validates")
 
@@ -18,6 +17,22 @@ ENTITY_NOUNS = {
     "testing_strategy": "validation outcome",
     "open_questions": "open question",
 }
+
+
+class EntityAspect(TypedDict):
+    state: str
+    title: str
+    detail: str
+
+
+class CoverageReport(TypedDict):
+    entities: list[dict[str, Any]]
+    aspects: dict[str, EntityAspect]
+    gaps: list[tuple[dict[str, Any], tuple[str, str]]]
+    tracked: int
+    held: int
+    up: int
+    percent: int
 
 
 def iter_entities(blocks: NormalizedBlocks) -> list[dict[str, Any]]:
@@ -81,12 +96,67 @@ def coverage_gap(entity: dict[str, Any], connections: set[str]) -> tuple[str, st
     )
 
 
+def coverage_report(blocks: NormalizedBlocks) -> CoverageReport:
+    entities = iter_entities(blocks)
+    connections = connection_index(entities)
+    aspects: dict[str, EntityAspect] = {}
+    gaps: list[tuple[dict[str, Any], tuple[str, str]]] = []
+    for entity in entities:
+        gap = coverage_gap(entity, connections[entity["id"]])
+        if gap is None:
+            aspects[entity["id"]] = {
+                "state": "up",
+                "title": "Connected",
+                "detail": "This entity names the product intent it supports.",
+            }
+            continue
+        title, detail = gap
+        aspects[entity["id"]] = {"state": "held", "title": title, "detail": detail}
+        gaps.append((entity, gap))
+    tracked = len(entities)
+    held = len(gaps)
+    up = tracked - held
+    return {
+        "entities": entities,
+        "aspects": aspects,
+        "gaps": gaps,
+        "tracked": tracked,
+        "held": held,
+        "up": up,
+        "percent": round(up / tracked * 100) if tracked else 0,
+    }
+
+
+def board_state(report: CoverageReport) -> tuple[str, str]:
+    tracked = report["tracked"]
+    held = report["held"]
+    if not tracked:
+        return (
+            "No board",
+            "This PRD tracks no stable entities, so there is no coverage to read.",
+        )
+    noun = "entity" if tracked == 1 else "entities"
+    if not held:
+        return (
+            "Board clear",
+            f"All {tracked} tracked {noun} connect to the product intent they support.",
+        )
+    return (
+        f"{held} held",
+        (
+            f"{held} of {tracked} tracked {noun} still need a connection or carry a "
+            "deferred validation outcome. All other tracked entities are up."
+        ),
+    )
+
+
 def render_coverage_rows(gaps: list[tuple[dict[str, Any], tuple[str, str]]]) -> str:
     rows: list[str] = []
     for entity, (title, detail) in gaps:
         rows.append(
             "<tr>"
-            f'<td><a href="#{escape_html(entity["id"])}">{escape_html(entity["label"])}</a></td>'
+            f'<td><a class="cue-code" href="#{escape_html(entity["id"])}">'
+            f'{escape_html(entity["label"])}</a></td>'
             f"<td>{escape_html(BLOCK_SPECS[entity['block']].title)}</td>"
             f"<td>{escape_html(entity['statement'])}</td>"
             f'<td><strong class="coverage-gap">{escape_html(title)}</strong>'
@@ -96,49 +166,49 @@ def render_coverage_rows(gaps: list[tuple[dict[str, Any], tuple[str, str]]]) -> 
     return "".join(rows)
 
 
-def render_traceability_view(blocks: NormalizedBlocks) -> str:
-    entities = iter_entities(blocks)
-    if not entities:
-        return ""
-    connections = connection_index(entities)
-    gaps = [
-        (entity, gap)
-        for entity in entities
-        if (gap := coverage_gap(entity, connections[entity["id"]])) is not None
-    ]
-
-    tracked = len(entities)
-    tracked_noun = "entity" if tracked == 1 else "entities"
-    if gaps:
-        summary = (
-            f"{len(gaps)} of {tracked} tracked {tracked_noun} still need a connection "
-            "or carry a deferred validation outcome. Everything not listed here is covered."
-        )
-        content = (
+def render_traceability_content(report: CoverageReport) -> str:
+    tracked = report["tracked"]
+    held = report["held"]
+    up = report["up"]
+    percent = report["percent"]
+    headline, reading = board_state(report)
+    ladder = (
+        '<div class="board-ladder">'
+        f'<div class="board-meter" role="img" aria-label="{up} of {tracked} tracked '
+        f'entities are up, {percent} percent coverage">'
+        f'<span class="board-meter-fill" style="--board-fill: {percent}%"></span>'
+        "</div>"
+        '<dl class="board-readout">'
+        f"<div><dt>Up</dt><dd>{up}</dd></div>"
+        f"<div><dt>Held</dt><dd>{held}</dd></div>"
+        f"<div><dt>Tracked</dt><dd>{tracked}</dd></div>"
+        f"<div><dt>Coverage</dt><dd>{percent}<span>%</span></dd></div>"
+        "</dl></div>"
+    )
+    if held:
+        detail = (
             '<div class="table-wrap traceability-table">'
-            '<table class="id-table coverage-table"><thead><tr>'
+            '<table class="coverage-table"><caption>Cues still held</caption><thead><tr>'
             "<th>ID</th><th>Type</th><th>Statement</th><th>Coverage gap</th>"
-            f"</tr></thead><tbody>{render_coverage_rows(gaps)}</tbody></table></div>"
+            f"</tr></thead><tbody>{render_coverage_rows(report['gaps'])}</tbody></table></div>"
         )
     else:
-        summary = (
-            f"All {tracked} tracked {tracked_noun} connect to the product intent they support."
-        )
-        content = (
-            '<div class="callout neutral"><strong>Coverage complete</strong>'
+        detail = (
+            '<div class="callout"><strong>Coverage rule</strong>'
             "<p>Every requirement has a validation outcome, and every decision, risk, "
             "open question, and validation outcome names a requirement it affects. "
-            "Relationships are listed on each entity above.</p></div>"
+            "Each entity lists its own connections above.</p></div>"
         )
-
     return (
-        '<section id="traceability" class="section" data-block="traceability" data-block-category="delivery-assurance" '
-        'data-review-area="validation decisions" aria-labelledby="traceability-heading">'
-        '<div class="section-heading"><div><h2 id="traceability-heading">'
-        '<a href="#traceability">Traceability and coverage</a></h2>'
-        f"<p>{escape_html(summary)}</p>"
-        f"</div></div>{content}</section>"
+        f'<p class="board-headline"><strong>{escape_html(headline)}</strong>'
+        f"<span>{escape_html(reading)}</span></p>{ladder}{detail}"
     )
 
 
-__all__ = ["render_traceability_view"]
+__all__ = [
+    "CoverageReport",
+    "EntityAspect",
+    "board_state",
+    "coverage_report",
+    "render_traceability_content",
+]

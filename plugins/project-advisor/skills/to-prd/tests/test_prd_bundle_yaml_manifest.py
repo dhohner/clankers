@@ -61,9 +61,8 @@ class PrdBundleYamlManifestTests(unittest.TestCase):
             "title: one\ntitle: two\n",
             '{"title":"one","title":"two"}',
         ):
-            with self.subTest(text=text):
-                with self.assertRaises(ValueError):
-                    load_yaml(text)
+            with self.subTest(text=text), self.assertRaises(ValueError):
+                load_yaml(text)
 
 
 if __name__ == "__main__":

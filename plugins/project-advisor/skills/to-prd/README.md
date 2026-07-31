@@ -12,12 +12,21 @@ action-items/PRD-<slug>/
 ├── prd.yaml
 └── assets/
     ├── app.js
-    └── styles.css
+    ├── favicon.svg
+    ├── styles.css
+    └── fonts/
+        ├── archivo-latin.woff2
+        ├── martian-mono-latin.woff2
+        ├── saira-stencil-one-latin.woff2
+        └── OFL-*.txt
 ```
 
 `prd.yaml` is the normalized planning source.
 `index.html` is the human review surface.
-Assets are copied into the bundle so it can be reviewed without installing the plugin.
+Assets are copied into the bundle so it can be reviewed without installing the plugin, including the three OFL-licensed faces, so typography is identical on every machine.
+
+The bundle is a screen artifact and does not support printing.
+Diagrams load Mermaid from `cdn.jsdelivr.net` at review time and fall back to a readable text source when there is no network.
 
 ## Workflow
 

@@ -4,7 +4,14 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from support import dump_yaml, BUNDLE, base_manifest, load_example_manifest, run_generator, sample_block
+from support import (
+    BUNDLE,
+    base_manifest,
+    dump_yaml,
+    load_example_manifest,
+    run_generator,
+    sample_block,
+)
 
 
 class PrdBundleRenderingTests(unittest.TestCase):
@@ -75,17 +82,21 @@ class PrdBundleRenderingTests(unittest.TestCase):
 
         for name, spec in BUNDLE.BLOCK_SPECS.items():
             self.assertIn(
-                f'<section id="{name}" class="section" data-block="{name}"',
+                f'<section id="{name}" class="cue" data-block="{name}"',
                 document,
             )
             self.assertIn(f'data-block-category="{spec.category}"', document)
+            self.assertIn(
+                f'data-level="{BUNDLE.category_level(spec.category)}"',
+                document,
+            )
             self.assertIn(f'aria-labelledby="{name}-heading"', document)
         self.assertIn('id="req-01"', document)
         self.assertIn('id="dec-01"', document)
         self.assertIn('id="risk-01"', document)
         self.assertIn('id="question-01"', document)
         self.assertIn('id="test-01"', document)
-        self.assertIn('<table class="id-table"><thead><tr><th>ID</th>', document)
+        self.assertIn("<table><thead><tr><th>ID</th>", document)
 
     def test_optional_blocks_do_not_renumber_stable_entities(self) -> None:
         manifest = base_manifest()

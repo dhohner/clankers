@@ -477,7 +477,7 @@ def _format_block_scalar_marker(value: str) -> str:
 
 
 def _format_block_scalar_lines(value: str, indent: int) -> list[str]:
-    body = value[:-1] if value.endswith("\n") else value
+    body = value.removesuffix("\n")
     space = " " * indent
     return [f"{space}{line}" for line in body.split("\n")]
 
