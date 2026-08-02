@@ -1,15 +1,3 @@
-/*
-  Cyclorama Dawn - the PRD review bundle as a lighting cue sheet.
-
-  The document is a seamless cyclorama. It opens at night, and every cue opens a
-  horizon band in the next colour of the dawn sequence, so the page lights up in
-  the order the PRD argues: framing in the dark, delivery and assurance brightest.
-  It never leaves the night; the ladder's top step is a band of light, not a field.
-  Coverage is the second light: an entity that connects to the product intent it
-  supports is Up, and one that does not is Held, unlit, with its reason stated.
-  Nothing here is carried by colour alone.
-*/
-
 @font-face {
   font-family: Archivo;
   font-style: normal;
@@ -37,17 +25,6 @@
 :root {
   color-scheme: dark;
 
-  /*
-    The cue ladder, taken from the cyclorama's own dawn sequence.
-
-    Measured against the night ground, one step had to move. COBALT HORIZON as
-    specified (#0a2bff) sits at 2.70:1 on #050506, below even the 3:1 floor for
-    non-text, so it cannot carry an edge or a rule. It is shifted to #2f4bff
-    (3.44:1) for field use, with #8497ff (7.57:1) as its text cut. Every other
-    step is the specified value and clears its threshold as-is: ROSE GATHER
-    5.97:1, ROSE LIGHT 8.39:1, DAWN WASH 15.54:1. Level 00 has no specified ink
-    (the step is the ground itself), so its steel is authored.
-  */
   --night: #050506;
   --night-deep: #010102;
   --night-raised: #0b0b10;
@@ -82,8 +59,6 @@
   --radius: 12px;
   --radius-sm: 7px;
 
-  /* The world's display voice is a wide squared stencil; mono carries the data
-     registers and Archivo carries prose. */
   --font-display: "Saira Stencil One", "Martian Mono", ui-monospace, monospace;
   --font-body: Archivo, ui-sans-serif, system-ui, "Helvetica Neue", sans-serif;
   --font-mono: "Martian Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
@@ -112,13 +87,6 @@ body {
   overflow-x: hidden;
 }
 
-/* ---------- The cyclorama ---------- */
-
-/*
-  The atmosphere is drawn in CSS. A rendered raster version was built and
-  rejected: the user prefers the clean gradient, so the cyclorama is layered
-  radial and linear gradients with no texture overlay.
-*/
 .cyclorama {
   position: fixed;
   z-index: -1;
@@ -137,7 +105,6 @@ body {
   opacity: .7;
 }
 
-/* ---------- Primitives ---------- */
 
 a { color: var(--lvl-ink); }
 
@@ -222,7 +189,6 @@ code {
   text-transform: uppercase;
 }
 
-/* ---------- Lamps ---------- */
 
 .lamp {
   display: inline-block;
@@ -255,7 +221,6 @@ code {
   background: rgb(255 123 174 / 22%);
 }
 
-/* ---------- Plot bar ---------- */
 
 .plot-bar {
   position: sticky;
@@ -300,7 +265,6 @@ code {
   color: var(--ink-muted);
 }
 
-/* ---------- Stage ---------- */
 
 .stage {
   display: grid;
@@ -314,7 +278,6 @@ main {
 
 main:focus { outline: none; }
 
-/* ---------- Cue sheet ---------- */
 
 .nav-toggle {
   display: flex;
@@ -352,8 +315,6 @@ main:focus { outline: none; }
   color: var(--ink-faint);
 }
 
-/* The level number and its swatch turn the rail into a legend, so a reader can
-   decode which band colour they are currently inside. */
 .cue-group-level {
   color: var(--lvl-ink);
   font-variant-numeric: tabular-nums;
@@ -461,7 +422,6 @@ main:focus { outline: none; }
   color: var(--ink-strong);
 }
 
-/* ---------- The horizon (first viewport) ---------- */
 
 .horizon {
   position: relative;
@@ -471,9 +431,7 @@ main:focus { outline: none; }
     "lede"
     "board"
     "sheet";
-  /* Content packs to the foot of the wall with the night sky open above it,
-     which is how this world composes: the light is low and the frame is tall. */
-  align-content: end;
+    align-content: end;
   min-height: calc(100svh - var(--bar-height));
   margin: 0 calc(var(--page-pad) * -1);
   padding: clamp(3rem, 9vh, 6rem) var(--page-pad) clamp(2.5rem, 6vh, 4rem);
@@ -481,11 +439,6 @@ main:focus { outline: none; }
   overflow: hidden;
 }
 
-/*
-  The house lights come up once, on load, as one orchestrated cue rather than a
-  scatter of effects. It is pure CSS so a bundle opened without JavaScript still
-  ends fully lit, and reduced-motion collapses it to the final state.
-*/
 @keyframes bring-up {
   from { opacity: 0; transform: scaleY(.62); }
 }
@@ -494,20 +447,13 @@ main:focus { outline: none; }
   from { opacity: 0; }
 }
 
-/*
-  The dawn itself. Light gathers in a band low in the frame; a night scrim holds
-  the copy above it on near-black, and a dark floor holds the plot sheet below
-  it, so nothing legible ever sits on the bright part of the wash.
-*/
 .horizon::before {
   animation: bring-up 1800ms var(--ease) both;
   position: absolute;
   z-index: -1;
   inset: 0;
   background:
-    /* The copy sits in the dark foreground at the left, and this is also what
-       keeps the wall from ending on a hard vertical edge against the rail. */
-    linear-gradient(100deg, rgb(5 5 6 / 95%) 0%, rgb(5 5 6 / 88%) 40%, rgb(5 5 6 / 62%) 58%, transparent 74%),
+        linear-gradient(100deg, rgb(5 5 6 / 95%) 0%, rgb(5 5 6 / 88%) 40%, rgb(5 5 6 / 62%) 58%, transparent 74%),
     linear-gradient(180deg, transparent 68%, rgb(1 1 2 / 72%) 76%, rgb(1 1 2 / 96%) 84%, var(--night-deep) 100%),
     linear-gradient(180deg, var(--night) 0%, rgb(5 5 6 / 92%) 32%, rgb(5 5 6 / 62%) 52%, rgb(5 5 6 / 20%) 64%, transparent 70%),
     radial-gradient(40% 20% at 60% 78%, var(--dawn) 0%, transparent 64%),
@@ -617,15 +563,9 @@ h1 {
   margin-left: .05em;
   color: var(--ink-faint);
   font-size: .75rem;
-  /* Optically aligned to the numeral rather than dropped to the baseline. */
-  vertical-align: .08em;
+    vertical-align: .08em;
 }
 
-/*
-  The plot sheet stands on the floor, and its top edge IS the lit horizon. Tying
-  the line to the element rather than to a percentage keeps the horizon exactly
-  where the layout put it, whatever the metadata adds up to.
-*/
 .plot-sheet {
   position: relative;
   grid-area: sheet;
@@ -636,12 +576,6 @@ h1 {
   gap: 1.25rem 1.75rem;
 }
 
-/*
-  The floor the sheet lies on. Anchoring the dark to the element rather than to
-  a percentage of the hero is what keeps the metadata on night at every
-  viewport: the stacked mobile hero puts this block exactly where the wall's
-  light band would otherwise fall.
-*/
 .plot-sheet::after {
   position: absolute;
   z-index: -1;
@@ -658,14 +592,12 @@ h1 {
   overflow-wrap: anywhere;
 }
 
-/* ---------- Cues ---------- */
 
 .cue {
   position: relative;
   padding: var(--cue-space) 0 0;
 }
 
-/* Darker levels need more band to register; the near-white ones need far less. */
 .cue[data-level="0"] { --lvl: #6b7699; --lvl-ink: #a8b2d0; --band: .36; --lvl-lit: var(--dawn); }
 .cue[data-level="10"] { --lvl: var(--cobalt); --lvl-ink: var(--cobalt-ink); --band: .34; }
 .cue[data-level="20"] { --lvl: var(--rose-gather); --lvl-ink: var(--rose-gather); --band: .30; }
@@ -674,14 +606,19 @@ h1 {
 .cue[data-level="50"] { --lvl: var(--day); --lvl-ink: var(--day); --band: .20; }
 
 .cue-band {
+  --band-reach: 22rem;
+  --band-rise: calc(var(--band-reach) * .2);
+
   position: absolute;
   z-index: -1;
-  top: calc(var(--cue-space) * .34);
+  top: calc(var(--cue-space) * .34 - var(--band-rise));
   left: 50%;
   width: min(72rem, 130%);
-  height: 22rem;
+  height: calc(var(--band-reach) + var(--band-rise));
   transform: translateX(-50%);
-  background: radial-gradient(56% 100% at 50% 0%, var(--lvl) 0%, transparent 68%);
+  background:
+    radial-gradient(56% 100% at 50% 100%, var(--lvl) 0%, transparent 68%) 50% 0 / 100% var(--band-rise) no-repeat,
+    radial-gradient(56% 100% at 50% 0%, var(--lvl) 0%, transparent 68%) 50% var(--band-rise) / 100% var(--band-reach) no-repeat;
   opacity: 0;
   pointer-events: none;
   transition: opacity 900ms var(--ease);
@@ -689,17 +626,14 @@ h1 {
 
 .cue.is-lit .cue-band { opacity: var(--band, .2); }
 
-/*
-  The closing cue is where the world's promise is kept: the coverage board
-  arrives on the widest, brightest band the page reaches, DAWN WASH at 34rem.
-  Without this the document would sit permanently pre-dawn and the ladder would
-  name steps it never renders. The band is where the light stops - see the
-  footer below, which stays on night by decision.
-*/
 .cue--close .cue-band {
-  top: 0;
-  height: 34rem;
-  background: radial-gradient(64% 100% at 50% 0%, var(--dawn) 0%, transparent 72%);
+  --band-reach: 34rem;
+
+  top: calc(var(--band-rise) * -1);
+  height: calc(var(--band-reach) + var(--band-rise));
+  background:
+    radial-gradient(64% 100% at 50% 100%, var(--dawn) 0%, transparent 72%) 50% 0 / 100% var(--band-rise) no-repeat,
+    radial-gradient(64% 100% at 50% 0%, var(--dawn) 0%, transparent 72%) 50% var(--band-rise) / 100% var(--band-reach) no-repeat;
 }
 
 .cue--close.is-lit .cue-band { opacity: .34; }
@@ -728,8 +662,6 @@ h1 {
   transition: border-color var(--motion) var(--ease), box-shadow var(--motion) var(--ease);
 }
 
-/* Lit while it is the cue being read. Border and glow rather than a fill, so
-   the number keeps its contrast at every level of the ladder. */
 .cue.is-current .cue-meta .cue-number {
   border-color: var(--lvl-lit, var(--lvl));
   box-shadow:
@@ -763,7 +695,6 @@ h1 {
 
 .cue-content > * + * { margin-top: var(--stack); }
 
-/* ---------- Plates ---------- */
 
 .plate-grid {
   display: grid;
@@ -798,8 +729,6 @@ h1 {
   opacity: .55;
 }
 
-/* A held cue is simply unlit: no top light, a cobalt first-light edge, and its
-   reason stated in words beside the dark lamp. */
 .plate[data-aspect="held"] {
   border-color: rgb(47 75 255 / 45%);
   background: var(--sunk);
@@ -906,7 +835,6 @@ a.cue-code:hover {
 
 .requirement-plate h3 { font-size: 1.12rem; }
 
-/* ---------- Readout (executive summary) ---------- */
 
 .readout-grid {
   display: grid;
@@ -943,7 +871,6 @@ a.cue-code:hover {
   font-size: .88rem;
 }
 
-/* ---------- Callout ---------- */
 
 .callout {
   position: relative;
@@ -982,7 +909,6 @@ a.cue-code:hover {
   font-size: 1rem;
 }
 
-/* ---------- Split panels and lists ---------- */
 
 .split {
   display: grid;
@@ -1032,7 +958,6 @@ a.cue-code:hover {
 
 .scope-out .content-list li::before { background: var(--ink-faint); }
 
-/* ---------- Tables ---------- */
 
 .table-wrap {
   border: 1px solid var(--edge-soft);
@@ -1093,7 +1018,6 @@ caption {
   font-size: .88rem;
 }
 
-/* ---------- The light board (traceability) ---------- */
 
 .board-headline {
   display: flex;
@@ -1150,18 +1074,7 @@ caption {
   gap: 1rem;
 }
 
-/* ---------- Sequence (rollout) ---------- */
 
-/*
-  A rollout is read as one continuous path, so the steps hang off a single
-  vertical rail rather than sitting in ruled rows. The horizontal rules this
-  replaced made four ordered phases read as an unordered table, and pushed the
-  index into a column so wide it lost contact with the phase it numbered.
-
-  The rail is drawn per step as the connector down to the next one, which is
-  why the last step has none: the sequence ends where the path ends, and no
-  geometry has to know the list's height.
-*/
 
 .sequence {
   --step-marker: 2rem;
@@ -1198,8 +1111,6 @@ caption {
 
 .sequence li:last-child::before { content: none; }
 
-/* Night ground so the rail passes behind the marker rather than through it,
-   with the same lit-from-above wash every other surface in the world takes. */
 .sequence-index {
   display: grid;
   place-items: center;
@@ -1212,11 +1123,9 @@ caption {
     var(--night);
   color: var(--ink-muted);
   font-variant-numeric: tabular-nums;
-  /* Cancels the register's trailing letter-space so the digits sit centred. */
-  text-indent: .14em;
+    text-indent: .14em;
 }
 
-/* Drops the title's cap height onto the marker's centre line. */
 .sequence-content { padding-top: .47rem; }
 
 .sequence-content h3 {
@@ -1234,7 +1143,6 @@ caption {
   font-size: .88rem;
 }
 
-/* ---------- Diagrams and visual surfaces ---------- */
 
 .diagram-surface,
 .diagram-brief,
@@ -1453,7 +1361,6 @@ details summary:hover { color: var(--ink); }
   font-size: .88rem;
 }
 
-/* ---------- Code evidence ---------- */
 
 .code-grid {
   display: grid;
@@ -1503,13 +1410,7 @@ details summary:hover { color: var(--ink); }
 
 .evidence-disclaimer strong { color: var(--ink-muted); }
 
-/* ---------- Blackout (footer) ---------- */
 
-/*
-  The page ends on night. A full day wash was built here and rejected: the
-  document is read on a dark ground and a bright close pulled the eye off the
-  coverage board, which is the last thing that should hold it.
-*/
 .houselights {
   display: flex;
   justify-content: flex-end;
@@ -1534,7 +1435,6 @@ details summary:hover { color: var(--ink); }
   text-underline-offset: 4px;
 }
 
-/* ---------- Responsive ---------- */
 
 @media (min-width: 48rem) {
   .split { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1543,9 +1443,7 @@ details summary:hover { color: var(--ink); }
   .readout-grid,
   .visual-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
-  /* The readout is a seamless panel, so an odd last cell has to fill its row
-     rather than leave a lit void beside it. */
-  .readout-grid > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+    .readout-grid > :last-child:nth-child(odd) { grid-column: 1 / -1; }
 
   .board-ladder { grid-template-columns: minmax(0, 1fr) auto; }
 
@@ -1556,16 +1454,6 @@ details summary:hover { color: var(--ink); }
   .plot-sheet { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
-/*
-  The board only moves up beside the title once there is genuinely room for
-  both. Below this the hero stacks: a fixed-width board alongside the copy
-  squeezes a long stencil headline into a column it cannot wrap in.
-*/
-/*
-  The lede sits beside the board as soon as the row can hold both. The board is
-  allowed to shrink to 16rem rather than holding a fixed width, which is what
-  lets the pair survive tablet widths instead of waiting for a desktop.
-*/
 @media (min-width: 48rem) {
   .horizon {
     grid-template-areas:
@@ -1599,9 +1487,7 @@ details summary:hover { color: var(--ink); }
     top: var(--bar-height);
     align-self: start;
     max-height: calc(100svh - var(--bar-height));
-    /* Reserve the scrollbar's gutter so it never sits on top of the rail's
-       own control when the cue list overflows. */
-    padding: 2.5rem .85rem 2rem 0;
+        padding: 2.5rem .85rem 2rem 0;
     overflow-y: auto;
     overscroll-behavior: contain;
     scrollbar-gutter: stable;
@@ -1668,9 +1554,7 @@ details summary:hover { color: var(--ink); }
 
   .plate-rows > div { grid-template-columns: minmax(0, 1fr); gap: .2rem; }
 
-  /* The rail survives the narrow breakpoint: stacking the index above the
-     phase would break the one line that carries the order. It only tightens. */
-  .sequence { --step-marker: 1.75rem; --step-gap: .85rem; }
+    .sequence { --step-marker: 1.75rem; --step-gap: .85rem; }
 
   .sequence li { padding-bottom: 1.5rem; }
 }
@@ -1689,18 +1573,12 @@ details summary:hover { color: var(--ink); }
   .cue-band { opacity: var(--band, .2); }
 }
 
-/* The plot bar must never wrap the product name onto two lines. The bar keeps
-   the page gutter on both sides at every width, so it drops the role line
-   rather than tightening its inset out of step with the document below. */
 @media (max-width: 34rem) {
   .brand-role { display: none; }
 
   .doc-status { font-size: .6rem; }
 }
 
-/* Below this the product name and the status word stop fitting side by side at
-   0.75rem, so the name steps down to the micro label size rather than wrapping
-   the bar onto a second line. */
 @media (max-width: 22.5rem) {
   .plot-bar { gap: .6rem; }
 
