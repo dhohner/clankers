@@ -26,6 +26,7 @@ Remove ordering edges based only on task numbering, preferred implementation seq
 
 Mark a slice blocked only when safe implementation requires a human decision, external access, unavailable artifact, unresolved contract, or predecessor capability.
 Name the exact missing input and the decision or evidence needed to unblock it.
+Block only the part that the missing input actually prevents; when the rest of the outcome can still ship and be verified, keep it in the slice rather than deferring the whole requirement.
 
 ## Completion criterion
 

@@ -9,6 +9,25 @@ Convert one explicitly accepted `prd.yaml` into a small set of tracer-bullet Mar
 Write tasks to `action-items/agent-tasks/` unless the user chooses another destination.
 Ask only for decisions that materially change scope, ordering, contracts, or acceptance.
 
+## The delegation boundary
+
+A task file is bounded delegated work, and the agent receiving it cannot ask a follow-up question.
+Its usefulness depends less on how much it says than on how cleanly it partitions authority, so give every material decision a task touches exactly one disposition:
+
+- **Fixed** - settled by the PRD or inspected repository evidence, stated exactly, and not open to reinterpretation.
+- **Delegated** - genuinely the executing agent's call, said out loud so no effort goes into inferring a preference that does not exist.
+- **Escalated** - unresolved, named as a blocker together with the decision and the evidence needed to settle it.
+
+A decision you settle yourself to keep a task executable is an assumption, not a fixed fact, and it belongs in the task file labeled as one.
+The executing agent never sees the summary you give the user, so an assumption recorded only in conversation is invisible at exactly the moment someone could catch it being wrong.
+
+Escalate the narrowest thing that is genuinely unresolved.
+A missing input rarely blocks a whole outcome, so deliver the behavior it does not prevent and place the blocker at the exact point where progress stops.
+Handing back a whole requirement because one of its inputs is missing returns work that could have shipped.
+
+Draw the change surface with the same care wherever a task touches artifacts, configuration, or behavior that something else depends on: name what it may create or modify and what must survive intact.
+An agent that knows where its authority ends stops at that edge and reports, instead of widening scope or inventing a decision nobody made.
+
 ## Process
 
 ### 1. Gate the source and build the coverage ledger
@@ -44,7 +63,7 @@ Record evidence gaps as exact blockers rather than inferred facts.
 
 For each slice involving durable data, state transitions, thresholds, time, retries, concurrency, coupled writes, external side effects, authorization, or tenant isolation, read and apply [references/contract-precision.md](references/contract-precision.md).
 Resolve material product and contract decisions from the PRD first and established repository behavior second.
-Surface each remaining material decision as a focused question or named blocker before drafting.
+Separate decisions the source deliberately leaves open, which are delegated, from decisions it fails to settle, and surface each of the latter as a focused question or named blocker before drafting.
 
 **Complete when:** every triggered slice passes the contract reference's completion criterion.
 
@@ -60,10 +79,10 @@ Otherwise present each proposed task's title, observable outcome, covered requir
 Read [references/agent-task-template.md](references/agent-task-template.md) and [references/task-writing-checklist.md](references/task-writing-checklist.md).
 Inspect the destination, preserve existing files, and choose non-colliding dependency-ordered names such as `01-short-task-title.md`.
 Write one file per approved slice for an airgapped executor: embed all needed product context, repository findings, prerequisite capability contracts, and completion evidence, and describe prerequisite capabilities inside each dependent task.
-Fix observable behavior, durable contracts, boundaries, and completion evidence while leaving ordinary implementation choices to the executing agent.
+Fix observable behavior, durable contracts, and completion evidence; name the choices the executing agent owns instead of leaving them silently open; and state the change surface wherever collateral change would damage something this task does not own.
 Audit every draft against the coverage ledger and every applicable quality-gate item before saving it.
 
-**Complete when:** every approved slice has one saved task, every ledger item remains accounted for, every task passes the quality gate, and no existing file was replaced without explicit authorization.
+**Complete when:** every approved slice has one saved task, every ledger item remains accounted for, every material decision in a task carries exactly one disposition, every task passes the quality gate, and no existing file was replaced without explicit authorization.
 
 ### 7. Report the handoff
 

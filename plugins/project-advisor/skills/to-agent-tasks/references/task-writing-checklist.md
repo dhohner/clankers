@@ -24,6 +24,17 @@ Check every applicable item against the complete task before saving it.
 - Product semantics, edge behavior, durable contracts, and completion evidence are explicit.
 - Architecture, framework, and implementation choices remain open wherever source evidence leaves them open.
 
+## Delegation boundary
+
+- Every material decision the task touches is fixed by source or repository evidence, explicitly delegated to the executing agent, or named as a blocker, and none is left silently ambiguous.
+- Choices the task leaves open are stated as open rather than implied by omission, so the agent spends no effort reconstructing a preference that does not exist.
+- A decision that neither the PRD nor the repository settles, but the task settles anyway to stay executable, is labeled inside the task file as an assumption rather than presented as established fact; recording it only in the conversation summary does not count, because the executing agent never sees that summary.
+- When the task changes artifacts, configuration, or behavior that something else depends on, it names what may change and the invariants a reasonable executor might plausibly break, without restating sections the task already contains.
+- The invariants a task declares intact are consistent with the changes that same task makes; an invariant its own required behavior violates strands the executor between two instructions it cannot both satisfy.
+- Where a task preserves something it also changes, the invariant names the properties that survive - field names, meanings, ordering, existing values, status codes - because a blanket "behaves exactly as it does today" is contradicted on its face by the same task adding to that behavior, and leaves the executor guessing whether an existing assertion should be amended or reported as a failure.
+- A blocker names the narrowest unresolved decision, and the task still delivers the behavior that blocker does not prevent, instead of deferring a whole requirement because one of its inputs is missing.
+- The handoff directs the agent to stop and report at a decision the task does not settle, rather than widen scope or invent one.
+
 ## Acceptance
 
 - Every source scenario assigned to the slice is preserved semantically in at least one acceptance scenario.
@@ -45,6 +56,8 @@ Check every applicable item against the complete task before saving it.
 - Identifiers, values, units, commands, qualifiers, and Gherkin details remain exact.
 - Compact prose preserves actor, condition, behavior, rationale, and boundary.
 - Every sentence contributes decision-relevant execution context.
+- Within one file a binding fact lives in the section that owns it, and the other prose sections refer to it rather than restating it; acceptance scenarios still re-express behavior as observable evidence, which is their job.
+  Restating the same rule in several sections is not merely long: the copies drift, and an executor reconciling two versions of one rule pages apart is being asked to decide something nobody decided.
 
 ## Contract branch
 

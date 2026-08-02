@@ -10,7 +10,7 @@ This skill converts an accepted PRD into a small set of executable tracer-bullet
 2. **Extract implementation boundaries** - carries forward required behavior, Gherkin scenarios, constraints, non-goals, risks, open questions, success measures, and validation context when they affect delivery.
 3. **Inspect repository context** - identifies the real integration points, conventions, data contracts, and validation commands needed by each task.
 4. **Design dependency-ordered slices** - creates the smallest set of tasks that each deliver one observable outcome.
-5. **Resolve material ambiguity** - asks focused questions or records blockers when the PRD and repository do not settle a product or contract decision.
+5. **Partition authority** - gives every material decision one disposition: fixed by source evidence, delegated to the executing agent, or escalated as a blocker, and asks focused questions when the PRD and repository do not settle a product or contract decision.
 6. **Write autonomous task files** - produces one Markdown file per approved task, with enough context for an agent that cannot access the PRD or other task files.
 
 ## Input and Output
@@ -30,6 +30,7 @@ action-items/agent-tasks/
 Each task includes:
 
 - one observable outcome and a clear scope boundary;
+- a delegation boundary: what the task may change, what must survive intact, and which choices are the executing agent's own;
 - repository findings relevant to implementation;
 - source-backed behavioral acceptance criteria;
 - concrete validation commands or focused checks; and
@@ -37,6 +38,7 @@ Each task includes:
 
 Tasks are written for coding agents, not as Jira tickets or implementation checklists.
 They leave ordinary implementation choices to the executing agent while making product semantics, durable contracts, edge behavior, and completion evidence explicit.
+Because the executing agent cannot ask a follow-up question, each task states where its authority ends: an agent that reaches a decision the task does not settle stops and reports it rather than widening scope or inventing one.
 
 ## Usage
 

@@ -19,7 +19,19 @@
         "Gherkin Given clauses are consistent with the fixture data they reference, or the scenario explicitly sets up the state it assumes.",
         "REQ-05 produces explicit authorization and audit contract clauses (authenticated actor, ownership scope, audit record content) or named blockers rather than silence.",
         "REQ-04's invoice-fetch failure behavior (retryable error without losing page state) appears in some task's acceptance criteria.",
-        "Validation sections name commands that exist in the fixture repo (npm test / jest) and stay local."
+        "Validation sections name commands that exist in the fixture repo (npm test / jest) and stay local.",
+        "Every task's handoff tells the executor to stop and report a decision the task does not settle rather than widen scope or invent one.",
+        "Every task's handoff report list asks for the choices the executor made where the task left the decision open.",
+        "Material choices the task leaves to the executing agent are stated as open explicitly, not left implied by omission.",
+        "Tasks that modify shared fixture artifacts (auth middleware, the in-memory data layer, existing routes or their response shapes) state what must survive intact, not only what to add.",
+        "No unresolved product decision is presented as settled fact; unresolved decisions appear as named blockers with the evidence needed to settle them.",
+        "Where a task settles a product or contract decision that neither the PRD nor the repository fixes, the task file itself labels it as an assumption; surfacing it only in the chat summary does not count, because the executor never sees that summary.",
+        "No task dictates an implementation choice the PRD and repository leave open (module layout, algorithm, data structure, injection style) unless it labels that choice as non-binding.",
+        "Where one task's output is a prerequisite for another, the contract described in both agrees on response shape, field names, error codes, and ordering.",
+        "Boundary and open-choices material is specific to its task and names the invariants an executor might plausibly break, rather than restating the task's own behavior, contract, or repository sections.",
+        "The invariants each task declares intact are consistent with the changes that same task makes; no task both preserves and modifies the same contract.",
+        "Where an input is missing, the blocker is scoped to the part it actually prevents and the task still delivers the rest of the requirement, rather than deferring a whole requirement wholesale; REQ-03 delivery milestones and REQ-02 filter persistence are the cases to check.",
+        "No task asserts a claim about the source that the PRD does not support, such as inventing a ranking, magnitude, or priority among items the PRD lists without one."
       ]
     },
     {

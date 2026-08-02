@@ -14,6 +14,14 @@
 
 <Include only exclusions that clarify this task boundary; remove this optional section when none apply.>
 
+### Boundary and open choices
+
+<Name what this task may create or modify, and the invariants a reasonable executor might plausibly break on the way, rather than an inventory of everything that exists.
+State the choices this task deliberately leaves to the executing agent, so no effort goes into inferring a preference that does not exist.
+Where this task changes something it also needs preserved, name the properties that survive rather than calling the behavior unchanged, so the invariant does not contradict the change on its face.
+Say each fact once: this section carries the boundary, not a second copy of the behavior, contract, or repository sections.
+Remove this optional section when neither applies.>
+
 ### Constraints and dependencies
 
 <State source-backed constraints and risks, clearly labeled assumptions and blockers, and prerequisite capabilities.
@@ -48,9 +56,11 @@ Scenario: <Observable outcome>
 ## Execution and handoff
 
 Deliver the outcome above and run the listed validation plus directly relevant repository checks.
+Stay inside the boundary this task sets: make the choices it leaves open to you and record them, and when something it does not settle blocks safe progress, stop and report rather than widening scope or inventing a decision.
 Report:
 
 - changed files;
 - exact validation commands and observed results;
-- manual checks performed and their observations; and
+- manual checks performed and their observations;
+- choices made where this task left the decision open; and
 - unresolved blockers or assumptions.
