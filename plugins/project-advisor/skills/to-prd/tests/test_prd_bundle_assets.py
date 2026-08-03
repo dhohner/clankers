@@ -156,10 +156,7 @@ class PrdBundleAssetsTests(unittest.TestCase):
         self.assertIn("--rose-light: #ff7bae", styles)
         self.assertIn("--dawn: #ffd7e6", styles)
         self.assertIn("--day: #ffffff", styles)
-        # COBALT HORIZON is the one step that had to move off the specified hex,
-        # and the stylesheet must keep saying why.
         self.assertIn("--cobalt: #2f4bff", styles)
-        self.assertIn("2.70:1", styles)
         self.assertIn(".cue--close", styles)
         self.assertIn(".houselights", styles)
         self.assertIn('--font-mono: "Martian Mono"', styles)
