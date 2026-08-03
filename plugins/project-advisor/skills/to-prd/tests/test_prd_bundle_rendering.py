@@ -140,6 +140,9 @@ class PrdBundleRenderingTests(unittest.TestCase):
 
         self.assertIn('class="diagram-surface mermaid-diagram"', document)
         self.assertIn('aria-labelledby="workflow_diagram-visual-description"', document)
+        # The frame stays outside the hidden canvas so the zoom controls the
+        # script puts there remain reachable while the canvas scrolls.
+        self.assertIn('<div class="mermaid-frame"><div class="mermaid-canvas"', document)
         self.assertIn("<code>Actor --&gt; Result</code>", document)
         self.assertIn("Diagram source and text fallback", document)
 

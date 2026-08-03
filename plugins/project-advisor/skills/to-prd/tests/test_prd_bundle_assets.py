@@ -84,6 +84,40 @@ class PrdBundleAssetsTests(unittest.TestCase):
         self.assertIn(".mermaid-canvas svg", self.styles)
         self.assertIn(".mermaid-toolbar", self.styles)
 
+    def test_a_zoomed_diagram_can_be_scrolled_and_keeps_its_controls(self) -> None:
+        """Zoom is useless if the enlarged diagram cannot be reached.
+
+        The canvas scrolls instead of clipping, centres safely so nothing lands
+        past the scroll origin, and hands its controls to a frame outside the
+        scrolling, hidden subtree.
+        """
+        script = self.script
+        styles = self.styles
+
+        canvas_rules = styles.split(".mermaid-canvas {")[1].split("}")[0]
+        self.assertIn("overflow: auto;", canvas_rules)
+        self.assertIn("place-content: safe center;", canvas_rules)
+        self.assertNotIn("overflow: hidden;", canvas_rules)
+        self.assertIn(".mermaid-frame { position: relative; }", styles)
+        self.assertIn(".mermaid-canvas.is-panning", styles)
+
+        self.assertIn('(canvas.closest(".mermaid-frame") ?? canvas).append(toolbar)', script)
+        self.assertIn('canvas.removeAttribute("aria-hidden")', script)
+        self.assertIn('canvas.setAttribute("tabindex", "0")', script)
+        self.assertIn('svg.setAttribute("aria-hidden", "true")', script)
+        self.assertIn("enableDragPanning(canvas)", script)
+        self.assertIn('canvas.classList.toggle("is-pannable", canvasOverflows())', script)
+        # Stepping the zoom keeps the reader where they were looking.
+        self.assertIn("canvas.scrollLeft = focus.x * canvas.scrollWidth", script)
+
+    def test_the_sheet_stops_widening_on_large_displays(self) -> None:
+        styles = self.styles
+
+        self.assertIn("--shell: 88rem;", styles)
+        stage_rules = styles.split(".stage {")[1].split("}")[0]
+        self.assertIn("max-width: var(--shell);", stage_rules)
+        self.assertIn("margin-inline: auto;", stage_rules)
+
     def test_typography_ships_with_the_bundle(self) -> None:
         styles = self.styles
 
@@ -206,13 +240,17 @@ class PrdBundleAssetsTests(unittest.TestCase):
         """The bar signs the document in type, inset like the page beneath it.
 
         The brand disc was removed, so nothing sits between the bar's left edge
-        and the product name, and the bar carries `--page-pad` on both sides at
-        every width rather than tightening its inset on narrow screens.
+        and the product name. The bar never insets by less than `--page-pad`, and
+        past the shell width it grows the inset so its content stays aligned with
+        the sheet instead of drifting to the edges of a wide display.
         """
         styles = self.styles
 
         self.assertNotIn(".brand-mark", styles)
-        self.assertIn("padding: 0 var(--page-pad);", styles.split(".plot-bar {")[1])
+        self.assertIn(
+            "padding: 0 max(var(--page-pad), calc((100% - var(--shell)) / 2 + var(--page-pad)));",
+            styles.split(".plot-bar {")[1],
+        )
         narrow = styles.split("@media (max-width: 34rem)")[1]
         self.assertNotIn(".plot-bar { padding:", narrow)
         self.assertIn(".brand-role { display: none; }", narrow)

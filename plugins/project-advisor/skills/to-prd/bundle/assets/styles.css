@@ -53,6 +53,9 @@
 
   --bar-height: 3.5rem;
   --rail-width: 16.5rem;
+  /* The sheet stops growing once the reading column is comfortable; wider
+     displays get margin instead of a stretched document. */
+  --shell: 88rem;
   --page-pad: clamp(1.25rem, 4vw, 4rem);
   --cue-space: clamp(4.5rem, 8vw, 8rem);
   --stack: clamp(1.5rem, 2.4vw, 2.25rem);
@@ -231,7 +234,9 @@ code {
   align-items: center;
   justify-content: space-between;
   height: var(--bar-height);
-  padding: 0 var(--page-pad);
+  /* The bar spans the viewport, but its content keeps the sheet's gutters so
+     the brand sits over the cue sheet and the status over the page edge. */
+  padding: 0 max(var(--page-pad), calc((100% - var(--shell)) / 2 + var(--page-pad)));
   border-bottom: 1px solid var(--edge-soft);
   background: rgb(5 5 6 / 72%);
   backdrop-filter: blur(14px);
@@ -269,6 +274,8 @@ code {
 .stage {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
+  max-width: var(--shell);
+  margin-inline: auto;
 }
 
 main {
@@ -1178,15 +1185,29 @@ caption {
   font-size: .88rem;
 }
 
+/* Holds the zoom controls still while the canvas inside them scrolls. */
+.mermaid-frame { position: relative; }
+
 .mermaid-canvas {
-  position: relative;
   display: grid;
-  place-items: center;
+  /* `safe` keeps a zoomed diagram reachable: centred content that outgrows the
+     canvas would otherwise overflow past the scroll origin and be unreachable. */
+  place-items: safe center;
+  place-content: safe center;
   min-height: 16rem;
   max-height: 40rem;
-  padding: 1.25rem 0;
+  padding: 1.25rem;
   background: radial-gradient(70% 100% at 50% 0%, rgb(47 75 255 / 10%), transparent 70%);
-  overflow: hidden;
+  overflow: auto;
+  scrollbar-color: var(--edge-strong) transparent;
+  scrollbar-width: thin;
+}
+
+.mermaid-canvas.is-pannable { cursor: grab; }
+
+.mermaid-canvas.is-panning {
+  cursor: grabbing;
+  user-select: none;
 }
 
 .mermaid-canvas svg {
@@ -1473,7 +1494,7 @@ details summary:hover { color: var(--ink); }
   .stage {
     grid-template-columns: var(--rail-width) minmax(0, 1fr);
     gap: clamp(1.5rem, 3vw, 3.5rem);
-    padding-left: clamp(1rem, 2vw, 2rem);
+    padding-left: var(--page-pad);
   }
 
   main { padding-right: var(--page-pad); padding-left: 0; }
@@ -1550,6 +1571,15 @@ details summary:hover { color: var(--ink); }
     font-size: .6rem;
     letter-spacing: .14em;
     text-transform: uppercase;
+  }
+
+  /* A narrow canvas has no dead corner for the controls to float in, so they
+     step out from over the diagram and sit under it. */
+  .mermaid-toolbar {
+    position: static;
+    justify-content: flex-end;
+    width: fit-content;
+    margin: .5rem 0 0 auto;
   }
 
   .plate-rows > div { grid-template-columns: minmax(0, 1fr); gap: .2rem; }

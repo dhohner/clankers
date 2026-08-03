@@ -54,8 +54,9 @@ def render_mermaid_diagram(name: str, value: dict[str, Any]) -> str:
         f'<figure class="diagram-surface mermaid-diagram" aria-labelledby="{description_id}">'
         f'<p id="{description_id}" class="visual-description">'
         f'{escape_html(value["description"])}</p>'
+        '<div class="mermaid-frame">'
         f'<div class="mermaid-canvas" data-mermaid-source="{source_id}" aria-hidden="true">'
-        '<p class="visual-loading">Bringing up diagram</p></div>'
+        '<p class="visual-loading">Bringing up diagram</p></div></div>'
         '<details class="diagram-source-details">'
         "<summary>Diagram source and text fallback</summary>"
         f'<pre id="{source_id}" class="diagram-source"><code>'

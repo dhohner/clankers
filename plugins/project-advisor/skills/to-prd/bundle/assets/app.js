@@ -276,16 +276,51 @@ function diagramFitScale(canvas, naturalWidth, naturalHeight) {
     + (parseFloat(styles.paddingBottom) || 0)
     + (parseFloat(styles.borderTopWidth) || 0)
     + (parseFloat(styles.borderBottomWidth) || 0);
-  const reservedHeight = [...canvas.children]
-    .filter((child) => child.tagName.toLowerCase() !== "svg")
-    .reduce((total, child) => total + child.getBoundingClientRect().height, 0);
   const availableWidth = canvas.clientWidth - horizontalPadding;
   const availableHeight = Math.max(
     (parseFloat(styles.minHeight) || 0) - verticalChrome,
-    (parseFloat(styles.maxHeight) || 0) - verticalChrome - reservedHeight,
+    (parseFloat(styles.maxHeight) || 0) - verticalChrome,
   );
   if (availableWidth <= 0 || availableHeight <= 0) return 1;
   return Math.min(1, availableWidth / naturalWidth, availableHeight / naturalHeight);
+}
+
+// Touch and trackpad already pan a scroll container; a mouse only has the
+// scrollbars, so a zoomed diagram gets grab-and-drag on top of them.
+function enableDragPanning(canvas) {
+  let pointerId = null;
+  let origin = null;
+
+  canvas.addEventListener("pointerdown", (event) => {
+    if (event.button !== 0 || event.pointerType === "touch") return;
+    if (!canvas.classList.contains("is-pannable")) return;
+    pointerId = event.pointerId;
+    origin = {
+      x: event.clientX,
+      y: event.clientY,
+      left: canvas.scrollLeft,
+      top: canvas.scrollTop,
+    };
+    canvas.setPointerCapture(pointerId);
+    canvas.classList.add("is-panning");
+    event.preventDefault();
+  });
+
+  canvas.addEventListener("pointermove", (event) => {
+    if (event.pointerId !== pointerId || !origin) return;
+    canvas.scrollLeft = origin.left - (event.clientX - origin.x);
+    canvas.scrollTop = origin.top - (event.clientY - origin.y);
+  });
+
+  const endPan = (event) => {
+    if (event.pointerId !== pointerId) return;
+    if (canvas.hasPointerCapture(pointerId)) canvas.releasePointerCapture(pointerId);
+    pointerId = null;
+    origin = null;
+    canvas.classList.remove("is-panning");
+  };
+  canvas.addEventListener("pointerup", endPan);
+  canvas.addEventListener("pointercancel", endPan);
 }
 
 function initMermaidZoom(canvas) {
@@ -297,6 +332,14 @@ function initMermaidZoom(canvas) {
   const naturalHeight = viewBox?.height || bounds.height;
   svg.style.maxWidth = "none";
   svg.style.maxHeight = "none";
+  // The picture repeats the description and the source fallback, so it stays out
+  // of the accessibility tree. The canvas takes its place as a focusable scroll
+  // region, because a zoomed diagram has to be pannable by keyboard too.
+  svg.setAttribute("aria-hidden", "true");
+  canvas.removeAttribute("aria-hidden");
+  canvas.setAttribute("role", "group");
+  canvas.setAttribute("aria-label", "Rendered diagram, scrollable when zoomed");
+  canvas.setAttribute("tabindex", "0");
   let fitScale = 1;
   let zoom = 1;
   const toolbar = document.createElement("div");
@@ -321,10 +364,23 @@ function initMermaidZoom(canvas) {
     svg.style.width = `${Math.floor(naturalWidth * scale)}px`;
     svg.style.height = `${Math.floor(naturalHeight * scale)}px`;
     if (label) label.textContent = zoom === 1 ? "Fit" : `${Math.round(zoom * 100)}%`;
+    canvas.classList.toggle("is-pannable", canvasOverflows());
   }
+  function canvasOverflows() {
+    return canvas.scrollWidth - canvas.clientWidth > 1
+      || canvas.scrollHeight - canvas.clientHeight > 1;
+  }
+  // Zoom around the middle of what the reader is currently looking at, so a step
+  // in does not throw the view into a corner of the diagram.
   function setZoom(nextZoom) {
+    const focus = {
+      x: (canvas.scrollLeft + canvas.clientWidth / 2) / Math.max(canvas.scrollWidth, 1),
+      y: (canvas.scrollTop + canvas.clientHeight / 2) / Math.max(canvas.scrollHeight, 1),
+    };
     zoom = Math.min(4, Math.max(0.5, Math.round(nextZoom * 100) / 100));
     applyScale();
+    canvas.scrollLeft = focus.x * canvas.scrollWidth - canvas.clientWidth / 2;
+    canvas.scrollTop = focus.y * canvas.scrollHeight - canvas.clientHeight / 2;
   }
   toolbar.addEventListener("click", (event) => {
     const action = event.target.closest?.("button")?.dataset?.zoom;
@@ -332,7 +388,10 @@ function initMermaidZoom(canvas) {
     if (action === "out") setZoom(zoom - 0.25);
     if (action === "reset") setZoom(1);
   });
-  canvas.prepend(toolbar);
+  // The toolbar sits outside the scrolling canvas so it stays put while the
+  // diagram is panned.
+  (canvas.closest(".mermaid-frame") ?? canvas).append(toolbar);
+  enableDragPanning(canvas);
   fitScale = diagramFitScale(canvas, naturalWidth, naturalHeight);
   applyScale();
   diagramRefits.push(() => {
