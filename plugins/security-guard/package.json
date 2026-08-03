@@ -1,6 +1,6 @@
 {
   "name": "security-guard",
-  "version": "0.1.0",
+  "version": "0.3.1",
   "private": true,
   "description": "Pi extension and Claude-format hook that block environment dumps and common local credential access.",
   "type": "module",
