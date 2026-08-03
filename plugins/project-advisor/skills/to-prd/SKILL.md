@@ -100,7 +100,8 @@ On that decision, before offering any handoff:
 2. Rerun the step 3 commands with `generate --force` and the original `--output-root`, so the reviewed bundle carries the accepted source.
 3. Report the published `action-items/PRD-<slug>/prd.yaml` that downstream skills should read.
 
-Then offer `to-issues` for Jira-ready tickets or `to-agent-tasks` for autonomous coding-agent work packages, both reading that manifest.
+Then use the interactive question tool to offer `to-issues` for Jira-ready tickets, `to-agent-tasks` for autonomous coding-agent work packages, or no handoff.
+If the user picks one, invoke that skill with the published `prd.yaml` as its source.
 Issue splitting and task generation stay behind acceptance unless the user explicitly requests a combined flow.
 
 **Complete when:** the user has the review bundle, unresolved questions and unperformed visual checks are visible, an accepted PRD reads `status: Accepted` in the published `prd.yaml`, and the next action is explicit.

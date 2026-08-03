@@ -1,6 +1,7 @@
 ---
 name: next-thing
-description: Prioritize the single highest-leverage product bet for the current project and pitch it with repository evidence. Use when the user asks what to build next or requests an elevator-pitch product recommendation.
+description: Prioritize the single highest-leverage product bet for the current project and pitch it with repository evidence.
+disable-model-invocation: true
 ---
 
 # Next Product Bet
