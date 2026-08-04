@@ -4,8 +4,7 @@ Diese Datei dient als Referenz für Ton, Detailgrad und den Unterschied zwischen
 
 Domain-Details nicht wörtlich übernehmen, sofern sie nicht zum aktuellen PRD passen. Struktur, ergebnisorientierte Formulierung und Hinweis-Dichte wiederverwenden.
 
-Das Ticket nutzt Deutsch als Basissprache für Titel, User Story, Szenario-Namen, Szenario-Text, Hinweis-Labels und Hinweis-Inhalte.
-Etablierte englische Produkt- oder Fachbegriffe bleiben englisch, wenn sie im Kontext präziser sind als eine wörtliche Übersetzung.
+Sprachregister und Begriffswahl folgen der Ticket-Writing-Checkliste; dieses Beispiel zeigt beides angewendet.
 
 ## Beispiel-Ausgabe
 

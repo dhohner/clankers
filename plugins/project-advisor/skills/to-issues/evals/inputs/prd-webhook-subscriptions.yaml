@@ -1,0 +1,96 @@
+schema_version: 1
+slug: "outbound-webhook-subscriptions"
+title: "Outbound Webhook Subscriptions"
+summary: "Integration admins are able to subscribe external endpoints to order events, verify deliveries at a glance, and recover from failures seamlessly without contacting platform support."
+status: Accepted
+initiative_type: "workflow-heavy"
+review_surfaces:
+  - document
+  - workflow
+metadata:
+  Owner: Integrations Platform
+  Primary user: "Integration admin"
+  Release: v1
+blocks:
+  problem:
+    statement: "In order to react to order updates, partner teams currently poll the API on tight schedules. This wastes rate limit budget, delays downstream automation, and creates support tickets whenever a poller silently breaks."
+    evidence:
+      - "Partner integrations poll the orders API even when nothing has changed."
+      - "Broken pollers are usually discovered by support, not by the partner team."
+  goals:
+    - goal: "Enable integration admins to be able to set up event delivery on their own."
+      success_signal: "An admin can register a webhook endpoint and receive order events without filing a support ticket."
+    - goal: "Make delivery health visible so that partners are able to troubleshoot issues themselves."
+      success_signal: "Admins resolve routine delivery failures using the delivery log instead of contacting support."
+  scope:
+    in:
+      - "Webhook subscription management (create, pause, resume, delete) in the developer settings area"
+      - "A shared secret per subscription for signature verification, including rotation"
+      - "Delivery log with payload preview, response status, and timestamps"
+      - "Automatic retries with exponential backoff for failed deliveries"
+      - "Manual redelivery of a specific event from the delivery log"
+      - "Feature flag rollout to selected partner workspaces first"
+    out:
+      - "Inbound webhooks"
+      - "Self-service rate limit increases"
+      - "Transformation or filtering of the event payload"
+  requirements:
+    - id: "REQ-01"
+      title: "Create and manage webhook subscriptions"
+      description: "Integration admins are able to register an HTTPS endpoint for selected order event types, pause and resume it, and delete it. Validation errors such as invalid URLs, unsupported schemes, or duplicate subscriptions are explained clearly so that the admin is able to correct them."
+      validation:
+        - "TEST-01"
+    - id: "REQ-02"
+      title: "Signed deliveries with secret rotation"
+      description: "Every delivery is signed with the subscription's shared secret so that the receiver is able to verify authenticity. Admins are able to rotate the secret at any time, and deliveries that are already in flight continue to verify successfully during the rotation window."
+      validation:
+        - "TEST-02"
+      relates_to:
+        - "RISK-01"
+    - id: "REQ-03"
+      title: "Delivery log with payload preview"
+      description: "Admins are able to review recent deliveries at a glance, including response status, timestamps, and a payload preview, in order to troubleshoot integrations without contacting support."
+      validation:
+        - "TEST-03"
+    - id: "REQ-04"
+      title: "Automatic retries and manual redelivery"
+      description: "Failed deliveries are retried automatically with exponential backoff until a retry budget is exhausted. From the delivery log, admins are able to trigger a manual redelivery for a specific event after the underlying issue has been fixed."
+      validation:
+        - "TEST-04"
+      relates_to:
+        - "RISK-01"
+    - id: "REQ-05"
+      title: "Access boundary and audit trail"
+      description: "Only admins of the owning workspace are able to see or manage its subscriptions, secrets, and delivery logs. Creating, changing, or deleting a subscription and every secret rotation are recorded in the audit log."
+      validation:
+        - "TEST-05"
+  risks:
+    - id: "RISK-01"
+      risk: "If retries hammer a failing endpoint, partners may perceive the platform as the cause of their outage."
+      mitigation: "Exponential backoff and a visible retry schedule keep redelivery predictable and inspectable."
+  testing_strategy:
+    - id: "TEST-01"
+      target: "Create and manage webhook subscriptions"
+      expected_outcome: "An admin registers an endpoint for chosen event types, pauses, resumes, and deletes it, and sees clear validation feedback for invalid input."
+      validates:
+        - "REQ-01"
+    - id: "TEST-02"
+      target: "Signed deliveries with secret rotation"
+      expected_outcome: "Deliveries carry a verifiable signature, and rotating the secret does not break deliveries that are already in flight."
+      validates:
+        - "REQ-02"
+    - id: "TEST-03"
+      target: "Delivery log with payload preview"
+      expected_outcome: "An admin finds a recent delivery, inspects its payload preview, response status, and timestamps, and identifies the failure reason without support."
+      validates:
+        - "REQ-03"
+    - id: "TEST-04"
+      target: "Automatic retries and manual redelivery"
+      expected_outcome: "A failed delivery is retried with growing intervals, and a manual redelivery can be triggered for a specific event from the delivery log."
+      validates:
+        - "REQ-04"
+    - id: "TEST-05"
+      target: "Access boundary and audit trail"
+      expected_outcome: "Admins of another workspace cannot see the subscription, and subscription changes plus secret rotations appear in the audit log."
+      validates:
+        - "REQ-05"

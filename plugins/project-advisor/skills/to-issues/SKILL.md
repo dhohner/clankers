@@ -11,7 +11,7 @@ argument-hint: "[default|brief]"
 
 Convert settled product planning into independently demoable Jira stories for experienced human developers.
 Write local Markdown files to `action-items/jira-issues/` unless the user chooses another location.
-German is the base language; retain established source-backed English product, UI, and technical terms when they are clearer.
+Tickets are composed in German in the register of a German-speaking product team, per the ticket-writing checklist.
 
 ## Process
 

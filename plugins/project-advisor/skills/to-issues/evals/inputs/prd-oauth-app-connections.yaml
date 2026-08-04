@@ -1,0 +1,107 @@
+schema_version: 1
+slug: "oauth-app-connections"
+title: "OAuth App Connections"
+summary: "Workspace admins are able to connect third-party apps through a standard OAuth flow, manage the granted scopes at a glance, and revoke access seamlessly without contacting platform support."
+status: Accepted
+initiative_type: "workflow-heavy"
+review_surfaces:
+  - document
+  - workflow
+metadata:
+  Owner: Platform Integrations
+  Primary user: "Workspace admin"
+  Release: v1
+blocks:
+  problem:
+    statement: "Partner apps currently authenticate with long-lived API keys that admins paste into a support ticket. The keys never expire, carry full workspace permissions, and cannot be narrowed or revoked per app, so every offboarding turns into a manual cleanup."
+    evidence:
+      - "Support handles every app connection request by hand because there is no self-service flow."
+      - "Revoking a leaked API key currently breaks every other integration that shares it."
+      - "Admins cannot tell which app is responsible for a spike in API traffic."
+  goals:
+    - goal: "Enable workspace admins to be able to connect and disconnect partner apps on their own."
+      success_signal: "An admin completes an app connection end to end without filing a support ticket."
+    - goal: "Make granted access legible and reversible so that admins are able to audit it themselves."
+      success_signal: "An admin can see which scopes an app holds and revoke them in a single step."
+  scope:
+    in:
+      - "Authorization Code flow with PKCE for third-party apps registered in the developer portal"
+      - "Redirect URL allowlist per app registration, validated when the app is registered and again at authorization time"
+      - "Consent screen listing the requested scopes in plain language before the admin grants access"
+      - "Short-lived access token plus refresh token, with refresh token rotation on every use"
+      - "Connected apps list showing granted scopes, last used timestamp, and a revoke action"
+      - "Per-app rate limit bucket so one noisy app cannot exhaust the workspace budget"
+      - "Feature flag rollout to internal workspaces first, then design partners"
+    out:
+      - "Client Credentials flow for machine-to-machine access"
+      - "Self-service registration of new apps by external developers"
+      - "Custom scope definitions beyond the fixed catalog"
+      - "Single sign-on for end users"
+  requirements:
+    - id: "REQ-01"
+      title: "Register an app with a redirect URL allowlist"
+      description: "Internal developers are able to register an app in the developer portal with a name, one or more redirect URLs, and a client secret that is shown exactly once. Only HTTPS redirect URLs are accepted, wildcards are rejected, and an authorization request whose redirect URL is not on the allowlist is refused before the consent screen is shown."
+      validation:
+        - "TEST-01"
+      relates_to:
+        - "RISK-01"
+    - id: "REQ-02"
+      title: "Authorize an app through the consent screen"
+      description: "An admin who starts the flow from a partner app lands on a consent screen that names the app and lists the requested scopes in plain language. Granting access returns the admin to the app's redirect URL with an authorization code; declining returns them with an explicit error rather than a blank page."
+      validation:
+        - "TEST-02"
+    - id: "REQ-03"
+      title: "Short-lived access tokens with refresh token rotation"
+      description: "The authorization code is exchanged for an access token valid for one hour and a refresh token. Each refresh issues a new refresh token and invalidates the previous one, so a replayed refresh token is rejected and the whole connection is revoked as a suspected leak."
+      validation:
+        - "TEST-03"
+      relates_to:
+        - "RISK-01"
+    - id: "REQ-04"
+      title: "Review and revoke connected apps"
+      description: "Admins are able to see every connected app with its granted scopes and last used timestamp, and revoke a single app in one step. Revocation invalidates that app's access token and refresh token immediately; other connected apps continue to work."
+      validation:
+        - "TEST-04"
+    - id: "REQ-05"
+      title: "Per-app rate limits and staged rollout"
+      description: "Each connected app draws from its own rate limit bucket, and an app that exhausts its budget is throttled without affecting other apps in the workspace. The whole flow ships behind a feature flag so that it can be enabled for internal workspaces first and rolled back without a deployment if the consent screen misbehaves in staging."
+      validation:
+        - "TEST-05"
+      relates_to:
+        - "RISK-02"
+  risks:
+    - id: "RISK-01"
+      risk: "A permissive redirect URL check or a replayable refresh token would let an attacker capture an authorization code and hold workspace access indefinitely."
+      mitigation: "Exact-match redirect URL allowlisting plus refresh token rotation with reuse detection keep a stolen artifact short-lived."
+    - id: "RISK-02"
+      risk: "A misconfigured consent screen reaching production would block every new connection at once."
+      mitigation: "The feature flag allows a rollback without a deployment, and internal workspaces act as the first stage."
+  open_questions:
+    - question: "Should revoking an app also delete the data it already exported, or only cut future access?"
+      status: open
+  testing_strategy:
+    - id: "TEST-01"
+      target: "Register an app with a redirect URL allowlist"
+      expected_outcome: "A developer registers an app, sees the client secret once, and an authorization request with an off-allowlist or non-HTTPS redirect URL is refused before consent."
+      validates:
+        - "REQ-01"
+    - id: "TEST-02"
+      target: "Authorize an app through the consent screen"
+      expected_outcome: "An admin sees the app name and requested scopes, grants access, and lands back at the app; declining produces a clear error instead of a blank page."
+      validates:
+        - "REQ-02"
+    - id: "TEST-03"
+      target: "Short-lived access tokens with refresh token rotation"
+      expected_outcome: "An expired access token is refreshed successfully, and reusing an already-spent refresh token is rejected and revokes the connection."
+      validates:
+        - "REQ-03"
+    - id: "TEST-04"
+      target: "Review and revoke connected apps"
+      expected_outcome: "An admin reads the granted scopes and last used timestamp for each app, revokes one, and confirms the other connections still work."
+      validates:
+        - "REQ-04"
+    - id: "TEST-05"
+      target: "Per-app rate limits and staged rollout"
+      expected_outcome: "An app that exhausts its rate limit is throttled while other apps continue, and turning the feature flag off restores the previous behavior without a deployment."
+      validates:
+        - "REQ-05"

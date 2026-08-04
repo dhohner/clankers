@@ -34,9 +34,9 @@ Each generated file uses Jira-compatible HTML panels:
 
 ## Terminology
 
-Generated tickets use German as the base language, but they should keep English terms when those terms are established in the product, codebase, user-facing copy, or technical domain.
-Do not create clumsy literal translations for terms such as `Feature Flag`, `Dashboard`, `Template`, `Workflow`, `Audit Log`, `In-Product`, `Owner`, or `Business Unit` when the English term carries more meaning in context.
-Use natural German when it is clearer and aligns with the source terminology.
+Generated tickets are composed in German in the register of a German-speaking product team rather than translated word for word, even when the PRD is English.
+Terms are treated as names: each one keeps whichever language the team says out loud, so `Redirect URL` and `Feature Flag` stay English while `Bestellung` and `Freigabe` stay German, and a coined compound such as `Weiterleitungs-URL` never sends a developer hunting for a field that matches no label, no documentation, and no config key.
+`references/ticket-writing-checklist.md` owns the full rule.
 
 ## Bundled References
 

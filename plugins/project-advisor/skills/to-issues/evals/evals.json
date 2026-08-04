@@ -13,11 +13,11 @@
         "At least one generated work item covers invoice access together with auditable access and retryable recovery.",
         "At least one generated work item preserves the PRD's ownership boundary that only the authenticated customer can access their own order history and invoice links.",
         "The generated work items describe desired outcomes and constraints rather than instructing developers to add specific endpoints, schemas, tables, components, or methods.",
-        "Ticket content uses German labels and German sentence framing. Established English product or technical terms may remain when they are source-backed; English note labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' do not appear.",
+        "Ticket content is German in a native product-team register: sentences read as composed German rather than word-for-word translation (no 'in der Lage sein'), and established English product or technical terms stay English rather than being replaced by coined German translations. English note labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' do not appear.",
         "The Hinweise section follows the note structure from references/jira-issue-template.md: the panel header is followed by a `<ul>` with one `<li>` per included entry, and note entries with no real information are omitted instead of using placeholders such as `Keine`.",
         "Generated Jira stories are self-contained: ticket bodies and Hinweise do not reference the PRD, brief, source document, or source sections that are not included with the story; cross-ticket references appear only for real prerequisites or delivery dependencies.",
-        "Scenario text does not contain filler adjectives like nahtlos, robust, umfassend, zuverlässig, eindeutig, or sichergestellt.",
-        "Scenarios use first-person perspective (ich befinde mich, ich klicke, ich sehe) rather than third-person (der Nutzer, der Kunde befindet sich).",
+        "Scenario text does not contain filler adjectives like nahtlos, robust, umfassend, zuverlässig, erfolgreich, eindeutig, or sichergestellt.",
+        "Scenarios use first-person perspective (ich befinde mich, ich klicke, ich sehe) rather than third-person (der Nutzer, der Kunde befindet sich, ein Kunde öffnet).",
         "Technische Hinweise only contain non-obvious information - no tech stack, standard auth rules, or other things a senior dev would assume."
       ]
     },
@@ -33,11 +33,11 @@
         "At least one generated work item covers automatic delegated routing during the active window and automatic return to the original approver afterward.",
         "At least one generated work item preserves a compliance-facing view of delegation history without requiring database access.",
         "The generated work items describe behavior, ownership, and audit outcomes without prescribing specific APIs, schemas, tables, services, or UI components to change.",
-        "Ticket content uses German labels and German sentence framing. Established English product or technical terms may remain when they are source-backed; English note labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' do not appear.",
+        "Ticket content is German in a native product-team register: sentences read as composed German rather than word-for-word translation (no 'in der Lage sein'), and established English product or technical terms stay English rather than being replaced by coined German translations. English note labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' do not appear.",
         "The Hinweise section follows the note structure from references/jira-issue-template.md: the panel header is followed by a `<ul>` with one `<li>` per included entry, and note entries with no real information are omitted instead of using placeholders such as `Keine`.",
         "Generated Jira stories are self-contained: ticket bodies and Hinweise do not reference the PRD, brief, source document, or source sections that are not included with the story; cross-ticket references appear only for real prerequisites or delivery dependencies.",
-        "Scenario text does not contain filler adjectives like nahtlos, robust, umfassend, zuverlässig, eindeutig, or sichergestellt.",
-        "Scenarios use first-person perspective (ich befinde mich, ich klicke, ich sehe) rather than third-person (der Nutzer, der Kunde befindet sich).",
+        "Scenario text does not contain filler adjectives like nahtlos, robust, umfassend, zuverlässig, erfolgreich, eindeutig, or sichergestellt.",
+        "Scenarios use first-person perspective (ich befinde mich, ich klicke, ich sehe) rather than third-person (der Nutzer, der Kunde befindet sich, ein Kunde öffnet).",
         "Technische Hinweise only contain non-obvious information - no tech stack, standard auth rules, or other things a senior dev would assume."
       ]
     },
@@ -55,11 +55,11 @@
         "The generated work items describe user-visible behavior and constraints rather than prescribing specific APIs, schemas, tables, services, components, or methods to change.",
         "The generated work items do not invent additional product rules that are absent from the brief, such as naming validation, duplicate-name handling, sharing behavior, quotas, or special permission exceptions, unless they are clearly framed as assumptions or open questions.",
         "The generated work items preserve that saved views are personal and not shared with other users.",
-        "Ticket content uses German labels and German sentence framing. Established English product or technical terms may remain when they are source-backed; English note labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' do not appear.",
+        "Ticket content is German in a native product-team register: sentences read as composed German rather than word-for-word translation (no 'in der Lage sein'), and established English product or technical terms stay English rather than being replaced by coined German translations. English note labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' do not appear.",
         "The Hinweise section follows the note structure from references/jira-issue-template.md: the panel header is followed by a `<ul>` with one `<li>` per included entry, and note entries with no real information are omitted instead of using placeholders such as `Keine`.",
         "Generated Jira stories are self-contained: ticket bodies and Hinweise do not reference the PRD, brief, source document, or source sections that are not included with the story; cross-ticket references appear only for real prerequisites or delivery dependencies.",
-        "Scenario text does not contain filler adjectives like nahtlos, robust, umfassend, zuverlässig, eindeutig, or sichergestellt.",
-        "Scenarios use first-person perspective (ich befinde mich, ich klicke, ich sehe) rather than third-person (der Nutzer, der Kunde befindet sich)."
+        "Scenario text does not contain filler adjectives like nahtlos, robust, umfassend, zuverlässig, erfolgreich, eindeutig, or sichergestellt.",
+        "Scenarios use first-person perspective (ich befinde mich, ich klicke, ich sehe) rather than third-person (der Nutzer, der Kunde befindet sich, ein Kunde öffnet)."
       ]
     },
     {
@@ -76,10 +76,10 @@
         "The generated work items do not invent unsupported product rules such as personal-versus-shared ownership, rename or delete behavior, quotas, duplicate-name handling, validation rules, or special permission exceptions unless they are clearly framed as assumptions or open questions.",
         "The generated work items describe user-visible behavior and constraints rather than prescribing specific APIs, schemas, tables, services, components, or methods to change.",
         "The generated work items preserve the thin brief's explicit scope constraints: the existing list/filter experience is extended rather than replaced, and the first version is for internal users.",
-        "Ticket content uses German labels and German sentence framing. Established English product or technical terms may remain when they are source-backed; English note labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' do not appear.",
+        "Ticket content is German in a native product-team register: sentences read as composed German rather than word-for-word translation (no 'in der Lage sein'), and established English product or technical terms stay English rather than being replaced by coined German translations. English note labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' do not appear.",
         "The Hinweise section follows the note structure from references/jira-issue-template.md: the panel header is followed by a `<ul>` with one `<li>` per included entry, and note entries with no real information are omitted instead of using placeholders such as `Keine`.",
         "Generated Jira stories are self-contained: ticket bodies and Hinweise do not reference the PRD, brief, source document, or source sections that are not included with the story; cross-ticket references appear only for real prerequisites or delivery dependencies.",
-        "Scenario text does not contain filler adjectives like nahtlos, robust, umfassend, zuverlässig, eindeutig, or sichergestellt."
+        "Scenario text does not contain filler adjectives like nahtlos, robust, umfassend, zuverlässig, erfolgreich, eindeutig, or sichergestellt."
       ]
     },
     {
@@ -95,10 +95,93 @@
         "The generated work items preserve the manifest's explicit first-release constraint that templates are personal and not shared across the team.",
         "The generated work items preserve the manifest's explicit non-goal that analytics and centrally managed default templates are out of scope for the first release.",
         "The generated work items use prd.yaml as planning source and describe product behavior and constraints rather than prescribing specific APIs, schemas, tables, services, or components to change.",
-        "Ticket content uses German labels and German sentence framing. Established English product or technical terms may remain when they are source-backed; English note labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' do not appear.",
+        "Ticket content is German in a native product-team register: sentences read as composed German rather than word-for-word translation (no 'in der Lage sein'), and established English product or technical terms stay English rather than being replaced by coined German translations. English note labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' do not appear.",
         "The Hinweise section follows the note structure from references/jira-issue-template.md: the panel header is followed by a `<ul>` with one `<li>` per included entry, and note entries with no real information are omitted instead of using placeholders such as `Keine`.",
         "Generated Jira stories are self-contained: ticket bodies and Hinweise do not reference the PRD, brief, source document, or source sections that are not included with the story; cross-ticket references appear only for real prerequisites or delivery dependencies.",
-        "Scenarios use first-person perspective (ich befinde mich, ich klicke, ich sehe) rather than third-person (der Nutzer, der Kunde befindet sich)."
+        "Scenarios use first-person perspective (ich befinde mich, ich klicke, ich sehe) rather than third-person (der Nutzer, der Kunde befindet sich, ein Kunde öffnet)."
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Convert the accepted PRD manifest in plugins/project-advisor/skills/to-issues/evals/inputs/prd-webhook-subscriptions.yaml into Jira-ready vertical-slice work items. The PRD is written entirely in English. Use prd.yaml as the source of truth for scope, constraints, and risks. Assume the slice breakdown is approved and write the markdown files directly.",
+      "expected_output": "An English-only PRD becomes German tickets composed in a native product-team register: established English technical terms stay English, and no sentence reads like a word-for-word translation of the English source.",
+      "files": [
+        "plugins/project-advisor/skills/to-issues/evals/inputs/prd-webhook-subscriptions.yaml"
+      ],
+      "expectations": [
+        "The generated set covers webhook subscription management (register, pause, resume, delete) and clear validation feedback for invalid URLs or duplicate subscriptions; these may be one work item or separate ones.",
+        "The generated set covers the delivery log with payload preview, and covers manual redelivery of a specific event; these may be one work item or separate ones.",
+        "At least one generated work item preserves the workspace access boundary and the audit trail for subscription changes and secret rotations.",
+        "Established English integration vocabulary stays English in ticket text: Webhook, Payload, Secret (or Shared Secret), and Feature Flag appear in English where those concepts are mentioned; coined German replacements such as Netzhaken, Nutzlast, Geheimnis (for the signing secret), or Funktionsschalter do not appear.",
+        "Ticket text reads as composed German rather than translated: no 'in der Lage sein', no 'es wird sichergestellt, dass', and no sentence that preserves English word order or idiom at the expense of natural German, such that a German-speaking developer would not suspect the text was translated.",
+        "Note labels are German: English labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' do not appear.",
+        "The Hinweise section follows the note structure from references/jira-issue-template.md: the panel header is followed by a `<ul>` with one `<li>` per included entry, and note entries with no real information are omitted instead of using placeholders such as `Keine`.",
+        "Technische Hinweise are non-obvious and decision-relevant: no tech stack, no standard auth rules, and no restatement of a rule that an acceptance scenario in the same ticket already proves.",
+        "Generated Jira stories are self-contained: ticket bodies and Hinweise do not reference the PRD, brief, source document, or source sections that are not included with the story; cross-ticket references appear only for real prerequisites or delivery dependencies.",
+        "Ticket text carries no planning vocabulary: 'Slice', 'Tracer Bullet', 'AFK', and 'HITL' do not appear in titles, scenarios, or notes, and a predecessor is named by its ticket title rather than as 'Slice 01'.",
+        "Scenario text does not contain filler adjectives like nahtlos, robust, umfassend, zuverlässig, erfolgreich, eindeutig, or sichergestellt.",
+        "Scenarios use first-person perspective (ich befinde mich, ich klicke, ich sehe) rather than third-person (der Nutzer, der Kunde befindet sich, ein Kunde öffnet).",
+        "The generated work items describe desired outcomes and constraints rather than instructing developers to add specific endpoints, schemas, tables, components, or methods."
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "Convert the accepted PRD manifest in plugins/project-advisor/skills/to-issues/evals/inputs/prd-oauth-app-connections.yaml into Jira-ready vertical-slice work items. The PRD is written entirely in English. Use prd.yaml as the source of truth for scope, constraints, risks, and open questions. Assume the slice breakdown is approved and write the markdown files directly.",
+      "expected_output": "An English OAuth and platform-operations PRD becomes German tickets in which multi-word English integration and ops terms survive as names rather than being fused into coined German compounds.",
+      "files": [
+        "plugins/project-advisor/skills/to-issues/evals/inputs/prd-oauth-app-connections.yaml"
+      ],
+      "expectations": [
+        "OAuth protocol vocabulary stays English as a name: Redirect URL, Access Token, Refresh Token, Client Secret, Scope(s), and Consent Screen appear in English where those concepts are mentioned.",
+        "No coined German compound replaces an English OAuth term: Weiterleitungs-URL, Umleitungs-URL, Zugriffstoken, Zugriffsschlüssel, Aktualisierungstoken, Erneuerungstoken, Client-Geheimnis, Berechtigungsbereich(e), Geltungsbereich(e), Zustimmungsbildschirm, and Einwilligungsbildschirm do not appear.",
+        "Platform-operations vocabulary stays English as a name: Feature Flag, Rate Limit(s), Rollback, Staging, and Deployment appear in English where those concepts are mentioned, and coined replacements such as Funktionsschalter, Ratenbegrenzung, Durchsatzgrenze, Rücksetzung, Zurückrollen, Bereitstellungsumgebung, or Auslieferung do not appear.",
+        "No part of a multi-word English term is replaced by a German word (for example Rückleitungsziel for redirect target, Rücknahme for Rollback, Platzhalter for Wildcard). German article and hyphenation around an intact English term (die Redirect URL, Rate-Limit-Budget) is correct German and is not a violation.",
+        "Each concept carries one name and one spelling across all generated tickets: the same English term is used for the same thing everywhere rather than alternating with a German paraphrase, and a run that writes both 'Redirect URL' and 'Redirect-URL' for the same field fails this.",
+        "At least one generated work item covers app registration with the redirect URL allowlist, including rejection of non-HTTPS or off-allowlist redirect URLs before consent is shown.",
+        "At least one generated work item covers the consent screen naming the app and its requested scopes, with an explicit error path when the admin declines.",
+        "At least one generated work item covers refresh token rotation including that a reused refresh token is rejected and the connection revoked.",
+        "At least one generated work item covers reviewing connected apps with granted scopes and last-used information and revoking a single app without breaking the others.",
+        "The PRD's open question about whether revocation also deletes already-exported data is surfaced as an Offene Frage rather than silently decided as a requirement.",
+        "Ticket text reads as composed German rather than translated: no 'in der Lage sein', no 'es wird sichergestellt, dass', and no sentence that preserves English word order or idiom at the expense of natural German, such that a German-speaking developer would not suspect the text was translated.",
+        "The generated work items describe desired outcomes and constraints rather than instructing developers to add specific endpoints, schemas, tables, components, or methods.",
+        "Note labels are German: English labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' do not appear.",
+        "The Hinweise section follows the note structure from references/jira-issue-template.md: the panel header is followed by a `<ul>` with one `<li>` per included entry, and note entries with no real information are omitted instead of using placeholders such as `Keine`.",
+        "Technische Hinweise are non-obvious and decision-relevant: no tech stack, no standard auth rules, and no restatement of a rule that an acceptance scenario in the same ticket already proves.",
+        "Generated Jira stories are self-contained: ticket bodies and Hinweise do not reference the PRD, brief, source document, or source sections that are not included with the story; cross-ticket references appear only for real prerequisites or delivery dependencies.",
+        "Ticket text carries no planning vocabulary: 'Slice', 'Tracer Bullet', 'AFK', and 'HITL' do not appear in titles, scenarios, or notes, and a predecessor is named by its ticket title rather than as 'Slice 01'.",
+        "Scenario text does not contain filler adjectives like nahtlos, robust, umfassend, zuverlässig, erfolgreich, eindeutig, or sichergestellt.",
+        "Scenarios use first-person perspective (ich befinde mich, ich klicke, ich sehe) rather than third-person (der Nutzer, der Kunde befindet sich, ein Kunde öffnet).",
+        "Every requirement in the source manifest is represented by at least one generated work item; a requirement demoted to a passing mention inside another ticket's notes does not count as covered."
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "Use brief mode. Convert the feature brief in plugins/project-advisor/skills/to-issues/evals/inputs/brief-activation-dashboard.md into Jira-ready vertical-slice work items. The brief is written in English. Do not ask for a PRD. Assume the provided brief is sufficient unless one missing decision would materially change the slices, and write the markdown files directly.",
+      "expected_output": "An English UI and analytics brief becomes German tickets in which interface and analytics terms survive as names rather than being translated into coined German equivalents.",
+      "files": [
+        "plugins/project-advisor/skills/to-issues/evals/inputs/brief-activation-dashboard.md"
+      ],
+      "expectations": [
+        "Analytics vocabulary keeps its English head, whether spaced or hyphenated per German orthography (Event Tracking and Event-Tracking-Pipeline both count): Funnel, Retention, Event Tracking, and Dashboard are not replaced by coinages such as Trichter, Bindungsrate, Verweilrate, Ereignisverfolgung, or Ereignisaufzeichnung.",
+        "Interface vocabulary keeps its English head where those concepts are expressed, spaced or hyphenated: Dropdown, Tooltip, Empty State, and Onboarding are not replaced by Auswahlliste, Aufklappmenü, Kurzinfo, Leerzustand, Leerer Zustand, Einführungsprozess, or by a generic German noun such as 'Auswahl' or 'Hinweis' standing in for the named control.",
+        "No part of a multi-word English term is replaced by a German word (for example Retention-Kurve for retention curve, Event-Verfolgung for event tracking, Aktivierungs-Funnel is fine but Aktivierungstrichter is not). German article and hyphenation around an intact English term (das Empty State, Funnel-Ansicht, Dashboard-Übersicht) is correct German and is not a violation.",
+        "Each concept carries one name and one spelling across all generated tickets: the same term is used for the same thing everywhere rather than alternating with a German paraphrase, and a run that writes both 'Empty State' and 'Empty-State' for the same surface fails this.",
+        "At least one generated work item covers the activation funnel for a single account with its four fixed steps, reachable from the existing customer detail area.",
+        "The generated set covers cohort comparison against the previous month's cohort, and covers the retention curve with its per-point detail on hover; these may be one work item or separate ones.",
+        "At least one generated work item or note preserves the empty state behavior for an account with no events yet, distinguished from a chart showing zeros.",
+        "The generated work items preserve the brief's constraints: CSMs only see accounts assigned to them, the existing event tracking pipeline is reused without new instrumentation, and the up-to-one-hour data lag is communicated rather than implied to be real time.",
+        "The generated issue set does not introduce a generic discovery, PRD-writing, or architecture-foundation slice; it goes straight to product-facing work items.",
+        "The generated work items do not invent product rules absent from the brief, such as a custom funnel builder, scheduled exports, or cross-account benchmarking, unless clearly framed as assumptions or open questions.",
+        "Ticket text reads as composed German rather than translated: no 'in der Lage sein', no 'es wird sichergestellt, dass', and no sentence that preserves English word order or idiom at the expense of natural German, such that a German-speaking developer would not suspect the text was translated.",
+        "The generated work items describe user-visible behavior and constraints rather than prescribing specific APIs, schemas, tables, services, components, or methods to change.",
+        "Note labels are German: English labels like 'What to build', 'Blocked by', 'Technical notes', 'Assumptions', 'Dependencies', 'Risks', or 'Open questions' do not appear.",
+        "The Hinweise section follows the note structure from references/jira-issue-template.md: the panel header is followed by a `<ul>` with one `<li>` per included entry, and note entries with no real information are omitted instead of using placeholders such as `Keine`.",
+        "Technische Hinweise are non-obvious and decision-relevant: no tech stack, no standard auth rules, and no restatement of a rule that an acceptance scenario in the same ticket already proves.",
+        "Generated Jira stories are self-contained: ticket bodies and Hinweise do not reference the PRD, brief, source document, or source sections that are not included with the story; cross-ticket references appear only for real prerequisites or delivery dependencies.",
+        "Ticket text carries no planning vocabulary: 'Slice', 'Tracer Bullet', 'AFK', and 'HITL' do not appear in titles, scenarios, or notes, and a predecessor is named by its ticket title rather than as 'Slice 01'.",
+        "Scenario text does not contain filler adjectives like nahtlos, robust, umfassend, zuverlässig, erfolgreich, eindeutig, or sichergestellt.",
+        "Scenarios use first-person perspective (ich befinde mich, ich klicke, ich sehe) rather than third-person (der Nutzer, der Kunde befindet sich, ein Kunde öffnet).",
+        "Every item under Desired behavior in the brief is represented by at least one generated work item; an item demoted to a passing mention inside another ticket's notes does not count as covered."
       ]
     }
   ]
