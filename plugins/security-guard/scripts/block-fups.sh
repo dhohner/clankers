@@ -27,8 +27,17 @@ matches() {
   printf '%s\n' "$1" | grep -Eq "$2"
 }
 
+is_allowed_env_command() {
+  local command="$1"
+
+  [[ "$command" != *$'\n'* && "$command" != *$'\r'* ]] || return 1
+  matches "$command" "^[[:blank:]]*env[[:blank:]]*\\|[[:blank:]]*grep[[:blank:]]+('\^PI_'|\"\^PI_\")[[:blank:]]*\\|[[:blank:]]*sort[[:blank:]]*$"
+}
+
 is_blocked_command() {
   local command="$1"
+
+  is_allowed_env_command "$command" && return 1
 
   # Environment dump commands.
   matches "$command" "(^|[^[:alnum:]_./-])(/usr/bin/|/bin/)?printenv([[:space:];|&<>\"')]|$)" && return 0

@@ -1,36 +1,25 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { isBlockedText, evaluateText, BLOCK_REASON, isDestructiveText } from "../lib/policy.js";
+import {
+  BLOCK_REASON,
+  createdTemporaryDirectoryFromCommand,
+  evaluateText,
+  isBlockedText,
+  isDestructiveText,
+  removedTrackedTemporaryDirectories,
+} from "../lib/policy.js";
+
+// Shared with test/security-guard.bats so the TypeScript policy and scripts/block-fups.sh,
+// which reimplement the same patterns for different hosts, cannot drift apart unnoticed.
+const blockedTextCases: Array<{ command: string; blocked: boolean }> = JSON.parse(
+  readFileSync(join(dirname(fileURLToPath(import.meta.url)), "fixtures/blocked-text-cases.json"), "utf8"),
+);
 
 describe("security policy", () => {
-  it.each([
-    "printenv",
-    "env | sort",
-    "bash -lc 'printenv'",
-    "export -p",
-    "declare -x",
-    "set",
-    "cat .env",
-    "cat .env.local",
-    "cat ~/.aws/credentials",
-    "cat ~/.ssh/id_rsa",
-    "cat ~/.zsh_history",
-    "gh auth token",
-    "gcloud auth print-access-token",
-    "aws configure export-credentials",
-    "az account get-access-token",
-  ])("blocks %s", (text) => {
-    expect(isBlockedText(text)).toBe(true);
-  });
-
-  it.each([
-    "echo hello",
-    "envsubst < template.txt",
-    "cat .env.example",
-    "cat .env.template",
-    "grep environment README.md",
-    "npm test",
-  ])("allows %s", (text) => {
-    expect(isBlockedText(text)).toBe(false);
+  it.each(blockedTextCases)("blocked=$blocked for $command", ({ command, blocked }) => {
+    expect(isBlockedText(command)).toBe(blocked);
   });
 
   it.each([
@@ -74,6 +63,30 @@ describe("security policy", () => {
     "printf '%s\n' rm | xargs echo",
   ])("does not require approval for %s", (text) => {
     expect(isDestructiveText(text)).toBe(false);
+  });
+
+  it.each([
+    ["mktemp -d", "/tmp/work.123\n", "/tmp/work.123"],
+    ["mktemp -dt work", "/tmp/work.123\n", "/tmp/work.123"],
+    ["mktemp", "/tmp/work.123\n", undefined],
+    ["mktemp -d; echo /tmp/other", "/tmp/work.123\n", undefined],
+    ["mktemp -d", "/tmp/work.123\n/tmp/other\n", undefined],
+    ["mktemp -d", "relative-work\n", undefined],
+  ])("extracts temporary directories from %s", (command, output, expected) => {
+    expect(createdTemporaryDirectoryFromCommand(command, output)).toBe(expected);
+  });
+
+  it("allows rm only when every target is an exact tracked temporary directory", () => {
+    const tracked = new Set(["/tmp/work.123", "/tmp/work.456"]);
+
+    expect(removedTrackedTemporaryDirectories("rm -rf '/tmp/work.123'", tracked)).toEqual(["/tmp/work.123"]);
+    expect(removedTrackedTemporaryDirectories("rm -rf /tmp/work.123 /tmp/work.456", tracked)).toEqual([
+      "/tmp/work.123",
+      "/tmp/work.456",
+    ]);
+    expect(removedTrackedTemporaryDirectories("rm -rf /tmp/work.123/child", tracked)).toBeUndefined();
+    expect(removedTrackedTemporaryDirectories("rm -rf /tmp/work.123 /tmp/other", tracked)).toBeUndefined();
+    expect(removedTrackedTemporaryDirectories("rm -rf /tmp/work.123; rm file.txt", tracked)).toBeUndefined();
   });
 
   it("returns the shared block reason", () => {

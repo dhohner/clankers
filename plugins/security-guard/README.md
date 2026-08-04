@@ -14,6 +14,11 @@ This hook runs on the agent `PreToolUse` lifecycle event and blocks likely envir
 - `declare -x`
 - standalone `set`
 
+The exact `env | grep '^PI_' | sort` pipeline is allowed so agents can inspect Pi's documented runtime and session metadata.
+Pi provider credentials use other environment variable names.
+The exception rejects extra commands, pipeline stages, redirects, grep options, and broader patterns.
+Do not store credentials in custom `PI_*` variables because the allowed pipeline intentionally prints every value in that namespace.
+
 It also blocks direct attempts to read or print common secret material:
 
 - dotenv files such as `.env` and `.env.local`
@@ -24,7 +29,14 @@ It also blocks direct attempts to read or print common secret material:
 
 The Claude-format hook writes a denial reason to stderr and exits with code `2`, which is the shared blocking path for Claude-format hooks and is also supported by VS Code agent hooks. The Pi extension returns a blocked tool call with the same policy message. The denial reason explicitly tells the agent not to suggest workarounds, alternate commands, or indirect ways to print the current user environment or read sensitive credentials.
 
-The Pi extension also requires explicit UI approval before agent-run Bash commands starting `rm`, `truncate`, `dd`, or `mkfs`; risky `mv`, `chmod`, or `chown`; plus destructive Git commands (`git reset --hard`, `git clean -fd`, `git push --force`). In non-interactive mode, those commands are blocked by default.
+The Pi extension also requires explicit UI approval before agent-run Bash commands starting `rm`, `truncate`, `dd`, or `mkfs`; risky `mv`, `chmod`, or `chown`; plus destructive Git commands (`git reset --hard`, `git clean -fd`, `git push --force`).
+In non-interactive mode, those commands are blocked by default.
+
+A narrow exception skips confirmation once when a direct `rm` targets only directories returned by an earlier successful, standalone `mktemp -d` Bash call.
+The extension verifies that each directory remains under a system temporary root, is owned by the current user, and still has the same filesystem identity before allowing removal.
+Nested paths, untracked directories, compound commands, and repeated removal attempts still require approval.
+Only the most recent 128 created directories stay tracked, so older ones fall back to requiring approval.
+The exception is POSIX-only: where process ownership cannot be read, no removal is ever skipped.
 
 ## Scope
 
@@ -32,7 +44,9 @@ The Pi extension also requires explicit UI approval before agent-run Bash comman
 - Intercepts Bash or terminal tool calls before they execute in Claude-format hosts
 - Intercepts `bash` and `read` tool calls before they execute in Pi
 - Requires explicit human approval for destructive Pi Bash commands such as `rm`, `truncate`, `dd`, `mkfs`, risky `mv`/`chmod`/`chown`, and selected destructive Git commands
+- Skips one approval for direct removal of unchanged, current-user directories created by a successful standalone `mktemp -d` call under a system temporary root
 - Blocks direct commands and simple nested shell invocations containing env-dump or sensitive credential access commands
+- Allows only the exact `env | grep '^PI_' | sort` environment pipeline, with harmless whitespace and quote variations
 - Intentionally favors clear, high-signal secret paths and token commands over broad keyword matching
 - Requires `jq` to inspect hook input in Claude-format hosts
 

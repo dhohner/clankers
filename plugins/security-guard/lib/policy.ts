@@ -1,5 +1,10 @@
+import { resolve } from "node:path";
 import { BLOCK_REASON, type BlockDecision } from "./types.ts";
 export { BLOCK_REASON, DESTRUCTIVE_APPROVAL_REASON } from "./types.ts";
+
+const ALLOWED_ENV_COMMANDS: readonly RegExp[] = [
+  /^[ \t]*env[ \t]*\|[ \t]*grep[ \t]+(['"])\^PI_\1[ \t]*\|[ \t]*sort[ \t]*$/,
+];
 
 export const BLOCKED_PATTERNS: readonly RegExp[] = [
   // Environment dump commands.
@@ -91,6 +96,51 @@ function commandName(token: string): string {
   return token.split("/").at(-1) ?? token;
 }
 
+function singleCommandTokens(value: string): ShellToken[] | undefined {
+  const tokens = shellTokens(value);
+  return tokens.length > 0 && tokens.every((token) => !token.sep) ? tokens : undefined;
+}
+
+export function createdTemporaryDirectoryFromCommand(command: string, output: string): string | undefined {
+  const tokens = singleCommandTokens(command);
+  if (!tokens || commandName(tokens[0]?.text ?? "") !== "mktemp") return undefined;
+
+  const args = tokens.slice(1).map((token) => token.text);
+  const createsDirectory = args.some((arg) => arg === "--directory" || /^-[^-]*d/.test(arg));
+  if (!createsDirectory) return undefined;
+
+  const lines = output.trim().split(/\r?\n/);
+  const path = lines.length === 1 ? lines[0] : undefined;
+  return path?.startsWith("/") ? resolve(path) : undefined;
+}
+
+export function removedTrackedTemporaryDirectories(
+  command: string,
+  trackedDirectories: Pick<ReadonlySet<string>, "has">,
+): string[] | undefined {
+  const tokens = singleCommandTokens(command);
+  if (!tokens || commandName(tokens[0]?.text ?? "") !== "rm") return undefined;
+
+  const targets: string[] = [];
+  let optionsEnded = false;
+  for (const token of tokens.slice(1)) {
+    if (!optionsEnded && token.text === "--") {
+      optionsEnded = true;
+    } else if (!optionsEnded && token.text.startsWith("-")) {
+      continue;
+    } else if (token.text.startsWith("/")) {
+      targets.push(resolve(token.text));
+    } else {
+      return undefined;
+    }
+  }
+
+  const uniqueTargets = [...new Set(targets)];
+  return uniqueTargets.length > 0 && uniqueTargets.every((target) => trackedDirectories.has(target))
+    ? uniqueTargets
+    : undefined;
+}
+
 function isAssignment(token: string): boolean {
   return /^[A-Za-z_][A-Za-z0-9_]*=/.test(token);
 }
@@ -162,7 +212,7 @@ function commandAt(tokens: readonly ShellToken[], start: number): boolean {
 }
 
 export function isBlockedText(value: string): boolean {
-  if (!value) return false;
+  if (!value || matches(value, ALLOWED_ENV_COMMANDS)) return false;
   return matches(value);
 }
 

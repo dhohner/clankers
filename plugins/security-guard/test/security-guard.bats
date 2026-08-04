@@ -47,6 +47,7 @@ payload_for_tool() {
   [ "$stderr" = "" ]
 }
 
+# The shared-fixture test below asserts only exit status; these two pin the response shape.
 @test "continues for harmless bash commands" {
   run_hook "$(payload_for_command "git status --short")"
 
@@ -59,50 +60,27 @@ payload_for_tool() {
   assert_blocked
 }
 
-@test "blocks environment dumps inside compound commands" {
-  run_hook "$(payload_for_command "echo before; env; echo after")"
+# Shared with test/policy.test.ts so the TypeScript policy and scripts/block-fups.sh,
+# which reimplement the same patterns for different hosts, cannot drift apart unnoticed.
+@test "matches the shared blocked-text cases" {
+  local failures=0
+  local command expected
 
-  assert_blocked
+  while IFS= read -r encoded; do
+    command=$(printf '%s' "$encoded" | jq -r '.command')
+    expected=$(printf '%s' "$encoded" | jq -r '.blocked')
+
+    run_hook "$(payload_for_command "$command")"
+
+    if [ "$expected" = "true" ] && [ "$status" -ne 2 ]; then
+      printf 'expected blocked, got status %s: %q\n' "$status" "$command" >&3
+      failures=$((failures + 1))
+    elif [ "$expected" = "false" ] && [ "$status" -ne 0 ]; then
+      printf 'expected allowed, got status %s: %q\n' "$status" "$command" >&3
+      failures=$((failures + 1))
+    fi
+  done < <(jq -c '.[]' "$BATS_TEST_DIRNAME/fixtures/blocked-text-cases.json")
+
+  [ "$failures" -eq 0 ]
 }
 
-@test "blocks shell export dumps" {
-  run_hook "$(payload_for_command "export -p")"
-
-  assert_blocked
-}
-
-@test "blocks dotenv file reads" {
-  run_hook "$(payload_for_command "cat .env.local")"
-
-  assert_blocked
-}
-
-@test "allows dotenv examples" {
-  run_hook "$(payload_for_command "cat .env.example")"
-
-  assert_continue
-}
-
-@test "blocks private key paths" {
-  run_hook "$(payload_for_command "cat ~/.ssh/id_ed25519")"
-
-  assert_blocked
-}
-
-@test "blocks pem files" {
-  run_hook "$(payload_for_command "openssl x509 -in deploy-key.pem -text")"
-
-  assert_blocked
-}
-
-@test "blocks common credential files" {
-  run_hook "$(payload_for_command "cat ~/.aws/credentials")"
-
-  assert_blocked
-}
-
-@test "blocks credential-producing CLIs" {
-  run_hook "$(payload_for_command "gh auth token")"
-
-  assert_blocked
-}
