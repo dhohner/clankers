@@ -6,7 +6,7 @@ from pathlib import Path
 
 from support import SKILL_DIR, load_yaml, run_generator
 
-FIXTURE_DIR = SKILL_DIR / "evals" / "fixtures"
+FIXTURE_DIR = SKILL_DIR / "examples" / "fixtures"
 
 
 class PrdBundleFixtureTests(unittest.TestCase):

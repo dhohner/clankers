@@ -15,13 +15,29 @@ Classify the request as a new PRD or a revision.
 For a revision, read the supplied `prd.yaml`, `action-items/PRD-*` bundle, feedback, and existing open-question answers before proposing changes.
 Inspect the repository early for product terminology, current behavior, and durable constraints whenever the product is repository-backed.
 
-Surface material uncertainty instead of silently choosing scope, behavior, rollout, risk, or validation policy.
-Ask at most four focused questions per round unless the user requests broad intake.
-Use `vscode_askQuestions` in GitHub Copilot for VS Code, otherwise `ask_question` or the harness equivalent; when none exists, ask concise numbered chat questions.
-After each answer round, summarize short `Confirmed`, `Provisional`, and `Open` bullets, then ask the unresolved question with the greatest effect on scope, behavior, rollout, risk, or validation.
-Read [references/interview-map.md](./references/interview-map.md) before continuing only when the request is vague, broad, or the interview stalls.
+Interview the user relentlessly until you reach a shared understanding.
+Map this as a **design tree**: every decision branches into the decisions that hang off it. Bound the tree at PRD altitude.
+A decision belongs in the interview only when a wrong answer changes scope, a requirement, an acceptance criterion, a risk, or a review surface.
+A decision that only changes how a requirement is built, in what order, or with which defaults belongs to the implementation and is out of scope.
 
-**Complete when:** every applicable product area is understood well enough to state the problem, actors, scope boundaries, workflow and failure behavior, constraints, risks, validation outcomes, and review surfaces, with each material uncertainty marked `Confirmed`, `Provisional`, or `Open`.
+Work the tree in **rounds** and use the interactive question tool. When none exists, ask concise numbered chat questions.
+The **frontier** is every decision whose prerequisites are already settled - the questions you can ask _now_ without guessing at answers you haven't heard yet.
+Ask the whole frontier in one round: number each question and give your recommended answer. Then wait for the user's answers before the next round.
+
+Each round the user answers reshapes the tree - settled decisions push the frontier outward and unblock questions that depended on them.
+Recompute the frontier and ask the next round. A question whose answer depends on another question still open in this round belongs to a _later_ round, not this one.
+
+Finding _facts_ is your job, never the user's. When a frontier question needs a fact from the environment (filesystem, tools, etc.), dispatch a sub-agent to find it - don't ask the user for anything you could look up yourself.
+Don't block on it: a running exploration is an unsettled prerequisite, so only the questions downstream of it wait for the sub-agent to report - ask the rest of the frontier now.
+The _decisions_ are the user's - put each to them and wait.
+
+A question belongs in `open_questions` only if it is **unaskable now**: it waits on a fact that cannot be found in the environment today.
+Every other uncertainty is a decision the user can make now, so ask it instead.
+
+Close the interview with a **confirmation round**: list every assumption you made without asking, every question you judged below PRD altitude and how you resolved it, and every open question with its blocker and owner.
+Ask the user to confirm or correct the list. A corrected assumption reopens the frontier: run another round.
+
+**Complete when:** the frontier is empty: every branch of the design tree visited, nothing left silently assumed. Do not act on it until the user confirms you have reached a shared understanding.
 
 ## 2. Author the working manifest
 
@@ -48,7 +64,7 @@ python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py template --blo
 Choose `initiative_type`, derive its required review surfaces from `schema --authoring`, and select blocks only when they improve a product decision.
 Every initiative includes `document`; `mixed` also includes at least two non-document surfaces.
 After selecting blocks, run one multi-block `schema` call and create a non-colliding scratch manifest from `template --blocks`.
-Use [examples/minimal-prd.yaml](./examples/minimal-prd.yaml) for the smallest skeleton, `evals/fixtures/` for one focused surface, and [examples/basic-prd.yaml](./examples/basic-prd.yaml) only for a broad mixed initiative.
+Use [examples/minimal-prd.yaml](./examples/minimal-prd.yaml) for the smallest skeleton, `examples/fixtures/` for one focused surface, and [examples/basic-prd.yaml](./examples/basic-prd.yaml) only for a broad mixed initiative.
 Read [references/manifest-contract.md](./references/manifest-contract.md) only when CLI output, focused fixtures, and validation errors do not settle the contract.
 
 For either branch:
@@ -61,7 +77,7 @@ For either branch:
 - Add a visual only when it clarifies a workflow, state, boundary, contract, or data relationship better than prose.
 - Give every diagram a concise description and readable Mermaid `source` with meaningful node and edge labels.
 
-**Complete when:** a scratch `prd.yaml` exists, every selected block follows its schema, every requirement is traceable, every material uncertainty is explicit, and all stable entities, relationships, changed prose, and visuals satisfy the rules above.
+**Complete when:** a scratch `prd.yaml` exists, every selected block follows its schema, every requirement is traceable, every remaining uncertainty is unaskable per step 1 and carries its blocker and owner, and all stable entities, relationships, changed prose, and visuals satisfy the rules above.
 
 ## 3. Publish and inspect
 

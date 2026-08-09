@@ -44,7 +44,7 @@ def command_examples(args: argparse.Namespace) -> dict[str, Any]:
 def _example_paths() -> list[Path]:
     examples_dir = SKILL_DIR / "examples"
     paths = sorted(examples_dir.glob("*.yaml")) + sorted(
-        (SKILL_DIR / "evals" / "fixtures").glob("*.yaml")
+        (examples_dir / "fixtures").glob("*.yaml")
     )
     return sorted(
         paths,

@@ -30,7 +30,7 @@ Diagrams load Mermaid from `cdn.jsdelivr.net` at review time and fall back to a 
 
 ## Workflow
 
-1. Interview only until material product decisions are concrete or safely labeled open.
+1. Interview in rounds until the design tree is fully walked and nothing is silently assumed.
 2. Inspect the repository for terminology, current behavior, and durable constraints.
 3. Choose the initiative type, review surfaces, traceability, and useful blocks.
 4. Write YAML and generate the bundle.
@@ -73,17 +73,17 @@ Useful options:
 - `--format yaml|text` defaults to structured YAML for non-template commands.
 - `--full` expands large `validate` and `inspect` output.
 
-No virtual environment, package installation, Node.js, browser, or subagent capability is required.
+No virtual environment, package installation, Node.js, or browser is required.
+Sub-agents are used for environment fact-finding during the interview when the harness provides them, and the skill explores directly when it does not.
 If no preview mechanism is available, provide the absolute `index.html` path and name visual checks left for human review.
 
 ## References
 
-- `references/interview-map.md`: optional decision map for vague or stuck interviews.
 - `references/manifest-contract.md`: optional contract notes when CLI schema is insufficient.
 - `references/review-checklist.md`: optional full checklist when inspection is insufficient.
 - `examples/minimal-prd.yaml`: tiny valid syntax example.
 - `examples/basic-prd.yaml`: broad mixed-initiative example.
-- `evals/fixtures/*.yaml`: focused examples by initiative type.
+- `examples/fixtures/*.yaml`: focused examples by initiative type.
 - `bundle/`: canonical HTML shell and versioned assets.
 
 ## Test
