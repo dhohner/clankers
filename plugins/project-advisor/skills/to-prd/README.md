@@ -15,42 +15,26 @@ action-items/PRD-<slug>/
     ├── favicon.svg
     ├── styles.css
     └── fonts/
-        ├── archivo-latin.woff2
-        ├── martian-mono-latin.woff2
-        ├── saira-stencil-one-latin.woff2
-        └── OFL-*.txt
 ```
 
 `prd.yaml` is the normalized planning source.
 `index.html` is the human review surface.
-Assets are copied into the bundle so it can be reviewed without installing the plugin, including the three OFL-licensed faces, so typography is identical on every machine.
+Assets are copied into the bundle so it can be reviewed without installing the plugin, including the three OFL-licensed faces and their license texts, so typography is identical on every machine.
 
 The bundle is a screen artifact and does not support printing.
 Diagrams load Mermaid from `cdn.jsdelivr.net` at review time and fall back to a readable text source when there is no network.
 
 ## Workflow
 
-1. Interview in rounds until the design tree is fully walked and nothing is silently assumed.
-2. Inspect the repository for terminology, current behavior, and durable constraints.
-3. Choose the initiative type, review surfaces, traceability, and useful blocks.
-4. Write YAML and generate the bundle.
-5. Validate and inspect the bundle.
-6. Request human acceptance.
-7. Publish the acceptance: set `status: Accepted` and regenerate with `--force`, since `to-issues` and `to-agent-tasks` gate on the published `prd.yaml`.
-8. Offer issue splitting or agent-task generation only after acceptance or when the user explicitly asks for the handoff.
-
-For review feedback on an existing PRD, copy `prd.yaml` to a scratch manifest outside the generated bundle, preserve stable IDs and unrelated content, regenerate with `--force`, and request review again.
+`SKILL.md` holds the authoritative loop: ground the decision, author the working manifest, publish and inspect, apply the review gate.
+The gate matters outside the chat: acceptance sets `status: Accepted` in the published `prd.yaml`, which is what `to-issues` and `to-agent-tasks` read.
+Review feedback on an existing PRD re-enters the loop as a revision from a scratch copy of `prd.yaml`.
 
 ## CLI
 
-From the repository root:
+From the repository root, publish a bundle with:
 
 ```sh
-python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py status
-python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py schema
-python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py schema requirements testing_strategy
-python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py template --blocks goals personas user_stories journeys failure_paths decisions rollout testing_strategy open_questions repository_grounding
-python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py examples minimal-prd
 python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py validate plugins/project-advisor/skills/to-prd/examples/minimal-prd.yaml
 python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py generate plugins/project-advisor/skills/to-prd/examples/minimal-prd.yaml
 python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py inspect action-items/PRD-minimal-prd/

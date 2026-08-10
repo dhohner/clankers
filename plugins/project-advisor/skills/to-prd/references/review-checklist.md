@@ -18,6 +18,10 @@
 
 - Every visual has a useful text description.
 - Mermaid source is readable and shows decision, failure, fallback, or boundary paths when they affect acceptance.
-- User-visible prose is English; German is limited to exact repository-backed terminology, with evidence where its field supports it.
+- `validate` reports zero `untranslated_german_candidates`, or every remaining German string is exact repository terminology, with evidence where its field supports it.
 
-**Complete when:** every deterministic check passes, and responsive layout and rendered accessibility have been previewed or assigned to human review.
+## Human review
+
+- User-visible prose follows ASD-STE100, with repository-backed terminology reproduced verbatim.
+
+**Complete when:** every deterministic check passes, and prose register, responsive layout, and rendered accessibility have been previewed or assigned to human review.

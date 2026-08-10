@@ -3,15 +3,12 @@
 `prd.yaml` is the authoring source; generated `index.html` is the review surface.
 The CLI is authoritative for field shapes and supported blocks.
 
-## Top level
+## Rules the CLI does not print
 
-- `schema_version`: `1`
+`schema` already prints the field shapes, the supported blocks, and the review-surface constraints. Beyond those:
+
 - `slug`: lowercase kebab-case, published as `action-items/PRD-<slug>/`
-- `title`, `summary`, `status`: non-empty strings
-- `initiative_type`: `small-feature`, `ui-heavy`, `workflow-heavy`, `api-heavy`, `data-heavy`, `architecture-heavy`, or `mixed`
-- `review_surfaces`: every initiative includes `document`; `*-heavy` adds its matching surface; `mixed` adds at least two non-document surfaces
 - `metadata`: string labels excluding generated `Initiative`, `Review surfaces`, and `Output` labels
-- `blocks`: non-empty mapping of supported block names
 
 ## Status lifecycle
 
@@ -21,12 +18,6 @@ The CLI is authoritative for field shapes and supported blocks.
 - Exactly `Accepted` once the user accepts.
 
 Any other wording reads as unaccepted.
-
-## Language
-
-Use English in every user-visible field, including titles, summaries, statuses, metadata, block content, tables, visual descriptions, wireframes, and Mermaid labels.
-Reserve German for exact repository-backed identifiers, filenames, API names, product labels, or domain idioms.
-For retained German, attach evidence when its field supports it; otherwise quote it as repository terminology.
 
 ## Blocks
 
@@ -41,29 +32,16 @@ Select only decision-relevant blocks; the generator renders them in canonical or
 
 ## Identity and traceability
 
-Assign durable IDs:
-
-- `REQ-*`: requirements
-- `DEC-*`: decisions
-- `RISK-*`: risks
-- `QUESTION-*`: open questions
-- `TEST-*`: testing outcomes
-
-Preserve an ID while its entity's meaning remains stable.
-Connect entities through supported `relates_to`, `validation`, and `validates` fields.
-Connect every requirement to a validation outcome or explicit `exception`.
-Add `evidence` only when an exact repository reference materially supports the statement.
+ID prefixes: `REQ-*`, `DEC-*`, `RISK-*`, `QUESTION-*`, `TEST-*`.
+Preserve an ID while its entity's meaning remains stable, and connect entities through supported `relates_to`, `validation`, and `validates` fields.
 
 ## Visuals
 
-Give every visual a concise text description.
-Represent each diagram as small, readable Mermaid `source` focused on one review question.
-Use meaningful labels and include failure, fallback, decision, or boundary paths when they affect scope or acceptance.
-Keep styling and Mermaid features simple.
+Focus each diagram on one review question, and keep styling and Mermaid features simple.
 
 ## Publication
 
 The generator validates the manifest, renders canonical HTML, preserves normalized YAML as `prd.yaml`, copies versioned assets, validates staged output, and then publishes atomically.
 It alone writes generated HTML from the working manifest.
 
-**Complete when:** every applicable contract above is satisfied.
+**Complete when:** the manifest satisfies every rule above that its initiative type and selected blocks make applicable.

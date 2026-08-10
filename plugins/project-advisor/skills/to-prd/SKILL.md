@@ -8,6 +8,8 @@ description: >-
 
 Run a decision loop: ground, clarify, author, validate, review.
 The agent owns product judgment; the generator owns deterministic publication.
+Write interview questions, manifest prose, and the report to the user in **ASD-STE100 Simplified Technical English**: one instruction per sentence, about twenty words or fewer, active voice, present tense, one meaning per word, and noun clusters of at most three words.
+Reproduce repository-backed identifiers, labels, and quoted strings verbatim.
 
 ## 1. Ground the decision
 
@@ -24,8 +26,7 @@ Work the tree in **rounds** and use the interactive question tool. When none exi
 The **frontier** is every decision whose prerequisites are already settled - the questions you can ask _now_ without guessing at answers you haven't heard yet.
 Ask the whole frontier in one round: number each question and give your recommended answer. Then wait for the user's answers before the next round.
 
-Each round the user answers reshapes the tree - settled decisions push the frontier outward and unblock questions that depended on them.
-Recompute the frontier and ask the next round. A question whose answer depends on another question still open in this round belongs to a _later_ round, not this one.
+Recompute the frontier after each round of answers, then ask the next round.
 
 Finding _facts_ is your job, never the user's. When a frontier question needs a fact from the environment (filesystem, tools, etc.), dispatch a sub-agent to find it - don't ask the user for anything you could look up yourself.
 Don't block on it: a running exploration is an unsettled prerequisite, so only the questions downstream of it wait for the sub-agent to report - ask the rest of the frontier now.
@@ -69,13 +70,13 @@ Read [references/manifest-contract.md](./references/manifest-contract.md) only w
 
 For either branch:
 
-- Write all user-visible fields in English, retaining German only for exact repository-backed identifiers, filenames, API names, product labels, or domain idioms.
+- Write all user-visible fields in ASD-STE100 English, retaining German only for exact repository-backed identifiers, filenames, API names, product labels, or domain idioms. For retained German, attach evidence where its field supports it; otherwise quote it as repository terminology.
 - Preserve or assign stable IDs for requirements, decisions, risks, questions, and tests.
 - Connect every requirement to validation outcomes or an explicit exception.
 - Follow CLI field shapes; `evidence`, `relates_to`, `validation`, and `validates` are arrays even for one value.
 - Add repository evidence only when it materially supports a product statement.
 - Add a visual only when it clarifies a workflow, state, boundary, contract, or data relationship better than prose.
-- Give every diagram a concise description and readable Mermaid `source` with meaningful node and edge labels.
+- Give every diagram a concise description and readable Mermaid `source` with meaningful node and edge labels. Include failure, fallback, decision, or boundary paths when they affect scope or acceptance.
 
 **Complete when:** a scratch `prd.yaml` exists, every selected block follows its schema, every requirement is traceable, every remaining uncertainty is unaskable per step 1 and carries its blocker and owner, and all stable entities, relationships, changed prose, and visuals satisfy the rules above.
 
@@ -94,7 +95,7 @@ Use `--force` only to replace the published copy during an intentional revision.
 Fix the scratch YAML and repeat validation, generation, and inspection after any failure.
 Read [references/review-checklist.md](./references/review-checklist.md) only when inspection fails, the bundle is unusual, or a full audit is needed.
 
-**Complete when:** the latest validation and inspection pass for the intended manifest and generated bundle, including local assets, links, traceability, and English-only prose.
+**Complete when:** the latest validation and inspection pass for the intended manifest and generated bundle, including local assets, links, traceability, and English-only prose in ASD-STE100.
 
 ## 4. Apply the review gate
 
