@@ -8,7 +8,7 @@ import type {
   ToolCallEvent as PiToolCallEvent,
   ToolResultEvent as PiToolResultEvent,
   UserBashEvent as PiUserBashEvent,
-} from "@mariozechner/pi-coding-agent";
+} from "@earendil-works/pi-coding-agent";
 
 // These stay deliberate supertypes of Pi's own events: handlers read payloads defensively so that a host
 // delivering a partial event degrades to "no match" instead of throwing, and `args` covers hosts that use

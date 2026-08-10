@@ -30,7 +30,7 @@
     "check": "pnpm test && pnpm run typecheck"
   },
   "peerDependencies": {
-    "@mariozechner/pi-coding-agent": "*"
+    "@earendil-works/pi-coding-agent": "*"
   },
   "devDependencies": {
     "@types/node": "^25.6.0",

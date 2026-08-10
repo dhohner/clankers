@@ -64,6 +64,8 @@ The agent will stop the command before it can print environment variables or cre
 
 ## Pi Usage
 
+This plugin requires Pi 0.74.0 or later, the first release published as `@earendil-works/pi-coding-agent`.
+
 Install the plugin as a Pi package from a local checkout:
 
 ```bash
