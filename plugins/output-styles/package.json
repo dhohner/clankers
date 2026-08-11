@@ -1,0 +1,55 @@
+{
+  "name": "output-styles",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pi extension that selects a named response style and appends it to the agent system prompt.",
+  "type": "module",
+  "keywords": [
+    "pi-package",
+    "output-style",
+    "system-prompt",
+    "extension"
+  ],
+  "license": "Apache-2.0",
+  "author": {
+    "name": "dhohner"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dhohner/clankers.git",
+    "directory": "plugins/output-styles"
+  },
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "pnpm run clean && tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "check": "pnpm test && pnpm run typecheck"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.5"
+  },
+  "pi": {
+    "extensions": [
+      "./index.ts"
+    ]
+  },
+  "files": [
+    "README.md",
+    "index.ts",
+    "lib/**",
+    "styles/**",
+    "tsconfig.json",
+    "tsconfig.build.json",
+    "package.json",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "yaml": "^2.9.0"
+  }
+}
