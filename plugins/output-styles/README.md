@@ -21,7 +21,11 @@ The style text opens the rebuilt prompt as the governing response instruction, a
 A replace-mode style also drops the system prompt changes of extensions that ran earlier in the chain, because the prompt is rebuilt from Pi's options instead of the chained text.
 The structured option fields were verified against Pi 0.84.1.
 
-Without the flag, the built-in `default` style is active and the system prompt is unchanged.
+A replace-mode style takes over the whole response guidance, and Pi's own behavior instructions are gone for that turn.
+When the style text contradicts or ignores the retained tool guidance, the agent can get noticeably weaker at its actual work, so prefer `append` unless the style truly must own the full response contract.
+
+Without a flag value that names a known style, the starting style comes from the persisted project settings value, then the persisted global settings value, then the built-in `default` style, as the Persistence section describes.
+Under `default` the system prompt is unchanged, so a fresh installation without the flag behaves exactly like Pi without this plugin.
 
 Switch the style inside a running session:
 
@@ -30,7 +34,9 @@ Switch the style inside a running session:
 - `/output-style <name>` switches directly, with argument autocompletion over the discovered names.
   An unknown name is reported and leaves the active style unchanged.
 - `Ctrl+Shift+Y` activates the next style in the list and wraps from the last entry to the first.
-  Some terminals do not deliver this key combination; the command reaches every switch the shortcut can perform.
+  The shortcut is a convenience: some terminals do not deliver this key combination, and the command reaches every switch the shortcut can perform.
+  Pi's `~/.pi/agent/keybindings.json` rebinds Pi's own actions by their keybinding id, but an extension shortcut is registered under its literal key and has no id in that file, so this shortcut cannot be rebound there; verified against Pi 0.84.1.
+  To use a different key, change the `CYCLE_SHORTCUT` constant in the installed copy of `lib/extension.ts` to a combination in Pi's `modifier+key` format, such as `ctrl+shift+x`.
 
 A switch replaces the flag selection for the rest of the session and takes effect from the next agent turn on.
 Answers already produced are unchanged and the session is not restarted.
@@ -39,6 +45,14 @@ Switching to the already active style is allowed, changes nothing, and is not an
 
 A style never changes the provider, the model, the thinking level, or the active tool set, so a style is safe at any point of a session.
 No bundled style uses `replace` mode.
+
+## Scope
+
+- Reads style files from the three style directories listed under Style Sources, at session start only
+- Reads the `outputStyle` key from Pi's global settings file and, in a trusted project, from the project settings file
+- Writes only the `outputStyle` key, on every in-session switch, to the settings file the trust rule selects
+- Rewrites the assembled system prompt of each agent turn while a non-default style is active, and touches nothing else of the request
+- Runs no shell command and makes no network request
 
 ## Persistence
 
@@ -118,6 +132,10 @@ Skip preamble, restatement of the question, and closing offers of further help.
 - `mode` is optional, allows `append` and `replace`, and defaults to `append`.
 - The body after the frontmatter is the style instruction text and must be non-empty.
 
+A commented copy of this example ships at [`examples/terse.md`](./examples/terse.md).
+Copy it into a style directory, for example `~/.pi/agent/output-styles/terse.md`, edit it, and the style is offered in the next session.
+The `examples/` directory itself is not a style directory, so the shipped copy joins no style list.
+
 Only a `---` line at column zero opens or closes the frontmatter block, so an indented `---` stays part of a field value.
 
 The block is parsed with the [`yaml`](https://www.npmjs.com/package/yaml) library, so every YAML spelling of a scalar works, including plain, quoted, folded (`>`), and literal (`|`) values and `\uXXXX` escapes.
@@ -133,8 +151,7 @@ A malformed file is skipped instead of failing the session.
 Missing frontmatter, unreadable YAML, a non-scalar field, a missing or empty `description`, an empty `name`, an unknown `mode` value, an empty body, the reserved `default` name, and a read error each exclude one file from the style list.
 The path and the reason are reported once per session, and every other style stays selectable.
 
-Without the flag, `default` is active silently.
-Any supplied `--output-style` value that matches no style name, a blank value included, leaves `default` active and is reported once.
+Any supplied `--output-style` value that matches no style name, a blank value included, is reported once, and startup resolution falls through to the persisted settings values and then to `default`, as the Persistence section describes.
 
 ## Known Limitations
 
@@ -144,19 +161,25 @@ Any supplied `--output-style` value that matches no style name, a blank value in
 
 ## Bundled Styles
 
-| Style         | Description                                                    |
-| ------------- | -------------------------------------------------------------- |
-| `default`     | Pi's standard behavior, with no added style instructions.       |
-| `explanatory` | Explains the reasoning behind each change while doing the work. |
+| Style         | Description                                                                          |
+| ------------- | ------------------------------------------------------------------------------------ |
+| `default`     | Pi's standard behavior, with no added style instructions.                            |
+| `explanatory` | Adds short insight notes about the codebase and the reasoning behind choices.        |
+| `learning`    | Collaborates and asks you to write small, clearly marked pieces of the code yourself. |
+| `ste`         | Answers in ASD-STE100 Simplified Technical English with short, active sentences.     |
+
+All four use `append` mode.
 
 ## Install
+
+This plugin requires Pi 0.84.1 or later and builds against the `@earendil-works/pi-coding-agent` package, declared as a peer dependency with `>=0.84.1`.
 
 ```bash
 pi install ./plugins/output-styles
 ```
 
-The plugin has one runtime dependency, `yaml`, declared in `dependencies`.
-An `npm:` or `git:` install runs `npm install` for it.
+The plugin has two runtime dependencies, `proper-lockfile` and `yaml`, declared in `dependencies`.
+An `npm:` or `git:` install runs `npm install` for them.
 A local path install does not, so run `pnpm install` in this repository first.
 Pi's own `yaml` copy is not visible to a plugin, and a missing dependency stops the extension from loading.
 

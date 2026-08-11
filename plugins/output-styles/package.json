@@ -45,6 +45,7 @@
     "index.ts",
     "lib/**",
     "styles/**",
+    "examples/**",
     "tsconfig.json",
     "tsconfig.build.json",
     "package.json",
