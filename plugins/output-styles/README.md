@@ -1,6 +1,6 @@
 # Output Styles Plugin
 
-Pi extension that selects a named response style at session start and appends its instruction text to the agent system prompt.
+Pi extension that selects a named response style at session start and applies its instruction text to the agent system prompt.
 
 The plugin targets Pi only.
 Claude Code and GitHub Copilot have an equivalent feature natively.
@@ -13,11 +13,18 @@ Start a session with a style:
 pi --output-style explanatory
 ```
 
-The style instruction text is appended to the end of the system prompt for every agent turn of that session, after the project instruction files and context files Pi already loaded, so the style is the last instruction the model reads.
+In `append` mode, the default, the style instruction text is appended to the end of the system prompt for every agent turn of that session, after the project instruction files and context files Pi already loaded, so the style is the last instruction the model reads.
+
+In `replace` mode the style instruction text takes the place of Pi's response and behavior guidance.
+The system prompt for the turn is rebuilt from the structured options Pi assembled, so the tool list, the tool guidelines, the loaded context files, the loaded skills, and the working directory stay in the prompt.
+The style text opens the rebuilt prompt as the governing response instruction, and the retained sections follow in Pi's own order.
+A replace-mode style also drops the system prompt changes of extensions that ran earlier in the chain, because the prompt is rebuilt from Pi's options instead of the chained text.
+The structured option fields were verified against Pi 0.84.1.
 
 Without the flag, the built-in `default` style is active and the system prompt is unchanged.
 
 A style never changes the provider, the model, the thinking level, or the active tool set, so a style is safe at any point of a session.
+No bundled style uses `replace` mode.
 
 ## Style Sources
 
@@ -83,8 +90,6 @@ Any supplied `--output-style` value that matches no style name, a blank value in
 
 ## Known Limitations
 
-- `mode: replace` is parsed and listed but not implemented yet.
-  A style declaring it is applied as if it declared `append`.
 - Style files are read at session start.
   A style file added or edited while a session runs takes effect at the next session.
 - The selection is not persisted across sessions, and there is no `/output-style` command, selector dialog, footer status, or cycle shortcut yet.

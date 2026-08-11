@@ -2,7 +2,7 @@
   "name": "output-styles",
   "version": "0.1.0",
   "private": true,
-  "description": "Pi extension that selects a named response style and appends it to the agent system prompt.",
+  "description": "Pi extension that selects a named response style and applies it to the agent system prompt.",
   "type": "module",
   "keywords": [
     "pi-package",
@@ -27,7 +27,7 @@
     "check": "pnpm test && pnpm run typecheck"
   },
   "peerDependencies": {
-    "@earendil-works/pi-coding-agent": "*"
+    "@earendil-works/pi-coding-agent": ">=0.84.1"
   },
   "devDependencies": {
     "@types/node": "^25.6.0",

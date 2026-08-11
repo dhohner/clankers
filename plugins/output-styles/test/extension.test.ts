@@ -1,6 +1,7 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import type { BuildSystemPromptOptions } from "@earendil-works/pi-coding-agent";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   FLAG_NAME,
@@ -20,9 +21,24 @@ type FlagRegistration = { name: string; options: { description?: string; type: "
 type Harness = {
   start(): Promise<void>;
   turn(systemPrompt?: string): Promise<string>;
+  turnResult(options?: BuildSystemPromptOptions): Promise<Record<string, unknown> | undefined>;
+  activeTools(): string[];
   notifications: Notification[];
   registeredFlags: FlagRegistration[];
 };
+
+const HARNESS_TOOLS = ["read", "bash", "edit", "write"];
+
+function promptOptions(): BuildSystemPromptOptions {
+  return {
+    selectedTools: ["read", "bash"],
+    toolSnippets: { read: "Read file contents", bash: "Execute shell commands" },
+    promptGuidelines: ["Prefer ripgrep over grep"],
+    cwd: "/work/project",
+    contextFiles: [{ path: "/work/project/AGENTS.md", content: "Always run the linter." }],
+    skills: [],
+  };
+}
 
 let root: string;
 let bundledDir: string;
@@ -36,8 +52,9 @@ async function writeStyle(directory: string, file: string, content: string): Pro
   return path;
 }
 
-function styleFile(description: string, instructions: string): string {
-  return `---\ndescription: ${description}\n---\n${instructions}\n`;
+function styleFile(description: string, instructions: string, mode?: string): string {
+  const modeLine = mode === undefined ? "" : `mode: ${mode}\n`;
+  return `---\ndescription: ${description}\n${modeLine}---\n${instructions}\n`;
 }
 
 function createHarness(options: { flag?: string; trusted?: boolean } = {}): Harness {
@@ -53,9 +70,16 @@ function createHarness(options: { flag?: string; trusted?: boolean } = {}): Harn
 
   const registeredFlags: FlagRegistration[] = [];
 
+  // Mirrors Pi's tool API surface so a test can observe whether the extension touches the tool set.
+  let activeTools = [...HARNESS_TOOLS];
+
   const pi = {
     registerFlag: (name: string, flagOptions: FlagRegistration["options"]) => {
       registeredFlags.push({ name, options: flagOptions });
+    },
+    getActiveTools: () => [...activeTools],
+    setActiveTools: (toolNames: string[]) => {
+      activeTools = [...toolNames];
     },
     // Mirrors Pi: an unregistered flag reads as undefined, so a value is only visible once registered.
     getFlag: (name: string) =>
@@ -70,14 +94,22 @@ function createHarness(options: { flag?: string; trusted?: boolean } = {}): Harn
   return {
     notifications,
     registeredFlags,
+    activeTools: () => [...activeTools],
     async start() {
       await handlers.session_start?.({ type: "session_start" } as never, ctx);
     },
     async turn(systemPrompt = CHAINED_PROMPT) {
-      const result = (await handlers.before_agent_start?.({ systemPrompt } as never, ctx)) as
-        | { systemPrompt?: string }
-        | undefined;
+      const result = (await handlers.before_agent_start?.(
+        { systemPrompt, systemPromptOptions: promptOptions() } as never,
+        ctx,
+      )) as { systemPrompt?: string } | undefined;
       return result?.systemPrompt ?? systemPrompt;
+    },
+    async turnResult(options = promptOptions()) {
+      return (await handlers.before_agent_start?.(
+        { systemPrompt: CHAINED_PROMPT, systemPromptOptions: options } as never,
+        ctx,
+      )) as Record<string, unknown> | undefined;
     },
   };
 }
@@ -216,6 +248,59 @@ describe("output styles extension", () => {
     expect(harness.notifications[0]?.message).toBe(
       `Output style skipped: ${malformed} (no readable YAML frontmatter block)`,
     );
+  });
+
+  it("rebuilds the prompt for a replace-mode style and keeps the capability material", async () => {
+    await writeStyle(
+      join(agentDir, STYLES_DIR_NAME),
+      "pirate.md",
+      styleFile("Talk like a pirate.", "Answer like a pirate.", "replace"),
+    );
+
+    const harness = createHarness({ flag: "pirate" });
+    await harness.start();
+    const prompt = await harness.turn();
+
+    expect(prompt).toContain("Answer like a pirate.");
+    expect(prompt).not.toContain(CHAINED_PROMPT);
+    expect(prompt).toContain("- read: Read file contents");
+    expect(prompt).toContain("- bash: Execute shell commands");
+    expect(prompt).toContain("- Prefer ripgrep over grep");
+    expect(prompt).toContain('<project_instructions path="/work/project/AGENTS.md">');
+    expect(prompt).toContain("Current working directory: /work/project");
+  });
+
+  it("changes only the system prompt and leaves the active tool set untouched in replace mode", async () => {
+    await writeStyle(
+      join(agentDir, STYLES_DIR_NAME),
+      "pirate.md",
+      styleFile("Talk like a pirate.", "Answer like a pirate.", "replace"),
+    );
+
+    const harness = createHarness({ flag: "pirate" });
+    await harness.start();
+    expect(harness.activeTools()).toEqual(HARNESS_TOOLS);
+
+    const options = promptOptions();
+    const result = await harness.turnResult(options);
+
+    expect(Object.keys(result ?? {})).toEqual(["systemPrompt"]);
+    expect(options).toEqual(promptOptions());
+    expect(harness.activeTools()).toEqual(HARNESS_TOOLS);
+  });
+
+  it("skips a replace-mode style file with an empty body like an append-mode one", async () => {
+    const path = await writeStyle(
+      join(agentDir, STYLES_DIR_NAME),
+      "empty.md",
+      styleFile("Empty body.", "", "replace"),
+    );
+
+    const harness = createHarness({ flag: "empty" });
+    await harness.start();
+
+    expect(await harness.turn()).toBe(CHAINED_PROMPT);
+    expect(harness.notifications[0]?.message).toBe(`Output style skipped: ${path} (style instruction text is empty)`);
   });
 
   it("keeps the chained prompt when no style directory exists", async () => {

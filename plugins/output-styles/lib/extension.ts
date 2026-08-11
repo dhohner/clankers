@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import type { BuildSystemPromptOptions, ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { describeError, discoverStyles } from "./discovery.ts";
 import { applyStyle } from "./prompt.ts";
 import { DEFAULT_STYLE, type StyleDefinition } from "./types.ts";
@@ -31,7 +31,7 @@ export type StyleExtensionApi = {
   on(
     event: "before_agent_start",
     handler: (
-      event: { systemPrompt: string },
+      event: { systemPrompt: string; systemPromptOptions: BuildSystemPromptOptions },
       ctx: StyleExtensionContext,
     ) => Promise<{ systemPrompt?: string } | undefined>,
   ): void;
@@ -108,10 +108,11 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
   });
 
   pi.on("before_agent_start", async (event, ctx) => {
-    // The handler receives the chained prompt, so returning a value built from it preserves the system
-    // prompt changes of extensions that ran earlier in the chain.
+    // The handler receives the chained prompt, so an append-mode value built from it preserves the
+    // system prompt changes of extensions that ran earlier in the chain. The structured options may
+    // carry full context file contents: they go into applyStyle only, never into notifications.
     try {
-      const systemPrompt = applyStyle(event.systemPrompt, activeStyle);
+      const systemPrompt = applyStyle(event.systemPrompt, activeStyle, event.systemPromptOptions);
       return systemPrompt === event.systemPrompt ? undefined : { systemPrompt };
     } catch (error) {
       notify(ctx, `Output style not applied: ${describeError(error)}`, "warning");
