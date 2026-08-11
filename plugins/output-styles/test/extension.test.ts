@@ -2,7 +2,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { BuildSystemPromptOptions } from "@earendil-works/pi-coding-agent";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   COMMAND_NAME,
   CYCLE_SHORTCUT,
@@ -53,6 +53,7 @@ type Harness = {
   status(): string | undefined;
   activeTools(): string[];
   notifications: Notification[];
+  statusCalls: Array<{ key: string; text: string | undefined }>;
   registeredFlags: FlagRegistration[];
   registeredCommands: CommandRegistration[];
   registeredShortcuts: ShortcutRegistration[];
@@ -89,16 +90,17 @@ function styleFile(description: string, instructions: string, mode?: string): st
   return `---\ndescription: ${description}\n${modeLine}---\n${instructions}\n`;
 }
 
-function createHarness(options: { flag?: string; trusted?: boolean } = {}): Harness {
+function createHarness(options: { flag?: string; trusted?: boolean; hasUI?: boolean } = {}): Harness {
   const notifications: Notification[] = [];
   const handlers: Record<string, (event: never, ctx: StyleExtensionContext) => unknown> = {};
 
   const selectCalls: SelectCall[] = [];
   const selectAnswers: Array<string | undefined> = [];
   const statuses = new Map<string, string | undefined>();
+  const statusCalls: Array<{ key: string; text: string | undefined }> = [];
 
   const ctx: StyleExtensionContext = {
-    hasUI: true,
+    hasUI: options.hasUI ?? true,
     cwd,
     isProjectTrusted: () => options.trusted ?? false,
     ui: {
@@ -107,7 +109,10 @@ function createHarness(options: { flag?: string; trusted?: boolean } = {}): Harn
         selectCalls.push({ title, options: selectOptions });
         return selectAnswers.shift();
       },
-      setStatus: (key, text) => statuses.set(key, text),
+      setStatus: (key, text) => {
+        statusCalls.push({ key, text });
+        statuses.set(key, text);
+      },
     },
   };
 
@@ -154,6 +159,7 @@ function createHarness(options: { flag?: string; trusted?: boolean } = {}): Harn
     registeredCommands,
     registeredShortcuts,
     selectCalls,
+    statusCalls,
     activeTools: () => [...activeTools],
     async start() {
       await handlers.session_start?.({ type: "session_start" } as never, ctx);
@@ -396,10 +402,23 @@ describe("in-session style switching", () => {
     await writeStyle(userStyles, "terse.md", styleFile("One-line answers.", "Answer in one line."));
   }
 
-  it("registers the command and the cycle shortcut", () => {
+  it("registers the command at load and the cycle shortcut at session start", async () => {
     const harness = createHarness();
 
     expect(harness.registeredCommands.map((command) => command.name)).toEqual([COMMAND_NAME]);
+    expect(harness.registeredShortcuts).toEqual([]);
+
+    await harness.start();
+
+    expect(harness.registeredShortcuts.map((shortcut) => shortcut.shortcut)).toEqual([CYCLE_SHORTCUT]);
+  });
+
+  it("registers the cycle shortcut once across repeated session starts", async () => {
+    const harness = createHarness();
+
+    await harness.start();
+    await harness.start();
+
     expect(harness.registeredShortcuts.map((shortcut) => shortcut.shortcut)).toEqual([CYCLE_SHORTCUT]);
   });
 
@@ -755,5 +774,115 @@ describe("style persistence", () => {
 
     expect(harness.status()).toBe("style:brief");
     expect(await readSettings(projectSettingsPath())).toEqual({ [OUTPUT_STYLE_KEY]: "brief" });
+  });
+});
+
+describe("modes without a user interface", () => {
+  let stderrLines: string[];
+
+  beforeEach(() => {
+    stderrLines = [];
+    vi.spyOn(process.stderr, "write").mockImplementation(((chunk: string | Uint8Array) => {
+      stderrLines.push(String(chunk));
+      return true;
+    }) as typeof process.stderr.write);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  async function writeUserStyles(): Promise<void> {
+    const userStyles = join(agentDir, STYLES_DIR_NAME);
+    await writeStyle(userStyles, "brief.md", styleFile("Short answers.", "Answer briefly."));
+    await writeStyle(userStyles, "terse.md", styleFile("One-line answers.", "Answer in one line."));
+  }
+
+  it("registers no cycle shortcut and sets no footer status", async () => {
+    await writeUserStyles();
+    const harness = createHarness({ hasUI: false });
+
+    await harness.start();
+
+    expect(harness.registeredShortcuts).toEqual([]);
+    expect(harness.statusCalls).toEqual([]);
+  });
+
+  it("resolves a persisted style into the same prompt as with a user interface", async () => {
+    await writeUserStyles();
+    await mkdir(join(cwd, CONFIG_DIR_NAME), { recursive: true });
+    await writeFile(
+      join(cwd, CONFIG_DIR_NAME, SETTINGS_FILE_NAME),
+      JSON.stringify({ [OUTPUT_STYLE_KEY]: "terse" }),
+      "utf8",
+    );
+
+    const withUI = createHarness({ trusted: true, hasUI: true });
+    await withUI.start();
+    const withoutUI = createHarness({ trusted: true, hasUI: false });
+    await withoutUI.start();
+
+    const expected = `${CHAINED_PROMPT}\n\nAnswer in one line.`;
+    expect(await withoutUI.turn()).toBe(expected);
+    expect(await withUI.turn()).toBe(expected);
+  });
+
+  it("applies a flag-selected style without a user interface", async () => {
+    await writeUserStyles();
+    const harness = createHarness({ flag: "brief", hasUI: false });
+    await harness.start();
+
+    expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer briefly.`);
+  });
+
+  it("switches by name through the command without opening a dialog", async () => {
+    await writeUserStyles();
+    const harness = createHarness({ hasUI: false });
+    await harness.start();
+
+    await harness.runCommand("terse");
+
+    expect(harness.selectCalls).toEqual([]);
+    expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer in one line.`);
+  });
+
+  it("reports the available names for the argument-less command instead of a dialog", async () => {
+    await writeUserStyles();
+    const harness = createHarness({ hasUI: false });
+    await harness.start();
+
+    await harness.runCommand("");
+
+    expect(harness.selectCalls).toEqual([]);
+    expect(stderrLines.join("")).toBe(
+      'output-styles: Available output styles: default, brief, terse. The active style is "default". Switch with "/output-style <name>".\n',
+    );
+  });
+
+  it("writes messages to standard error and never to the notify surface", async () => {
+    const userStyles = join(agentDir, STYLES_DIR_NAME);
+    await writeStyle(userStyles, "terse.md", styleFile("One-line answers.", "Answer in one line."));
+    const malformed = await writeStyle(userStyles, "broken.md", "no frontmatter here\n");
+
+    const harness = createHarness({ hasUI: false });
+    await harness.start();
+
+    expect(harness.notifications).toEqual([]);
+    expect(stderrLines.join("")).toBe(
+      `output-styles: Output style skipped: ${malformed} (no readable YAML frontmatter block)\n`,
+    );
+  });
+
+  it("reports an unknown command argument on standard error and keeps the active style", async () => {
+    await writeUserStyles();
+    const harness = createHarness({ flag: "terse", hasUI: false });
+    await harness.start();
+
+    await harness.runCommand("missing");
+
+    expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer in one line.`);
+    expect(stderrLines.join("")).toBe(
+      'output-styles: Unknown output style "missing". The active style stays "terse". Available: default, brief, terse\n',
+    );
   });
 });

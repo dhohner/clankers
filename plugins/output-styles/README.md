@@ -58,6 +58,22 @@ The starting style of a session resolves in this order, taking the first value t
 The flag is a one-run override and is never written to settings.
 A consulted value that names no known style is reported once and skipped, and its value on disk stays unchanged, so a temporarily unavailable project style is not lost.
 
+## Modes Without a User Interface
+
+The style resolves and applies identically in every Pi run mode, so a scripted `pi -p` or `--mode json` run follows the same persisted or flag-selected style as an interactive session.
+
+The terminal surfaces follow Pi's `hasUI` flag, which is true in TUI and RPC modes and false in print and JSON modes:
+
+- The cycle shortcut is registered only when a user interface exists.
+- The footer status is set only when a user interface exists.
+- `/output-style <name>` still switches by name wherever commands can be invoked, and never opens a dialog without a user interface.
+- `/output-style` without an argument reports the available style names on standard error instead of opening the selector.
+
+Without a user interface, every message the plugin produces, such as a skipped malformed file or an unknown style name, is written to standard error with an `output-styles:` prefix.
+Standard output stays untouched, because in print and JSON mode it carries the agent answer a caller parses.
+
+Project trust follows Pi's own rules: non-interactive modes show no trust prompt, so without a saved decision the `defaultProjectTrust` setting decides whether project styles and the project settings value are read.
+
 ## Style Sources
 
 Style files are read from three directories, none of them recursively:
@@ -124,7 +140,6 @@ Any supplied `--output-style` value that matches no style name, a blank value in
 
 - Style files are read at session start.
   A style file added or edited while a session runs takes effect at the next session, so the selector shows the list as it was at session start.
-- The selection is not persisted across sessions.
 - A switch requested while an agent turn is running applies to the next turn, never to the turn in flight, because the prompt for a running turn is already assembled.
 
 ## Bundled Styles

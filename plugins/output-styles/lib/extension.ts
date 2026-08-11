@@ -100,7 +100,14 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
   });
 
   function notify(ctx: StyleExtensionContext, message: string, level: NotifyLevel): void {
-    if (ctx.hasUI) ctx.ui.notify(message, level);
+    if (ctx.hasUI) {
+      ctx.ui.notify(message, level);
+      return;
+    }
+    // Print and JSON mode carry the agent answer on standard output, so without a user interface
+    // every message goes to standard error: nothing is dropped and the parsed answer stream stays
+    // clean.
+    process.stderr.write(`output-styles: ${message}\n`);
   }
 
   function showFooterStatus(ctx: StyleExtensionContext): void {
@@ -157,8 +164,16 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
     return `${style.name}${activeMark} - ${style.description} [${style.source}]`;
   }
 
+  /** The argument-less command without a user interface: name what a follow-up call can switch to. */
+  function reportStyleNames(ctx: StyleExtensionContext): void {
+    notify(
+      ctx,
+      `Available output styles: ${styles.map((style) => style.name).join(", ")}. The active style is "${activeStyle.name}". Switch with "/output-style <name>".`,
+      "info",
+    );
+  }
+
   async function openStyleSelector(ctx: StyleExtensionContext): Promise<void> {
-    if (!ctx.hasUI) return;
     // The label list mirrors `styles` index by index, so the chosen label maps back by position.
     const labels = styles.map(selectorLabel);
     const choice = await ctx.ui.select("Select output style", labels);
@@ -181,9 +196,11 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
     handler: async (args, ctx) => {
       // The argument matches exactly and case-sensitively, the same rule the flag uses, so a value
       // with surrounding whitespace is an unknown name and only the truly empty argument opens the
-      // selector.
+      // selector. Without a user interface no dialog can open, so the same invocation reports the
+      // names a scripted caller can pass instead.
       if (args === "") {
-        await openStyleSelector(ctx);
+        if (ctx.hasUI) await openStyleSelector(ctx);
+        else reportStyleNames(ctx);
         return;
       }
       const selected = styles.find((style) => style.name === args);
@@ -195,18 +212,32 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
     },
   });
 
-  pi.registerShortcut(CYCLE_SHORTCUT, {
-    description: "Activate the next output style",
-    handler: async (ctx) => {
-      // Steps through the discovered list order, name-ordered with `default` first, and wraps at the
-      // end. An index of -1 cannot happen because activeStyle always comes from `styles`, but the
-      // arithmetic still lands on the first entry if it ever did.
-      const next = styles[(styles.indexOf(activeStyle) + 1) % styles.length];
-      if (next) await activateStyle(next, ctx);
-    },
-  });
+  let cycleShortcutRegistered = false;
+
+  /**
+   * The cycle shortcut is a terminal surface and is only registered when a user interface exists.
+   * That is knowable no earlier than session start, because `hasUI` lives on the handler context,
+   * not on the registration API. Pi collects extension shortcuts after session_start has run, so
+   * this late registration still binds. The guard keeps repeated session starts, for example a
+   * resume or a fork, from registering twice.
+   */
+  function registerCycleShortcut(): void {
+    if (cycleShortcutRegistered) return;
+    cycleShortcutRegistered = true;
+    pi.registerShortcut(CYCLE_SHORTCUT, {
+      description: "Activate the next output style",
+      handler: async (ctx) => {
+        // Steps through the discovered list order, name-ordered with `default` first, and wraps at
+        // the end. An index of -1 cannot happen because activeStyle always comes from `styles`, but
+        // the arithmetic still lands on the first entry if it ever did.
+        const next = styles[(styles.indexOf(activeStyle) + 1) % styles.length];
+        if (next) await activateStyle(next, ctx);
+      },
+    });
+  }
 
   pi.on("session_start", async (_event, ctx) => {
+    if (ctx.hasUI) registerCycleShortcut();
     // Style discovery is a convenience: no problem here may keep the extension from loading, so the whole
     // startup path degrades to the unchanged default style instead of throwing into Pi's startup.
     try {
