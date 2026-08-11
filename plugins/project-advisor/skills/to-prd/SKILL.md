@@ -35,9 +35,6 @@ The _decisions_ are the user's - put each to them and wait.
 A question belongs in `open_questions` only if it is **unaskable now**: it waits on a fact that cannot be found in the environment today.
 Every other uncertainty is a decision the user can make now, so ask it instead.
 
-Close the interview with a **confirmation round**: list every assumption you made without asking, every question you judged below PRD altitude and how you resolved it, and every open question with its blocker and owner.
-Ask the user to confirm or correct the list. A corrected assumption reopens the frontier: run another round.
-
 **Complete when:** the frontier is empty: every branch of the design tree visited, nothing left silently assumed. Do not act on it until the user confirms you have reached a shared understanding.
 
 ## 2. Author the working manifest
