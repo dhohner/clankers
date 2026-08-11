@@ -6,10 +6,23 @@ import { DEFAULT_STYLE, type StyleDefinition } from "./types.ts";
 
 export const FLAG_NAME = "output-style";
 
+export const COMMAND_NAME = "output-style";
+
+export const CYCLE_SHORTCUT = "ctrl+shift+y";
+
+/** Footer status key. One key per extension, so a new text replaces the previous one. */
+export const STATUS_KEY = "output-style";
+
 /** Directory name holding style files inside the agent directory and inside the project config directory. */
 export const STYLES_DIR_NAME = "output-styles";
 
 type NotifyLevel = "info" | "warning" | "error";
+
+export type StyleAutocompleteItem = {
+  value: string;
+  label: string;
+  description?: string;
+};
 
 // Deliberate structural subsets of Pi's own API and handler context: the extension only needs these
 // members, and tests can build them directly. The assertions below stop the subsets from drifting away
@@ -18,12 +31,30 @@ export type StyleExtensionContext = {
   hasUI: boolean;
   cwd: string;
   isProjectTrusted(): boolean;
-  ui: { notify(message: string, type?: NotifyLevel): void };
+  ui: {
+    notify(message: string, type?: NotifyLevel): void;
+    select(title: string, options: string[]): Promise<string | undefined>;
+    setStatus(key: string, text: string | undefined): void;
+  };
 };
 
 export type StyleExtensionApi = {
   registerFlag(name: string, options: { description?: string; type: "boolean" | "string" }): void;
   getFlag(name: string): boolean | string | undefined;
+  registerCommand(
+    name: string,
+    options: {
+      description?: string;
+      getArgumentCompletions?: (
+        argumentPrefix: string,
+      ) => StyleAutocompleteItem[] | null | Promise<StyleAutocompleteItem[] | null>;
+      handler: (args: string, ctx: StyleExtensionContext) => Promise<void>;
+    },
+  ): void;
+  registerShortcut(
+    shortcut: string,
+    options: { description?: string; handler: (ctx: StyleExtensionContext) => Promise<void> | void },
+  ): void;
   on(
     event: "session_start",
     handler: (event: { type: "session_start" }, ctx: StyleExtensionContext) => Promise<void> | void,
@@ -65,6 +96,85 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
     if (ctx.hasUI) ctx.ui.notify(message, level);
   }
 
+  function showFooterStatus(ctx: StyleExtensionContext): void {
+    if (ctx.hasUI) ctx.ui.setStatus(STATUS_KEY, `style:${activeStyle.name}`);
+  }
+
+  /**
+   * The one switch path shared by the flag-less selector, the named command argument, and the cycle
+   * shortcut, so every surface produces the same footer update and the same effect on the next turn.
+   * Switching to the already active style is allowed and changes nothing.
+   */
+  function activateStyle(style: StyleDefinition, ctx: StyleExtensionContext): void {
+    activeStyle = style;
+    showFooterStatus(ctx);
+    notify(ctx, `Output style "${style.name}" is active from the next turn on.`, "info");
+  }
+
+  function reportUnknownStyle(ctx: StyleExtensionContext, requested: string): void {
+    notify(
+      ctx,
+      `Unknown output style "${requested}". The active style stays "${activeStyle.name}". Available: ${styles
+        .map((style) => style.name)
+        .join(", ")}`,
+      "warning",
+    );
+  }
+
+  function selectorLabel(style: StyleDefinition): string {
+    const activeMark = style.name === activeStyle.name ? " (active)" : "";
+    return `${style.name}${activeMark} - ${style.description} [${style.source}]`;
+  }
+
+  async function openStyleSelector(ctx: StyleExtensionContext): Promise<void> {
+    if (!ctx.hasUI) return;
+    // The label list mirrors `styles` index by index, so the chosen label maps back by position.
+    const labels = styles.map(selectorLabel);
+    const choice = await ctx.ui.select("Select output style", labels);
+    // Cancelling resolves to undefined and leaves the active style unchanged.
+    if (choice === undefined) return;
+    const selected = styles[labels.indexOf(choice)];
+    if (selected) activateStyle(selected, ctx);
+  }
+
+  pi.registerCommand(COMMAND_NAME, {
+    description: "Switch the response style for the rest of the session",
+    getArgumentCompletions: (argumentPrefix) =>
+      styles
+        .filter((style) => style.name.startsWith(argumentPrefix))
+        .map((style) => ({
+          value: style.name,
+          label: style.name,
+          description: `${style.description} [${style.source}]`,
+        })),
+    handler: async (args, ctx) => {
+      // The argument matches exactly and case-sensitively, the same rule the flag uses, so a value
+      // with surrounding whitespace is an unknown name and only the truly empty argument opens the
+      // selector.
+      if (args === "") {
+        await openStyleSelector(ctx);
+        return;
+      }
+      const selected = styles.find((style) => style.name === args);
+      if (selected) {
+        activateStyle(selected, ctx);
+        return;
+      }
+      reportUnknownStyle(ctx, args);
+    },
+  });
+
+  pi.registerShortcut(CYCLE_SHORTCUT, {
+    description: "Activate the next output style",
+    handler: (ctx) => {
+      // Steps through the discovered list order, name-ordered with `default` first, and wraps at the
+      // end. An index of -1 cannot happen because activeStyle always comes from `styles`, but the
+      // arithmetic still lands on the first entry if it ever did.
+      const next = styles[(styles.indexOf(activeStyle) + 1) % styles.length];
+      if (next) activateStyle(next, ctx);
+    },
+  });
+
   pi.on("session_start", async (_event, ctx) => {
     // Style discovery is a convenience: no problem here may keep the extension from loading, so the whole
     // startup path degrades to the unchanged default style instead of throwing into Pi's startup.
@@ -104,6 +214,10 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
       );
     } catch (error) {
       notify(ctx, `Output styles unavailable: ${describeError(error)}`, "warning");
+    } finally {
+      // The footer names the active style from session start on, the default style included, so the
+      // status is visible before the first switch.
+      showFooterStatus(ctx);
     }
   });
 

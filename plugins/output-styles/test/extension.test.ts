@@ -4,9 +4,13 @@ import { join } from "node:path";
 import type { BuildSystemPromptOptions } from "@earendil-works/pi-coding-agent";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
+  COMMAND_NAME,
+  CYCLE_SHORTCUT,
   FLAG_NAME,
   registerOutputStyles,
+  STATUS_KEY,
   STYLES_DIR_NAME,
+  type StyleAutocompleteItem,
   type StyleExtensionApi,
   type StyleExtensionContext,
 } from "../lib/extension.js";
@@ -18,13 +22,40 @@ type Notification = { message: string; level: string };
 
 type FlagRegistration = { name: string; options: { description?: string; type: "boolean" | "string" } };
 
+type CommandRegistration = {
+  name: string;
+  options: {
+    description?: string;
+    getArgumentCompletions?: (
+      argumentPrefix: string,
+    ) => StyleAutocompleteItem[] | null | Promise<StyleAutocompleteItem[] | null>;
+    handler: (args: string, ctx: StyleExtensionContext) => Promise<void>;
+  };
+};
+
+type ShortcutRegistration = {
+  shortcut: string;
+  options: { description?: string; handler: (ctx: StyleExtensionContext) => Promise<void> | void };
+};
+
+type SelectCall = { title: string; options: string[] };
+
 type Harness = {
   start(): Promise<void>;
   turn(systemPrompt?: string): Promise<string>;
   turnResult(options?: BuildSystemPromptOptions): Promise<Record<string, unknown> | undefined>;
+  runCommand(args: string): Promise<void>;
+  completions(prefix: string): Promise<StyleAutocompleteItem[] | null>;
+  pressCycleShortcut(): Promise<void>;
+  /** Queues the answer the next ui.select call resolves with; undefined means the user cancels. */
+  answerSelect(choice: string | undefined): void;
+  status(): string | undefined;
   activeTools(): string[];
   notifications: Notification[];
   registeredFlags: FlagRegistration[];
+  registeredCommands: CommandRegistration[];
+  registeredShortcuts: ShortcutRegistration[];
+  selectCalls: SelectCall[];
 };
 
 const HARNESS_TOOLS = ["read", "bash", "edit", "write"];
@@ -61,14 +92,27 @@ function createHarness(options: { flag?: string; trusted?: boolean } = {}): Harn
   const notifications: Notification[] = [];
   const handlers: Record<string, (event: never, ctx: StyleExtensionContext) => unknown> = {};
 
+  const selectCalls: SelectCall[] = [];
+  const selectAnswers: Array<string | undefined> = [];
+  const statuses = new Map<string, string | undefined>();
+
   const ctx: StyleExtensionContext = {
     hasUI: true,
     cwd,
     isProjectTrusted: () => options.trusted ?? false,
-    ui: { notify: (message, level) => notifications.push({ message, level: level ?? "info" }) },
+    ui: {
+      notify: (message, level) => notifications.push({ message, level: level ?? "info" }),
+      select: async (title, selectOptions) => {
+        selectCalls.push({ title, options: selectOptions });
+        return selectAnswers.shift();
+      },
+      setStatus: (key, text) => statuses.set(key, text),
+    },
   };
 
   const registeredFlags: FlagRegistration[] = [];
+  const registeredCommands: CommandRegistration[] = [];
+  const registeredShortcuts: ShortcutRegistration[] = [];
 
   // Mirrors Pi's tool API surface so a test can observe whether the extension touches the tool set.
   let activeTools = [...HARNESS_TOOLS];
@@ -84,6 +128,12 @@ function createHarness(options: { flag?: string; trusted?: boolean } = {}): Harn
     // Mirrors Pi: an unregistered flag reads as undefined, so a value is only visible once registered.
     getFlag: (name: string) =>
       registeredFlags.some((flag) => flag.name === name) && name === FLAG_NAME ? options.flag : undefined,
+    registerCommand: (name: string, commandOptions: CommandRegistration["options"]) => {
+      registeredCommands.push({ name, options: commandOptions });
+    },
+    registerShortcut: (shortcut: string, shortcutOptions: ShortcutRegistration["options"]) => {
+      registeredShortcuts.push({ shortcut, options: shortcutOptions });
+    },
     on: (event: string, handler: (event: never, ctx: StyleExtensionContext) => unknown) => {
       handlers[event] = handler;
     },
@@ -91,12 +141,38 @@ function createHarness(options: { flag?: string; trusted?: boolean } = {}): Harn
 
   registerOutputStyles(pi, { bundledDir, agentDir, configDirName: CONFIG_DIR_NAME });
 
+  function outputStyleCommand(): CommandRegistration {
+    const command = registeredCommands.find((entry) => entry.name === COMMAND_NAME);
+    if (!command) throw new Error(`command "${COMMAND_NAME}" is not registered`);
+    return command;
+  }
+
   return {
     notifications,
     registeredFlags,
+    registeredCommands,
+    registeredShortcuts,
+    selectCalls,
     activeTools: () => [...activeTools],
     async start() {
       await handlers.session_start?.({ type: "session_start" } as never, ctx);
+    },
+    async runCommand(args) {
+      await outputStyleCommand().options.handler(args, ctx);
+    },
+    async completions(prefix) {
+      return (await outputStyleCommand().options.getArgumentCompletions?.(prefix)) ?? null;
+    },
+    async pressCycleShortcut() {
+      const shortcut = registeredShortcuts.find((entry) => entry.shortcut === CYCLE_SHORTCUT);
+      if (!shortcut) throw new Error(`shortcut "${CYCLE_SHORTCUT}" is not registered`);
+      await shortcut.options.handler(ctx);
+    },
+    answerSelect(choice) {
+      selectAnswers.push(choice);
+    },
+    status() {
+      return statuses.get(STATUS_KEY);
     },
     async turn(systemPrompt = CHAINED_PROMPT) {
       const result = (await handlers.before_agent_start?.(
@@ -309,5 +385,187 @@ describe("output styles extension", () => {
 
     expect(await harness.turn("Prompt from another extension.")).toBe("Prompt from another extension.");
     expect(harness.notifications).toEqual([]);
+  });
+});
+
+describe("in-session style switching", () => {
+  async function writeUserStyles(): Promise<void> {
+    const userStyles = join(agentDir, STYLES_DIR_NAME);
+    await writeStyle(userStyles, "brief.md", styleFile("Short answers.", "Answer briefly."));
+    await writeStyle(userStyles, "terse.md", styleFile("One-line answers.", "Answer in one line."));
+  }
+
+  it("registers the command and the cycle shortcut", () => {
+    const harness = createHarness();
+
+    expect(harness.registeredCommands.map((command) => command.name)).toEqual([COMMAND_NAME]);
+    expect(harness.registeredShortcuts.map((shortcut) => shortcut.shortcut)).toEqual([CYCLE_SHORTCUT]);
+  });
+
+  it("shows the default style in the footer from session start on", async () => {
+    const harness = createHarness();
+    await harness.start();
+
+    expect(harness.status()).toBe("style:default");
+  });
+
+  it("switches directly to a named style for the next turn and updates the footer", async () => {
+    await writeUserStyles();
+    const harness = createHarness();
+    await harness.start();
+    expect(await harness.turn()).toBe(CHAINED_PROMPT);
+
+    await harness.runCommand("terse");
+
+    expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer in one line.`);
+    expect(harness.status()).toBe("style:terse");
+    expect(harness.notifications).toEqual([
+      { message: 'Output style "terse" is active from the next turn on.', level: "info" },
+    ]);
+  });
+
+  it("replaces a flag-selected style for the rest of the session", async () => {
+    await writeUserStyles();
+    const harness = createHarness({ flag: "brief" });
+    await harness.start();
+    expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer briefly.`);
+
+    await harness.runCommand("terse");
+
+    expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer in one line.`);
+  });
+
+  it("keeps the active style and reports an unknown command argument", async () => {
+    await writeUserStyles();
+    const harness = createHarness({ flag: "terse" });
+    await harness.start();
+
+    await harness.runCommand("missing");
+
+    expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer in one line.`);
+    expect(harness.status()).toBe("style:terse");
+    expect(harness.notifications).toEqual([
+      {
+        message: 'Unknown output style "missing". The active style stays "terse". Available: default, brief, terse',
+        level: "warning",
+      },
+    ]);
+  });
+
+  it.each([
+    ["a leading space", " terse"],
+    ["a trailing space", "terse "],
+    ["only whitespace", "  "],
+  ])("treats an argument with %s as an unknown name instead of trimming it", async (_case, argument) => {
+    await writeUserStyles();
+    const harness = createHarness({ flag: "brief" });
+    await harness.start();
+
+    await harness.runCommand(argument);
+
+    expect(harness.selectCalls).toEqual([]);
+    expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer briefly.`);
+    expect(harness.status()).toBe("style:brief");
+    expect(harness.notifications).toEqual([
+      {
+        message: `Unknown output style "${argument}". The active style stays "brief". Available: default, brief, terse`,
+        level: "warning",
+      },
+    ]);
+  });
+
+  it("switches to the same style again without an error and without a change", async () => {
+    await writeUserStyles();
+    const harness = createHarness({ flag: "terse" });
+    await harness.start();
+
+    await harness.runCommand("terse");
+
+    expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer in one line.`);
+    expect(harness.status()).toBe("style:terse");
+    expect(harness.notifications).toEqual([
+      { message: 'Output style "terse" is active from the next turn on.', level: "info" },
+    ]);
+  });
+
+  it("lists every style with name, description, and source and marks the active one", async () => {
+    await writeStyle(bundledDir, "plain.md", styleFile("Bundled style.", "Bundled text."));
+    await writeStyle(join(agentDir, STYLES_DIR_NAME), "brief.md", styleFile("User style.", "User text."));
+    await writeStyle(join(cwd, CONFIG_DIR_NAME, STYLES_DIR_NAME), "local.md", styleFile("Project style.", "Project text."));
+
+    const harness = createHarness({ flag: "brief", trusted: true });
+    await harness.start();
+    harness.answerSelect(undefined);
+    await harness.runCommand("");
+
+    expect(harness.selectCalls).toEqual([
+      {
+        title: "Select output style",
+        options: [
+          "default - Pi's standard behavior, with no added style instructions. [bundled]",
+          "brief (active) - User style. [user]",
+          "local - Project style. [project]",
+          "plain - Bundled style. [bundled]",
+        ],
+      },
+    ]);
+  });
+
+  it("switches to the style picked in the selector", async () => {
+    await writeUserStyles();
+    const harness = createHarness();
+    await harness.start();
+
+    harness.answerSelect("terse - One-line answers. [user]");
+    await harness.runCommand("");
+
+    expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer in one line.`);
+    expect(harness.status()).toBe("style:terse");
+  });
+
+  it("keeps the active style when the selector is cancelled", async () => {
+    await writeUserStyles();
+    const harness = createHarness({ flag: "brief" });
+    await harness.start();
+
+    harness.answerSelect(undefined);
+    await harness.runCommand("");
+
+    expect(harness.selectCalls).toHaveLength(1);
+    expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer briefly.`);
+    expect(harness.status()).toBe("style:brief");
+    expect(harness.notifications).toEqual([]);
+  });
+
+  it("offers the discovered style names that start with the prefix", async () => {
+    await writeUserStyles();
+    const harness = createHarness();
+    await harness.start();
+
+    expect(await harness.completions("")).toEqual([
+      { value: "default", label: "default", description: "Pi's standard behavior, with no added style instructions. [bundled]" },
+      { value: "brief", label: "brief", description: "Short answers. [user]" },
+      { value: "terse", label: "terse", description: "One-line answers. [user]" },
+    ]);
+    expect((await harness.completions("te"))?.map((item) => item.value)).toEqual(["terse"]);
+    expect(await harness.completions("Te")).toEqual([]);
+  });
+
+  it("cycles through the full style list and wraps to the first entry", async () => {
+    await writeUserStyles();
+    const harness = createHarness({ flag: "terse" });
+    await harness.start();
+
+    await harness.pressCycleShortcut();
+    expect(harness.status()).toBe("style:default");
+    expect(await harness.turn()).toBe(CHAINED_PROMPT);
+
+    await harness.pressCycleShortcut();
+    expect(harness.status()).toBe("style:brief");
+    expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer briefly.`);
+
+    await harness.pressCycleShortcut();
+    expect(harness.status()).toBe("style:terse");
+    expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer in one line.`);
   });
 });
