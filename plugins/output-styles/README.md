@@ -40,6 +40,24 @@ Switching to the already active style is allowed, changes nothing, and is not an
 A style never changes the provider, the model, the thinking level, or the active tool set, so a style is safe at any point of a session.
 No bundled style uses `replace` mode.
 
+## Persistence
+
+Every in-session switch is written immediately to Pi's settings under the `outputStyle` key.
+The write target follows project trust: `<cwd>/<pi config dir>/settings.json` in a trusted project, `<agent dir>/settings.json` otherwise, so an untrusted project is never written to.
+The write changes only the `outputStyle` key and keeps every other settings key, nested objects included.
+Writes are serialized within the session and take the same file lock Pi's own settings writer uses, so rapid switches and concurrent Pi settings writes cannot interleave into a corrupted file.
+When the write fails, the switch stays active for the running session and the failure is reported.
+
+The starting style of a session resolves in this order, taking the first value that names a known style:
+
+1. the `--output-style` flag value;
+2. the project settings value, when the project is trusted;
+3. the global settings value; and
+4. the built-in `default` style.
+
+The flag is a one-run override and is never written to settings.
+A consulted value that names no known style is reported once and skipped, and its value on disk stays unchanged, so a temporarily unavailable project style is not lost.
+
 ## Style Sources
 
 Style files are read from three directories, none of them recursively:

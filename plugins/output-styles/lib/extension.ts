@@ -2,6 +2,13 @@ import { join } from "node:path";
 import type { BuildSystemPromptOptions, ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { describeError, discoverStyles } from "./discovery.ts";
 import { applyStyle } from "./prompt.ts";
+import {
+  readPersistedStyleName,
+  resolveStartupStyle,
+  SETTINGS_FILE_NAME,
+  type StartupOrigin,
+  writePersistedStyleName,
+} from "./settings.ts";
 import { DEFAULT_STYLE, type StyleDefinition } from "./types.ts";
 
 export const FLAG_NAME = "output-style";
@@ -100,15 +107,39 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
     if (ctx.hasUI) ctx.ui.setStatus(STATUS_KEY, `style:${activeStyle.name}`);
   }
 
+  /** Trust decides the write target: the project settings file only for a trusted project. */
+  function settingsPathFor(ctx: StyleExtensionContext): string {
+    return ctx.isProjectTrusted()
+      ? join(ctx.cwd, options.configDirName, SETTINGS_FILE_NAME)
+      : join(options.agentDir, SETTINGS_FILE_NAME);
+  }
+
   /**
    * The one switch path shared by the flag-less selector, the named command argument, and the cycle
-   * shortcut, so every surface produces the same footer update and the same effect on the next turn.
-   * Switching to the already active style is allowed and changes nothing.
+   * shortcut, so every surface produces the same footer update, the same effect on the next turn,
+   * and the same persisted selection. Switching to the already active style is allowed and rewrites
+   * the same value. A failed write keeps the switch active and is reported, never thrown.
    */
-  function activateStyle(style: StyleDefinition, ctx: StyleExtensionContext): void {
+  async function activateStyle(style: StyleDefinition, ctx: StyleExtensionContext): Promise<void> {
     activeStyle = style;
     showFooterStatus(ctx);
     notify(ctx, `Output style "${style.name}" is active from the next turn on.`, "info");
+    try {
+      await writePersistedStyleName(settingsPathFor(ctx), style.name);
+    } catch (error) {
+      notify(
+        ctx,
+        `Output style "${style.name}" stays active for this session but could not be persisted: ${describeError(error)}`,
+        "warning",
+      );
+    }
+  }
+
+  function unknownStartupStyleMessage(origin: StartupOrigin, name: string, resolved: StyleDefinition): string {
+    const from = origin === "flag" ? "" : ` persisted in ${origin} settings`;
+    return `Unknown output style "${name}"${from}. Using "${resolved.name}". Available: ${styles
+      .map((style) => style.name)
+      .join(", ")}`;
   }
 
   function reportUnknownStyle(ctx: StyleExtensionContext, requested: string): void {
@@ -134,7 +165,7 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
     // Cancelling resolves to undefined and leaves the active style unchanged.
     if (choice === undefined) return;
     const selected = styles[labels.indexOf(choice)];
-    if (selected) activateStyle(selected, ctx);
+    if (selected) await activateStyle(selected, ctx);
   }
 
   pi.registerCommand(COMMAND_NAME, {
@@ -157,7 +188,7 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
       }
       const selected = styles.find((style) => style.name === args);
       if (selected) {
-        activateStyle(selected, ctx);
+        await activateStyle(selected, ctx);
         return;
       }
       reportUnknownStyle(ctx, args);
@@ -166,12 +197,12 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
 
   pi.registerShortcut(CYCLE_SHORTCUT, {
     description: "Activate the next output style",
-    handler: (ctx) => {
+    handler: async (ctx) => {
       // Steps through the discovered list order, name-ordered with `default` first, and wraps at the
       // end. An index of -1 cannot happen because activeStyle always comes from `styles`, but the
       // arithmetic still lands on the first entry if it ever did.
       const next = styles[(styles.indexOf(activeStyle) + 1) % styles.length];
-      if (next) activateStyle(next, ctx);
+      if (next) await activateStyle(next, ctx);
     },
   });
 
@@ -194,24 +225,26 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
       }
 
       const requested = pi.getFlag(FLAG_NAME);
-      // A missing flag keeps the default style silently. Any supplied value, blank included, is a
-      // selection attempt, so it is either matched or reported as unknown.
-      if (typeof requested !== "string") return;
+      // A missing flag reads as undefined and is no selection attempt. Any supplied value, blank
+      // included, is one, so it is either matched or reported as unknown. Style names are matched
+      // exactly and case-sensitively.
+      const flagValue = typeof requested === "string" ? requested : undefined;
 
-      // Style names are matched exactly and case-sensitively.
-      const selected = styles.find((style) => style.name === requested);
-      if (selected) {
-        activeStyle = selected;
-        return;
+      // An untrusted project's settings file is never read, matching the rule for its style files.
+      const projectValue = ctx.isProjectTrusted()
+        ? await readPersistedStyleName(join(ctx.cwd, options.configDirName, SETTINGS_FILE_NAME))
+        : undefined;
+      const globalValue = await readPersistedStyleName(join(options.agentDir, SETTINGS_FILE_NAME));
+
+      // The starting style comes from this resolution alone. The flag is a one-run override and is
+      // never written back; a persisted name that no longer resolves is reported once below and its
+      // value on disk stays untouched, so a temporarily unavailable project style is not lost.
+      const resolution = resolveStartupStyle({ flagValue, projectValue, globalValue, styles });
+      activeStyle = resolution.style;
+
+      for (const miss of resolution.unknown) {
+        notify(ctx, unknownStartupStyleMessage(miss.origin, miss.name, resolution.style), "warning");
       }
-
-      notify(
-        ctx,
-        `Unknown output style "${requested}". Using "${DEFAULT_STYLE.name}". Available: ${styles
-          .map((style) => style.name)
-          .join(", ")}`,
-        "warning",
-      );
     } catch (error) {
       notify(ctx, `Output styles unavailable: ${describeError(error)}`, "warning");
     } finally {
