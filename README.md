@@ -28,6 +28,7 @@ The repository packages small, focused plugins instead of one large bundle. Whic
 
 ### Pi Coding Agent
 
+- `output-styles` to switch the agent's response style per session or via CLI flag
 - `security-guard`
 
 See the plugin directories in [plugins](./plugins) for usage details and host-specific behavior.
@@ -120,12 +121,14 @@ pi install -l ./
 Install individual Pi plugins from a local checkout:
 
 ```bash
+pi install ./plugins/output-styles
 pi install ./plugins/security-guard
 ```
 
 For project-local installation that writes to `.pi/settings.json`:
 
 ```bash
+pi install -l ./plugins/output-styles
 pi install -l ./plugins/security-guard
 ```
 

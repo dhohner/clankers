@@ -17,12 +17,22 @@
   },
   "pi": {
     "extensions": [
+      "./plugins/output-styles/index.ts",
       "./plugins/security-guard/index.ts"
     ]
   },
   "files": [
     "README.md",
     "LICENSE",
+    "plugins/output-styles/index.ts",
+    "plugins/output-styles/lib/**",
+    "plugins/output-styles/styles/**",
+    "plugins/output-styles/examples/**",
+    "plugins/output-styles/tsconfig.json",
+    "plugins/output-styles/tsconfig.build.json",
+    "plugins/output-styles/package.json",
+    "plugins/output-styles/README.md",
+    "plugins/output-styles/LICENSE",
     "plugins/security-guard/index.ts",
     "plugins/security-guard/lib/**",
     "plugins/security-guard/package.json",
