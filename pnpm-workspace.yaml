@@ -1,2 +1,5 @@
 packages:
   - "plugins/*"
+allowBuilds:
+  '@google/genai': true
+  protobufjs: true
