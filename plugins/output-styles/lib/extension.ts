@@ -4,6 +4,7 @@ import type { BuildSystemPromptOptions, ExtensionAPI, ExtensionContext } from "@
 import { serializeStyleFile, styleNameProblem } from "./create-style.ts";
 import { describeError, discoverStyles } from "./discovery.ts";
 import { applyStyle } from "./prompt.ts";
+import { formatStatusText, type StatusTheme } from "./status.ts";
 import {
   readPersistedStyleName,
   resolveStartupStyle,
@@ -47,6 +48,7 @@ export type StyleExtensionContext = {
     input(title: string, placeholder?: string): Promise<string | undefined>;
     editor(title: string, prefill?: string): Promise<string | undefined>;
     setStatus(key: string, text: string | undefined): void;
+    readonly theme: StatusTheme;
   };
 };
 
@@ -120,7 +122,7 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
   }
 
   function showFooterStatus(ctx: StyleExtensionContext): void {
-    if (ctx.hasUI) ctx.ui.setStatus(STATUS_KEY, `style:${activeStyle.name}`);
+    if (ctx.hasUI) ctx.ui.setStatus(STATUS_KEY, formatStatusText(activeStyle, ctx.ui.theme));
   }
 
   function styleDirectories(ctx: StyleExtensionContext): Parameters<typeof discoverStyles>[0] {
@@ -576,6 +578,10 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
   });
 
   pi.on("before_agent_start", async (event, ctx) => {
+    // Pi has no theme-change event and the status text carries baked colors, so a theme switched
+    // mid-session leaves the entry in the previous colors. Rendering it again on every turn start
+    // repairs that at the next turn; the text is unchanged when the theme is, so nothing flickers.
+    showFooterStatus(ctx);
     // The handler receives the chained prompt, so an append-mode value built from it preserves the
     // system prompt changes of extensions that ran earlier in the chain. The structured options may
     // carry full context file contents: they go into applyStyle only, never into notifications.

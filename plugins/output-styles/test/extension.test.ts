@@ -15,9 +15,14 @@ import {
   type StyleExtensionContext,
 } from "../lib/extension.js";
 import { OUTPUT_STYLE_KEY, SETTINGS_FILE_NAME } from "../lib/settings.js";
+import { STATUS_LABEL } from "../lib/status.js";
 import { parseStyleFile } from "../lib/style-file.js";
 
 const CONFIG_DIR_NAME = ".pi";
+
+// Mirrors the harness theme, whose fg() tags the text instead of emitting ANSI codes, so an
+// assertion states both the text and the color role of every part.
+const styleStatus = (name: string) => `[dim:${STATUS_LABEL}] [accent:${name}]`;
 const CHAINED_PROMPT = "Base prompt.";
 
 // File modes do not deny listing reliably on every OS or for a privileged user, so the listing
@@ -174,6 +179,7 @@ function createHarness(options: { flag?: string; trusted?: boolean; hasUI?: bool
         const answer = editorAnswers.shift();
         return typeof answer === "function" ? await answer() : answer;
       },
+      theme: { fg: (color, text) => `[${color}:${text}]` },
       setStatus: (key, text) => {
         statusCalls.push({ key, text });
         statuses.set(key, text);
@@ -502,7 +508,21 @@ describe("in-session style switching", () => {
     const harness = createHarness();
     await harness.start();
 
-    expect(harness.status()).toBe("style:default");
+    expect(harness.status()).toBeUndefined();
+  });
+
+  // Pi bakes theme colors into the status text, so an entry set once keeps the colors of the theme
+  // that was active then. Every turn renders it again, which picks up a theme switched in between.
+  it("renders the footer entry again on every turn", async () => {
+    await writeUserStyles();
+    const harness = createHarness();
+    await harness.start();
+    await harness.runCommand("terse");
+    const beforeTurn = harness.statusCalls.length;
+
+    await harness.turn();
+
+    expect(harness.statusCalls.slice(beforeTurn)).toEqual([{ key: STATUS_KEY, text: styleStatus("terse") }]);
   });
 
   it("switches directly to a named style for the next turn and updates the footer", async () => {
@@ -514,7 +534,7 @@ describe("in-session style switching", () => {
     await harness.runCommand("terse");
 
     expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer in one line.`);
-    expect(harness.status()).toBe("style:terse");
+    expect(harness.status()).toBe(styleStatus("terse"));
     expect(harness.notifications).toEqual([
       { message: 'Output style "terse" is active from the next turn on.', level: "info" },
     ]);
@@ -539,7 +559,7 @@ describe("in-session style switching", () => {
     await harness.runCommand("missing");
 
     expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer in one line.`);
-    expect(harness.status()).toBe("style:terse");
+    expect(harness.status()).toBe(styleStatus("terse"));
     expect(harness.notifications).toEqual([
       {
         message: 'Unknown output style "missing". The active style stays "terse". Available: default, brief, terse',
@@ -561,7 +581,7 @@ describe("in-session style switching", () => {
 
     expect(harness.selectCalls).toEqual([]);
     expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer briefly.`);
-    expect(harness.status()).toBe("style:brief");
+    expect(harness.status()).toBe(styleStatus("brief"));
     expect(harness.notifications).toEqual([
       {
         message: `Unknown output style "${argument}". The active style stays "brief". Available: default, brief, terse`,
@@ -578,7 +598,7 @@ describe("in-session style switching", () => {
     await harness.runCommand("terse");
 
     expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer in one line.`);
-    expect(harness.status()).toBe("style:terse");
+    expect(harness.status()).toBe(styleStatus("terse"));
     expect(harness.notifications).toEqual([
       { message: 'Output style "terse" is active from the next turn on.', level: "info" },
     ]);
@@ -616,7 +636,7 @@ describe("in-session style switching", () => {
     await harness.runCommand("");
 
     expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer in one line.`);
-    expect(harness.status()).toBe("style:terse");
+    expect(harness.status()).toBe(styleStatus("terse"));
   });
 
   it("keeps the active style when the selector is cancelled", async () => {
@@ -629,7 +649,7 @@ describe("in-session style switching", () => {
 
     expect(harness.selectCalls).toHaveLength(1);
     expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer briefly.`);
-    expect(harness.status()).toBe("style:brief");
+    expect(harness.status()).toBe(styleStatus("brief"));
     expect(harness.notifications).toEqual([]);
   });
 
@@ -653,15 +673,15 @@ describe("in-session style switching", () => {
     await harness.start();
 
     await harness.pressCycleShortcut();
-    expect(harness.status()).toBe("style:default");
+    expect(harness.status()).toBeUndefined();
     expect(await harness.turn()).toBe(CHAINED_PROMPT);
 
     await harness.pressCycleShortcut();
-    expect(harness.status()).toBe("style:brief");
+    expect(harness.status()).toBe(styleStatus("brief"));
     expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer briefly.`);
 
     await harness.pressCycleShortcut();
-    expect(harness.status()).toBe("style:terse");
+    expect(harness.status()).toBe(styleStatus("terse"));
     expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer in one line.`);
   });
 });
@@ -687,7 +707,7 @@ describe("rescan on /output-style invocation", () => {
     await writeStyle(join(agentDir, STYLES_DIR_NAME), "terse.md", terse());
     await harness.runCommand("terse");
 
-    expect(harness.status()).toBe("style:terse");
+    expect(harness.status()).toBe(styleStatus("terse"));
     expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer in one line.`);
   });
 
@@ -711,7 +731,7 @@ describe("rescan on /output-style invocation", () => {
 
     await harness.runCommand("terse");
 
-    expect(harness.status()).toBe("style:terse");
+    expect(harness.status()).toBe(styleStatus("terse"));
     expect(harness.notifications).toHaveLength(2);
     expect(harness.notifications[1]).toEqual({
       message: 'Output style "terse" is active from the next turn on.',
@@ -728,7 +748,7 @@ describe("rescan on /output-style invocation", () => {
     await writeStyle(join(cwd, CONFIG_DIR_NAME, STYLES_DIR_NAME), "local.md", styleFile("Project style.", "Project text."));
     await harness.runCommand("local");
 
-    expect(harness.status()).toBe("style:local");
+    expect(harness.status()).toBe(styleStatus("local"));
     expect(harness.notifications).toEqual([
       {
         message: `Output style skipped: ${userStyles} (cannot list directory: EACCES: permission denied)`,
@@ -780,9 +800,9 @@ describe("rescan on /output-style invocation", () => {
 
     await writeStyle(join(agentDir, STYLES_DIR_NAME), "terse.md", terse());
     await harness.pressCycleShortcut();
-    expect(harness.status()).toBe("style:brief");
+    expect(harness.status()).toBe(styleStatus("brief"));
     await harness.pressCycleShortcut();
-    expect(harness.status()).toBe("style:default");
+    expect(harness.status()).toBeUndefined();
   });
 
   it("keeps the in-memory list for argument autocompletion", async () => {
@@ -818,7 +838,7 @@ describe("rescan on /output-style invocation", () => {
     releaseSelect();
     await selecting;
 
-    expect(harness.status()).toBe("style:terse");
+    expect(harness.status()).toBe(styleStatus("terse"));
     expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer in one line.`);
   });
 
@@ -833,7 +853,7 @@ describe("rescan on /output-style invocation", () => {
     await harness.runCommand("");
     await harness.pressCycleShortcut();
 
-    expect(harness.status()).toBe("style:terse");
+    expect(harness.status()).toBe(styleStatus("terse"));
   });
 
   it("cycles to the first entry when a rescan removed the active style", async () => {
@@ -846,7 +866,7 @@ describe("rescan on /output-style invocation", () => {
     await harness.runCommand("");
     await harness.pressCycleShortcut();
 
-    expect(harness.status()).toBe("style:default");
+    expect(harness.status()).toBeUndefined();
   });
 });
 
@@ -877,7 +897,7 @@ describe("active style follows its file after a rescan", () => {
     await harness.runCommand("");
 
     expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer in exactly one word.`);
-    expect(harness.status()).toBe("style:terse");
+    expect(harness.status()).toBe(styleStatus("terse"));
     expect(harness.notifications).toEqual([]);
   });
 
@@ -886,13 +906,13 @@ describe("active style follows its file after a rescan", () => {
     const settings = await persistProjectStyle("terse");
     const harness = createHarness({ trusted: true });
     await harness.start();
-    expect(harness.status()).toBe("style:terse");
+    expect(harness.status()).toBe(styleStatus("terse"));
 
     await rm(stylePath);
     harness.answerSelect(undefined);
     await harness.runCommand("");
 
-    expect(harness.status()).toBe("style:default");
+    expect(harness.status()).toBeUndefined();
     expect(harness.notifications).toEqual([fallbackReport]);
     expect(await readFile(settings.path, "utf8")).toBe(settings.content);
     expect(await harness.turn()).toBe(CHAINED_PROMPT);
@@ -908,7 +928,7 @@ describe("active style follows its file after a rescan", () => {
     harness.answerSelect(undefined);
     await harness.runCommand("");
 
-    expect(harness.status()).toBe("style:default");
+    expect(harness.status()).toBeUndefined();
     expect(harness.notifications).toEqual([
       { message: `Output style skipped: ${stylePath} (no readable YAML frontmatter block)`, level: "warning" },
       fallbackReport,
@@ -928,7 +948,7 @@ describe("active style follows its file after a rescan", () => {
     harness.answerSelect(undefined);
     await harness.runCommand("");
 
-    expect(harness.status()).toBe("style:default");
+    expect(harness.status()).toBeUndefined();
     expect(harness.notifications).toEqual([fallbackReport]);
   });
 
@@ -942,7 +962,7 @@ describe("active style follows its file after a rescan", () => {
     await rm(stylePath);
     await harness.runCommand("brief");
 
-    expect(harness.status()).toBe("style:brief");
+    expect(harness.status()).toBe(styleStatus("brief"));
     expect(harness.notifications).toEqual([
       fallbackReport,
       { message: 'Output style "brief" is active from the next turn on.', level: "info" },
@@ -1003,13 +1023,13 @@ describe("active style follows its file after a rescan", () => {
     await harness.runCommand("default");
     releaseSelect();
     await selecting;
-    expect(harness.status()).toBe("style:terse");
+    expect(harness.status()).toBe(styleStatus("terse"));
 
     listFailures.path = userStyles;
     harness.answerSelect(undefined);
     await harness.runCommand("");
 
-    expect(harness.status()).toBe("style:terse");
+    expect(harness.status()).toBe(styleStatus("terse"));
     expect(harness.notifications).toEqual([
       { message: 'Output style "default" is active from the next turn on.', level: "info" },
       { message: 'Output style "terse" is active from the next turn on.', level: "info" },
@@ -1024,7 +1044,7 @@ describe("active style follows its file after a rescan", () => {
     harness.answerSelect(undefined);
     await harness.runCommand("");
 
-    expect(harness.status()).toBe("style:default");
+    expect(harness.status()).toBeUndefined();
     expect(harness.notifications).toHaveLength(4);
     expect(harness.notifications[3]).toEqual(fallbackReport);
   });
@@ -1044,7 +1064,7 @@ describe("active style follows its file after a rescan", () => {
     harness.answerSelect(undefined);
     await harness.runCommand("");
 
-    expect(harness.status()).toBe("style:terse");
+    expect(harness.status()).toBe(styleStatus("terse"));
     expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nUser terse text.`);
     expect(harness.notifications).toEqual([]);
   });
@@ -1121,7 +1141,7 @@ describe("style persistence", () => {
     const secondSession = createHarness({ trusted: true });
     await secondSession.start();
 
-    expect(secondSession.status()).toBe("style:terse");
+    expect(secondSession.status()).toBe(styleStatus("terse"));
     expect(await secondSession.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer in one line.`);
     expect(secondSession.notifications).toEqual([]);
   });
@@ -1134,7 +1154,7 @@ describe("style persistence", () => {
     const harness = createHarness({ trusted: true });
     await harness.start();
 
-    expect(harness.status()).toBe("style:terse");
+    expect(harness.status()).toBe(styleStatus("terse"));
     expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer in one line.`);
   });
 
@@ -1146,7 +1166,7 @@ describe("style persistence", () => {
     const harness = createHarness({ trusted: false });
     await harness.start();
 
-    expect(harness.status()).toBe("style:brief");
+    expect(harness.status()).toBe(styleStatus("brief"));
     expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer briefly.`);
     expect(harness.notifications).toEqual([]);
   });
@@ -1158,7 +1178,7 @@ describe("style persistence", () => {
     const harness = createHarness({ flag: "brief", trusted: true });
     await harness.start();
 
-    expect(harness.status()).toBe("style:brief");
+    expect(harness.status()).toBe(styleStatus("brief"));
     expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer briefly.`);
     expect(await readSettings(projectSettingsPath())).toEqual({ [OUTPUT_STYLE_KEY]: "terse" });
   });
@@ -1180,7 +1200,7 @@ describe("style persistence", () => {
     const harness = createHarness({ flag: "missing", trusted: true });
     await harness.start();
 
-    expect(harness.status()).toBe("style:terse");
+    expect(harness.status()).toBe(styleStatus("terse"));
     expect(harness.notifications).toEqual([
       {
         message: 'Unknown output style "missing". Using "terse". Available: default, brief, terse',
@@ -1197,7 +1217,7 @@ describe("style persistence", () => {
     await harness.start();
     await harness.turn();
 
-    expect(harness.status()).toBe("style:default");
+    expect(harness.status()).toBeUndefined();
     expect(await harness.turn()).toBe(CHAINED_PROMPT);
     expect(harness.notifications).toEqual([
       {
@@ -1218,7 +1238,7 @@ describe("style persistence", () => {
     await harness.start();
     await harness.runCommand("terse");
 
-    expect(harness.status()).toBe("style:terse");
+    expect(harness.status()).toBe(styleStatus("terse"));
     expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer in one line.`);
     expect(harness.notifications).toHaveLength(2);
     expect(harness.notifications[1]?.level).toBe("warning");
@@ -1232,7 +1252,7 @@ describe("style persistence", () => {
 
     await harness.pressCycleShortcut();
 
-    expect(harness.status()).toBe("style:brief");
+    expect(harness.status()).toBe(styleStatus("brief"));
     expect(await readSettings(projectSettingsPath())).toEqual({ [OUTPUT_STYLE_KEY]: "brief" });
   });
 });
@@ -1278,7 +1298,7 @@ describe("create flow (/output-style new)", () => {
         path,
       },
     });
-    expect(harness.status()).toBe("style:brief");
+    expect(harness.status()).toBe(styleStatus("brief"));
     expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer briefly.\nSkip preamble.`);
     expect(harness.notifications).toEqual([
       { message: 'Output style "brief" is active from the next turn on.', level: "info" },
@@ -1339,7 +1359,7 @@ describe("create flow (/output-style new)", () => {
 
     await expect(stat(userStylesDir())).rejects.toThrow();
     await expect(stat(projectStylesDir())).rejects.toThrow();
-    expect(harness.status()).toBe("style:default");
+    expect(harness.status()).toBeUndefined();
     expect(harness.notifications).toEqual([]);
   });
 
@@ -1492,7 +1512,7 @@ describe("create flow (/output-style new)", () => {
 
     const path = join(userStylesDir(), "plain.md");
     expect(parseStyleFile(path, await readFile(path, "utf8"), "user").ok).toBe(true);
-    expect(harness.status()).toBe("style:default");
+    expect(harness.status()).toBeUndefined();
     expect(await harness.turn()).toBe(CHAINED_PROMPT);
     expect(harness.notifications).toEqual([
       {
@@ -1547,7 +1567,7 @@ describe("create flow (/output-style new)", () => {
     expect(harness.notifications[0]?.message).toContain('Style "brief" was not created:');
     expect(await readFile(join(userStylesDir(), "brief.md"), "utf8")).toBe(raced);
     expect(await readdir(userStylesDir())).toEqual(["brief.md"]);
-    expect(harness.status()).toBe("style:default");
+    expect(harness.status()).toBeUndefined();
   });
 
   it("reports the possible partial file of a failed write instead of removing it", async () => {
@@ -1568,7 +1588,7 @@ describe("create flow (/output-style new)", () => {
       { message: 'Style "brief" was not created: EIO: i/o error', level: "error" },
     ]);
     expect(await readFile(path, "utf8")).toBe("partial content");
-    expect(harness.status()).toBe("style:default");
+    expect(harness.status()).toBeUndefined();
   });
 
   it("refuses a name whose file already exists in the chosen directory", async () => {
@@ -1590,7 +1610,7 @@ describe("create flow (/output-style new)", () => {
       },
     ]);
     expect(await readFile(path, "utf8")).toBe(original);
-    expect(harness.status()).toBe("style:default");
+    expect(harness.status()).toBeUndefined();
   });
 
   it("accepts a name that only shadows a style from another source and activates the winner", async () => {
@@ -1605,7 +1625,7 @@ describe("create flow (/output-style new)", () => {
 
     const path = join(userStylesDir(), "plain.md");
     expect(parseStyleFile(path, await readFile(path, "utf8"), "user").ok).toBe(true);
-    expect(harness.status()).toBe("style:plain");
+    expect(harness.status()).toBe(styleStatus("plain"));
     expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nUser text.`);
   });
 
@@ -1643,7 +1663,7 @@ describe("create flow (/output-style new)", () => {
     const path = join(projectStylesDir(), "brief.md");
     expect(parseStyleFile(path, await readFile(path, "utf8"), "project").ok).toBe(true);
     await expect(stat(userStylesDir())).rejects.toThrow();
-    expect(harness.status()).toBe("style:brief");
+    expect(harness.status()).toBe(styleStatus("brief"));
   });
 
   it("reports a failed write and keeps the active style and the settings untouched", async () => {
@@ -1662,7 +1682,7 @@ describe("create flow (/output-style new)", () => {
     // the error level identifies the write-failure report.
     const failure = harness.notifications.find((notification) => notification.level === "error");
     expect(failure?.message).toContain('Style "brief" was not created:');
-    expect(harness.status()).toBe("style:default");
+    expect(harness.status()).toBeUndefined();
     await expect(readFile(join(agentDir, SETTINGS_FILE_NAME), "utf8")).rejects.toThrow();
   });
 
