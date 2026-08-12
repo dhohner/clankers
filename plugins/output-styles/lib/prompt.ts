@@ -9,9 +9,10 @@ import type { StyleDefinition } from "./types.ts";
  *
  * In `replace` mode the style text takes the place of Pi's response and behavior guidance, and the
  * prompt is rebuilt from the structured options Pi assembled instead of the chained prompt text.
- * The environment and capability material stays: the tool list, the tool guidelines, the loaded
- * context files, the loaded skills, and the working directory. Rendering mirrors Pi's own so the
- * model sees the familiar shapes. Field semantics were verified against Pi 0.84.1.
+ * The environment and capability material stays: the tool list, the tool guidelines, the appended
+ * system prompt text, the loaded context files, the loaded skills, and the working directory.
+ * Rendering mirrors Pi's own so the model sees the familiar shapes; `test/prompt-parity.test.ts`
+ * compares the shared sections against Pi's own prompt builder.
  *
  * The options can carry full context file contents, so they are sensitive: they are used only to
  * assemble the returned prompt and must never reach logs, notifications, or other metadata.
@@ -60,17 +61,23 @@ function buildReplacePrompt(instructions: string, options: BuildSystemPromptOpti
     sections.push(`Guidelines:\n${guidelines.map((g) => `- ${g}`).join("\n")}`);
   }
 
+  let prompt = sections.join("\n\n");
+
+  // Pi's default branch appends this text after the guideline list and before the project context,
+  // and the replace-mode prompt mirrors that branch.
+  if (options.appendSystemPrompt) prompt += `\n\n${options.appendSystemPrompt}`;
+
+  // The context block, the skills block, and the working directory line are concatenated exactly as
+  // Pi concatenates them, down to the line breaks between them.
   const contextFiles = options.contextFiles ?? [];
   if (contextFiles.length > 0) {
-    const files = contextFiles
-      .map(({ path, content }) => `<project_instructions path="${path}">\n${content}\n</project_instructions>`)
-      .join("\n\n");
-    sections.push(
-      `<project_context>\n\nProject-specific instructions and guidelines:\n\n${files}\n\n</project_context>`,
-    );
+    prompt += "\n\n<project_context>\n\n";
+    prompt += "Project-specific instructions and guidelines:\n\n";
+    for (const { path, content } of contextFiles) {
+      prompt += `<project_instructions path="${path}">\n${content}\n</project_instructions>\n\n`;
+    }
+    prompt += "</project_context>\n";
   }
-
-  let prompt = sections.join("\n\n");
 
   // Like Pi, skills are listed only when the read tool is available to load them.
   const skills = options.skills ?? [];
@@ -78,5 +85,5 @@ function buildReplacePrompt(instructions: string, options: BuildSystemPromptOpti
     prompt += formatSkillsForPrompt(skills);
   }
 
-  return `${prompt}\n\nCurrent working directory: ${options.cwd.replace(/\\/g, "/")}`;
+  return `${prompt}\nCurrent working directory: ${options.cwd.replace(/\\/g, "/")}`;
 }
