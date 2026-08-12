@@ -39,6 +39,7 @@ Switch the style inside a running session:
   To use a different key, change the `CYCLE_SHORTCUT` constant in the installed copy of `lib/extension.ts` to a combination in Pi's `modifier+key` format, such as `ctrl+shift+x`.
 
 Every `/output-style` invocation, with or without an argument, rescans the three style directories first, so a style file added or edited while the session runs is selectable without a restart.
+The one exception is `/output-style new` without a user interface: it refuses before the rescan, so the invocation produces exactly one explanatory message and changes nothing.
 When a rescan cannot list a directory that the most recent successful scan listed, the previous style list stays in use, the failure is reported with the path and the reason, and the command continues with that list.
 Each discovery problem is reported at most once per session for the same path and reason.
 The cycle shortcut and the argument autocompletion use the list as it was at the last scan.
@@ -49,6 +50,22 @@ Answers already produced are unchanged and the session is not restarted.
 The footer shows the active style as `style:<name>` while the plugin is loaded, and every switch updates it immediately.
 Switching to the already active style is allowed, changes nothing, and is not an error.
 
+Create a style inside a running session:
+
+- `/output-style new` collects the style name, the description, the target directory, and the instruction text through dialogs, writes `<name>.md` into the chosen style directory, and activates the new style immediately through the normal switch path, footer update and persistence included.
+- The name must consist of letters, digits, dash, and underscore only and must not be the reserved `default` or `new`.
+  A refused name, description, or instruction text is reported with the reason and the same dialog opens again.
+- A name whose file `<name>.md` already exists in the chosen directory is refused and stops the flow.
+  A name that only matches a style from a different source directory is accepted and follows the normal precedence rules, so the definition those rules select is the one activated after the write.
+- The target selection offers the user style directory always and the project style directory only in a trusted project.
+  When only the user directory is available, the dialog is skipped.
+- Cancelling any dialog stops the flow and changes nothing on disk.
+  Nothing is written until every input is collected and valid; only then a missing target directory is created and the file is written, never over an existing file.
+- The written file holds the description as its only frontmatter field and the instruction text as the body, so the name derives from the filename and the mode is the default `append`.
+  A parse of the written file yields exactly the accepted values: because the file parser strips outer whitespace on every read, a description or instruction text with leading or trailing whitespace is refused with the reason instead of being changed silently.
+  A trailing newline counts as trailing whitespace: Pi strips its external editor's terminating newline itself, so the flow never strips anything silently.
+  After a whitespace refusal the editor re-opens prefilled with the trimmed text.
+
 A style never changes the provider, the model, the thinking level, or the active tool set, so a style is safe at any point of a session.
 No bundled style uses `replace` mode.
 
@@ -56,7 +73,8 @@ No bundled style uses `replace` mode.
 
 - Reads style files from the three style directories listed under Style Sources, at session start and on every `/output-style` invocation
 - Reads the `outputStyle` key from Pi's global settings file and, in a trusted project, from the project settings file
-- Writes only the `outputStyle` key, on every in-session switch, to the settings file the trust rule selects
+- Writes the `outputStyle` key, on every in-session switch, to the settings file the trust rule selects
+- Writes one new style file into the chosen style directory when the `/output-style new` create flow completes, and creates that directory when it is missing; a write that fails midway is reported together with the possibly incomplete file left at the path, and no other file is created, changed, or removed
 - Rewrites the assembled system prompt of each agent turn while a non-default style is active, and touches nothing else of the request
 - Runs no shell command and makes no network request
 
@@ -88,6 +106,8 @@ The terminal surfaces follow Pi's `hasUI` flag, which is true in TUI and RPC mod
 - The footer status is set only when a user interface exists.
 - `/output-style <name>` still switches by name wherever commands can be invoked, and never opens a dialog without a user interface.
 - `/output-style` without an argument reports the available style names on standard error instead of opening the selector.
+- `/output-style new` refuses with one explanatory message, because the create flow collects its inputs through dialogs; no file is written and standard output stays untouched.
+  The refusal skips the usual rescan, so no scan diagnostic can dilute that one message; the invocation acts on nothing the rescan could change.
 
 Without a user interface, every message the plugin produces, such as a skipped malformed file or an unknown style name, is written to standard error with an `output-styles:` prefix.
 Standard output stays untouched, because in print and JSON mode it carries the agent answer a caller parses.
@@ -115,7 +135,7 @@ Two files in one directory that resolve to the same style name are a collision i
 A style file that resolves to `default`, by filename or by the `name` field, is skipped and reported.
 This keeps a session without the flag always unchanged, and keeps one name from resolving to two different styles.
 
-`new` is also reserved, for the planned `/output-style new` create subcommand, so a discovered style can never shadow that subcommand.
+`new` is also reserved, for the `/output-style new` create subcommand, so a discovered style can never shadow that subcommand.
 A style file that resolves to `new`, by filename or by the `name` field, is skipped and reported.
 To make such a file selectable, rename the file or change its `name` field.
 

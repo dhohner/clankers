@@ -74,7 +74,7 @@ export async function readStyleDirectory(directory: string, source: StyleSource)
       continue;
     }
 
-    // `new` names the planned `/output-style new` create subcommand. A style with that name would
+    // `new` names the `/output-style new` create subcommand. A style with that name would
     // shadow the subcommand or make `/output-style new` ambiguous, so the name is reserved.
     if (result.style.name === NEW_STYLE_NAME) {
       problems.push({

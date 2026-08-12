@@ -1,5 +1,7 @@
+import { access, mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { BuildSystemPromptOptions, ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import { serializeStyleFile, styleNameProblem } from "./create-style.ts";
 import { describeError, discoverStyles } from "./discovery.ts";
 import { applyStyle } from "./prompt.ts";
 import {
@@ -9,7 +11,8 @@ import {
   type StartupOrigin,
   writePersistedStyleName,
 } from "./settings.ts";
-import { DEFAULT_STYLE, type StyleDefinition, type StyleProblem } from "./types.ts";
+import { STYLE_FILE_SUFFIX } from "./style-file.ts";
+import { DEFAULT_STYLE, NEW_STYLE_NAME, type StyleDefinition, type StyleProblem } from "./types.ts";
 
 export const FLAG_NAME = "output-style";
 
@@ -41,6 +44,8 @@ export type StyleExtensionContext = {
   ui: {
     notify(message: string, type?: NotifyLevel): void;
     select(title: string, options: string[]): Promise<string | undefined>;
+    input(title: string, placeholder?: string): Promise<string | undefined>;
+    editor(title: string, prefill?: string): Promise<string | undefined>;
     setStatus(key: string, text: string | undefined): void;
   };
 };
@@ -139,14 +144,17 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
    * scans keeps two concurrent invocations from interleaving their scan and adoption steps, so the
    * scan adopted last is also the scan started last. Scans never reject, so the chain cannot stall.
    */
-  let scanChain: Promise<void> = Promise.resolve();
+  let scanChain: Promise<unknown> = Promise.resolve();
 
-  function rescanStyles(ctx: StyleExtensionContext): Promise<void> {
+  /** Returns whether this scan's fresh list was adopted, so a caller can act on adoption only. */
+  function rescanStyles(ctx: StyleExtensionContext): Promise<boolean> {
     const run = scanChain.then(async () => {
       // Re-resolution is defined against a freshly adopted list only. A scan that kept the
       // previous list proves nothing new about the files, so acting on it could drop a style the
       // disk still defines, for example one activated from a selector snapshot.
-      if (await scanAndAdoptStyles(ctx)) reresolveActiveStyle(ctx);
+      const adopted = await scanAndAdoptStyles(ctx);
+      if (adopted) reresolveActiveStyle(ctx);
+      return adopted;
     });
     scanChain = run;
     return run;
@@ -279,8 +287,175 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
     if (selected) await activateStyle(selected, ctx);
   }
 
+  /**
+   * The create-flow dialogs share cancel and refusal semantics: a cancel resolves to undefined,
+   * ends the flow silently like a cancelled selector, and changes nothing; a refused value is
+   * reported with its reason and the same dialog opens again, so a typo does not restart the flow.
+   */
+  async function collectStyleName(ctx: StyleExtensionContext): Promise<string | undefined> {
+    for (;;) {
+      const name = await ctx.ui.input("Name of the new style", "letters, digits, dash, underscore");
+      if (name === undefined) return undefined;
+      const problem = styleNameProblem(name);
+      if (problem === undefined) return name;
+      notify(ctx, `Style name refused: ${problem}.`, "warning");
+    }
+  }
+
+  /**
+   * The parser strips outer whitespace on every read, so only a value without it parses back to
+   * exactly what was entered; anything else is refused instead of silently changed, keeping the
+   * round-trip contract exact for every accepted value.
+   */
+  async function collectStyleDescription(ctx: StyleExtensionContext): Promise<string | undefined> {
+    for (;;) {
+      const description = await ctx.ui.input("Description of the new style", "shown in the style selector");
+      if (description === undefined) return undefined;
+      if (description.trim() === "") {
+        notify(ctx, "Style description refused: the description is empty.", "warning");
+        continue;
+      }
+      if (description !== description.trim()) {
+        notify(
+          ctx,
+          "Style description refused: remove the leading and trailing whitespace, which does not survive a reread of the file.",
+          "warning",
+        );
+        continue;
+      }
+      return description;
+    }
+  }
+
+  /**
+   * The editor result arrives exactly as Pi returned it: Pi already strips the terminating
+   * newline of its external editor, so a trailing newline in the result is entered content, not
+   * an editor artifact, and stripping it here would silently change the value. All outer
+   * whitespace is refused under the same round-trip rule as the description, and the editor
+   * re-opens prefilled with the trimmed text, so one confirmation fixes the input.
+   */
+  async function collectStyleInstructions(ctx: StyleExtensionContext): Promise<string | undefined> {
+    let prefill: string | undefined;
+    for (;;) {
+      const instructions = await ctx.ui.editor("Instruction text of the new style", prefill);
+      if (instructions === undefined) return undefined;
+      if (instructions.trim() === "") {
+        notify(ctx, "Style instructions refused: the instruction text is empty.", "warning");
+        prefill = undefined;
+        continue;
+      }
+      if (instructions !== instructions.trim()) {
+        notify(
+          ctx,
+          "Style instructions refused: remove the leading and trailing whitespace, which does not survive a reread of the file. The editor re-opens with the trimmed text.",
+          "warning",
+        );
+        prefill = instructions.trim();
+        continue;
+      }
+      return instructions;
+    }
+  }
+
+  /** Offers the project directory only in a trusted project; with one candidate no dialog opens. */
+  async function selectTargetDirectory(ctx: StyleExtensionContext): Promise<string | undefined> {
+    const userDir = join(options.agentDir, STYLES_DIR_NAME);
+    if (!ctx.isProjectTrusted()) return userDir;
+    const projectDir = join(ctx.cwd, options.configDirName, STYLES_DIR_NAME);
+    const labels = [`user - ${userDir}`, `project - ${projectDir}`];
+    const choice = await ctx.ui.select("Directory for the new style", labels);
+    if (choice === undefined) return undefined;
+    return choice === labels[1] ? projectDir : userDir;
+  }
+
+  /**
+   * ENOENT and ENOTDIR both prove no file sits at the path. Any other failure, EACCES for
+   * example, leaves existence unknown, so it is thrown for the caller to report instead of
+   * being read as absence and risking a write where a file may sit.
+   */
+  async function fileExists(path: string): Promise<boolean> {
+    try {
+      await access(path);
+      return true;
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException).code;
+      if (code === "ENOENT" || code === "ENOTDIR") return false;
+      throw error;
+    }
+  }
+
+  /**
+   * Collection and validation are side-effect free; the filesystem is touched only after every
+   * input is collected and valid, so a cancelled or refused flow leaves the disk exactly as it
+   * was, directory creation included.
+   */
+  async function runCreateStyleFlow(ctx: StyleExtensionContext): Promise<void> {
+    const name = await collectStyleName(ctx);
+    if (name === undefined) return;
+    const description = await collectStyleDescription(ctx);
+    if (description === undefined) return;
+    const directory = await selectTargetDirectory(ctx);
+    if (directory === undefined) return;
+
+    // The collision check runs as soon as the target is known, before the instruction editor
+    // opens, so nobody types a body for a name that cannot be written. Only a same-directory file
+    // is a collision; a name that merely shadows a style from another source stays allowed, per
+    // the documented precedence rules.
+    const path = join(directory, `${name}${STYLE_FILE_SUFFIX}`);
+    try {
+      if (await fileExists(path)) {
+        notify(ctx, `Style "${name}" was not created: ${path} already exists. Choose a different name.`, "warning");
+        return;
+      }
+    } catch (error) {
+      notify(ctx, `Style "${name}" was not created: cannot check ${path}: ${describeError(error)}`, "error");
+      return;
+    }
+
+    const instructions = await collectStyleInstructions(ctx);
+    if (instructions === undefined) return;
+
+    // The task boundary permits creating the directory and the one style file, nothing else, so
+    // the content goes straight to the final path instead of through a temporary file.
+    try {
+      await mkdir(directory, { recursive: true });
+      try {
+        // "wx" refuses an existing file, so a file that appeared between the check above and this
+        // write is reported instead of overwritten.
+        await writeFile(path, serializeStyleFile(description, instructions), { encoding: "utf8", flag: "wx" });
+      } catch (error) {
+        // On EEXIST nothing was created and the file belongs to someone else. Every other failure
+        // may have left a partial file this flow created; it is reported, never removed: another
+        // process may have replaced the file between the failure and a removal, and a path-based
+        // rm cannot tell such a replacement from this flow's leftover.
+        if ((error as NodeJS.ErrnoException).code !== "EEXIST") {
+          notify(ctx, `An incomplete file may remain at ${path}. Remove it before the name is retried.`, "warning");
+        }
+        throw error;
+      }
+    } catch (error) {
+      notify(ctx, `Style "${name}" was not created: ${describeError(error)}`, "error");
+      return;
+    }
+
+    // Activation is by name against the freshly adopted list and goes through the one switch path
+    // every other switch uses. When a higher-precedence source already defines the name, that
+    // winning definition activates and the written file is shadowed, consistent with the
+    // precedence rules. A scan that kept the previous list activates nothing: a same-name entry
+    // in the stale list proves nothing about the file just written.
+    const adopted = await rescanStyles(ctx);
+    const created = adopted ? styles.find((style) => style.name === name) : undefined;
+    if (created) {
+      await activateStyle(created, ctx);
+      return;
+    }
+    // Reachable only when the rescan kept the previous list, for example a directory regressed to
+    // unlistable between the write and the scan; the file exists, so the next adopted scan offers it.
+    notify(ctx, `The style file was written to ${path}, but the current style list does not offer "${name}".`, "warning");
+  }
+
   pi.registerCommand(COMMAND_NAME, {
-    description: "Switch the response style for the rest of the session",
+    description: 'Switch the response style for the rest of the session, or create a style with "new"',
     getArgumentCompletions: (argumentPrefix) =>
       styles
         .filter((style) => style.name.startsWith(argumentPrefix))
@@ -290,6 +465,16 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
           description: `${style.description} [${style.source}]`,
         })),
     handler: async (args, ctx) => {
+      // The create flow is dialogs only, so without a user interface it refuses before the rescan
+      // below can emit diagnostics: the invocation produces exactly one explanatory message.
+      if (args === NEW_STYLE_NAME && !ctx.hasUI) {
+        notify(
+          ctx,
+          '"/output-style new" needs a user interface: the create flow collects its inputs through dialogs. Write a style file into a style directory instead; the README section "Style File Format" describes the format.',
+          "error",
+        );
+        return;
+      }
       // Every invocation, the empty argument included, acts on the current files on disk, so a
       // style file added or edited mid-session needs no session restart. The cycle shortcut and
       // the argument completions keep the in-memory list.
@@ -301,6 +486,12 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
       if (args === "") {
         if (ctx.hasUI) await openStyleSelector(ctx);
         else reportStyleNames(ctx);
+        return;
+      }
+      // Discovery reserves the name "new", so this exact argument is always the subcommand and
+      // never a discovered style.
+      if (args === NEW_STYLE_NAME) {
+        await runCreateStyleFlow(ctx);
         return;
       }
       const selected = styles.find((style) => style.name === args);
