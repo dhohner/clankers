@@ -1,5 +1,5 @@
 ---
-name: ste
+name: ASD-STE100
 description: Answers in ASD-STE100 Simplified Technical English with short, active sentences.
 mode: append
 ---

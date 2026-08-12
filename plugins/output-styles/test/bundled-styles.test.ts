@@ -11,7 +11,12 @@ import { DEFAULT_STYLE_NAME } from "../lib/types.js";
 /** The style directory this plugin ships, the same one index.ts hands to the extension. */
 const BUNDLED_DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "styles");
 
-const BUNDLED_FILE_NAMES = ["explanatory", "learning", "ste"];
+/** A style whose frontmatter declares a name carries that name, not the file base name. */
+const BUNDLED_STYLES = [
+  { file: "asd-ste100", name: "ASD-STE100" },
+  { file: "explanatory", name: "explanatory" },
+  { file: "learning", name: "learning" },
+];
 
 let userDir: string;
 
@@ -26,11 +31,14 @@ afterEach(async () => {
 describe("bundled style files", () => {
   it("ships exactly the expected style files", async () => {
     const entries = await readdir(BUNDLED_DIR);
-    expect(entries.sort()).toEqual(BUNDLED_FILE_NAMES.map((name) => `${name}.md`));
+    expect(entries.sort()).toEqual(BUNDLED_STYLES.map((style) => `${style.file}.md`).sort());
   });
 
-  it.each(BUNDLED_FILE_NAMES)("%s parses with a non-empty description, a body, and append mode", async (name) => {
-    const path = join(BUNDLED_DIR, `${name}.md`);
+  it.each(BUNDLED_STYLES)("$file parses with a non-empty description, a body, and append mode", async ({
+    file,
+    name,
+  }) => {
+    const path = join(BUNDLED_DIR, `${file}.md`);
     const result = parseStyleFile(path, await readFile(path, "utf8"), "bundled");
 
     expect(result.ok).toBe(true);
@@ -41,14 +49,14 @@ describe("bundled style files", () => {
     expect(result.style.mode).toBe("append");
   });
 
-  it("offers default, explanatory, learning, and ste on a fresh installation", async () => {
+  it("offers default, ASD-STE100, explanatory, and learning on a fresh installation", async () => {
     const discovery = await discoverStyles({ bundledDir: BUNDLED_DIR });
 
     expect(discovery.styles.map((style) => style.name)).toEqual([
       DEFAULT_STYLE_NAME,
+      "ASD-STE100",
       "explanatory",
       "learning",
-      "ste",
     ]);
     expect(discovery.styles.every((style) => style.description !== "")).toBe(true);
     expect(discovery.problems).toEqual([]);

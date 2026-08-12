@@ -195,11 +195,12 @@ Any supplied `--output-style` value that matches no style name, a blank value in
 | Style         | Description                                                                          |
 | ------------- | ------------------------------------------------------------------------------------ |
 | `default`     | Pi's standard behavior, with no added style instructions.                            |
+| `ASD-STE100`  | Answers in ASD-STE100 Simplified Technical English with short, active sentences.     |
 | `explanatory` | Adds short insight notes about the codebase and the reasoning behind choices.        |
 | `learning`    | Collaborates and asks you to write small, clearly marked pieces of the code yourself. |
-| `ste`         | Answers in ASD-STE100 Simplified Technical English with short, active sentences.     |
 
 All four use `append` mode.
+`ASD-STE100` ships as `styles/asd-ste100.md` and declares its name in the frontmatter, so `/output-style` and `--output-style` expect the name from the table, not the file name.
 
 ## Install
 
