@@ -81,7 +81,11 @@ describe("readStyleDirectory", () => {
   });
 
   it("returns nothing for a missing directory", async () => {
-    expect(await readStyleDirectory(join(root, "absent"), "project")).toEqual({ styles: [], problems: [] });
+    expect(await readStyleDirectory(join(root, "absent"), "project")).toEqual({
+      styles: [],
+      problems: [],
+      unlistableDirectories: [],
+    });
   });
 
   it("reports an unreadable file and keeps the readable ones", async () => {
@@ -96,7 +100,7 @@ describe("readStyleDirectory", () => {
     ]);
   });
 
-  it("reports an unlistable directory", async () => {
+  it("reports an unlistable directory and names it in the discovery result", async () => {
     failures.listPath = userDir;
 
     const discovery = await readStyleDirectory(userDir, "user");
@@ -105,6 +109,7 @@ describe("readStyleDirectory", () => {
     expect(discovery.problems).toEqual([
       { path: userDir, reason: "cannot list directory: EACCES: permission denied" },
     ]);
+    expect(discovery.unlistableDirectories).toEqual([userDir]);
   });
 });
 
@@ -117,6 +122,20 @@ describe("discoverStyles", () => {
 
     expect(discovery.styles.map((style) => style.name)).toEqual([DEFAULT_STYLE_NAME, "alpha", "zebra"]);
     expect(discovery.problems).toEqual([]);
+    expect(discovery.unlistableDirectories).toEqual([]);
+  });
+
+  it("names an unlistable directory but not a missing one", async () => {
+    await write(bundledDir, "plain.md", styleFile("Bundled.", "Bundled text."));
+    failures.listPath = userDir;
+
+    const discovery = await discoverStyles({ bundledDir, userDir, projectDir });
+
+    expect(discovery.unlistableDirectories).toEqual([userDir]);
+    expect(discovery.styles.map((style) => style.name)).toEqual([DEFAULT_STYLE_NAME, "plain"]);
+    expect(discovery.problems).toEqual([
+      { path: userDir, reason: "cannot list directory: EACCES: permission denied" },
+    ]);
   });
 
   it("lets a project style win over a user style and a bundled style", async () => {

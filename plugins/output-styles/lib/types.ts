@@ -27,6 +27,11 @@ export type StyleDiscovery = {
   /** Ordered by name with `default` first, so the list is stable across runs. */
   styles: StyleDefinition[];
   problems: StyleProblem[];
+  /**
+   * Directories that failed to list with a non-ENOENT error. A missing directory is not one of
+   * them: discovery treats it as empty. The listing failure itself is also in `problems`.
+   */
+  unlistableDirectories: string[];
 };
 
 export const STYLE_MODES: readonly StyleMode[] = ["append", "replace"];

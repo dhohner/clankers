@@ -9,7 +9,7 @@ import {
   type StartupOrigin,
   writePersistedStyleName,
 } from "./settings.ts";
-import { DEFAULT_STYLE, type StyleDefinition } from "./types.ts";
+import { DEFAULT_STYLE, type StyleDefinition, type StyleProblem } from "./types.ts";
 
 export const FLAG_NAME = "output-style";
 
@@ -93,6 +93,10 @@ export type StyleExtensionOptions = {
 export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtensionOptions): void {
   let styles: StyleDefinition[] = [DEFAULT_STYLE];
   let activeStyle: StyleDefinition = DEFAULT_STYLE;
+  /** Directories the most recent adopted scan failed to list, the baseline a rescan compares to. */
+  let unlistableDirs = new Set<string>();
+  /** Problem pairs of path and reason already reported, so every scan of a session reports a pair once. */
+  const reportedProblems = new Set<string>();
 
   pi.registerFlag(FLAG_NAME, {
     description: "Response style to apply to the agent system prompt for this session",
@@ -112,6 +116,63 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
 
   function showFooterStatus(ctx: StyleExtensionContext): void {
     if (ctx.hasUI) ctx.ui.setStatus(STATUS_KEY, `style:${activeStyle.name}`);
+  }
+
+  function styleDirectories(ctx: StyleExtensionContext): Parameters<typeof discoverStyles>[0] {
+    return {
+      bundledDir: options.bundledDir,
+      userDir: join(options.agentDir, STYLES_DIR_NAME),
+      projectDir: ctx.isProjectTrusted() ? join(ctx.cwd, options.configDirName, STYLES_DIR_NAME) : undefined,
+    };
+  }
+
+  function reportProblemOnce(ctx: StyleExtensionContext, problem: StyleProblem, message?: string): void {
+    // NUL cannot occur in a path, so the joined key cannot collide across different pairs.
+    const key = `${problem.path}\u0000${problem.reason}`;
+    if (reportedProblems.has(key)) return;
+    reportedProblems.add(key);
+    notify(ctx, message ?? `Output style skipped: ${problem.path} (${problem.reason})`, "warning");
+  }
+
+  /**
+   * Serializes the command-handler scans: Pi runs command handlers unserialized, and chaining the
+   * scans keeps two concurrent invocations from interleaving their scan and adoption steps, so the
+   * scan adopted last is also the scan started last. Scans never reject, so the chain cannot stall.
+   */
+  let scanChain: Promise<void> = Promise.resolve();
+
+  function rescanStyles(ctx: StyleExtensionContext): Promise<void> {
+    const run = scanChain.then(() => scanAndAdoptStyles(ctx));
+    scanChain = run;
+    return run;
+  }
+
+  /**
+   * Refreshes the style list from disk so the command acts on the current files. When the scan
+   * cannot list a directory the most recent adopted scan listed successfully, the fresh list would
+   * silently drop that directory's styles, so the previous list stays in use; a directory that was
+   * already unlistable does not block adoption. The active style keeps its in-memory definition
+   * either way: following the file is a successor capability.
+   */
+  async function scanAndAdoptStyles(ctx: StyleExtensionContext): Promise<void> {
+    try {
+      const discovery = await discoverStyles(styleDirectories(ctx));
+      const regressed = new Set(discovery.unlistableDirectories.filter((dir) => !unlistableDirs.has(dir)));
+      for (const problem of discovery.problems) {
+        reportProblemOnce(
+          ctx,
+          problem,
+          regressed.has(problem.path)
+            ? `Output styles keep the previous list: ${problem.path} (${problem.reason})`
+            : undefined,
+        );
+      }
+      if (regressed.size > 0) return;
+      styles = discovery.styles;
+      unlistableDirs = new Set(discovery.unlistableDirectories);
+    } catch (error) {
+      notify(ctx, `Output styles keep the previous list: ${describeError(error)}`, "warning");
+    }
   }
 
   /** Trust decides the write target: the project settings file only for a trusted project. */
@@ -174,12 +235,15 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
   }
 
   async function openStyleSelector(ctx: StyleExtensionContext): Promise<void> {
-    // The label list mirrors `styles` index by index, so the chosen label maps back by position.
-    const labels = styles.map(selectorLabel);
+    // The label list mirrors this snapshot index by index, so the chosen label maps back by
+    // position even when a concurrent command replaces the global list while the dialog is open:
+    // the user gets the style the dialog showed, not whatever later landed on that position.
+    const offered = styles;
+    const labels = offered.map(selectorLabel);
     const choice = await ctx.ui.select("Select output style", labels);
     // Cancelling resolves to undefined and leaves the active style unchanged.
     if (choice === undefined) return;
-    const selected = styles[labels.indexOf(choice)];
+    const selected = offered[labels.indexOf(choice)];
     if (selected) await activateStyle(selected, ctx);
   }
 
@@ -194,6 +258,10 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
           description: `${style.description} [${style.source}]`,
         })),
     handler: async (args, ctx) => {
+      // Every invocation, the empty argument included, acts on the current files on disk, so a
+      // style file added or edited mid-session needs no session restart. The cycle shortcut and
+      // the argument completions keep the in-memory list.
+      await rescanStyles(ctx);
       // The argument matches exactly and case-sensitively, the same rule the flag uses, so a value
       // with surrounding whitespace is an unknown name and only the truly empty argument opens the
       // selector. Without a user interface no dialog can open, so the same invocation reports the
@@ -228,9 +296,11 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
       description: "Activate the next output style",
       handler: async (ctx) => {
         // Steps through the discovered list order, name-ordered with `default` first, and wraps at
-        // the end. An index of -1 cannot happen because activeStyle always comes from `styles`, but
-        // the arithmetic still lands on the first entry if it ever did.
-        const next = styles[(styles.indexOf(activeStyle) + 1) % styles.length];
+        // the end. The match is by name, not identity, because a rescan replaces the list with
+        // freshly parsed objects while activeStyle keeps its old definition. When a rescan removed
+        // the active style's name, the index is -1 and the arithmetic lands on the first entry,
+        // the built-in default.
+        const next = styles[(styles.findIndex((style) => style.name === activeStyle.name) + 1) % styles.length];
         if (next) await activateStyle(next, ctx);
       },
     });
@@ -244,15 +314,12 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
       styles = [DEFAULT_STYLE];
       activeStyle = DEFAULT_STYLE;
 
-      const discovery = await discoverStyles({
-        bundledDir: options.bundledDir,
-        userDir: join(options.agentDir, STYLES_DIR_NAME),
-        projectDir: ctx.isProjectTrusted() ? join(ctx.cwd, options.configDirName, STYLES_DIR_NAME) : undefined,
-      });
+      const discovery = await discoverStyles(styleDirectories(ctx));
       styles = discovery.styles;
+      unlistableDirs = new Set(discovery.unlistableDirectories);
 
       for (const problem of discovery.problems) {
-        notify(ctx, `Output style skipped: ${problem.path} (${problem.reason})`, "warning");
+        reportProblemOnce(ctx, problem);
       }
 
       const requested = pi.getFlag(FLAG_NAME);

@@ -21,7 +21,9 @@ export function describeError(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-async function listStyleFiles(directory: string): Promise<{ files: string[]; problems: StyleProblem[] }> {
+async function listStyleFiles(
+  directory: string,
+): Promise<{ files: string[]; problems: StyleProblem[]; unlistable: boolean }> {
   try {
     const entries = await readdir(directory, { withFileTypes: true });
     const files = entries
@@ -31,16 +33,20 @@ async function listStyleFiles(directory: string): Promise<{ files: string[]; pro
       // Sorting by filename makes a same-directory name collision resolve the same way on every
       // filesystem, instead of following enumeration order.
       .sort();
-    return { files, problems: [] };
+    return { files, problems: [], unlistable: false };
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return { files: [], problems: [] };
-    return { files: [], problems: [{ path: directory, reason: `cannot list directory: ${describeError(error)}` }] };
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return { files: [], problems: [], unlistable: false };
+    return {
+      files: [],
+      problems: [{ path: directory, reason: `cannot list directory: ${describeError(error)}` }],
+      unlistable: true,
+    };
   }
 }
 
 /** Reads one style directory. A missing directory yields no styles and no problem. */
 export async function readStyleDirectory(directory: string, source: StyleSource): Promise<StyleDiscovery> {
-  const { files, problems } = await listStyleFiles(directory);
+  const { files, problems, unlistable } = await listStyleFiles(directory);
   const styles = new Map<string, StyleDefinition>();
 
   for (const file of files) {
@@ -79,7 +85,7 @@ export async function readStyleDirectory(directory: string, source: StyleSource)
     styles.set(result.style.name, result.style);
   }
 
-  return { styles: [...styles.values()], problems };
+  return { styles: [...styles.values()], problems, unlistableDirectories: unlistable ? [directory] : [] };
 }
 
 function byListOrder(left: StyleDefinition, right: StyleDefinition): number {
@@ -101,13 +107,15 @@ export async function discoverStyles(directories: StyleDirectories): Promise<Sty
 
   const styles = new Map<string, StyleDefinition>([[DEFAULT_STYLE.name, DEFAULT_STYLE]]);
   const problems: StyleProblem[] = [];
+  const unlistableDirectories: string[] = [];
 
   for (const [source, directory] of sources) {
     if (!directory) continue;
     const found = await readStyleDirectory(directory, source);
     for (const style of found.styles) styles.set(style.name, style);
     problems.push(...found.problems);
+    unlistableDirectories.push(...found.unlistableDirectories);
   }
 
-  return { styles: [...styles.values()].sort(byListOrder), problems };
+  return { styles: [...styles.values()].sort(byListOrder), problems, unlistableDirectories };
 }

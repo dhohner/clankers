@@ -38,6 +38,12 @@ Switch the style inside a running session:
   Pi's `~/.pi/agent/keybindings.json` rebinds Pi's own actions by their keybinding id, but an extension shortcut is registered under its literal key and has no id in that file, so this shortcut cannot be rebound there; verified against Pi 0.84.1.
   To use a different key, change the `CYCLE_SHORTCUT` constant in the installed copy of `lib/extension.ts` to a combination in Pi's `modifier+key` format, such as `ctrl+shift+x`.
 
+Every `/output-style` invocation, with or without an argument, rescans the three style directories first, so a style file added or edited while the session runs is selectable without a restart.
+When a rescan cannot list a directory that the most recent successful scan listed, the previous style list stays in use, the failure is reported with the path and the reason, and the command continues with that list.
+Each discovery problem is reported at most once per session for the same path and reason.
+The cycle shortcut and the argument autocompletion use the list as it was at the last scan.
+The active style keeps the definition it was activated with; an edit to the active style's file takes effect when the style is activated again.
+
 A switch replaces the flag selection for the rest of the session and takes effect from the next agent turn on.
 Answers already produced are unchanged and the session is not restarted.
 The footer shows the active style as `style:<name>` while the plugin is loaded, and every switch updates it immediately.
@@ -48,7 +54,7 @@ No bundled style uses `replace` mode.
 
 ## Scope
 
-- Reads style files from the three style directories listed under Style Sources, at session start only
+- Reads style files from the three style directories listed under Style Sources, at session start and on every `/output-style` invocation
 - Reads the `outputStyle` key from Pi's global settings file and, in a trusted project, from the project settings file
 - Writes only the `outputStyle` key, on every in-session switch, to the settings file the trust rule selects
 - Rewrites the assembled system prompt of each agent turn while a non-default style is active, and touches nothing else of the request
@@ -133,7 +139,7 @@ Skip preamble, restatement of the question, and closing offers of further help.
 - The body after the frontmatter is the style instruction text and must be non-empty.
 
 A commented copy of this example ships at [`examples/terse.md`](./examples/terse.md).
-Copy it into a style directory, for example `~/.pi/agent/output-styles/terse.md`, edit it, and the style is offered in the next session.
+Copy it into a style directory, for example `~/.pi/agent/output-styles/terse.md`, edit it, and the next `/output-style` invocation offers the style.
 The `examples/` directory itself is not a style directory, so the shipped copy joins no style list.
 
 Only a `---` line at column zero opens or closes the frontmatter block, so an indented `---` stays part of a field value.
@@ -155,8 +161,8 @@ Any supplied `--output-style` value that matches no style name, a blank value in
 
 ## Known Limitations
 
-- Style files are read at session start.
-  A style file added or edited while a session runs takes effect at the next session, so the selector shows the list as it was at session start.
+- A rescan refreshes the offered style list only.
+  The active style keeps the definition it was activated with, so an edited active style takes effect after it is activated again.
 - A switch requested while an agent turn is running applies to the next turn, never to the turn in flight, because the prompt for a running turn is already assembled.
 
 ## Bundled Styles
