@@ -142,19 +142,49 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
   let scanChain: Promise<void> = Promise.resolve();
 
   function rescanStyles(ctx: StyleExtensionContext): Promise<void> {
-    const run = scanChain.then(() => scanAndAdoptStyles(ctx));
+    const run = scanChain.then(async () => {
+      // Re-resolution is defined against a freshly adopted list only. A scan that kept the
+      // previous list proves nothing new about the files, so acting on it could drop a style the
+      // disk still defines, for example one activated from a selector snapshot.
+      if (await scanAndAdoptStyles(ctx)) reresolveActiveStyle(ctx);
+    });
     scanChain = run;
     return run;
+  }
+
+  /**
+   * Follows the active style's file after an adopted rescan: the active name is looked up in the
+   * fresh list, so an edited definition takes effect silently and a name the list no longer holds
+   * falls back to the built-in default with one report. The lookup is by name, not path, matching
+   * the precedence rule that only the winning definition for a name is selectable, so a deleted
+   * file hands the name over to a surviving same-name definition from another source. The
+   * fallback is in-memory only and never writes the settings file, so a temporarily broken
+   * persisted style is not lost across sessions. Repeated invocations after a fallback stay
+   * quiet, because the default name always resolves.
+   */
+  function reresolveActiveStyle(ctx: StyleExtensionContext): void {
+    const resolved = styles.find((style) => style.name === activeStyle.name);
+    if (resolved) {
+      activeStyle = resolved;
+      return;
+    }
+    const lostName = activeStyle.name;
+    activeStyle = DEFAULT_STYLE;
+    showFooterStatus(ctx);
+    notify(
+      ctx,
+      `Output style "${lostName}" is no longer available. The built-in "${DEFAULT_STYLE.name}" style is now active.`,
+      "warning",
+    );
   }
 
   /**
    * Refreshes the style list from disk so the command acts on the current files. When the scan
    * cannot list a directory the most recent adopted scan listed successfully, the fresh list would
    * silently drop that directory's styles, so the previous list stays in use; a directory that was
-   * already unlistable does not block adoption. The active style keeps its in-memory definition
-   * either way: following the file is a successor capability.
+   * already unlistable does not block adoption. Returns whether the fresh list was adopted.
    */
-  async function scanAndAdoptStyles(ctx: StyleExtensionContext): Promise<void> {
+  async function scanAndAdoptStyles(ctx: StyleExtensionContext): Promise<boolean> {
     try {
       const discovery = await discoverStyles(styleDirectories(ctx));
       const regressed = new Set(discovery.unlistableDirectories.filter((dir) => !unlistableDirs.has(dir)));
@@ -167,11 +197,13 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
             : undefined,
         );
       }
-      if (regressed.size > 0) return;
+      if (regressed.size > 0) return false;
       styles = discovery.styles;
       unlistableDirs = new Set(discovery.unlistableDirectories);
+      return true;
     } catch (error) {
       notify(ctx, `Output styles keep the previous list: ${describeError(error)}`, "warning");
+      return false;
     }
   }
 
