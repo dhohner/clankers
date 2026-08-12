@@ -221,3 +221,10 @@ Pi's own `yaml` copy is not visible to a plugin, and a missing dependency stops 
 pnpm --filter output-styles test
 pnpm --filter output-styles typecheck
 ```
+
+The test run randomizes files and tests, so a test that depends on another test fails instead of passing by position.
+Vitest rejects focused tests and tests without assertions.
+Vitest also restores spies, environment stubs, and global stubs before each test.
+Assert a list with `toEqualUnordered`, the custom matcher in `test/support/matchers.ts`, wherever the code promises no order.
+Use `toEqual` only where order is the contract, such as the style list order and a sequence of reported messages.
+The shipped styles are listed once, in `BUNDLED_STYLES` of `test/bundled-styles.test.ts`, and a test compares that list with the README table above, so a renamed style needs one edit in the tests and one in the README.

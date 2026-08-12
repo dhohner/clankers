@@ -125,6 +125,15 @@ describe("discoverStyles", () => {
     expect(discovery.unlistableDirectories).toEqual([]);
   });
 
+  it("orders names by the locale rule, not by code point, so case does not group them", async () => {
+    await write(userDir, "alpha.md", styleFile("Lowercase.", "Alpha text."));
+    await write(userDir, "Beta.md", styleFile("Uppercase.", "Beta text."));
+
+    const discovery = await discoverStyles({ bundledDir, userDir });
+
+    expect(discovery.styles.map((style) => style.name)).toEqual([DEFAULT_STYLE_NAME, "alpha", "Beta"]);
+  });
+
   it("names an unlistable directory but not a missing one", async () => {
     await write(bundledDir, "plain.md", styleFile("Bundled.", "Bundled text."));
     failures.listPath = userDir;
@@ -132,7 +141,7 @@ describe("discoverStyles", () => {
     const discovery = await discoverStyles({ bundledDir, userDir, projectDir });
 
     expect(discovery.unlistableDirectories).toEqual([userDir]);
-    expect(discovery.styles.map((style) => style.name)).toEqual([DEFAULT_STYLE_NAME, "plain"]);
+    expect(discovery.styles.map((style) => style.name)).toEqualUnordered([DEFAULT_STYLE_NAME, "plain"]);
     expect(discovery.problems).toEqual([
       { path: userDir, reason: "cannot list directory: EACCES: permission denied" },
     ]);
@@ -168,7 +177,7 @@ describe("discoverStyles", () => {
 
     const discovery = await discoverStyles({ bundledDir, userDir });
 
-    expect(discovery.styles.map((style) => style.name)).toEqual([
+    expect(discovery.styles.map((style) => style.name)).toEqualUnordered([
       DEFAULT_STYLE_NAME,
       "bundled-style",
       "user-style",
@@ -181,7 +190,7 @@ describe("discoverStyles", () => {
 
     const discovery = await discoverStyles({ bundledDir, userDir });
 
-    expect(discovery.styles.map((style) => style.name)).toEqual([DEFAULT_STYLE_NAME, "good"]);
+    expect(discovery.styles.map((style) => style.name)).toEqualUnordered([DEFAULT_STYLE_NAME, "good"]);
     expect(discovery.problems).toEqual([{ path: malformed, reason: "style instruction text is empty" }]);
   });
 
@@ -194,7 +203,7 @@ describe("discoverStyles", () => {
     const offered = discovery.styles.filter((style) => style.name === DEFAULT_STYLE_NAME);
     expect(offered).toHaveLength(1);
     expect(offered[0]?.instructions).toBe("");
-    expect(discovery.problems).toEqual([
+    expect(discovery.problems).toEqualUnordered([
       { path: byFilename, reason: `style name "${DEFAULT_STYLE_NAME}" is reserved for the built-in style` },
       { path: byField, reason: `style name "${DEFAULT_STYLE_NAME}" is reserved for the built-in style` },
     ]);
@@ -207,8 +216,8 @@ describe("discoverStyles", () => {
 
     const discovery = await discoverStyles({ bundledDir, userDir, projectDir });
 
-    expect(discovery.styles.map((style) => style.name)).toEqual([DEFAULT_STYLE_NAME, "terse"]);
-    expect(discovery.problems).toEqual([
+    expect(discovery.styles.map((style) => style.name)).toEqualUnordered([DEFAULT_STYLE_NAME, "terse"]);
+    expect(discovery.problems).toEqualUnordered([
       { path: byFilename, reason: 'style name "new" is reserved for the /output-style new subcommand' },
       { path: byField, reason: 'style name "new" is reserved for the /output-style new subcommand' },
     ]);
@@ -219,7 +228,7 @@ describe("discoverStyles", () => {
 
     const discovery = await discoverStyles({ bundledDir, userDir, projectDir });
 
-    expect(discovery.styles.map((style) => style.name)).toEqual([DEFAULT_STYLE_NAME, "bundled-style"]);
+    expect(discovery.styles.map((style) => style.name)).toEqualUnordered([DEFAULT_STYLE_NAME, "bundled-style"]);
     expect(discovery.problems).toEqual([]);
   });
 });
