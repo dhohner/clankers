@@ -13,8 +13,10 @@ describe("extension entrypoint", () => {
     const pi = makeMockPi();
     extension(pi as never);
 
+    // The registration order carries no meaning, so only the set of handled events is asserted.
     const events = pi.on.mock.calls.map(([event]) => event);
-    expect(events).toEqual(["tool_call", "tool_result", "user_bash"]);
+    expect(events).toHaveLength(3);
+    expect(events).toEqual(expect.arrayContaining(["tool_call", "tool_result", "user_bash"]));
   });
 
   it("blocks Bash tool calls regardless of casing", async () => {
