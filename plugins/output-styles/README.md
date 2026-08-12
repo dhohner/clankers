@@ -43,7 +43,8 @@ The one exception is `/output-style new` without a user interface: it refuses be
 When a rescan cannot list a directory that the most recent successful scan listed, the previous style list stays in use, the failure is reported with the path and the reason, and the command continues with that list.
 Each discovery problem is reported at most once per session for the same path and reason.
 The cycle shortcut and the argument autocompletion use the list as it was at the last scan.
-The active style keeps the definition it was activated with; an edit to the active style's file takes effect when the style is activated again.
+After a rescan adopts a fresh list, the active style follows its file: an edited definition takes effect from the next agent turn, and a name the fresh list no longer offers falls back to the built-in `default` style with a report.
+The fallback never changes the persisted selection, so a temporarily broken style is not lost across sessions.
 
 A switch replaces the flag selection for the rest of the session and takes effect from the next agent turn on.
 Answers already produced are unchanged and the session is not restarted.
@@ -178,15 +179,13 @@ The style file contract is a mapping of scalar fields.
 A field holding a mapping or a sequence, a block that is not a mapping, a duplicate key, and unreadable YAML are each reported with the reason and the parser message, never read as literal text.
 
 A malformed file is skipped instead of failing the session.
-Missing frontmatter, unreadable YAML, a non-scalar field, a missing or empty `description`, an empty `name`, an unknown `mode` value, an empty body, the reserved `default` name, and a read error each exclude one file from the style list.
+Missing frontmatter, unreadable YAML, a non-scalar field, a missing or empty `description`, an empty `name`, an unknown `mode` value, an empty body, the reserved `default` and `new` names, and a read error each exclude one file from the style list.
 The path and the reason are reported once per session, and every other style stays selectable.
 
 Any supplied `--output-style` value that matches no style name, a blank value included, is reported once, and startup resolution falls through to the persisted settings values and then to `default`, as the Persistence section describes.
 
 ## Known Limitations
 
-- A rescan refreshes the offered style list only.
-  The active style keeps the definition it was activated with, so an edited active style takes effect after it is activated again.
 - A switch requested while an agent turn is running applies to the next turn, never to the turn in flight, because the prompt for a running turn is already assembled.
 
 ## Bundled Styles
