@@ -115,6 +115,10 @@ Two files in one directory that resolve to the same style name are a collision i
 A style file that resolves to `default`, by filename or by the `name` field, is skipped and reported.
 This keeps a session without the flag always unchanged, and keeps one name from resolving to two different styles.
 
+`new` is also reserved, for the planned `/output-style new` create subcommand, so a discovered style can never shadow that subcommand.
+A style file that resolves to `new`, by filename or by the `name` field, is skipped and reported.
+To make such a file selectable, rename the file or change its `name` field.
+
 Style names are matched exactly and case-sensitively.
 The style list is ordered by name with `default` first.
 

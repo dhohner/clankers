@@ -200,6 +200,20 @@ describe("discoverStyles", () => {
     ]);
   });
 
+  it('skips a file claiming the reserved name "new" and keeps other styles selectable', async () => {
+    const byFilename = await write(userDir, "new.md", styleFile("Mine.", "My text."));
+    const byField = await write(projectDir, "other.md", styleFile("Mine.", "Project text.", "name: new\n"));
+    await write(userDir, "terse.md", styleFile("Terse.", "Terse text."));
+
+    const discovery = await discoverStyles({ bundledDir, userDir, projectDir });
+
+    expect(discovery.styles.map((style) => style.name)).toEqual([DEFAULT_STYLE_NAME, "terse"]);
+    expect(discovery.problems).toEqual([
+      { path: byFilename, reason: 'style name "new" is reserved for the /output-style new subcommand' },
+      { path: byField, reason: 'style name "new" is reserved for the /output-style new subcommand' },
+    ]);
+  });
+
   it("offers the bundled styles when no user or project directory exists", async () => {
     await write(bundledDir, "bundled-style.md", styleFile("Bundled.", "Bundled text."));
 

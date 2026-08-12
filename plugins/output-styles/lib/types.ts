@@ -38,6 +38,9 @@ export const STYLE_MODES: readonly StyleMode[] = ["append", "replace"];
 
 export const DEFAULT_STYLE_NAME = "default";
 
+/** Reserved for the planned `/output-style new` create subcommand, so no style may claim it. */
+export const NEW_STYLE_NAME = "new";
+
 export const DEFAULT_STYLE: StyleDefinition = {
   name: DEFAULT_STYLE_NAME,
   description: "Pi's standard behavior, with no added style instructions.",

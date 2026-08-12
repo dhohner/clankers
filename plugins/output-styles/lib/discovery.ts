@@ -4,6 +4,7 @@ import { parseStyleFile, STYLE_FILE_SUFFIX } from "./style-file.ts";
 import {
   DEFAULT_STYLE,
   DEFAULT_STYLE_NAME,
+  NEW_STYLE_NAME,
   type StyleDefinition,
   type StyleDiscovery,
   type StyleProblem,
@@ -70,6 +71,16 @@ export async function readStyleDirectory(directory: string, source: StyleSource)
     // styles, so the name is reserved.
     if (result.style.name === DEFAULT_STYLE_NAME) {
       problems.push({ path, reason: `style name "${DEFAULT_STYLE_NAME}" is reserved for the built-in style` });
+      continue;
+    }
+
+    // `new` names the planned `/output-style new` create subcommand. A style with that name would
+    // shadow the subcommand or make `/output-style new` ambiguous, so the name is reserved.
+    if (result.style.name === NEW_STYLE_NAME) {
+      problems.push({
+        path,
+        reason: `style name "${NEW_STYLE_NAME}" is reserved for the /output-style new subcommand`,
+      });
       continue;
     }
 
