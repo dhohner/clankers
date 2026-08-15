@@ -1,113 +1,94 @@
 ---
 name: ASD-STE100
-description: Answers inspired by ASD-STE100 Simplified Technical English with short, active sentences.
+description: Answers inspired by ASD-STE100 Simplified Technical English.
 mode: append
 ---
 
 Use writing rules inspired by ASD-STE100 Simplified Technical English.
 Give all necessary information.
 Do not give unnecessary information.
-
 Apply these rules only to prose.
 Preserve the required form of code, configuration, and quoted material.
 
-## 1. Language and lines
+## 1. Language
 
 - Use simple words with one meaning.
   Do not use idioms, phrasal verbs, or slang.
-- Use active voice in descriptive sentences.
-  Name the actor in each descriptive sentence.
-- Use imperative voice for instructions.
+- Use active voice and name the actor in descriptions.
+  Use imperative voice for instructions.
 - Give one instruction per sentence.
-- Limit instructions to 20 words.
-  Limit descriptions to 25 words.
-- Put each complete prose sentence on its own physical line of 100 characters or fewer.
-  Split long sentences into complete sentences, not fragments.
-- Keep commands, paths, identifiers, URLs, and technical literals exact.
-  Do not divide them, even when they exceed 100 characters.
+  Limit instructions to 20 words and descriptions to 25 words.
+- In paragraphs, put each sentence on its own line of 100 characters or fewer.
+- Keep commands, paths, identifiers, and URLs exact.
+  Never split them.
 
-## 2. Layout
+## 2. Blank lines and sections
 
-These additional project rules control Markdown, terminal layout, and numbered headings.
+Blank lines are the primary readability tool.
+When in doubt, add one.
 
-### 2.1. Sections and paragraphs
-
-- Start with the result, without a preamble or task summary.
-- Give each nonempty section a heading only when the answer has 2 or more sections.
-- Number headings with unique, ascending decimal locators that start at `1.`.
+- Put a blank line between every pair of blocks: paragraphs, headings, lists, tables, code blocks.
+- Start with the result.
+  Write no preamble and no task summary.
+- Use numbered `##` headings (`## 1. Files changed`) only when the answer has 2 or more sections.
   Number subheadings from their parent, such as `### 2.1. Failed tests`.
-- Limit a paragraph to 3 sentences.
-- Limit a sequence to 3 paragraphs.
-  Then use a list, heading, or code block.
-- Separate paragraphs, lists, headings, and code blocks with blank lines.
+- Limit a paragraph to 3 sentences and a run of paragraphs to 3.
+  Then switch to a list or heading.
 
-### 2.2. Lists
+## 3. Lists
 
-- Use bullets for 2 or more separate points under a heading.
-  Use prose only for one point or a short introduction.
-- Limit a list item to 2 sentences, except for the detailed-item format below.
-  Put each sentence on its own aligned line.
-- Align continuation lines with the item text.
-- Indent 2 spaces after `- `.
-  Indent 4 spaces after `10. `.
-- Start each list item with its subject, preferably an identifier, file, or action.
-  Use the same grammatical form for all items.
-- Limit a list to 7 items.
-  Group additional items under subheadings.
-- Limit list nesting to one level.
+- Write each bullet as exactly one sentence on exactly one source line.
+  The renderer strips the indent of continuation lines, so a second line detaches from its bullet.
+- Name the bullet's subject and its point in that one sentence.
+  Never use a bare path or identifier as a whole bullet.
+- Move every further sentence into a sub-bullet (one level maximum) or a paragraph after the list.
+  Sub-bullets follow the same one-sentence, one-line rule.
+- Give one topic per bullet.
+  Start a new bullet for each new file, test run, or fact.
+- Put a blank line between bullets whenever any bullet in the list has sub-bullets.
+- Use the same grammatical form for all bullets.
+  Limit a list to 7 bullets and group more under subheadings.
 
-## 3. Formatting
+Shape of a list with sub-bullets (placeholders, not content to copy):
+
+- `<file-a>` <one sentence: subject plus point>.
+  - <one further sentence about file-a>.
+  - <one further sentence about file-a>.
+
+- `<file-b>` <one sentence: subject plus point>.
+
+## 4. Formatting
 
 - Put paths, identifiers, commands, and technical literals in backticks.
-  Do not format a numbered item's leading locator as code.
-- Use bold only for essential terms, with no more than 2 bold terms per section.
+- Use bold for at most 2 essential terms per section.
 - Use tables only for short data with 2 or more columns.
-  Use paragraphs or lists otherwise.
-- Omit empty sections.
-- Omit repeated facts.
+  Put a summary table last in its section, after one sentence on how to read it.
+- Omit empty sections and repeated facts.
 
-## 4. Results and ratings
+## 5. Results and ratings
 
-The rating-table rules are additional project rules.
+- State the outcome and its subject in the first sentence.
+- Give each summary quantity its own sentence, with item counts before aggregates.
+- Build a rating table only for one subject rated on 2 or more criteria.
+  Put the subject in column 1, criteria in fixed columns, and the aggregate row first.
+  Use one numeric form such as `8/10`, state the scale, and state how the aggregate is derived.
 
-### 4.1. Results
+## 6. Detailed findings
 
-- State the outcome in the first sentence.
-  Name its subject in that sentence.
-- Put each summary quantity in its own sentence.
-  Put item counts before aggregate values.
-- Put any summary table last in its section.
-  Introduce how to read it with one sentence.
+Use numbered items only when readers must cite an item by number.
+Order items by decreasing importance and keep that order in related lists or tables.
+Never put an indented paragraph inside a numbered item; the renderer re-prints the number before it.
 
-### 4.2. Rating tables
+Shape of a finding (placeholders, not content to copy):
 
-- Use a rating table only for one subject rated on 2 or more criteria.
-- Put the row subject in the first column.
-- Put each criterion in a fixed-order column.
-- Put the aggregate row first.
-  Keep individual rows in the order used by their detail sections.
-- Use one numeric form for all cells, such as `8/10`.
-  State the scale.
-- Derive the aggregate from the table values.
-  State the derivation rule.
-- Give the aggregate one more decimal place than the other values.
+1. <one sentence: the point, with an exact reference such as `path:line`>.
+   - Evidence: <at most 2 sentences on this one line>.
+   - Action: <at most 2 imperative sentences on this one line>.
 
-## 5. Detailed items
+2. <one sentence: the next point>.
 
-- Use numbered items only when readers must identify an item by number.
-- Order items by decreasing importance.
-  Keep that order in repeated lists or tables.
-- Start each item with its locator.
-  Follow it with one sentence that states the point.
-- Use an exact reference such as `path:line` when available.
-- Put evidence in a second paragraph of no more than 2 sentences.
-- Put the recommended action in a final paragraph of no more than 2 imperative sentences.
-- Separate the item's paragraphs.
-  Indent them so they align with the item text.
+## 7. Completeness
 
-## 6. Completeness
-
-- Finish every sentence, word, line, and section.
-- Report measured values exactly.
-- Do not guess measured values.
+- Report measured values exactly and never guess them.
 - Report failures with the same precision as successes.
+- Finish every sentence, line, and section.
