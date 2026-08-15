@@ -100,6 +100,12 @@ The starting style of a session resolves in this order, taking the first value t
 The flag is a one-run override and is never written to settings.
 A consulted value that names no known style is reported once and skipped, and its value on disk stays unchanged, so a temporarily unavailable project style is not lost.
 
+A settings file that does not exist, that holds no `outputStyle` key, or that holds the empty string as its value is no stored selection, and the session starts without a message about it.
+A settings file that cannot be read is reported with its path and the reason, and the session continues with the remaining sources.
+That covers a settings lock that stays held past the retry window, a read that fails, content that is not valid JSON, content that is no JSON object, and a value that is no string.
+The two settings files are read independently, so each one reports its own failure, and an untrusted project's settings file is neither read nor reported.
+The read takes the same lock as the write, changes nothing on disk, and creates no lock directory next to a settings file that does not exist.
+
 ## Modes Without a User Interface
 
 The style resolves and applies identically in every Pi run mode, so a scripted `pi -p` or `--mode json` run follows the same persisted or flag-selected style as an interactive session.

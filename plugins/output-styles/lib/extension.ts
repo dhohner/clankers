@@ -262,6 +262,20 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
     }
   }
 
+  /**
+   * Reads one settings file for the startup resolution. A failed read is reported and yields no
+   * value, so resolution continues with the remaining sources: the two files report independently,
+   * and an unreadable file never looks like a fresh installation.
+   */
+  async function readStartupValue(ctx: StyleExtensionContext, path: string): Promise<string | undefined> {
+    const read = await readPersistedStyleName(path);
+    if (read.status === "failed") {
+      notify(ctx, `Output style settings could not be read: ${path} (${read.failure}). The session continues.`, "warning");
+      return undefined;
+    }
+    return read.status === "selected" ? read.value : undefined;
+  }
+
   function unknownStartupStyleMessage(origin: StartupOrigin, name: string, resolved: StyleDefinition): string {
     const from = origin === "flag" ? "" : ` persisted in ${origin} settings`;
     return `Unknown output style "${name}"${from}. Using "${resolved.name}". Available: ${styles
@@ -575,9 +589,9 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
 
       // An untrusted project's settings file is never read, matching the rule for its style files.
       const projectValue = ctx.isProjectTrusted()
-        ? await readPersistedStyleName(join(ctx.cwd, options.configDirName, SETTINGS_FILE_NAME))
+        ? await readStartupValue(ctx, join(ctx.cwd, options.configDirName, SETTINGS_FILE_NAME))
         : undefined;
-      const globalValue = await readPersistedStyleName(join(options.agentDir, SETTINGS_FILE_NAME));
+      const globalValue = await readStartupValue(ctx, join(options.agentDir, SETTINGS_FILE_NAME));
 
       // The starting style comes from this resolution alone. The flag is a one-run override and is
       // never written back; a persisted name that no longer resolves is reported once below and its

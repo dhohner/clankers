@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { chmod, mkdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import lockfile from "proper-lockfile";
+import { describeError } from "./discovery.ts";
 import { DEFAULT_STYLE, DEFAULT_STYLE_NAME, type StyleDefinition } from "./types.ts";
 
 /** File name Pi uses for both the global and the project settings file. */
@@ -75,12 +76,19 @@ async function withSettingsLock<T>(path: string, action: () => Promise<T>): Prom
   }
 }
 
+/**
+ * ENOENT and ENOTDIR both prove no file sits at the path. Any other failure, EACCES for example,
+ * leaves existence unknown, so it is thrown and reported as a failed read rather than read as
+ * absence, which would silently drop a stored selection.
+ */
 async function fileExists(path: string): Promise<boolean> {
   try {
     await stat(path);
     return true;
-  } catch {
-    return false;
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code === "ENOENT" || code === "ENOTDIR") return false;
+    throw error;
   }
 }
 
@@ -126,22 +134,41 @@ async function readSettingsObject(path: string): Promise<Record<string, unknown>
 }
 
 /**
- * Reads the persisted style name from a settings file. A missing file, an unreadable or malformed
- * file, a missing key, a non-string value, and the empty string all mean no persisted selection,
- * so a broken settings file degrades the startup style instead of failing the session.
+ * The three outcomes of a settings read, kept mutually exclusive by the `status` tag: a persisted
+ * name, no persisted selection, or a failure the caller reports. A value and a failure can never
+ * accompany each other, so a caller cannot read one while the other holds the real outcome.
  */
-export async function readPersistedStyleName(path: string): Promise<string | undefined> {
+export type PersistedStyleRead =
+  | { status: "selected"; value: string }
+  | { status: "none" }
+  | { status: "failed"; failure: string };
+
+/**
+ * Reads the persisted style name from a settings file. A missing file, a missing key, and the empty
+ * string are no persisted selection and no failure. An unreadable file, malformed content, and a
+ * value of another type are a failure the caller reports: they carry a selection the user made and
+ * would otherwise be indistinguishable from a fresh installation. The read never throws and never
+ * touches the file, so a broken settings file degrades the startup style instead of failing the
+ * session.
+ */
+export async function readPersistedStyleName(path: string): Promise<PersistedStyleRead> {
   try {
     // Like Pi's storage, a missing file is not locked: locking would create the lock directory and
     // thereby write into a directory a plain read must leave untouched.
-    if (!(await fileExists(path))) return undefined;
-    return await withSettingsLock(path, async () => {
+    if (!(await fileExists(path))) return { status: "none" };
+    return await withSettingsLock(path, async (): Promise<PersistedStyleRead> => {
       const settings = await readSettingsObject(path);
       const value = settings[OUTPUT_STYLE_KEY];
-      return typeof value === "string" && value !== "" ? value : undefined;
+      // Only an absent key and the empty string are documented as "no selection". Any other
+      // non-string value is content this plugin did not write, so it is malformed, not empty.
+      if (value === undefined || value === "") return { status: "none" };
+      if (typeof value !== "string") {
+        return { status: "failed", failure: `settings key "${OUTPUT_STYLE_KEY}" does not hold a string` };
+      }
+      return { status: "selected", value };
     });
-  } catch {
-    return undefined;
+  } catch (error) {
+    return { status: "failed", failure: describeError(error) };
   }
 }
 

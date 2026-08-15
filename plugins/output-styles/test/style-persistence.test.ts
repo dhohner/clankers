@@ -15,6 +15,16 @@ import {
 } from "./support/extension-harness.js";
 
 describe("style persistence", () => {
+  /** The parser message varies by runtime, so the expected text is derived from the same parser. */
+  function jsonParseMessage(content: string): string {
+    try {
+      JSON.parse(content);
+    } catch (error) {
+      return (error as Error).message;
+    }
+    throw new Error(`${content} parses`);
+  }
+
   function projectSettingsPath(): string {
     return join(cwd, CONFIG_DIR_NAME, SETTINGS_FILE_NAME);
   }
@@ -184,9 +194,91 @@ describe("style persistence", () => {
 
     expect(harness.status()).toBe(styleStatus("terse"));
     expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer in one line.`);
+    // The startup read of the same path fails too and is reported on its own.
+    expect(harness.notifications).toHaveLength(3);
+    expect(harness.notifications[0]?.message).toContain(`could not be read: ${projectSettingsPath()}`);
+    expect(harness.notifications[2]?.level).toBe("warning");
+    expect(harness.notifications[2]?.message).toContain('Output style "terse" stays active for this session but could not be persisted:');
+  });
+
+  it("stays silent when neither settings file exists", async () => {
+    await writeUserStyles();
+    const harness = createHarness({ trusted: true });
+
+    await harness.start();
+
+    expect(harness.notifications).toEqual([]);
+    expect(harness.status()).toBeUndefined();
+    expect(await harness.turn()).toBe(CHAINED_PROMPT);
+  });
+
+  it.each([
+    ["a missing key", { theme: "dark" }],
+    ["an empty value", { [OUTPUT_STYLE_KEY]: "" }],
+  ])("stays silent for %s", async (_case, settings) => {
+    await writeUserStyles();
+    await writeSettings(globalSettingsPath(), settings);
+
+    const harness = createHarness({ trusted: true });
+    await harness.start();
+
+    expect(harness.notifications).toEqual([]);
+    expect(harness.status()).toBeUndefined();
+  });
+
+  it("reports malformed settings content and starts with the default style", async () => {
+    await writeUserStyles();
+    await mkdir(agentDir, { recursive: true });
+    await writeFile(globalSettingsPath(), "{nope", "utf8");
+
+    const harness = createHarness({ trusted: true });
+    await harness.start();
+
+    expect(harness.notifications).toHaveLength(1);
+    expect(harness.notifications[0]?.level).toBe("warning");
+    expect(harness.notifications[0]?.message).toBe(
+      `Output style settings could not be read: ${globalSettingsPath()} (settings file is not valid JSON: ${jsonParseMessage("{nope")}). The session continues.`,
+    );
+    expect(harness.status()).toBeUndefined();
+    expect(await harness.turn()).toBe(CHAINED_PROMPT);
+  });
+
+  it("reports a settings value that holds no string", async () => {
+    await writeUserStyles();
+    await writeSettings(globalSettingsPath(), { [OUTPUT_STYLE_KEY]: 7 });
+
+    const harness = createHarness({ trusted: true });
+    await harness.start();
+
+    expect(harness.notifications).toHaveLength(1);
+    expect(harness.notifications[0]?.message).toContain('settings key "outputStyle" does not hold a string');
+  });
+
+  it("reports each unreadable settings file once", async () => {
+    await writeUserStyles();
+    await mkdir(join(cwd, CONFIG_DIR_NAME), { recursive: true });
+    await writeFile(projectSettingsPath(), "{nope", "utf8");
+    await mkdir(agentDir, { recursive: true });
+    await writeFile(globalSettingsPath(), "[]", "utf8");
+
+    const harness = createHarness({ trusted: true });
+    await harness.start();
+
     expect(harness.notifications).toHaveLength(2);
-    expect(harness.notifications[1]?.level).toBe("warning");
-    expect(harness.notifications[1]?.message).toContain('Output style "terse" stays active for this session but could not be persisted:');
+    expect(harness.notifications[0]?.message).toContain(`could not be read: ${projectSettingsPath()}`);
+    expect(harness.notifications[1]?.message).toContain(`could not be read: ${globalSettingsPath()}`);
+  });
+
+  it("says nothing about an unreadable project settings file in an untrusted project", async () => {
+    await writeUserStyles();
+    await mkdir(join(cwd, CONFIG_DIR_NAME), { recursive: true });
+    await writeFile(projectSettingsPath(), "{nope", "utf8");
+
+    const harness = createHarness({ trusted: false });
+    await harness.start();
+
+    expect(harness.notifications).toEqual([]);
+    expect(harness.status()).toBeUndefined();
   });
 
   it("persists a switch made through the cycle shortcut", async () => {

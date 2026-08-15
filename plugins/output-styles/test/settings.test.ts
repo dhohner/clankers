@@ -113,24 +113,95 @@ describe("settings file access", () => {
       await mkdir(join(root, "config"));
       await writeFile(path, JSON.stringify({ [OUTPUT_STYLE_KEY]: "brief" }), "utf8");
 
-      expect(await readPersistedStyleName(path)).toBe("brief");
+      expect(await readPersistedStyleName(path)).toEqual({ status: "selected", value: "brief" });
     });
 
     it.each([
       ["a missing key", "{}"],
       ["an empty string value", '{"outputStyle": ""}'],
-      ["a non-string value", '{"outputStyle": 7}'],
-      ["malformed JSON", "{nope"],
-      ["a non-object root", '["outputStyle"]'],
-    ])("reads %s as no persisted selection", async (_case, content) => {
+    ])("reads %s as no persisted selection and no failure", async (_case, content) => {
       await mkdir(join(root, "config"));
       await writeFile(path, content, "utf8");
 
-      expect(await readPersistedStyleName(path)).toBeUndefined();
+      expect(await readPersistedStyleName(path)).toEqual({ status: "none" });
     });
 
-    it("reads a missing file as no persisted selection", async () => {
-      expect(await readPersistedStyleName(path)).toBeUndefined();
+    it("reads a missing file as no persisted selection and no failure", async () => {
+      expect(await readPersistedStyleName(path)).toEqual({ status: "none" });
+    });
+
+    it("reads a missing parent directory as no persisted selection and no failure", async () => {
+      expect(await readPersistedStyleName(join(root, "absent", "settings.json"))).toEqual({ status: "none" });
+    });
+
+    it("reads a file in place of the parent directory as no persisted selection and no failure", async () => {
+      await writeFile(join(root, "config"), "not a directory", "utf8");
+
+      expect(await readPersistedStyleName(path)).toEqual({ status: "none" });
+    });
+
+    it.each([
+      ["a non-string value", '{"outputStyle": 7}', 'settings key "outputStyle" does not hold a string'],
+      ["malformed JSON", "{nope", "settings file is not valid JSON"],
+      ["a non-object root", '["outputStyle"]', "settings file does not hold a JSON object"],
+    ])("reports %s as a failed read", async (_case, content, reason) => {
+      await mkdir(join(root, "config"));
+      await writeFile(path, content, "utf8");
+
+      expect(await readPersistedStyleName(path)).toEqual({
+        status: "failed",
+        failure: expect.stringContaining(reason),
+      });
+    });
+
+    it("reports an unreadable file as a failed read", async () => {
+      await mkdir(join(root, "config"));
+      // A directory at the settings path exists but cannot be read as a file.
+      await mkdir(path);
+
+      expect(await readPersistedStyleName(path)).toEqual({ status: "failed", failure: expect.any(String) });
+    });
+
+    it("reports a settings lock that stays held as a failed read", async () => {
+      await mkdir(join(root, "config"));
+      await writeFile(path, JSON.stringify({ [OUTPUT_STYLE_KEY]: "brief" }), "utf8");
+      const release = await lockfile.lock(path, { realpath: false });
+
+      try {
+        expect(await readPersistedStyleName(path)).toEqual({ status: "failed", failure: expect.any(String) });
+      } finally {
+        await release();
+      }
+    });
+
+    it("waits for a settings lock that is released inside the retry window", async () => {
+      await mkdir(join(root, "config"));
+      await writeFile(path, JSON.stringify({ [OUTPUT_STYLE_KEY]: "brief" }), "utf8");
+      const release = await lockfile.lock(path, { realpath: false });
+      const releaseTimer = setTimeout(() => void release(), 150);
+
+      try {
+        expect(await readPersistedStyleName(path)).toEqual({ status: "selected", value: "brief" });
+      } finally {
+        clearTimeout(releaseTimer);
+      }
+    });
+
+    it("creates nothing next to a missing settings file", async () => {
+      await mkdir(join(root, "config"));
+
+      expect(await readPersistedStyleName(path)).toEqual({ status: "none" });
+      expect(await readdir(join(root, "config"))).toEqual([]);
+    });
+
+    it("leaves a readable settings file byte-identical", async () => {
+      const content = JSON.stringify({ theme: "dark", [OUTPUT_STYLE_KEY]: "brief" }, null, 2);
+      await mkdir(join(root, "config"));
+      await writeFile(path, content, "utf8");
+
+      expect(await readPersistedStyleName(path)).toEqual({ status: "selected", value: "brief" });
+      expect(await readFile(path, "utf8")).toBe(content);
+      expect(await readdir(join(root, "config"))).toEqual(["settings.json"]);
     });
   });
 
