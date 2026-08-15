@@ -86,6 +86,13 @@ describe("resolveStartupStyle", () => {
     expect(resolution.style).toBe(DEFAULT_STYLE);
     expect(resolution.unknown).toEqual([{ origin: "global", name: "Brief" }]);
   });
+
+  it("falls back to the built-in default when the offered list holds no default style", () => {
+    const resolution = resolveStartupStyle({ globalValue: "unknown", styles: [style("brief")] });
+
+    expect(resolution.style).toBe(DEFAULT_STYLE);
+    expect(resolution.unknown).toEqual([{ origin: "global", name: "unknown" }]);
+  });
 });
 
 describe("settings file access", () => {

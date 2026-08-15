@@ -140,6 +140,17 @@ describe("applyStyle in replace mode", () => {
     expect(prompt).not.toContain("<available_skills>");
   });
 
+  it("skips a guideline that holds only whitespace", () => {
+    const prompt = applyStyle(
+      CHAINED_PROMPT,
+      style({ mode: "replace" }),
+      promptOptions({ promptGuidelines: ["   ", "Prefer ripgrep over grep"] }),
+    );
+    expect(prompt).toContain("- Prefer ripgrep over grep");
+    expect(prompt).not.toContain("- \n");
+    expect(prompt).not.toContain("-   \n");
+  });
+
   it("omits the guidelines and context sections when they are empty", () => {
     const prompt = applyStyle(
       CHAINED_PROMPT,
@@ -153,5 +164,28 @@ describe("applyStyle in replace mode", () => {
     );
     expect(prompt).not.toContain("Guidelines:");
     expect(prompt).not.toContain("<project_context>");
+  });
+});
+
+// Pi may call the hook with only the required fields, so every optional list falls back to its
+// documented default rather than reaching an undefined value.
+describe("applyStyle in replace mode with the optional options omitted", () => {
+  const prompt = () => applyStyle(CHAINED_PROMPT, style({ mode: "replace" }), { cwd: "/work/project" });
+
+  it("falls back to Pi's default tool set, which has no snippets to list", () => {
+    expect(prompt()).toContain("Available tools:\n(none)");
+  });
+
+  it("still derives the bash guideline from the default tool set", () => {
+    expect(prompt()).toContain("Guidelines:\n- Use bash for file operations like ls, rg, find");
+  });
+
+  it("omits the context and skills sections", () => {
+    expect(prompt()).not.toContain("<project_context>");
+    expect(prompt()).not.toContain("<available_skills>");
+  });
+
+  it("ends with the working directory line", () => {
+    expect(prompt()).toMatch(/\nCurrent working directory: \/work\/project$/);
   });
 });

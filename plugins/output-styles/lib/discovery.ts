@@ -100,6 +100,11 @@ export async function readStyleDirectory(directory: string, source: StyleSource)
 }
 
 function byListOrder(left: StyleDefinition, right: StyleDefinition): number {
+  // The list always starts with the built-in default, and a file claiming that name is refused
+  // above, so exactly one entry carries it and it never moves. V8 compares an element against the
+  // ones before it, so the default is always the right operand and this guard never runs. It stays
+  // as a guard against a future caller that sorts a differently built list.
+  /* istanbul ignore next -- unreachable through discoverStyles, see the comment above */
   if (left.name === DEFAULT_STYLE_NAME) return right.name === DEFAULT_STYLE_NAME ? 0 : -1;
   if (right.name === DEFAULT_STYLE_NAME) return 1;
   return left.name.localeCompare(right.name, "en");

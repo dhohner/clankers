@@ -2,7 +2,7 @@ import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { discoverStyles, readStyleDirectory } from "../lib/discovery.js";
+import { describeError, discoverStyles, readStyleDirectory } from "../lib/discovery.js";
 import { DEFAULT_STYLE_NAME } from "../lib/types.js";
 
 // File modes do not deny reads reliably on every OS or for a privileged user, so the read failure and
@@ -54,6 +54,16 @@ afterEach(async () => {
   failures.readPath = undefined;
   failures.listPath = undefined;
   await rm(root, { recursive: true, force: true });
+});
+
+describe("describeError", () => {
+  it("uses the message of an Error", () => {
+    expect(describeError(new Error("EACCES: permission denied"))).toBe("EACCES: permission denied");
+  });
+
+  it("stringifies a rejection value that is not an Error", () => {
+    expect(describeError("plain string failure")).toBe("plain string failure");
+  });
 });
 
 describe("readStyleDirectory", () => {

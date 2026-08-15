@@ -36,6 +36,13 @@ describe("parseFrontmatter", () => {
     expect(parsed.get("description")).toBe("Terse.");
   });
 
+  it("reads an empty frontmatter block as no fields, leaving the missing ones to the caller", () => {
+    const result = parseFrontmatter("---\n---\nBody\n");
+
+    expect(result.ok && [...result.frontmatter.fields]).toEqual([]);
+    expect(result.ok && result.frontmatter.body.trim()).toBe("Body");
+  });
+
   it("keeps a `#` that is part of a plain or quoted scalar", () => {
     const parsed = fields('---\nname: c#\ndescription: "Answer #1 only. # not a comment"\n---\nBody\n');
 
