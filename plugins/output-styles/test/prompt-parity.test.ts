@@ -156,6 +156,46 @@ function expectedPrompt(options: BuildSystemPromptOptions): string {
   return buildSystemPrompt({ ...options, customPrompt: head });
 }
 
+/**
+ * A snippet map that answers every tool name, written down or not.
+ *
+ * Both builders list a tool only when a snippet exists for it, so a fixed map hides exactly the
+ * drift the default-tool case exists to catch: a default Pi adds under a name this file never
+ * anticipated has no snippet, both builders drop it, and the prompts stay equal.
+ */
+const TOTAL_TOOL_SNIPPETS: Record<string, string> = new Proxy(
+  {
+    read: "Read file contents",
+    bash: "Execute shell commands",
+    edit: "Edit a file in place",
+    write: "Write a new file",
+  } as Record<string, string>,
+  {
+    get(target, key) {
+      if (typeof key !== "string") return Reflect.get(target, key);
+      return target[key] ?? `Use the ${key} tool`;
+    },
+  },
+);
+
+/**
+ * Pi's own default tool set, read back from the tool list Pi renders for an unset tool list.
+ *
+ * The set is derived rather than written down: a second hand-maintained copy would need its own
+ * edit on every Pi release, and a stale copy would break the control below instead of the plugin.
+ */
+function piDefaultTools(): string[] {
+  const block = piToolsBlock(promptOptions({ selectedTools: undefined, toolSnippets: TOTAL_TOOL_SNIPPETS }));
+  const names = block
+    .split("\n")
+    .filter((line) => line.startsWith("- "))
+    .map((line) => line.slice("- ".length).split(":")[0]);
+  if (names.length === 0) {
+    throw new Error(`Pi renders no tool for an unset tool list, so its default set cannot be read: ${block}`);
+  }
+  return names;
+}
+
 const CASES: ReadonlyArray<{ name: string; options: BuildSystemPromptOptions }> = [
   { name: "no context file and no skill", options: promptOptions({ contextFiles: [], skills: [] }) },
   { name: "exactly one context file", options: promptOptions({ skills: [] }) },
@@ -179,6 +219,13 @@ const CASES: ReadonlyArray<{ name: string; options: BuildSystemPromptOptions }> 
     }),
   },
   { name: "a tool list whose entries have no snippet", options: promptOptions({ toolSnippets: {} }) },
+  {
+    // The plugin copies Pi's default tool set by hand, so this case is the only one that proves the
+    // copy. Its snippet map answers every name, including one nobody wrote down, so a Pi release
+    // that adds any default tool renders a tool the plugin's copy omits and fails here.
+    name: "no selected tool list, so the copied default set has to match Pi's",
+    options: promptOptions({ selectedTools: undefined, toolSnippets: TOTAL_TOOL_SNIPPETS }),
+  },
   { name: "an empty guideline list", options: promptOptions({ promptGuidelines: [] }) },
   {
     name: "no guideline at all, so the section disappears",
@@ -205,6 +252,24 @@ describe("the replace-mode prompt against Pi's own builder", () => {
       expect(applyStyle(CHAINED_PROMPT, REPLACE_STYLE, options)).toBe(expectedPrompt(options));
     });
   }
+
+  it("sees a default tool that Pi alone gains, under a name this file never wrote down", () => {
+    // Negative control for the default-tool case above: Pi gains one default the plugin's copy
+    // lacks, and the case must not stay green. The second expectation states, inside Pi alone, why
+    // the snippet map has to be total: under a map that lists only today's default names, Pi filters
+    // the added tool for want of a snippet and renders the very same prompt as before the addition.
+    const options = promptOptions({ selectedTools: undefined, toolSnippets: TOTAL_TOOL_SNIPPETS });
+    const defaults = piDefaultTools();
+    const added = "tool-pi-does-not-have";
+    const piDrifted = { ...options, selectedTools: [...defaults, added] };
+    const fixedSnippets = Object.fromEntries(defaults.map((name) => [name, TOTAL_TOOL_SNIPPETS[name]]));
+
+    expect(defaults).not.toContain(added);
+    expect(applyStyle(CHAINED_PROMPT, REPLACE_STYLE, options)).not.toBe(expectedPrompt(piDrifted));
+    expect(expectedPrompt({ ...piDrifted, toolSnippets: fixedSnippets })).toBe(
+      expectedPrompt({ ...options, toolSnippets: fixedSnippets }),
+    );
+  });
 
   it("keeps the appended text after the guideline list, where Pi's default branch places it", () => {
     const options = promptOptions({ appendSystemPrompt: "Sign every answer." });
