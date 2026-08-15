@@ -133,12 +133,31 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
     };
   }
 
-  function reportProblemOnce(ctx: StyleExtensionContext, problem: StyleProblem, message?: string): void {
-    // NUL cannot occur in a path, so the joined key cannot collide across different pairs.
-    const key = `${problem.path}\u0000${problem.reason}`;
+  // NUL cannot occur in a path, so the joined key cannot collide across different pairs.
+  function problemKey(problem: StyleProblem): string {
+    return `${problem.path}\u0000${problem.reason}`;
+  }
+
+  function reportProblemOnce(ctx: StyleExtensionContext, problem: StyleProblem): void {
+    const key = problemKey(problem);
     if (reportedProblems.has(key)) return;
     reportedProblems.add(key);
-    notify(ctx, message ?? `Output style skipped: ${problem.path} (${problem.reason})`, "warning");
+    notify(ctx, `Output style skipped: ${problem.path} (${problem.reason})`, "warning");
+  }
+
+  /**
+   * A kept list is a state of the running session, not a one-off event, so every invocation that
+   * keeps the previous list reports it again. A user who adds a style file to a healthy directory
+   * would otherwise see nothing at all and could not tell a working plugin from a stuck one. The
+   * set lives for one invocation only, so an invocation that scans twice, the create flow for
+   * example, still reports one warning per affected directory. The key is the directory alone, not
+   * the pair with the reason, so a directory whose failure reason changes between the two scans is
+   * still reported once.
+   */
+  function reportKeptList(ctx: StyleExtensionContext, problem: StyleProblem, reportedThisInvocation: Set<string>): void {
+    if (reportedThisInvocation.has(problem.path)) return;
+    reportedThisInvocation.add(problem.path);
+    notify(ctx, `Output styles keep the previous list: ${problem.path} (${problem.reason})`, "warning");
   }
 
   /**
@@ -148,13 +167,16 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
    */
   let scanChain: Promise<unknown> = Promise.resolve();
 
-  /** Returns whether this scan's fresh list was adopted, so a caller can act on adoption only. */
-  function rescanStyles(ctx: StyleExtensionContext): Promise<boolean> {
+  /**
+   * Returns whether this scan's fresh list was adopted, so a caller can act on adoption only.
+   * `reportedKeptLists` is the invocation-wide set of kept-list reports the command handler owns.
+   */
+  function rescanStyles(ctx: StyleExtensionContext, reportedKeptLists: Set<string>): Promise<boolean> {
     const run = scanChain.then(async () => {
       // Re-resolution is defined against a freshly adopted list only. A scan that kept the
       // previous list proves nothing new about the files, so acting on it could drop a style the
       // disk still defines, for example one activated from a selector snapshot.
-      const adopted = await scanAndAdoptStyles(ctx);
+      const adopted = await scanAndAdoptStyles(ctx, reportedKeptLists);
       if (adopted) reresolveActiveStyle(ctx);
       return adopted;
     });
@@ -194,18 +216,13 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
    * silently drop that directory's styles, so the previous list stays in use; a directory that was
    * already unlistable does not block adoption. Returns whether the fresh list was adopted.
    */
-  async function scanAndAdoptStyles(ctx: StyleExtensionContext): Promise<boolean> {
+  async function scanAndAdoptStyles(ctx: StyleExtensionContext, reportedKeptLists: Set<string>): Promise<boolean> {
     try {
       const discovery = await discoverStyles(styleDirectories(ctx));
       const regressed = new Set(discovery.unlistableDirectories.filter((dir) => !unlistableDirs.has(dir)));
       for (const problem of discovery.problems) {
-        reportProblemOnce(
-          ctx,
-          problem,
-          regressed.has(problem.path)
-            ? `Output styles keep the previous list: ${problem.path} (${problem.reason})`
-            : undefined,
-        );
+        if (regressed.has(problem.path)) reportKeptList(ctx, problem, reportedKeptLists);
+        else reportProblemOnce(ctx, problem);
       }
       if (regressed.size > 0) return false;
       styles = discovery.styles;
@@ -391,7 +408,7 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
    * input is collected and valid, so a cancelled or refused flow leaves the disk exactly as it
    * was, directory creation included.
    */
-  async function runCreateStyleFlow(ctx: StyleExtensionContext): Promise<void> {
+  async function runCreateStyleFlow(ctx: StyleExtensionContext, reportedKeptLists: Set<string>): Promise<void> {
     const name = await collectStyleName(ctx);
     if (name === undefined) return;
     const description = await collectStyleDescription(ctx);
@@ -445,7 +462,7 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
     // winning definition activates and the written file is shadowed, consistent with the
     // precedence rules. A scan that kept the previous list activates nothing: a same-name entry
     // in the stale list proves nothing about the file just written.
-    const adopted = await rescanStyles(ctx);
+    const adopted = await rescanStyles(ctx, reportedKeptLists);
     const created = adopted ? styles.find((style) => style.name === name) : undefined;
     if (created) {
       await activateStyle(created, ctx);
@@ -480,7 +497,10 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
       // Every invocation, the empty argument included, acts on the current files on disk, so a
       // style file added or edited mid-session needs no session restart. The cycle shortcut and
       // the argument completions keep the in-memory list.
-      await rescanStyles(ctx);
+      // One set per invocation: the kept-list report repeats across invocations, and an invocation
+      // that scans twice still reports one warning per affected directory.
+      const reportedKeptLists = new Set<string>();
+      await rescanStyles(ctx, reportedKeptLists);
       // The argument matches exactly and case-sensitively, the same rule the flag uses, so a value
       // with surrounding whitespace is an unknown name and only the truly empty argument opens the
       // selector. Without a user interface no dialog can open, so the same invocation reports the
@@ -493,7 +513,7 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
       // Discovery reserves the name "new", so this exact argument is always the subcommand and
       // never a discovered style.
       if (args === NEW_STYLE_NAME) {
-        await runCreateStyleFlow(ctx);
+        await runCreateStyleFlow(ctx, reportedKeptLists);
         return;
       }
       const selected = styles.find((style) => style.name === args);

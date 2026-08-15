@@ -58,7 +58,34 @@ describe("rescan on /output-style invocation", () => {
     expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer in one line.`);
   });
 
-  it("keeps the previous list and reports once when a listable directory becomes unlistable", async () => {
+  it("keeps the previous list and reports on every invocation when a listable directory becomes unlistable", async () => {
+    const userStyles = join(agentDir, STYLES_DIR_NAME);
+    await writeStyle(userStyles, "terse.md", terse());
+    const harness = createHarness();
+    await harness.start();
+    const keptList = {
+      message: `Output styles keep the previous list: ${userStyles} (cannot list directory: EACCES: permission denied)`,
+      level: "warning",
+    };
+
+    listFailures.path = userStyles;
+    harness.answerSelect(undefined);
+    await harness.runCommand("");
+
+    expect(harness.selectCalls[0]?.options).toContain("terse - One-line answers. [user]");
+    expect(harness.notifications).toEqual([keptList]);
+
+    await harness.runCommand("terse");
+
+    expect(harness.status()).toBe(styleStatus("terse"));
+    expect(harness.notifications).toEqual([
+      keptList,
+      keptList,
+      { message: 'Output style "terse" is active from the next turn on.', level: "info" },
+    ]);
+  });
+
+  it("stops the reports once the unlistable directory can be listed again", async () => {
     const userStyles = join(agentDir, STYLES_DIR_NAME);
     await writeStyle(userStyles, "terse.md", terse());
     const harness = createHarness();
@@ -67,23 +94,35 @@ describe("rescan on /output-style invocation", () => {
     listFailures.path = userStyles;
     harness.answerSelect(undefined);
     await harness.runCommand("");
+    listFailures.path = undefined;
+    await writeStyle(userStyles, "brief.md", styleFile("Short answers.", "Answer briefly."));
+    harness.answerSelect(undefined);
+    await harness.runCommand("");
 
-    expect(harness.selectCalls[0]?.options).toContain("terse - One-line answers. [user]");
+    expect(harness.notifications).toHaveLength(1);
+    expect(harness.selectCalls[1]?.options).toEqual(
+      expect.arrayContaining(["brief - Short answers. [user]", "terse - One-line answers. [user]"]),
+    );
+  });
+
+  it("keeps the refusal rule while it reports the kept list", async () => {
+    const userStyles = join(agentDir, STYLES_DIR_NAME);
+    await writeStyle(userStyles, "terse.md", terse());
+    const harness = createHarness({ trusted: true });
+    await harness.start();
+
+    listFailures.path = userStyles;
+    await writeStyle(join(cwd, CONFIG_DIR_NAME, STYLES_DIR_NAME), "local.md", styleFile("Project style.", "Project text."));
+    harness.answerSelect(undefined);
+    await harness.runCommand("");
+
+    expect(harness.selectCalls[0]?.options).not.toContain("local - Project style. [project]");
     expect(harness.notifications).toEqual([
       {
         message: `Output styles keep the previous list: ${userStyles} (cannot list directory: EACCES: permission denied)`,
         level: "warning",
       },
     ]);
-
-    await harness.runCommand("terse");
-
-    expect(harness.status()).toBe(styleStatus("terse"));
-    expect(harness.notifications).toHaveLength(2);
-    expect(harness.notifications[1]).toEqual({
-      message: 'Output style "terse" is active from the next turn on.',
-      level: "info",
-    });
   });
 
   it("adopts a fresh list when a directory was already unlistable at the previous scan", async () => {
@@ -112,10 +151,10 @@ describe("rescan on /output-style invocation", () => {
     const harness = createHarness();
     await harness.start();
 
-    harness.answerSelect(undefined);
-    await harness.runCommand("");
-    harness.answerSelect(undefined);
-    await harness.runCommand("");
+    for (let invocation = 0; invocation < 3; invocation += 1) {
+      harness.answerSelect(undefined);
+      await harness.runCommand("");
+    }
 
     expect(harness.notifications).toEqual([
       { message: `Output style skipped: ${malformed} (no readable YAML frontmatter block)`, level: "warning" },

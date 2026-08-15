@@ -20,7 +20,12 @@ import {
 // File modes do not deny listing or access reliably on every OS or for a privileged user, so those
 // failures are injected instead of provoked through the filesystem, mirroring discovery.test.ts.
 // vi.mock and vi.hoisted are hoisted per test file, so this block cannot move into a shared module.
-const listFailures = vi.hoisted(() => ({ path: undefined as string | undefined }));
+// `errors` is consumed one entry per denied listing and falls back to EACCES once it runs out, so a
+// single invocation can see the same directory fail for two different reasons.
+const listFailures = vi.hoisted(() => ({
+  path: undefined as string | undefined,
+  errors: [] as Array<{ message: string; code: string }>,
+}));
 
 // Same rationale for the create flow's collision check: an access denial is injected.
 const accessFailures = vi.hoisted(() => ({ path: undefined as string | undefined }));
@@ -31,12 +36,13 @@ const writeFailures = vi.hoisted(() => ({ path: undefined as string | undefined 
 
 vi.mock("node:fs/promises", async (importOriginal) => {
   const actual = await importOriginal<typeof import("node:fs/promises")>();
-  const denied = () => Promise.reject(Object.assign(new Error("EACCES: permission denied"), { code: "EACCES" }));
+  const denied = (spec = { message: "EACCES: permission denied", code: "EACCES" }) =>
+    Promise.reject(Object.assign(new Error(spec.message), { code: spec.code }));
   return {
     ...actual,
     readdir: (path: Parameters<typeof actual.readdir>[0], ...rest: unknown[]) =>
       String(path) === listFailures.path
-        ? denied()
+        ? denied(listFailures.errors.shift())
         : (actual.readdir as (...args: unknown[]) => unknown)(path, ...rest),
     access: (path: Parameters<typeof actual.access>[0], ...rest: unknown[]) =>
       String(path) === accessFailures.path
@@ -54,6 +60,7 @@ vi.mock("node:fs/promises", async (importOriginal) => {
 
 afterEach(() => {
   listFailures.path = undefined;
+  listFailures.errors = [];
   accessFailures.path = undefined;
   writeFailures.path = undefined;
 });
@@ -322,6 +329,37 @@ describe("create flow (/output-style new)", () => {
       },
       {
         message: `The style file was written to ${path}, but the current style list does not offer "plain".`,
+        level: "warning",
+      },
+    ]);
+  });
+
+  it("reports the kept list once per directory even when the failure reason changes between the two scans", async () => {
+    const harness = createHarness();
+    await harness.start();
+
+    // The handler-start scan and the post-write scan both fail on the same directory, but with
+    // different reasons. That is one affected directory in one invocation, so it earns one warning.
+    listFailures.path = userStylesDir();
+    listFailures.errors = [
+      { message: "EACCES: permission denied", code: "EACCES" },
+      { message: "EPERM: operation not permitted", code: "EPERM" },
+    ];
+    harness.answerInput("brief");
+    harness.answerInput("Short answers.");
+    harness.answerEditor("Answer briefly.");
+    await harness.runCommand("new");
+
+    const path = join(userStylesDir(), "brief.md");
+    expect(parseStyleFile(path, await readFile(path, "utf8"), "user").ok).toBe(true);
+    expect(listFailures.errors).toEqual([]);
+    expect(harness.notifications).toEqual([
+      {
+        message: `Output styles keep the previous list: ${userStylesDir()} (cannot list directory: EACCES: permission denied)`,
+        level: "warning",
+      },
+      {
+        message: `The style file was written to ${path}, but the current style list does not offer "brief".`,
         level: "warning",
       },
     ]);

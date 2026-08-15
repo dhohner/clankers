@@ -41,7 +41,8 @@ Switch the style inside a running session:
 Every `/output-style` invocation, with or without an argument, rescans the three style directories first, so a style file added or edited while the session runs is selectable without a restart.
 The one exception is `/output-style new` without a user interface: it refuses before the rescan, so the invocation produces exactly one explanatory message and changes nothing.
 When a rescan cannot list a directory that the most recent successful scan listed, the previous style list stays in use, the failure is reported with the path and the reason, and the command continues with that list.
-Each discovery problem is reported at most once per session for the same path and reason.
+That report repeats on every invocation that keeps the previous list, so the stale state stays visible for as long as it lasts.
+Every other discovery problem, a skipped style file for example, is reported at most once per session for the same path and reason.
 The cycle shortcut and the argument autocompletion use the list as it was at the last scan.
 After a rescan adopts a fresh list, the active style follows its file: an edited definition takes effect from the next agent turn, and a name the fresh list no longer offers falls back to the built-in `default` style with a report.
 The fallback never changes the persisted selection, so a temporarily broken style is not lost across sessions.
