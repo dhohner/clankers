@@ -1,17 +1,26 @@
 # Refactor Tools Plugin
 
-Packages safe, behavior-preserving cleanup and refactor workflows for existing code.
+Packages safe, behavior-preserving cleanup, refactor, and review workflows for existing code.
 
 ## What It Does
 
-The included `simplify` skill handles cleanup and simplification requests. It improves existing code with:
+The `simplify` skill handles cleanup and simplification requests. It improves existing code with:
 
 - Better readability and maintainability
 - Reduced duplication and unnecessary complexity
 - Small, behavior-preserving refactors where confidence is high
 - Clear separation between safe automatic fixes and risky follow-up ideas
 
+The `review-changes` skill judges a change set instead of editing it. It reports:
+
+- One score from 1 to 10 for quality, simplicity, robustness, scalability, and maintainability
+- Findings ordered by importance, each with a location, a concrete cost, and a fix
+- A split between findings observed by running a command and findings inferred from reading
+- The validation commands that ran, and the risks that stayed untested
+
 ## Usage
+
+`simplify` runs on its own when the request matches:
 
 ```text
 "Simplify this component without changing behavior"
@@ -19,15 +28,19 @@ The included `simplify` skill handles cleanup and simplification requests. It im
 "Refactor these staged changes for readability and less duplication"
 ```
 
-The agent will focus on safe cleanup work and avoid broad rewrites or semantic changes unless explicitly requested.
+`review-changes` runs only when you name it:
+
+```text
+/refactor-tools:review-changes
+/refactor-tools:review-changes the change implements the attached task description
+```
 
 ## Learn More
 
-Current bundled skill:
+Current bundled skills:
 
-- `simplify`
-
-See [the skill definition](./skills/simplify/SKILL.md) for the full workflow and decision rules.
+- `simplify` - see [the skill definition](./skills/simplify/SKILL.md)
+- `review-changes` - see [the skill definition](./skills/review-changes/SKILL.md)
 
 ## Authors
 

@@ -1,0 +1,47 @@
+{
+  "skill_name": "review-changes",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Review the changes in the latest commit for quality, simplicity, robustness, scalability, and long-term maintainability. Score your findings on a scale of 1 - 10. The implementation is based on the attached task description.",
+      "expected_output": "A ranked report with one 1-10 score per dimension, each score naming the finding that set it, at most five findings in full and the rest compressed, and a negative control against the change's central proof.",
+      "files": [],
+      "expectations": [
+        "The score table has a Why column, and every score below 10 names the finding or nit that set it.",
+        "At most five findings appear in full detail; any further findings appear as one-liners under Also noted.",
+        "Each finding marks itself observed or inferred, and every inferred finding names the command that would settle it.",
+        "The validation section records a negative control that broke the change's central mechanism on purpose.",
+        "The closing risk section lists only risk in the change, and contains no statement about what the review itself failed to verify.",
+        "The change is checked against the acceptance criteria and non-goals of the attached task description.",
+        "No file in the repository was modified, created, or deleted by the review."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Have a look at the last commit and tell me how solid it is.",
+      "expected_output": "The scope falls back to the latest commit, all five dimensions are scored, and no spec document is invented because none was supplied.",
+      "files": [],
+      "expectations": [
+        "The scope is reported as the latest commit and lists the files it touched.",
+        "The score table has a Why column and covers all five dimensions.",
+        "The report does not claim to check the change against a specification document.",
+        "The validation section records a negative control that broke the change's central mechanism on purpose.",
+        "No file in the repository was modified, created, or deleted by the review."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Review the staged diff. It is a small documentation and plugin-metadata change.",
+      "expected_output": "A short report that scores the change, marks dimensions the change cannot touch as n/a with a reason, and stays proportionate to a trivial change.",
+      "files": [],
+      "expectations": [
+        "Dimensions the change cannot touch are marked n/a with a reason.",
+        "If the change carries no runnable proof, the validation section records that absence instead of a manufactured negative control.",
+        "At most five findings appear in full detail; any further findings appear as one-liners under Also noted.",
+        "The report carries no Findings section at all, or only findings that name a concrete cost.",
+        "The report contains no section about what the review itself failed to verify.",
+        "No file in the repository was modified, created, or deleted by the review."
+      ]
+    }
+  ]
+}

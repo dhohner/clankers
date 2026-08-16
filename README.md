@@ -18,7 +18,7 @@ The repository packages small, focused plugins instead of one large bundle. Whic
 ### Claude-Format Marketplaces
 
 - `project-advisor` for PRDs, issue slicing, and planning workflows
-- `refactor-tools` for safe cleanup and simplification work
+- `refactor-tools` for safe cleanup, simplification, and scored review of changed code
 - `security-guard` to block environment dumps and common credential reads
 
 ### Codex App Marketplace

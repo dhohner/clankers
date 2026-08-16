@@ -18,9 +18,9 @@
     {
       "name": "refactor-tools",
       "source": "./plugins/refactor-tools",
-      "description": "Refactoring and cleanup skills for safe, behavior-preserving code improvements.",
+      "description": "Refactoring, cleanup, and review skills for safe, behavior-preserving code improvements.",
       "category": "development",
-      "tags": ["refactor", "quality"]
+      "tags": ["refactor", "quality", "review"]
     },
     {
       "name": "security-guard",

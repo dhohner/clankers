@@ -1,7 +1,7 @@
 {
   "name": "refactor-tools",
-  "version": "0.4.1",
-  "description": "Refactoring and cleanup skills for safe, behavior-preserving code improvements.",
+  "version": "0.5.0",
+  "description": "Refactoring, cleanup, and review skills for safe, behavior-preserving code improvements.",
   "author": {
     "name": "dhohner",
     "url": "https://github.com/dhohner"
@@ -12,13 +12,14 @@
   "keywords": [
     "refactor",
     "quality",
-    "cleanup"
+    "cleanup",
+    "review"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Refactor Tools",
-    "shortDescription": "Safe cleanup and refactor skills.",
-    "longDescription": "Packages safe, behavior-preserving refactor workflows, starting with the simplify skill.",
+    "shortDescription": "Safe cleanup, refactor, and review skills.",
+    "longDescription": "Packages safe, behavior-preserving refactor workflows plus a scored review of changed code.",
     "developerName": "dhohner",
     "category": "Development",
     "capabilities": [
@@ -27,7 +28,8 @@
     ],
     "defaultPrompt": [
       "Use the simplify skill to clean up this code without changing behavior.",
-      "Refactor these staged changes for readability and less duplication."
+      "Refactor these staged changes for readability and less duplication.",
+      "Review the staged changes and score them per quality dimension."
     ],
     "brandColor": "#7C3AED",
     "composerIcon": "./assets/icon.png",
