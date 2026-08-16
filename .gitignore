@@ -1,5 +1,7 @@
 node_modules/
 __pycache__/
 dist/
-action-items/**
-.playwright
+coverage/
+.playwright/
+.pi/
+.claude/
