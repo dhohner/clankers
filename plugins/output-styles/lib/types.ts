@@ -1,6 +1,9 @@
 /** How a style's instruction text relates to the chained system prompt. */
 export type StyleMode = "append" | "replace";
 
+/** Severity of a message the extension reports, matching the levels Pi's notification takes. */
+export type NotifyLevel = "info" | "warning" | "error";
+
 /** Where a style definition came from. Also the precedence order: project beats user beats bundled. */
 export type StyleSource = "bundled" | "user" | "project";
 
