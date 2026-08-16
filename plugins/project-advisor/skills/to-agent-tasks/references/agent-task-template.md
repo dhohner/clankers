@@ -2,65 +2,45 @@
 
 ## Outcome
 
-<Describe one observable completed behavior and why it matters.>
+<One short paragraph: the single observable behavior this task delivers and why it matters.>
 
-## Scope
+## Required behavior
 
-### Required behavior
+- <Each source-backed behavior, rule, exact value, threshold, and edge case needed for this outcome; keep requirement IDs when useful for traceability.>
 
-- <State each source-backed behavior, rule, and boundary needed for this outcome; retain requirement IDs when useful for traceability.>
+## Contract
 
-### Non-goals
+<Optional: include only when the contract-precision pass triggered for this slice.
+State the applicable vocabulary, durable data, state transition, boundary, replay, concurrency, atomicity, failure, and authorization clauses, one compact clause per decision.
+Name unresolved contract decisions in the Boundary section as blockers instead of settling them here.>
 
-<Include only exclusions that clarify this task boundary; remove this optional section when none apply.>
+## Boundary
 
-### Boundary and open choices
+- May change: <the artifacts, configuration, and behavior this task owns.>
+- Must survive: <the named properties something else depends on - field names, meanings, response shapes, status codes, ordering, existing values - that a reasonable executor might plausibly break; name what survives, not a blanket "behaves as today" that the task's own change contradicts.>
+- Out of scope: <exclusions a reasonable executor might otherwise pull in.>
+- Your call: <choices deliberately left to the executing agent, stated so no effort goes into inferring a preference that does not exist.>
+- Assumptions: <decisions neither the PRD nor the repository settles that this task settles anyway to stay executable, labeled here so a reviewer can catch them.>
+- Blockers: <the narrowest unresolved decision and the evidence needed to settle it; the task still delivers everything the blocker does not prevent.>
+- Needs first: <prerequisite capabilities described by their guaranteed contract, with why this outcome needs each one.>
 
-<Name what this task may create or modify, and the invariants a reasonable executor might plausibly break on the way, rather than an inventory of everything that exists.
-State the choices this task deliberately leaves to the executing agent, so no effort goes into inferring a preference that does not exist.
-Where this task changes something it also needs preserved, name the properties that survive rather than calling the behavior unchanged, so the invariant does not contradict the change on its face.
-Say each fact once: this section carries the boundary, not a second copy of the behavior, contract, or repository sections.
-Remove this optional section when neither applies.>
+Record the choices you make where this task leaves them open.
+Stop and report at any decision this task does not settle rather than widening scope or inventing one.
 
-### Constraints and dependencies
+<Keep only the boundary lines that apply; the two closing sentences always stay.
+State each fact once and let other sections refer to it.>
 
-<State source-backed constraints and risks, clearly labeled assumptions and blockers, and prerequisite capabilities.
-Describe what each predecessor must provide and why this outcome needs it; remove this optional section when none apply.>
+## Repository notes
 
-### Contract details
-
-<State the applicable vocabulary, durable data, state transition, boundary, replay, concurrency, atomicity, failure, and authorization clauses.
-Name unresolved material decisions as blockers; remove this optional section when the contract branch does not apply.>
-
-## Repository context
-
-<Record only inspected, decision-relevant paths, integration points, conventions, existing contracts, and safe validation commands.
+<Inspected facts only: the entry points to start from, binding contracts and conventions, and non-obvious wiring that would cost the executor a wrong turn.
+Pointers over tours: name the path and symbol, not everything that exists.
 Label any non-binding implementation option as such.>
 
-## Acceptance criteria
+## Acceptance
 
-```gherkin
-Scenario: <Observable outcome>
-  Given <relevant starting state>
-  When <actor or system action>
-  Then <observable result>
-```
-
-<Add the source-backed scenarios needed to prove completion and material success, boundary, and failure behavior.>
+- <Observable checks that prove the outcome, its exact boundaries, and its failure behavior, in behavioral technology-neutral language.>
+- <Preserve the semantics of every source scenario assigned to this slice; where a check assumes a starting state, make it explicit and consistent with inspected fixture data, or have the check establish it.>
 
 ## Validation
 
-- <Name an exact command, targeted test, or focused observable check and the expected evidence.>
-- <Include directly relevant regression coverage, or remove this item when none applies.>
-
-## Execution and handoff
-
-Deliver the outcome above and run the listed validation plus directly relevant repository checks.
-Stay inside the boundary this task sets: make the choices it leaves open to you and record them, and when something it does not settle blocks safe progress, stop and report rather than widening scope or inventing a decision.
-Report:
-
-- changed files;
-- exact validation commands and observed results;
-- manual checks performed and their observations;
-- choices made where this task left the decision open; and
-- unresolved blockers or assumptions.
+- <Exact command, targeted test, or focused manual check, and the evidence it must show; distinguish new-behavior evidence from regression coverage.>

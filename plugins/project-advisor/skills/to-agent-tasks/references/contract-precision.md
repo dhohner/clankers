@@ -3,6 +3,7 @@
 Evaluate every heading for each triggered slice.
 Give each applicable decision one of the dispositions in the completion criterion.
 Ground details in the PRD or inspected repository evidence, and keep the task technology-neutral where the evidence leaves implementation open.
+Express each resolved decision as one compact clause; this pass adds precision, not prose.
 
 ## Vocabulary and state
 

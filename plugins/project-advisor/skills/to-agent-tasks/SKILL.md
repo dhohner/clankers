@@ -1,6 +1,6 @@
 ---
 name: to-agent-tasks
-description: Convert an accepted `to-prd` `prd.yaml` bundle into self-contained, dependency-ordered tracer-bullet tasks for autonomous coding agents. Use when the user asks to break an accepted PRD into coding-agent tasks for an autonomous agent such as Codex or Pi. For Jira or tracker tickets, use `to-issues`.
+description: Convert an accepted `to-prd` `prd.yaml` bundle into self-contained, dependency-ordered tracer-bullet tasks for autonomous coding agents. Use when the user asks to break an accepted PRD into coding-agent tasks for an autonomous agent such as Claude Code, Codex, or Pi. For Jira or tracker tickets, use `to-issues`.
 ---
 
 # Accepted PRD to Agent Tasks
@@ -27,6 +27,20 @@ Handing back a whole requirement because one of its inputs is missing returns wo
 
 Draw the change surface with the same care wherever a task touches artifacts, configuration, or behavior that something else depends on: name what it may create or modify and what must survive intact.
 An agent that knows where its authority ends stops at that edge and reports, instead of widening scope or inventing a decision nobody made.
+
+## Write for a capable executor
+
+The executor is a frontier autonomous coding agent, such as Claude Code running Opus or Fable, with full repository access.
+It explores code well, follows explicit constraints reliably, and chooses sound implementations when given the outcome, the constraints, and the acceptance evidence.
+Write every task for that reader:
+
+- Carry what the repository cannot reveal: product semantics, durable contracts, boundaries, and completion evidence.
+- Omit what one repository search rediscovers, unless stating it settles a decision or prevents a likely wrong turn.
+- State outcomes and constraints, not implementation steps; a prescribed sequence, module layout, algorithm, or data structure claims authority the source rarely grants, and where one is worth suggesting, label it non-binding.
+- Skip generic engineering advice such as "write tests first" or "follow existing conventions"; the executor already applies it, and each such line dilutes the constraints that are actually load-bearing.
+- Prefer density over ceremony: most tasks fit in roughly 40 to 100 lines, and length beyond that must buy decision relevance, not restatement.
+
+Succinctness serves the same goal as the delegation boundary: in a short task every stated constraint reads as deliberate, while in a padded one the executor cannot tell load-bearing from filler.
 
 ## Process
 
