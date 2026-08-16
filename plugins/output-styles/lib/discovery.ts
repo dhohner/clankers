@@ -45,22 +45,51 @@ async function listStyleFiles(
   }
 }
 
+type StyleFileRead = { path: string; content: string } | { path: string; failure: string };
+
+/**
+ * Upper bound of concurrent reads inside one directory. An unbounded fan-out would open every file
+ * at once, and a large directory could then hit the descriptor limit and report valid files as
+ * unreadable, so the bound sits far below any realistic limit.
+ */
+export const MAX_CONCURRENT_FILE_READS = 8;
+
 /** Reads one style directory. A missing directory yields no styles and no problem. */
 export async function readStyleDirectory(directory: string, source: StyleSource): Promise<StyleDiscovery> {
   const { files, problems, unlistable } = await listStyleFiles(directory);
-  const styles = new Map<string, StyleDefinition>();
 
-  for (const file of files) {
-    const path = join(directory, file);
-    let content: string;
-    try {
-      content = await readFile(path, "utf8");
-    } catch (error) {
-      problems.push({ path, reason: `cannot read file: ${describeError(error)}` });
+  // A bounded worker pool overlaps the file reads, and each result lands at its sorted filename
+  // index, so the collision winner and the problem order never depend on which read completes
+  // first. A read failure is a value here, not a rejection, so one unreadable file cannot cancel
+  // the other reads.
+  const reads = new Array<StyleFileRead>(files.length);
+  let nextIndex = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(MAX_CONCURRENT_FILE_READS, files.length) }, async () => {
+      for (;;) {
+        const index = nextIndex;
+        nextIndex += 1;
+        const file = files[index];
+        if (file === undefined) return;
+        const path = join(directory, file);
+        try {
+          reads[index] = { path, content: await readFile(path, "utf8") };
+        } catch (error) {
+          reads[index] = { path, failure: `cannot read file: ${describeError(error)}` };
+        }
+      }
+    }),
+  );
+
+  const styles = new Map<string, StyleDefinition>();
+  for (const read of reads) {
+    const { path } = read;
+    if ("failure" in read) {
+      problems.push({ path, reason: read.failure });
       continue;
     }
 
-    const result = parseStyleFile(path, content, source);
+    const result = parseStyleFile(path, read.content, source);
     if (!result.ok) {
       problems.push({ path, reason: result.reason });
       continue;

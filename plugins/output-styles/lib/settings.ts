@@ -81,7 +81,7 @@ async function withSettingsLock<T>(path: string, action: () => Promise<T>): Prom
  * leaves existence unknown, so it is thrown and reported as a failed read rather than read as
  * absence, which would silently drop a stored selection.
  */
-async function fileExists(path: string): Promise<boolean> {
+async function settingsFileExistsOrThrowOnUnknown(path: string): Promise<boolean> {
   try {
     await stat(path);
     return true;
@@ -155,7 +155,7 @@ export async function readPersistedStyleName(path: string): Promise<PersistedSty
   try {
     // Like Pi's storage, a missing file is not locked: locking would create the lock directory and
     // thereby write into a directory a plain read must leave untouched.
-    if (!(await fileExists(path))) return { status: "none" };
+    if (!(await settingsFileExistsOrThrowOnUnknown(path))) return { status: "none" };
     return await withSettingsLock(path, async (): Promise<PersistedStyleRead> => {
       const settings = await readSettingsObject(path);
       const value = settings[OUTPUT_STYLE_KEY];

@@ -6,7 +6,7 @@ import {
   type CreateFlowUi,
   runCreateStyleFlow,
 } from "./create-flow.ts";
-import { describeError, discoverStyles } from "./discovery.ts";
+import { describeError, discoverStyles, type StyleDirectories } from "./discovery.ts";
 import { applyStyle } from "./prompt.ts";
 import { formatStatusText, type StatusTheme } from "./status.ts";
 import {
@@ -139,7 +139,7 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
     };
   }
 
-  function styleDirectories(ctx: StyleExtensionContext): Parameters<typeof discoverStyles>[0] {
+  function styleDirectories(ctx: StyleExtensionContext): StyleDirectories {
     return { bundledDir: options.bundledDir, ...styleTargetDirectories(ctx) };
   }
 
@@ -244,11 +244,15 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
     }
   }
 
+  const globalSettingsPath = join(options.agentDir, SETTINGS_FILE_NAME);
+
+  function projectSettingsPath(ctx: StyleExtensionContext): string {
+    return join(ctx.cwd, options.configDirName, SETTINGS_FILE_NAME);
+  }
+
   /** Trust decides the write target: the project settings file only for a trusted project. */
   function settingsPathFor(ctx: StyleExtensionContext): string {
-    return ctx.isProjectTrusted()
-      ? join(ctx.cwd, options.configDirName, SETTINGS_FILE_NAME)
-      : join(options.agentDir, SETTINGS_FILE_NAME);
+    return ctx.isProjectTrusted() ? projectSettingsPath(ctx) : globalSettingsPath;
   }
 
   /**
@@ -447,9 +451,9 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
 
       // An untrusted project's settings file is never read, matching the rule for its style files.
       const projectValue = ctx.isProjectTrusted()
-        ? await readStartupValue(ctx, join(ctx.cwd, options.configDirName, SETTINGS_FILE_NAME))
+        ? await readStartupValue(ctx, projectSettingsPath(ctx))
         : undefined;
-      const globalValue = await readStartupValue(ctx, join(options.agentDir, SETTINGS_FILE_NAME));
+      const globalValue = await readStartupValue(ctx, globalSettingsPath);
 
       // The starting style comes from this resolution alone. The flag is a one-run override and is
       // never written back; a persisted name that no longer resolves is reported once below and its

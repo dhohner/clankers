@@ -119,7 +119,7 @@ async function selectTargetDirectory(deps: CreateFlowDependencies): Promise<stri
  * example, leaves existence unknown, so it is thrown for the caller to report instead of
  * being read as absence and risking a write where a file may sit.
  */
-async function fileExists(path: string): Promise<boolean> {
+async function styleFileExistsOrThrowOnUnknown(path: string): Promise<boolean> {
   try {
     await access(path);
     return true;
@@ -149,7 +149,7 @@ export async function runCreateStyleFlow(deps: CreateFlowDependencies): Promise<
   // the documented precedence rules.
   const path = join(directory, `${name}${STYLE_FILE_SUFFIX}`);
   try {
-    if (await fileExists(path)) {
+    if (await styleFileExistsOrThrowOnUnknown(path)) {
       deps.notify(`Style "${name}" was not created: ${path} already exists. Choose a different name.`, "warning");
       return;
     }
