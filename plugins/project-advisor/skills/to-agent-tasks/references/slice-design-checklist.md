@@ -1,6 +1,6 @@
 # Tracer-bullet slice design
 
-Apply this reference to the coverage ledger before proposing or writing tasks.
+Apply this reference to the ledger before proposing or writing tasks.
 
 ## Five tests
 

@@ -5,101 +5,76 @@ description: Convert an accepted `to-prd` `prd.yaml` bundle into self-contained,
 
 # Accepted PRD to Agent Tasks
 
-Convert one explicitly accepted `prd.yaml` into a small set of tracer-bullet Markdown tasks for an airgapped executor: a coding agent with repository access and this one task file, nothing else.
-Write tasks to `action-items/agent-tasks/` unless the user chooses another destination.
-Ask only for decisions that materially change scope, ordering, contracts, or acceptance.
+Convert one accepted `prd.yaml` into a small set of Markdown tasks for an airgapped coding agent.
+The executor has repository access and one task file, but cannot ask follow-up questions.
+Write to `action-items/agent-tasks/` unless the user chooses another destination.
+Ask only about decisions that change scope, order, contracts, or acceptance.
 
-## The delegation boundary
+## Delegation boundary
 
-A task file is bounded delegated work, and the agent receiving it cannot ask a follow-up question.
-Its usefulness depends less on how much it says than on how cleanly it partitions authority, so give every material decision a task touches exactly one disposition:
-
-- **Fixed** - settled by the PRD or inspected repository evidence, stated exactly, and not open to reinterpretation.
-- **Delegated** - genuinely the executing agent's call, said out loud so no effort goes into inferring a preference that does not exist.
-- **Escalated** - unresolved, named as a blocker together with the decision and the evidence needed to settle it.
-
-A decision you settle yourself to keep a task executable is an assumption, not a fixed fact, and it belongs in the task file labeled as one.
-The executing agent never sees the summary you give the user, so an assumption recorded only in conversation is invisible at exactly the moment someone could catch it being wrong.
-
-Escalate the narrowest thing that is genuinely unresolved.
-A missing input rarely blocks a whole outcome, so deliver the behavior it does not prevent and place the blocker at the exact point where progress stops.
-Handing back a whole requirement because one of its inputs is missing returns work that could have shipped.
-
-Draw the change surface with the same care wherever a task touches artifacts, configuration, or behavior that something else depends on: name what it may create or modify and what must survive intact.
-An agent that knows where its authority ends stops at that edge and reports, instead of widening scope or inventing a decision nobody made.
-
-## Write for a capable executor
-
-The executor is a frontier autonomous coding agent, such as Claude Code running Opus or Fable, with full repository access.
-It explores code well, follows explicit constraints reliably, and chooses sound implementations when given the outcome, the constraints, and the acceptance evidence.
-Write every task for that reader:
-
-- Carry what the repository cannot reveal: product semantics, durable contracts, boundaries, and completion evidence.
-- Omit what one repository search rediscovers, unless stating it settles a decision or prevents a likely wrong turn.
-- State outcomes and constraints, not implementation steps; a prescribed sequence, module layout, algorithm, or data structure claims authority the source rarely grants, and where one is worth suggesting, label it non-binding.
-- Skip generic engineering advice such as "write tests first" or "follow existing conventions"; the executor already applies it, and each such line dilutes the constraints that are actually load-bearing.
-- Prefer density over ceremony: most tasks fit in roughly 40 to 100 lines, and length beyond that must buy decision relevance, not restatement.
-
-Succinctness serves the same goal as the delegation boundary: in a short task every stated constraint reads as deliberate, while in a padded one the executor cannot tell load-bearing from filler.
+- Give every material decision one disposition: **Fixed** by evidence, **Delegated** to the executor, or **Escalated** as a named blocker.
+- Label any decision you introduce without PRD or repository support as an assumption inside the task.
+- Scope blockers to the exact behavior they prevent, and keep all other deliverable behavior in the task.
+- Name what may change and the specific contracts or behavior that must survive.
 
 ## Process
 
-### 1. Gate the source and build the coverage ledger
+### 1. Gate the source and build the ledger
 
-Locate the requested `prd.yaml` and establish acceptance: a top-level `status` of `Accepted`, or explicit acceptance from the user or prior conversation.
-Source acceptance is independent of later breakdown approval.
-When acceptance is unestablished, ask for confirmation and stop at this gate; when the user confirms a PRD whose manifest still reads as a draft, point them at `to-prd` so the acceptance gets published.
+Use `prd.yaml` as the source of truth and `index.html` only as its review surface.
+Require top-level `status: Accepted` or explicit user acceptance.
+If acceptance is unknown, ask for it and stop.
+If the user accepts a draft manifest, point them to `to-prd` so it can publish that state.
 
-Treat `prd.yaml` as the source of truth and `index.html` as its review surface.
-Build a coverage ledger containing every requirement ID, every Gherkin scenario, and every implementation-relevant constraint, non-goal, decision, risk, open question, success measure, dependency, and validation link.
-Ground behavior in `blocks.requirements` and its Gherkin scenarios, carrying other blocks forward only when they constrain implementation, acceptance, sequencing, or validation.
-Give each item a disposition: implementation candidate, validation context, blocker, or source-backed reason that it requires no implementation work.
+Record every requirement ID, Gherkin scenario, and implementation-relevant constraint, non-goal, decision, risk, question, success measure, dependency, and validation link.
+Use `blocks.requirements` for behavior.
+Include other blocks only when they affect implementation, acceptance, sequence, or validation.
+Classify each ledger item as implementation, validation context, blocker, or no implementation work.
 
-**Complete when:** every ledger item has exactly one explicit disposition and every unresolved material decision is visible.
+**Complete when:** every ledger item has one disposition and every material uncertainty is visible.
 
 ### 2. Design tracer bullets
 
 Read and apply [references/slice-design-checklist.md](references/slice-design-checklist.md).
-Map the ledger into the smallest set of outcome slices and express every dependency as a predecessor capability.
-Use `blocks.testing_strategy` as validation context within behavioral slices.
+Map the ledger to the smallest set of outcome slices.
+Express dependencies as required predecessor capabilities.
+Keep `blocks.testing_strategy` with the behavior it validates.
 
-**Complete when:** the slice-design reference's completion criterion passes against the coverage ledger.
+**Complete when:** the reference's completion criterion passes against the ledger.
 
-### 3. Ground each slice in the repository
+### 3. Ground each slice
 
-For each candidate slice, inspect the bounded code, configuration, tests, migrations, and documentation needed to identify real integration points, conventions, existing contracts, and validation commands.
-Revise the slices when repository evidence reveals a coupling, boundary, or independently verifiable capability that changes the breakdown.
-Record evidence gaps as exact blockers rather than inferred facts.
+Inspect only the code, configuration, tests, migrations, and documentation needed for each slice.
+Identify real entry points, binding contracts, conventions, dependencies, and safe validation commands.
+Revise the breakdown when repository evidence reveals a material coupling or boundary.
+Record evidence gaps as blockers, not facts.
 
-**Complete when:** every slice has inspected integration evidence and a safe validation path, or a named evidence gap that blocks execution.
+**Complete when:** every slice has inspected integration evidence and safe validation, or a precise blocker.
 
-### 4. Run the contract branch
+### 4. Resolve contract-sensitive slices
 
-For each slice involving durable data, state transitions, thresholds, time, retries, concurrency, coupled writes, external side effects, authorization, or tenant isolation, read and apply [references/contract-precision.md](references/contract-precision.md).
-Resolve material product and contract decisions from the PRD first and established repository behavior second.
-Separate decisions the source deliberately leaves open, which are delegated, from decisions it fails to settle, and surface each of the latter as a focused question or named blocker before drafting.
+For durable data, state, thresholds, time, retries, concurrency, coupled writes, external effects, authorization, or tenant isolation, read and apply [references/contract-precision.md](references/contract-precision.md).
+Resolve decisions from the PRD first and established repository behavior second.
+Delegate deliberately open choices and escalate missing product or contract decisions.
 
-**Complete when:** every triggered slice passes the contract reference's completion criterion.
+**Complete when:** every triggered slice passes the contract reference.
 
-### 5. Approve the exact breakdown
+### 5. Approve the breakdown
 
-Treat an explicit request to write files now, skip breakdown review, or assume approval as breakdown approval.
-Otherwise present each proposed task's title, observable outcome, covered requirement IDs, prerequisite capabilities, and material blockers, then wait for approval.
+Treat a request to write now, skip review, or assume approval as approval.
+Otherwise present each task's title, outcome, requirement IDs, prerequisite capabilities, and blockers.
+Wait for approval.
 
-**Complete when:** the conversation approves the exact breakdown that will be written.
+**Complete when:** the user approves the exact breakdown.
 
-### 6. Write and audit autonomous task files
+### 6. Write, audit, and report
 
 Read [references/agent-task-template.md](references/agent-task-template.md) and [references/task-writing-checklist.md](references/task-writing-checklist.md).
-Inspect the destination, preserve existing files, and choose non-colliding dependency-ordered names such as `01-short-task-title.md`.
-Write one file per approved slice for an airgapped executor: embed all needed product context, repository findings, prerequisite capability contracts, and completion evidence, and describe prerequisite capabilities inside each dependent task.
-Fix observable behavior, durable contracts, and completion evidence; name the choices the executing agent owns instead of leaving them silently open; and state the change surface wherever collateral change would damage something this task does not own.
-Audit every draft against the coverage ledger and every applicable quality-gate item before saving it.
+Inspect the destination and preserve existing files unless the user explicitly authorizes replacement.
+Use non-colliding dependency-ordered names such as `01-short-task-title.md`.
+Write one self-contained file per approved slice and describe prerequisite contracts inline.
+Audit each file against the ledger and every applicable checklist item before saving it.
 
-**Complete when:** every approved slice has one saved task, every ledger item remains accounted for, every material decision in a task carries exactly one disposition, every task passes the quality gate, and no existing file was replaced without explicit authorization.
+Report files in execution order, labeled assumptions, and unresolved blockers.
 
-### 7. Report the handoff
-
-Report the created files in execution order, source-backed assumptions, and unresolved blockers.
-
-**Complete when:** every created file and every unresolved blocker is accounted for.
+**Complete when:** all approved tasks exist, all ledger items remain covered, every task passes the audit, no existing file was replaced without explicit authorization, and the report accounts for every file and blocker.

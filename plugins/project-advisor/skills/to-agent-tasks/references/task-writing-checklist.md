@@ -1,73 +1,56 @@
 # Autonomous task quality gate
 
-Check every applicable item against the complete task before saving it.
+Check every applicable item before saving a task.
 
-## Template and outcome
+## Structure and coverage
 
-- The task follows [agent-task-template.md](agent-task-template.md), contains every required section, removes unused optional sections and unused Boundary lines, and contains no placeholders.
-- The title and outcome describe one observable completed behavior and its value.
-- Required behavior and Boundary contain exactly the behavior and boundaries needed for that outcome.
+- The task follows [agent-task-template.md](agent-task-template.md), keeps every required section, removes unused optional content, and has no placeholders.
+- The title and Outcome define one observable result and its value.
+- Required behavior and Boundary contain only what that result needs.
+- Every assigned ledger item appears in behavior, acceptance, validation, another mapped slice, or a blocker.
+- The union of split tasks preserves every clause and scenario from the source requirement.
 
-## Coverage and grounding
+## Evidence and autonomy
 
-- Every statement is traceable to the PRD, inspected repository evidence, or a clearly labeled assumption or blocker.
-- The task survives an airgapped executor: it embeds every product decision an agent needs when its only external context is repository access, and never points at the PRD, sibling task files, or task numbers.
-- Every ledger item assigned to the slice appears in scope, acceptance, validation, or an explicit blocker.
-
-## Execution autonomy
-
-- Repository paths, symbols, contracts, conventions, and commands come from inspection.
-- Claims about repository wiring or behavior are verified in the code; a plausible convention that inspection does not confirm is stated as absent or as an assumption, not as fact.
-- Repository notes include only decision-relevant facts and clearly label non-binding implementation options.
-- Dependencies name completed predecessor capabilities and explain why this outcome needs them.
-- Prerequisite capabilities are described by their guaranteed contract; an implementation choice left non-binding in any task stays non-binding in every task that mentions it.
-- Product semantics, edge behavior, durable contracts, and completion evidence are explicit.
-- Architecture, framework, and implementation choices remain open wherever source evidence leaves them open.
+- Every claim comes from the PRD, inspected repository evidence, or a labeled assumption or blocker.
+- The task contains every required product decision and never refers the executor to the PRD, sibling tasks, or task numbers.
+- Repository notes contain only verified entry points, binding contracts, and non-obvious wiring that affects a decision.
+- Dependencies describe required predecessor capabilities and why they are needed, not files or task order.
+- Shared prerequisite contracts agree on fields, meanings, status codes, ordering, and other fixed properties, and a choice left non-binding in one task stays non-binding in every task that mentions it.
+- Architecture and implementation remain open unless evidence fixes them or a suggestion is labeled non-binding.
 
 ## Delegation boundary
 
-- Every material decision the task touches is fixed by source or repository evidence, explicitly delegated to the executing agent, or named as a blocker, and none is left silently ambiguous.
-- Choices the task leaves open are stated as open rather than implied by omission, so the agent spends no effort reconstructing a preference that does not exist.
-- A decision that neither the PRD nor the repository settles, but the task settles anyway to stay executable, is labeled inside the task file as an assumption rather than presented as established fact; recording it only in the conversation summary does not count, because the executing agent never sees that summary.
-- When the task changes artifacts, configuration, or behavior that something else depends on, it names what may change and the invariants a reasonable executor might plausibly break, without restating sections the task already contains.
-- The invariants a task declares intact are consistent with the changes that same task makes; an invariant its own required behavior violates strands the executor between two instructions it cannot both satisfy.
-- Where a task preserves something it also changes, the invariant names the properties that survive - field names, meanings, ordering, existing values, status codes - because a blanket "behaves exactly as it does today" is contradicted on its face by the same task adding to that behavior, and leaves the executor guessing whether an existing assertion should be amended or reported as a failure.
-- A blocker names the narrowest unresolved decision, and the task still delivers the behavior that blocker does not prevent, instead of deferring a whole requirement because one of its inputs is missing.
-- The Boundary closing lines direct the agent to record the choices it makes where the task leaves them open, and to stop and report at a decision the task does not settle rather than widen scope or invent one.
+- Every material decision is fixed by evidence, delegated under Your call, or escalated under Blockers.
+- Every unsupported decision introduced by the task appears under Assumptions.
+- May change and Must survive name the precise change surface and the specific surviving properties - field names, meanings, status codes, ordering, existing values - rather than a blanket "behaves as today" claim; an invariant that the task's own changes violate fails this check.
+- Each blocker names the unresolved decision, needed evidence, and only the behavior that must wait.
+- The task tells the executor to record delegated choices and stop at unsettled decisions instead of widening scope or inventing answers.
 
-## Acceptance
+## Acceptance and validation
 
-- Every source scenario assigned to the slice is preserved semantically in at least one acceptance scenario.
-- Scenarios state relevant starting state, action, and observable result in behavioral, technology-neutral language.
-- Scenario starting state agrees with inspected repository fixture data, or the scenario explicitly establishes the state it assumes.
-- Scenarios cover material success, exact boundaries, failure behavior, permissions, and recovery applicable to the outcome.
-- Added scenarios are direct implications of source-backed behavior.
-- Checks are plain checkable statements; no scenario syntax such as Given/When/Then is required, and a check that assumes a starting state names that state explicitly.
+- Acceptance preserves every assigned source scenario as a technology-neutral check of state, action, and observable result.
+- Starting states match inspected fixtures or the check establishes them.
+- Checks cover applicable success, exact boundaries, failures, permissions, recovery, replay, and concurrency.
+- Added checks follow directly from source-backed behavior.
+- Checks are plain checkable statements, with no Given/When/Then syntax required.
+- Validation names existing local commands or focused manual steps and their expected evidence.
+- Validation distinguishes new-behavior evidence from relevant regression coverage and avoids unauthorized remote effects.
 
-## Validation
-
-- Validation names concrete commands or focused checks and the expected evidence for completion.
-- Commands exist in the inspected repository and are scoped to local or isolated execution when credentials, deployment, migration, upload, or remote mutation are possible.
-- New-behavior evidence and directly relevant regression checks are distinguishable.
-- Manual validation includes the observable procedure and expected result.
-
-## Precision and succinctness
+## Precision and brevity
 
 - Identifiers, values, units, commands, qualifiers, and scenario details remain exact.
-- Compact prose preserves actor, condition, behavior, rationale, and boundary.
-- Every sentence contributes decision-relevant execution context.
-- The task states outcomes and constraints; no implementation sequence, module layout, algorithm, or data-structure choice appears unless source evidence fixes it or the task labels it non-binding.
-- No generic engineering advice appears; a line the executor already follows by default dilutes the constraints that are load-bearing.
-- Repository notes contain nothing one repository search rediscovers, unless stating it settles a decision or prevents a likely wrong turn.
-- A task materially longer than about 100 lines earns each additional line with decision-relevant content rather than restatement.
-- Within one file a binding fact lives in the section that owns it, and the other prose sections refer to it rather than restating it; acceptance scenarios still re-express behavior as observable evidence, which is their job.
-  Restating the same rule in several sections is not merely long: the copies drift, and an executor reconciling two versions of one rule pages apart is being asked to decide something nobody decided.
+- Each binding fact appears once in its owning prose section, while Acceptance expresses it as observable evidence.
+- Every sentence supplies product meaning, a contract, a boundary, evidence, or a completion check.
+- The task omits generic engineering advice and repository facts that one search can recover.
+- The task avoids implementation steps, layouts, algorithms, and data structures unless fixed or explicitly non-binding.
+- A task beyond about 100 lines justifies the extra lines with unique, decision-relevant content.
 
 ## Contract branch
 
-When the contract branch applies, the task satisfies the completion criterion in [contract-precision.md](contract-precision.md).
+When the contract branch applies, the task passes [contract-precision.md](contract-precision.md).
 
 ## Completion criterion
 
-The task passes when every applicable item above is directly verifiable in the saved file.
-Represent source or repository evidence gaps as explicit blockers and correct every other failed check before saving.
+The task passes when every applicable item is directly verifiable.
+Convert evidence gaps into blockers and correct all other failures before saving.
