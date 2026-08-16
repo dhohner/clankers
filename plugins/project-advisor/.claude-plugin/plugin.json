@@ -1,6 +1,6 @@
 {
   "name": "project-advisor",
-  "version": "0.42.1",
+  "version": "0.43.0",
   "description": "Project planning skills for recommending what to build next, writing PRDs, and turning approved PRDs into Jira-ready work items or coding-agent task files.",
   "author": {
     "name": "dhohner"
