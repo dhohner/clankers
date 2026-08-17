@@ -1,6 +1,7 @@
 ---
 name: simplify
-description: Apply safe, behavior-preserving cleanup edits to existing code by selecting a scope, focusing by default on the smallest enclosing changed region within that scope, reviewing for duplication, readability, and meaningful efficiency issues, then summarizing what was changed versus left manual. Use this skill whenever the user asks to simplify, clean up, refactor, streamline, de-duplicate, polish, or make existing code more maintainable, readable, or efficient, especially for staged changes, the latest commit, or explicitly named files after a feature or bug fix, even if they do not explicitly say "simplify." Also use it when the user wants safe cleanup with edits plus a structured report of risky follow-ups. Do not use it for review-only requests, debugging, new feature work, or broad architectural redesign.
+description: Clean up existing code by reducing duplication and improving quality and efficiency.
+disable-model-invocation: true
 ---
 
 # Simplify Changed Code

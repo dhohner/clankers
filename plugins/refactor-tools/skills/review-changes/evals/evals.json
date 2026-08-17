@@ -3,8 +3,8 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Review the changes in the latest commit for quality, simplicity, robustness, scalability, and long-term maintainability. Score your findings on a scale of 1 - 10. The implementation is based on the attached task description.",
-      "expected_output": "A ranked report with one 1-10 score per dimension, each score naming the finding that set it, at most five findings in full and the rest compressed, and a negative control against the change's central proof.",
+      "prompt": "Review the changes in the latest commit for quality, security, simplicity, robustness, scalability, and long-term maintainability. Score your findings on a scale of 1 - 10. The implementation is based on the attached task description.",
+      "expected_output": "A ranked report with one 1-10 score per dimension, including security, each score naming the finding that set it, at most five findings in full and the rest compressed, and a negative control against the change's central proof.",
       "files": [],
       "expectations": [
         "The score table has a Why column, and every score below 10 names the finding or nit that set it.",
@@ -19,11 +19,11 @@
     {
       "id": 2,
       "prompt": "Have a look at the last commit and tell me how solid it is.",
-      "expected_output": "The scope falls back to the latest commit, all five dimensions are scored, and no spec document is invented because none was supplied.",
+      "expected_output": "The scope falls back to the latest commit, all six dimensions are scored, and no spec document is invented because none was supplied.",
       "files": [],
       "expectations": [
         "The scope is reported as the latest commit and lists the files it touched.",
-        "The score table has a Why column and covers all five dimensions.",
+        "The score table has a Why column and covers all six dimensions, including Security.",
         "The report does not claim to check the change against a specification document.",
         "The validation section records a negative control that broke the change's central mechanism on purpose.",
         "No file in the repository was modified, created, or deleted by the review."

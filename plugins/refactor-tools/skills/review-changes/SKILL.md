@@ -1,6 +1,6 @@
 ---
 name: review-changes
-description: Evidence-based scoring of changed code across five quality dimensions.
+description: Evidence-based scoring of changed code across six quality dimensions.
 disable-model-invocation: true
 ---
 
@@ -41,7 +41,7 @@ Treat guide violations as findings.
 
 If the user supplied requirements, check all acceptance criteria and non-goals.
 Report missed criteria and out-of-scope work.
-Otherwise, assess only the five quality dimensions.
+Otherwise, assess only the six quality dimensions.
 
 Done when: every hunk's callers, callees, dependencies, and tests have been traced.
 
@@ -81,6 +81,7 @@ Assess the full scope against each dimension:
 | Dimension | Question | Inspect |
 | --- | --- | --- |
 | Quality | Does the change do the right thing? | Real inputs, boundaries, error paths, input validation, discarded errors, and behavior coverage. |
+| Security | What can an attacker gain from this change? | Untrusted data reaching injection sinks, missing authentication or authorization checks, secrets in code or logs, unsafe file and path handling, and sensitive data in errors or responses. |
 | Simplicity | Is this the smallest clear solution? | Duplication, needless indirection, unused options, dead branches, overloaded parameters, and cleverness a plain form could replace. |
 | Robustness | What happens when something goes wrong? | Partial failure, retries, timeouts, concurrency, cleanup, test order, and external-state dependence. |
 | Scalability | What happens at 100 times the load? | Complexity, repeated I/O in loops, unbounded growth, chatty calls that should be batched, and lock contention. |
@@ -103,7 +104,7 @@ In the score table's `Why` column, name each sub-10 cause.
 Name the nit for 8-9 and the finding for 1-7.
 Use `n/a` with a reason when the change cannot affect a dimension.
 
-Done when: all five dimensions have a traceable score or justified `n/a`.
+Done when: all six dimensions have a traceable score or justified `n/a`.
 
 ## Step 5 - Report
 
@@ -122,6 +123,7 @@ Scope: <source and revision or file set>
 | Dimension | Score | Why |
 | --- | --- | --- |
 | Quality | N | <cause or "no finding"> |
+| Security | N | |
 | Simplicity | N | |
 | Robustness | N | |
 | Scalability | N | |

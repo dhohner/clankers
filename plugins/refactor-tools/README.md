@@ -13,7 +13,7 @@ The `simplify` skill handles cleanup and simplification requests. It improves ex
 
 The `review-changes` skill judges a change set instead of editing it. It reports:
 
-- One score from 1 to 10 for quality, simplicity, robustness, scalability, and maintainability
+- One score from 1 to 10 for quality, security, simplicity, robustness, scalability, and maintainability
 - Findings ordered by importance, each with a location, a concrete cost, and a fix
 - A split between findings observed by running a command and findings inferred from reading
 - The validation commands that ran, and the risks that stayed untested
