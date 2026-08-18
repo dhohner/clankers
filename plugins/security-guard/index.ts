@@ -135,6 +135,7 @@ export {
   SAFETY_EVALUATION_WORKING_MESSAGE,
   SAFETY_EVALUATOR_MODEL_ID,
   SAFETY_EVALUATOR_PROVIDER,
+  SAFETY_EVALUATOR_PROVIDERS,
   type SafetyAssessment,
   type SafetyEvaluation,
   type SafetyEvaluationRequest,

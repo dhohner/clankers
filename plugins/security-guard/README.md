@@ -40,18 +40,19 @@ The user decides for every valid verdict, including `unsafe` and `uncertain`; th
 
 The assessment is fail-closed.
 If the model is missing, authentication is not configured, the request fails, times out, is cancelled, or the response is not a valid assessment, the command is blocked without an approval dialog.
-The extension makes no fallback model request and adds no retry loop above provider behavior.
+The extension sends at most one model request per assessment and adds no retry loop above provider behavior; a failed request is never retried against another provider.
 Each matched tool call gets its own independent assessment and approval; nothing is reused between calls.
 Assessments are transient UI content and are never appended to the Pi session or sent back into model context.
 
 Data boundary and requirements:
 
-- The evaluator is exactly `openai/gpt-5.6-luna` with `high` reasoning effort; no other model is ever contacted.
-- Each evaluation sends only a fixed system instruction, the exact Bash command, and the current working directory to OpenAI.
+- The evaluator is exactly `gpt-5.6-luna` with `high` reasoning effort; no other model is ever contacted.
+- The model is requested through OpenAI when OpenAI authentication is configured, and through GitHub Copilot otherwise; no other provider is ever used.
+- Each evaluation sends only a fixed system instruction, the exact Bash command, and the current working directory to the selected provider.
 - No tools, session messages, user requests, file contents, or conversation history are included in the request.
 - The command and working directory are treated as untrusted data, not as evaluator instructions.
-- Configured OpenAI authentication in Pi is required; without it, matched destructive commands are blocked.
-- Pi 0.80.4 or later is required, the first release whose model catalog includes `gpt-5.6-luna`.
+- Configured OpenAI or GitHub Copilot authentication in Pi is required; without either, matched destructive commands are blocked.
+- Pi 0.84.0 or later is required, the first release whose extension model registry exposes the `complete()` request API; its catalog also includes `gpt-5.6-luna` for both providers.
 
 ## Temporary Directory Exception
 
@@ -68,7 +69,7 @@ The exception is POSIX-only: where process ownership cannot be read, no removal 
 - Intercepts Bash or terminal tool calls before they execute in Claude-format hosts
 - Intercepts `bash` and `read` tool calls before they execute in Pi
 - Requires explicit human approval for destructive Pi Bash commands such as `rm`, `truncate`, `dd`, `mkfs`, risky `mv`/`chmod`/`chown`, and selected destructive Git commands
-- Shows an advisory, fail-closed safety assessment from `openai/gpt-5.6-luna` before each destructive-command approval in Pi
+- Shows an advisory, fail-closed safety assessment from `gpt-5.6-luna` (via OpenAI or GitHub Copilot) before each destructive-command approval in Pi
 - Skips one approval for direct removal of unchanged, current-user directories created by a successful standalone `mktemp -d` call under a system temporary root
 - Blocks direct commands and simple nested shell invocations containing env-dump or sensitive credential access commands
 - Allows only the exact `env | grep '^PI_' | sort` environment pipeline, with harmless whitespace and quote variations
@@ -89,7 +90,8 @@ The agent will stop the command before it can print environment variables or cre
 
 ## Pi Usage
 
-This plugin requires Pi 0.80.4 or later, the first release whose model catalog includes the `gpt-5.6-luna` safety evaluator model.
+This plugin requires Pi 0.84.0 or later, the first release whose extension model registry exposes the `complete()` request API used by the safety evaluator.
+That release's model catalog also includes the `gpt-5.6-luna` safety evaluator model for both the OpenAI and GitHub Copilot providers.
 
 Install the plugin as a Pi package from a local checkout:
 
