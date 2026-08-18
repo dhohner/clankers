@@ -6,73 +6,72 @@ disable-model-invocation: true
 
 # Review Changed Code
 
-Leave the working tree unchanged.
+Perform a read-only review.
+Preserve every pre-existing working-tree change.
 
 ## Step 1 - Select the scope
 
 Use the first available source:
 
-1. User-named files, commit, or revision range.
-2. Staged changes: `git diff --cached --name-only`.
-3. Unstaged changes: `git diff --name-only`.
-4. Latest commit: `git show --name-only --pretty='' HEAD`.
+1. Files, commits, or revision ranges that the user names.
+2. Staged changes from `git diff --cached`.
+3. Unstaged changes from `git diff`.
+4. The latest commit from `git show HEAD`.
 
-Drop binaries, lockfiles, build output, and vendored files, and report each exclusion.
+Read the selected diff and record its source and revisions.
+Exclude binaries, lockfiles, build output, and vendored files from detailed review.
+Record every exclusion and its reason.
 If no repository or reviewable file exists, ask for a scope and stop.
 
-Done when: the selected scope is recorded and every file is reviewed or excluded with a reason.
+Done when the diff is recorded and every changed file is selected or excluded with a reason.
 
 ## Step 2 - Trace the blast radius
+
+Look for `AGENTS.md`, `.github/copilot-instructions.md`, `CLAUDE.md`, and `.cursorrules`.
+Load the first available guide in that order.
+Treat guide violations as findings.
 
 For every hunk:
 
 - Read its enclosing code and the helpers, types, and configuration it uses.
-- Find callers of each changed public symbol, signature, and configuration key.
-- Read relevant tests and identify uncovered changed behavior.
+- Trace each changed public symbol, signature, and configuration key to its consumers.
+- Read relevant tests and identify changed behavior without proof.
 
-Load the first available repository guide in this order:
-
-1. `AGENTS.md`.
-2. `.github/copilot-instructions.md`.
-3. `CLAUDE.md`.
-4. `.cursorrules`.
-
-Treat guide violations as findings.
-
-If the user supplied requirements, check all acceptance criteria and non-goals.
-Report missed criteria and out-of-scope work.
+If the user supplied requirements, check every acceptance criterion and non-goal.
+Report unmet criteria and out-of-scope work.
 Otherwise, assess only the six quality dimensions.
 
-Done when: every hunk's callers, callees, dependencies, and tests have been traced.
+Done when every hunk's effects, applicable dependencies, and tests are accounted for.
 
 ## Step 3 - Verify claims
 
+Record the initial `git status --short` output.
 Find project checks in scripts, task files, manifests, or the contributing guide.
-Run the narrowest checks that cover the changes, widening only to diagnose failures.
-Use a cheap probe to reproduce each suspected defect when possible.
+Run the narrowest checks that cover the changes.
+Widen the checks only to diagnose a failure.
+Use an isolated temporary copy of the selected change for every command that can write files.
 
 Classify each finding:
 
-- **observed** - quote a command result or end-to-end code trace.
-- **inferred** - name the command that would settle a reading-based claim.
+- **observed** - quote a command result or a complete code trace.
+- **inferred** - name the settling command and why it was not run.
 
-Run a cheap settling command instead of leaving its finding inferred.
+Run a cheap settling command when it is safe and available.
 
-Apply a **negative control** to the change's central proof.
-Break its mechanism in a temporary copy by removing a guard, deleting a setup entry, or reverting the fix.
-Confirm that its tests fail.
-If no runnable proof exists, record that under validation.
+Apply a **negative control** to the change's central proof in an isolated copy.
+Disable the changed mechanism by removing a guard, setup entry, or equivalent behavior.
+Confirm that the relevant tests fail for the expected reason.
+If no runnable proof exists, record that absence under validation.
 
-Keep experiments outside the repository when possible.
-Remove any in-repository probe and confirm cleanup with `git status`.
-Run commands only when their effects remain in the working copy.
 Record deploy, publish, migration, and shared-environment commands as not run.
+Confirm that final `git status --short` output matches the initial output.
 
 Done when:
 
-- All applicable checks have run.
-- Every result and pre-existing failure is recorded.
+- All applicable safe checks have run and every result is recorded.
+- Every finding has observed or inferred evidence.
 - The central proof faced a negative control or has no runnable proof.
+- The working tree matches its initial state.
 
 ## Step 4 - Review and score
 
@@ -80,15 +79,15 @@ Assess the full scope against each dimension:
 
 | Dimension | Question | Inspect |
 | --- | --- | --- |
-| Quality | Does the change do the right thing? | Real inputs, boundaries, error paths, input validation, discarded errors, and behavior coverage. |
-| Security | What can an attacker gain from this change? | Untrusted data reaching injection sinks, missing authentication or authorization checks, secrets in code or logs, unsafe file and path handling, and sensitive data in errors or responses. |
-| Simplicity | Is this the smallest clear solution? | Duplication, needless indirection, unused options, dead branches, overloaded parameters, and cleverness a plain form could replace. |
-| Robustness | What happens when something goes wrong? | Partial failure, retries, timeouts, concurrency, cleanup, test order, and external-state dependence. |
-| Scalability | What happens at 100 times the load? | Complexity, repeated I/O in loops, unbounded growth, chatty calls that should be batched, and lock contention. |
-| Maintainability | What does the next reader pay? | Naming, useful comments, current docs, distant coupling, and interfaces or stored formats that resist later change. |
+| Quality | Does the change do the right thing? | Real inputs, boundaries, errors, validation, discarded errors, and behavior coverage. |
+| Security | What can an attacker gain? | Injection paths, access checks, secrets, unsafe paths, and sensitive outputs. |
+| Simplicity | Is this the smallest clear solution? | Duplication, indirection, unused options, dead branches, and needless cleverness. |
+| Robustness | What happens when it fails? | Partial failure, retries, timeouts, concurrency, cleanup, test order, and external state. |
+| Scalability | What happens at 100 times the load? | Complexity, repeated I/O, unbounded growth, chatty calls, and lock contention. |
+| Maintainability | What does the next reader pay? | Naming, useful comments, current docs, coupling, interfaces, and stored formats. |
 
 Report each defect once under the dimension it damages most.
-Give each dimension a clean verdict or findings, then score it:
+Give every applicable dimension a score:
 
 | Score | Meaning |
 | --- | --- |
@@ -99,19 +98,21 @@ Give each dimension a clean verdict or findings, then score it:
 | 2-3 | Several defects, or one unsafe-to-ship defect. |
 | 1 | The change fails this dimension. |
 
-Within each range, use the higher score for isolated impact and the lower score for cross-cutting impact.
-In the score table's `Why` column, name each sub-10 cause.
-Name the nit for 8-9 and the finding for 1-7.
-Use `n/a` with a reason when the change cannot affect a dimension.
+Use the higher score in a range for isolated impact.
+Use the lower score for cross-cutting impact.
+Use `n/a` only when the change cannot affect that dimension.
+Name every sub-10 cause and explain every `n/a` in the score table's `Why` column.
 
-Done when: all six dimensions have a traceable score or justified `n/a`.
+Done when all six dimensions have a traceable score or justified `n/a`.
 
 ## Step 5 - Report
 
-Rank findings by importance and report at most five in full.
-Put additional findings as one-line entries under `Also noted`.
-Put reviewer verification gaps in the affected finding's `Evidence` line.
-Reserve `Remaining risk` for untested behavior in the change.
+Rank findings by concrete cost.
+Report at most five findings in full.
+Put each additional finding on one line under `Also noted`.
+Put each reviewer verification gap in the affected finding's `Evidence` line.
+Use `Remaining risk` only for untested behavior in the change.
+State successful checks against supplied requirements in `Result`.
 
 ```md
 ## Result
@@ -135,7 +136,7 @@ Scope: <source and revision or file set>
 
 - Where: `path/to/file:line`
 - Cost: <concrete failure and trigger>
-- Evidence: observed - `<command>` -> <quoted result> | inferred - <settling command>
+- Evidence: observed - `<command>` -> <quoted result> | inferred - `<command>` was not run because <reason>
 - Fix: <concrete change>
 
 ## Also noted
@@ -150,7 +151,7 @@ Scope: <source and revision or file set>
 ## Validation observed
 
 - `<command>` in `<directory>` -> <result>
-- Negative control: `<broken mechanism>` -> <failure or unexpected pass>
+- Negative control: `<disabled mechanism>` -> <expected failure or unexpected pass>
 - Not run: `<command>` - <reason>
 
 ## Remaining risk
@@ -159,5 +160,5 @@ Scope: <source and revision or file set>
 ```
 
 Omit empty sections.
-If there are no findings, say so and retain scores and validation.
+If there are no findings, say so and retain the scores and validation.
 Report only concrete, checkable costs.

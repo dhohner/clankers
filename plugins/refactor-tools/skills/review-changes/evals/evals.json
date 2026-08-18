@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Review the changes in the latest commit for quality, security, simplicity, robustness, scalability, and long-term maintainability. Score your findings on a scale of 1 - 10. The implementation is based on the attached task description.",
+      "prompt": "Review the changes in the latest commit for quality, security, simplicity, robustness, scalability, and long-term maintainability. Score your findings on a scale of 1 - 10. Task description: the change must keep public APIs, stored formats, and command behavior unchanged, and every behavior change must carry test coverage. Non-goals: performance tuning and refactoring outside the touched files.",
       "expected_output": "A ranked report with one 1-10 score per dimension, including security, each score naming the finding that set it, at most five findings in full and the rest compressed, and a negative control against the change's central proof.",
       "files": [],
       "expectations": [
@@ -12,7 +12,7 @@
         "Each finding marks itself observed or inferred, and every inferred finding names the command that would settle it.",
         "The validation section records a negative control that broke the change's central mechanism on purpose.",
         "The closing risk section lists only risk in the change, and contains no statement about what the review itself failed to verify.",
-        "The change is checked against the acceptance criteria and non-goals of the attached task description.",
+        "The change is checked against the acceptance criteria and non-goals of the supplied task description.",
         "No file in the repository was modified, created, or deleted by the review."
       ]
     },
