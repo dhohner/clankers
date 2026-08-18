@@ -1,6 +1,11 @@
 import type { ModelRegistry } from "@earendil-works/pi-coding-agent";
 
-export const SAFETY_EVALUATOR_PROVIDER = "openai";
+// Providers that serve the evaluator model, in preference order: OpenAI stays primary and GitHub
+// Copilot is the fallback. The first provider with the model in the catalog and configured
+// authentication is used; there is no per-request failover between providers.
+export const SAFETY_EVALUATOR_PROVIDERS = ["openai", "github-copilot"] as const;
+/** @deprecated Use SAFETY_EVALUATOR_PROVIDERS; kept so existing imports keep compiling. */
+export const SAFETY_EVALUATOR_PROVIDER = SAFETY_EVALUATOR_PROVIDERS[0];
 export const SAFETY_EVALUATOR_MODEL_ID = "gpt-5.6-luna";
 export const SAFETY_EVALUATION_WORKING_MESSAGE = "Evaluating command safety...";
 // Upper bound for one evaluation request; long enough for high reasoning effort, finite so a hung
@@ -15,8 +20,6 @@ export const SAFETY_EVALUATION_CANCELLED_REASON = `${SAFETY_EVALUATION_BLOCK_PRE
 // Both fields of an assessment stay well under this bound in honest replies; anything longer is
 // treated as an invalid response so the approval dialog cannot be flooded.
 export const MAX_ASSESSMENT_FIELD_LENGTH = 500;
-
-const MODEL_REFERENCE = `${SAFETY_EVALUATOR_PROVIDER}/${SAFETY_EVALUATOR_MODEL_ID}`;
 
 // Fixed for every request: the only runtime data the evaluator receives is the command and the
 // working directory, both delivered in the user message as untrusted JSON data. JSON string
@@ -191,6 +194,50 @@ export function formatSafetyAssessment(assessment: SafetyAssessment): string {
   return `Verdict: ${assessment.verdict}\nIntent: ${assessment.intent}\nReason: ${assessment.reason}`;
 }
 
+type EvaluatorModel = NonNullable<ReturnType<SafetyEvaluatorRegistry["find"]>>;
+
+type EvaluatorModelSelection = { ok: true; model: EvaluatorModel } | { ok: false; detail: string };
+
+/**
+ * Picks the evaluator model from the first provider, in preference order, whose catalog has the
+ * model and whose authentication is configured. A registry failure for one provider is recorded
+ * and the next provider is tried; when no provider is usable, every per-provider detail is
+ * returned so the block reason explains the full state.
+ */
+function selectEvaluatorModel(registry: SafetyEvaluatorRegistry): EvaluatorModelSelection {
+  const failures: string[] = [];
+
+  for (const provider of SAFETY_EVALUATOR_PROVIDERS) {
+    let model: ReturnType<SafetyEvaluatorRegistry["find"]>;
+    try {
+      model = registry.find(provider, SAFETY_EVALUATOR_MODEL_ID);
+    } catch (error) {
+      failures.push(`${provider}: the model lookup failed (${describeError(error)})`);
+      continue;
+    }
+    if (!model) {
+      failures.push(`${provider}: the model is not available`);
+      continue;
+    }
+
+    let hasAuth: boolean;
+    try {
+      hasAuth = registry.hasConfiguredAuth(model);
+    } catch (error) {
+      failures.push(`${provider}: the authentication check failed (${describeError(error)})`);
+      continue;
+    }
+    if (!hasAuth) {
+      failures.push(`${provider}: no authentication is configured`);
+      continue;
+    }
+
+    return { ok: true, model };
+  }
+
+  return { ok: false, detail: `no provider can serve ${SAFETY_EVALUATOR_MODEL_ID} - ${failures.join("; ")}` };
+}
+
 type EvaluatorResponse = Awaited<ReturnType<ModelRegistry["complete"]>>;
 
 function responseText(response: EvaluatorResponse): string | undefined {
@@ -213,21 +260,9 @@ function responseText(response: EvaluatorResponse): string | undefined {
 export async function evaluateCommandSafety(request: SafetyEvaluationRequest): Promise<SafetyEvaluation> {
   const { command, workingDirectory, registry, signal } = request;
 
-  let model: ReturnType<SafetyEvaluatorRegistry["find"]>;
-  try {
-    model = registry.find(SAFETY_EVALUATOR_PROVIDER, SAFETY_EVALUATOR_MODEL_ID);
-  } catch (error) {
-    return blocked(`the evaluator model lookup failed (${describeError(error)})`);
-  }
-  if (!model) return blocked(`the evaluator model ${MODEL_REFERENCE} is not available`);
-
-  let hasAuth: boolean;
-  try {
-    hasAuth = registry.hasConfiguredAuth(model);
-  } catch (error) {
-    return blocked(`the authentication check for ${MODEL_REFERENCE} failed (${describeError(error)})`);
-  }
-  if (!hasAuth) return blocked(`no authentication is configured for ${MODEL_REFERENCE}`);
+  const selection = selectEvaluatorModel(registry);
+  if (!selection.ok) return blocked(selection.detail);
+  const model = selection.model;
 
   let response: EvaluatorResponse;
   try {

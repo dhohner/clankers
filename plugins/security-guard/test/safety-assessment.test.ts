@@ -4,6 +4,8 @@ import {
   parseSafetyAssessment,
   SAFETY_EVALUATION_BLOCK_PREFIX,
   SAFETY_EVALUATION_TIMEOUT_MS,
+  SAFETY_EVALUATOR_PROVIDER,
+  SAFETY_EVALUATOR_PROVIDERS,
   type SafetyEvaluatorRegistry,
 } from "../lib/safety-assessment.js";
 
@@ -24,7 +26,7 @@ function assistantReply(overrides: Record<string, unknown> = {}) {
 
 function makeRegistry(overrides: Record<string, unknown> = {}) {
   return {
-    find: vi.fn().mockReturnValue({ provider: "openai", id: "gpt-5.6-luna" }),
+    find: vi.fn((provider: string, modelId: string) => ({ provider, id: modelId })),
     hasConfiguredAuth: vi.fn().mockReturnValue(true),
     complete: vi.fn().mockResolvedValue(assistantReply()),
     ...overrides,
@@ -38,6 +40,13 @@ function makeRegistry(overrides: Record<string, unknown> = {}) {
 function makeRequest(registry = makeRegistry(), signal?: AbortSignal) {
   return { command: "rm -rf /workspace/build", workingDirectory: "/workspace", registry, signal };
 }
+
+describe("evaluator provider constants", () => {
+  it("keeps the deprecated singular constant aliased to the preferred provider", () => {
+    expect(SAFETY_EVALUATOR_PROVIDER).toBe("openai");
+    expect(SAFETY_EVALUATOR_PROVIDERS[0]).toBe(SAFETY_EVALUATOR_PROVIDER);
+  });
+});
 
 describe("evaluateCommandSafety", () => {
   it("sends one fixed-instruction request with only the command and working directory", async () => {
@@ -115,7 +124,49 @@ describe("evaluateCommandSafety", () => {
     await expect(evaluateCommandSafety(makeRequest(registry))).resolves.toMatchObject({ ok: true });
   });
 
-  it("blocks when the evaluator model is not available", async () => {
+  it("falls back to github-copilot when the openai model is not available", async () => {
+    const registry = makeRegistry({
+      find: vi.fn((provider: string, modelId: string) =>
+        provider === "openai" ? undefined : { provider, id: modelId },
+      ),
+    });
+
+    const evaluation = await evaluateCommandSafety(makeRequest(registry));
+
+    expect(evaluation).toMatchObject({ ok: true });
+    expect(registry.find.mock.calls).toEqual([
+      ["openai", "gpt-5.6-luna"],
+      ["github-copilot", "gpt-5.6-luna"],
+    ]);
+    expect(registry.complete.mock.calls[0]?.[0]).toMatchObject({ provider: "github-copilot" });
+  });
+
+  it("falls back to github-copilot when openai authentication is not configured", async () => {
+    const registry = makeRegistry({
+      hasConfiguredAuth: vi.fn((model: { provider: string }) => model.provider !== "openai"),
+    });
+
+    const evaluation = await evaluateCommandSafety(makeRequest(registry));
+
+    expect(evaluation).toMatchObject({ ok: true });
+    expect(registry.complete.mock.calls[0]?.[0]).toMatchObject({ provider: "github-copilot" });
+  });
+
+  it("falls back to github-copilot when the openai model lookup throws", async () => {
+    const registry = makeRegistry({
+      find: vi.fn((provider: string, modelId: string) => {
+        if (provider === "openai") throw new Error("registry unavailable");
+        return { provider, id: modelId };
+      }),
+    });
+
+    const evaluation = await evaluateCommandSafety(makeRequest(registry));
+
+    expect(evaluation).toMatchObject({ ok: true });
+    expect(registry.complete.mock.calls[0]?.[0]).toMatchObject({ provider: "github-copilot" });
+  });
+
+  it("blocks when the evaluator model is not available from any provider", async () => {
     const registry = makeRegistry({ find: vi.fn().mockReturnValue(undefined) });
 
     const evaluation = await evaluateCommandSafety(makeRequest(registry));
@@ -123,12 +174,18 @@ describe("evaluateCommandSafety", () => {
     expect(evaluation.ok).toBe(false);
     if (!evaluation.ok) {
       expect(evaluation.reason).toContain(SAFETY_EVALUATION_BLOCK_PREFIX);
-      expect(evaluation.reason).toContain("openai/gpt-5.6-luna");
+      expect(evaluation.reason).toContain("gpt-5.6-luna");
+      expect(evaluation.reason).toContain("openai");
+      expect(evaluation.reason).toContain("github-copilot");
     }
+    expect(registry.find.mock.calls).toEqual([
+      ["openai", "gpt-5.6-luna"],
+      ["github-copilot", "gpt-5.6-luna"],
+    ]);
     expect(registry.complete).not.toHaveBeenCalled();
   });
 
-  it("blocks when the model lookup throws", async () => {
+  it("blocks when the model lookup throws for every provider", async () => {
     const registry = makeRegistry({
       find: vi.fn(() => {
         throw new Error("registry unavailable");
@@ -141,17 +198,20 @@ describe("evaluateCommandSafety", () => {
     expect(registry.complete).not.toHaveBeenCalled();
   });
 
-  it("blocks when authentication is not configured", async () => {
+  it("blocks when authentication is not configured for any provider", async () => {
     const registry = makeRegistry({ hasConfiguredAuth: vi.fn().mockReturnValue(false) });
 
     const evaluation = await evaluateCommandSafety(makeRequest(registry));
 
     expect(evaluation.ok).toBe(false);
-    if (!evaluation.ok) expect(evaluation.reason).toContain("authentication");
+    if (!evaluation.ok) {
+      expect(evaluation.reason).toContain("openai: no authentication is configured");
+      expect(evaluation.reason).toContain("github-copilot: no authentication is configured");
+    }
     expect(registry.complete).not.toHaveBeenCalled();
   });
 
-  it("blocks when the authentication check throws", async () => {
+  it("blocks when the authentication check throws for every provider", async () => {
     const registry = makeRegistry({
       hasConfiguredAuth: vi.fn(() => {
         throw new Error("auth registry unavailable");

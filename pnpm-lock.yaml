@@ -9,7 +9,7 @@ importers:
   .:
     dependencies:
       '@earendil-works/pi-coding-agent':
-        specifier: '>=0.80.4'
+        specifier: '>=0.84.0'
         version: 0.84.1(supports-color@7.2.0)(ws@8.20.0)(zod@4.4.3)
     devDependencies:
       vitest:
@@ -47,7 +47,7 @@ importers:
   plugins/security-guard:
     dependencies:
       '@earendil-works/pi-coding-agent':
-        specifier: '>=0.80.4'
+        specifier: '>=0.84.0'
         version: 0.84.1(supports-color@7.2.0)(ws@8.20.0)(zod@4.4.3)
     devDependencies:
       '@types/node':
