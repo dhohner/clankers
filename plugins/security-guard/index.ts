@@ -6,6 +6,12 @@ import {
   isDestructiveText,
   removedTrackedTemporaryDirectories,
 } from "./lib/policy.ts";
+import {
+  evaluateCommandSafety,
+  formatSafetyAssessment,
+  SAFETY_EVALUATION_CANCELLED_REASON,
+  SAFETY_EVALUATION_WORKING_MESSAGE,
+} from "./lib/safety-assessment.ts";
 import { createTemporaryDirectoryTracker } from "./lib/temp-dirs.ts";
 import {
   BLOCK_REASON,
@@ -56,7 +62,29 @@ export default function securityGuard(pi: ExtensionAPI) {
 
     if (!ctx.hasUI) return { block: true, reason: DESTRUCTIVE_APPROVAL_REASON };
 
-    const approved = await ctx.ui.confirm("Approve destructive command?", command);
+    // Evaluated per tool call: no assessment or approval is ever reused across calls.
+    ctx.ui.setWorkingMessage(SAFETY_EVALUATION_WORKING_MESSAGE);
+    let evaluation;
+    try {
+      evaluation = await evaluateCommandSafety({
+        command,
+        workingDirectory: ctx.cwd,
+        registry: ctx.modelRegistry,
+        signal: ctx.signal,
+      });
+    } finally {
+      ctx.ui.setWorkingMessage();
+    }
+    if (!evaluation.ok) return { block: true, reason: evaluation.reason };
+    if (ctx.signal?.aborted) return { block: true, reason: SAFETY_EVALUATION_CANCELLED_REASON };
+
+    // Pi already rendered the pending bash tool call with the command, so the dialog shows only the
+    // transient assessment; it is never appended to the session. The active turn signal dismisses
+    // the dialog, and an abort at any point before execution ends in the blocked state.
+    const approved = await ctx.ui.confirm("Approve destructive command?", formatSafetyAssessment(evaluation.assessment), {
+      signal: ctx.signal,
+    });
+    if (ctx.signal?.aborted) return { block: true, reason: SAFETY_EVALUATION_CANCELLED_REASON };
     if (!approved) return { block: true, reason: DESTRUCTIVE_APPROVAL_REASON };
 
     return undefined;
@@ -96,4 +124,21 @@ export {
   isDestructiveText,
   removedTrackedTemporaryDirectories,
 } from "./lib/policy.ts";
+export {
+  evaluateCommandSafety,
+  formatSafetyAssessment,
+  MAX_ASSESSMENT_FIELD_LENGTH,
+  parseSafetyAssessment,
+  SAFETY_EVALUATION_BLOCK_PREFIX,
+  SAFETY_EVALUATION_CANCELLED_REASON,
+  SAFETY_EVALUATION_TIMEOUT_MS,
+  SAFETY_EVALUATION_WORKING_MESSAGE,
+  SAFETY_EVALUATOR_MODEL_ID,
+  SAFETY_EVALUATOR_PROVIDER,
+  type SafetyAssessment,
+  type SafetyEvaluation,
+  type SafetyEvaluationRequest,
+  type SafetyEvaluatorRegistry,
+  type SafetyVerdict,
+} from "./lib/safety-assessment.ts";
 export { createTemporaryDirectoryTracker } from "./lib/temp-dirs.ts";
