@@ -67,8 +67,11 @@ describe("security policy", () => {
 
   it.each([
     ["mktemp -d", "/tmp/work.123\n", "/tmp/work.123"],
+    ["mktemp -d\n", "/tmp/work.123\n", "/tmp/work.123"],
+    ["\n mktemp -d \n\n", "/tmp/work.123\n", "/tmp/work.123"],
     ["mktemp -dt work", "/tmp/work.123\n", "/tmp/work.123"],
     ["mktemp", "/tmp/work.123\n", undefined],
+    ["mktemp -d\necho done", "/tmp/work.123\n", undefined],
     ["mktemp -d; echo /tmp/other", "/tmp/work.123\n", undefined],
     ["mktemp -d", "/tmp/work.123\n/tmp/other\n", undefined],
     ["mktemp -d", "relative-work\n", undefined],
@@ -80,6 +83,8 @@ describe("security policy", () => {
     const tracked = new Set(["/tmp/work.123", "/tmp/work.456"]);
 
     expect(removedTrackedTemporaryDirectories("rm -rf '/tmp/work.123'", tracked)).toEqual(["/tmp/work.123"]);
+    expect(removedTrackedTemporaryDirectories("rm -rf /tmp/work.123\n", tracked)).toEqual(["/tmp/work.123"]);
+    expect(removedTrackedTemporaryDirectories("rm -rf /tmp/work.123\nrm file.txt", tracked)).toBeUndefined();
     expect(removedTrackedTemporaryDirectories("rm -rf /tmp/work.123 /tmp/work.456", tracked)).toEqual([
       "/tmp/work.123",
       "/tmp/work.456",

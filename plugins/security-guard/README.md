@@ -57,6 +57,7 @@ Data boundary and requirements:
 ## Temporary Directory Exception
 
 A narrow exception skips confirmation once when a direct `rm` targets only directories returned by an earlier successful, standalone `mktemp -d` Bash call.
+Leading and trailing whitespace in the command string, including edge newlines, does not disqualify an otherwise supported creation or removal command.
 The extension verifies that each directory remains under a system temporary root, is owned by the current user, and still has the same filesystem identity before allowing removal.
 A removal allowed by this exception executes without any safety assessment request or approval dialog.
 Nested paths, untracked directories, compound commands, and repeated removal attempts still require approval.

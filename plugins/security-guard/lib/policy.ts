@@ -97,7 +97,9 @@ function commandName(token: string): string {
 }
 
 function singleCommandTokens(value: string): ShellToken[] | undefined {
-  const tokens = shellTokens(value);
+  // Edge whitespace cannot join or split commands, but an edge newline would otherwise tokenize as
+  // a separator and reject a still-standalone command, so it is stripped before tokenizing.
+  const tokens = shellTokens(value.trim());
   return tokens.length > 0 && tokens.every((token) => !token.sep) ? tokens : undefined;
 }
 
