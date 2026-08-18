@@ -5,6 +5,7 @@ Check every applicable item before saving a task.
 ## Structure and coverage
 
 - The task follows [agent-task-template.md](agent-task-template.md), keeps every required section, removes unused optional content, and has no placeholders.
+- The frontmatter is valid YAML whose model category and effort follow the `SKILL.md` policy and whose `selection_rationale` gives task-specific signals for both choices.
 - The title and Outcome define one observable result and its value.
 - Required behavior and Boundary contain only what that result needs.
 - Every assigned ledger item appears in behavior, acceptance, validation, another mapped slice, or a blocker.

@@ -29,6 +29,7 @@ action-items/agent-tasks/
 
 Each task includes:
 
+- YAML frontmatter that assigns a model category and effort with a one-sentence rationale;
 - one observable outcome and the source-backed required behavior;
 - a boundary: what the task may change, what must survive intact, which choices are the executing agent's own, and labeled assumptions and blockers;
 - inspected repository notes that point at entry points and binding contracts rather than touring the code;
@@ -36,7 +37,7 @@ Each task includes:
 - concrete validation commands or focused checks; and
 - a standing stop rule: record the choices the task leaves open, and stop and report at any decision it does not settle.
 
-Tasks are written for frontier coding agents, not as Jira tickets or implementation checklists.
+Tasks are written for autonomous coding agents, not as Jira tickets or implementation checklists.
 They stay succinct: they state outcomes and constraints instead of implementation steps, omit what the agent can rediscover in the repository, and skip generic engineering advice.
 They leave ordinary implementation choices to the executing agent while making product semantics, durable contracts, edge behavior, and completion evidence explicit.
 Because the executing agent cannot ask a follow-up question, each task states where its authority ends: an agent that reaches a decision the task does not settle stops and reports it rather than widening scope or inventing one.
