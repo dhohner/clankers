@@ -40,7 +40,9 @@ def iter_entities(blocks: NormalizedBlocks) -> list[dict[str, Any]]:
     entities: list[dict[str, Any]] = []
     for block_name, items in blocks.items():
         spec = BLOCK_SPECS[block_name]
-        if not spec.id_prefix:
+        # Design tree nodes carry ids for linking but record interview history
+        # rather than tracked claims, so they stay off the coverage board.
+        if not spec.id_prefix or spec.kind == "tree":
             continue
         title_field = "question" if spec.kind == "questions" else spec.fields[0]
         for item in items:

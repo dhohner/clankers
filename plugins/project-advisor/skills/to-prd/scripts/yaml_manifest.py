@@ -30,6 +30,16 @@ def _yaml_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
 
 
 def loads(text: str) -> Any:
+    """Parse the supported YAML subset, or raise YamlError."""
+    try:
+        return _loads(text)
+    except RecursionError as error:
+        # Nesting depth comes from author input, so an over-deep document is a
+        # document error rather than an interpreter crash.
+        raise YamlError("document nests too deeply to read") from error
+
+
+def _loads(text: str) -> Any:
     stripped = text.lstrip()
     if not stripped:
         raise YamlError("empty document")
@@ -55,7 +65,10 @@ def loads(text: str) -> Any:
 
 
 def dumps(value: Any) -> str:
-    return _dump(value, 0) + "\n"
+    try:
+        return _dump(value, 0) + "\n"
+    except RecursionError as error:
+        raise YamlError("document nests too deeply to write") from error
 
 
 def _expand_block_scalars(text: str) -> str:

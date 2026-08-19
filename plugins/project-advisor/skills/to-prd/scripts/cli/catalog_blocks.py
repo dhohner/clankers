@@ -111,6 +111,42 @@ def _catalog_block(block: str, template: bool) -> Any:
                 ),
             }
         ]
+    if spec.kind == "tree":
+        return [
+            {
+                "id": f"{spec.label_prefix or 'NODE'}-01",
+                "label": text("Output surface", "Replace with short decision name"),
+                "question": text(
+                    "Where does the design tree get published?",
+                    "Replace with the verbatim interview question.",
+                ),
+                "status": "settled",
+                "answer": text(
+                    "In the generated PRD bundle.",
+                    "Replace with the answer.",
+                ),
+                "source": "user",
+                "rationale": text(
+                    "The reviewer already reads the bundle.",
+                    "Replace with why this answer was chosen.",
+                ),
+                "children": [
+                    {
+                        "id": f"{spec.label_prefix or 'NODE'}-02",
+                        "label": text("Node styling", "Replace with short decision name"),
+                        "question": text(
+                            "Which colours mark a pruned branch?",
+                            "Replace with the verbatim interview question.",
+                        ),
+                        "status": "pruned",
+                        "reason": text(
+                            "Styling is an implementation choice, not a product decision.",
+                            "Replace with why this branch left PRD scope.",
+                        ),
+                    }
+                ],
+            }
+        ]
     if spec.kind == "list":
         return [
             text("Outcome intentionally excluded from this PRD.", "Replace with item.")

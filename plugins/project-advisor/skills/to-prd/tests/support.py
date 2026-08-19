@@ -80,6 +80,27 @@ def sample_block(name: str) -> object:
         return {"columns": ["From", "To"], "rows": [["A", "B"]]}
     if spec.kind == "questions":
         return [{"question": "What still needs a decision?"}]
+    if spec.kind == "tree":
+        return [
+            {
+                "id": "NODE-01",
+                "label": "Output surface",
+                "question": "Where does the design tree get published?",
+                "status": "settled",
+                "answer": "In the generated PRD bundle.",
+                "source": "user",
+                "rationale": "The reviewer already reads the bundle.",
+                "children": [
+                    {
+                        "id": "NODE-02",
+                        "label": "Node styling",
+                        "question": "Which colours mark a pruned branch?",
+                        "status": "pruned",
+                        "reason": "Styling is an implementation choice.",
+                    }
+                ],
+            }
+        ]
     if spec.kind == "list":
         return ["Intentionally excluded outcome."]
     if spec.kind == "code":

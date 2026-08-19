@@ -8,7 +8,7 @@ from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
 from .manifest_types import NormalizedManifest
-from .spec import BLOCK_SPECS
+from .spec import BLOCK_SPECS, iter_tree_nodes
 from .validation import ManifestError, validate_manifest
 from .yaml_manifest import YamlError, loads
 
@@ -106,10 +106,12 @@ def validate_generated_bundle(bundle: Path) -> None:
                     )
                 missing_entities: list[str] = []
                 for block_name, items in normalized_manifest["blocks"].items():
-                    if not BLOCK_SPECS[block_name].id_prefix:
+                    spec = BLOCK_SPECS[block_name]
+                    if not spec.id_prefix:
                         continue
+                    entries = iter_tree_nodes(items) if spec.kind == "tree" else items
                     missing_entities.extend(
-                        item["id"] for item in items if item["id"] not in parser.ids
+                        item["id"] for item in entries if item["id"] not in parser.ids
                     )
                 if missing_entities:
                     errors.append(

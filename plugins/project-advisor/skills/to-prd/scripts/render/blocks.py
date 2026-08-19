@@ -13,6 +13,7 @@ from .helpers import (
     render_plate_rows,
     render_row,
 )
+from .tree import render_design_tree
 from .visuals import render_frames, render_mermaid_diagram
 
 
@@ -155,6 +156,8 @@ def render_block_content(
         return render_cards(name, value, spec, aspects)
     if spec.kind == "frames":
         return render_frames(name, value, spec)
+    if spec.kind == "tree":
+        return render_design_tree(name, value)
     if spec.kind == "list":
         return render_list(value)
     if spec.kind == "problem":

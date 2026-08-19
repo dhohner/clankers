@@ -1,8 +1,36 @@
 from __future__ import annotations
 
+import sys
 import unittest
 
 from support import BUNDLE, EVIDENCE_REFERENCE, base_manifest
+
+from scripts.render.traceability import coverage_report
+
+
+DESIGN_TREE_ROOT = {
+    "id": "NODE-01",
+    "label": "Output surface",
+    "question": "Where does the design tree get published?",
+    "status": "settled",
+    "answer": "In the generated bundle.",
+    "source": "user",
+    "rationale": "The reviewer already reads the bundle.",
+}
+
+
+def design_tree_manifest(nodes: list[dict], **blocks: object) -> dict:
+    manifest = base_manifest()
+    manifest["blocks"] = {"design_tree": nodes, **blocks}
+    return manifest
+
+
+def design_tree_errors(nodes: list[dict], **blocks: object) -> str:
+    try:
+        BUNDLE.validate_manifest(design_tree_manifest(nodes, **blocks))
+    except BUNDLE.ManifestError as error:
+        return str(error)
+    return ""
 
 
 class PrdBundleValidationTests(unittest.TestCase):
@@ -342,6 +370,279 @@ class PrdBundleValidationTests(unittest.TestCase):
         self.assertIn("metadata.Initiative is reserved for generated metadata", message)
         self.assertIn("metadata.Output is reserved for generated metadata", message)
         self.assertIn("metadata contains duplicate label after normalization: Owner", message)
+
+    def test_design_tree_accepts_every_status_and_keeps_node_labels(self) -> None:
+        manifest = design_tree_manifest(
+            [
+                {
+                    **DESIGN_TREE_ROOT,
+                    "superseded_answer": "In a separate file.",
+                    "children": [
+                        {
+                            "id": "NODE-02",
+                            "label": "Graph library",
+                            "question": "Which renderer draws the graph?",
+                            "status": "settled",
+                            "answer": "Mermaid.",
+                            "source": "research",
+                            "rationale": "The bundle already pins Mermaid.",
+                            "evidence": ["bundle/assets/app.js pins mermaid@11.15.0"],
+                            "children": [
+                                {
+                                    "id": "NODE-03",
+                                    "label": "Node styling",
+                                    "question": "Which colours mark a pruned branch?",
+                                    "status": "pruned",
+                                    "reason": "Styling is an implementation choice.",
+                                }
+                            ],
+                        },
+                        {
+                            "id": "NODE-04",
+                            "label": "Depth limit",
+                            "question": "How deep may the tree grow?",
+                            "status": "deferred",
+                            "relates_to": ["QUESTION-01"],
+                        },
+                    ],
+                }
+            ],
+            open_questions=[{"id": "QUESTION-01", "question": "How deep may a tree grow?"}],
+        )
+
+        normalized = BUNDLE.validate_manifest(manifest)
+
+        root = normalized["blocks"]["design_tree"][0]
+        deferred = root["children"][1]
+        self.assertEqual("node-01", root["id"])
+        self.assertEqual("Output surface", root["label"])
+        self.assertEqual("In a separate file.", root["superseded_answer"])
+        self.assertEqual("node-03", root["children"][0]["children"][0]["id"])
+        self.assertEqual(["question-01"], deferred["relates_to"])
+
+    def test_design_tree_requires_the_common_node_fields_at_every_depth(self) -> None:
+        message = design_tree_errors(
+            [
+                {**DESIGN_TREE_ROOT, "children": [{"status": "settled"}]},
+            ]
+        )
+
+        for field in ("id", "label", "question"):
+            self.assertIn(
+                f"blocks.design_tree[0].children[0].{field} must be a non-empty string",
+                message,
+            )
+        self.assertIn(
+            "blocks.design_tree[0].children[0].answer must be a non-empty string",
+            message,
+        )
+
+    def test_design_tree_enforces_the_fields_each_status_owns(self) -> None:
+        settled_gap = design_tree_errors(
+            [{key: value for key, value in DESIGN_TREE_ROOT.items() if key != "rationale"}]
+        )
+        self.assertIn("blocks.design_tree[0].rationale must be a non-empty string", settled_gap)
+
+        pruned_with_answer = design_tree_errors(
+            [
+                {
+                    "id": "NODE-01",
+                    "label": "Node styling",
+                    "question": "Which colours mark a pruned branch?",
+                    "status": "pruned",
+                    "reason": "Styling is an implementation choice.",
+                    "answer": "Grey.",
+                }
+            ]
+        )
+        self.assertIn(
+            "blocks.design_tree[0].answer is not supported for a pruned node",
+            pruned_with_answer,
+        )
+
+        pruned_without_reason = design_tree_errors(
+            [
+                {
+                    "id": "NODE-01",
+                    "label": "Node styling",
+                    "question": "Which colours mark a pruned branch?",
+                    "status": "pruned",
+                }
+            ]
+        )
+        self.assertIn("blocks.design_tree[0].reason must be a non-empty string", pruned_without_reason)
+
+        unknown_status = design_tree_errors([{**DESIGN_TREE_ROOT, "status": "open"}])
+        self.assertIn(
+            "blocks.design_tree[0].status must be one of: settled, pruned, deferred",
+            unknown_status,
+        )
+
+    def test_design_tree_requires_a_known_source_and_research_evidence(self) -> None:
+        unknown_source = design_tree_errors([{**DESIGN_TREE_ROOT, "source": "agent"}])
+        self.assertIn(
+            "blocks.design_tree[0].source must be one of: user, research",
+            unknown_source,
+        )
+
+        research_without_evidence = design_tree_errors(
+            [{**DESIGN_TREE_ROOT, "source": "research"}]
+        )
+        self.assertIn(
+            "blocks.design_tree[0].evidence must name at least one finding for a research answer",
+            research_without_evidence,
+        )
+
+    def test_design_tree_deferred_node_must_link_an_existing_open_question(self) -> None:
+        deferred = {
+            "id": "NODE-01",
+            "label": "Depth limit",
+            "question": "How deep may the tree grow?",
+            "status": "deferred",
+        }
+
+        unlinked = design_tree_errors([deferred])
+        self.assertIn(
+            "blocks.design_tree[0].relates_to must name an open question id for a deferred node",
+            unlinked,
+        )
+
+        missing_question = design_tree_errors(
+            [{**deferred, "relates_to": ["QUESTION-09"]}],
+            open_questions=[{"id": "QUESTION-01", "question": "How deep may a tree grow?"}],
+        )
+        self.assertIn(
+            "blocks.design_tree[0].relates_to references missing entity id: QUESTION-09",
+            missing_question,
+        )
+
+    def test_design_tree_rejects_wrong_prefixes_duplicates_and_empty_branches(self) -> None:
+        wrong_prefix = design_tree_errors([{**DESIGN_TREE_ROOT, "id": "DEC-09"}])
+        self.assertIn(
+            "blocks.design_tree[0].id must look like NODE-01 and use the node prefix",
+            wrong_prefix,
+        )
+
+        duplicate = design_tree_errors(
+            [{**DESIGN_TREE_ROOT, "children": [dict(DESIGN_TREE_ROOT)]}]
+        )
+        self.assertIn("duplicate entity id: node-01", duplicate)
+
+        empty_block = design_tree_errors([])
+        self.assertIn(
+            "blocks.design_tree must be a non-empty array of design tree nodes",
+            empty_block,
+        )
+
+        empty_children = design_tree_errors([{**DESIGN_TREE_ROOT, "children": []}])
+        self.assertIn(
+            "blocks.design_tree[0].children must be a non-empty array of design tree nodes",
+            empty_children,
+        )
+
+    def test_design_tree_rejects_every_field_a_status_does_not_own(self) -> None:
+        settled_with_reason = design_tree_errors(
+            [{**DESIGN_TREE_ROOT, "reason": "Out of scope."}]
+        )
+        self.assertIn(
+            "blocks.design_tree[0].reason is not supported for a settled node",
+            settled_with_reason,
+        )
+
+        settled_without_source = design_tree_errors(
+            [{key: value for key, value in DESIGN_TREE_ROOT.items() if key != "source"}]
+        )
+        self.assertIn(
+            "blocks.design_tree[0].source must be a non-empty string",
+            settled_without_source,
+        )
+
+        deferred = {
+            "id": "NODE-01",
+            "label": "Depth limit",
+            "question": "How deep may the tree grow?",
+            "status": "deferred",
+            "relates_to": ["QUESTION-01"],
+        }
+        questions = [{"id": "QUESTION-01", "question": "How deep may a tree grow?"}]
+        for field, value in (
+            ("answer", "Ten."),
+            ("rationale", "Because."),
+            ("source", "user"),
+            ("superseded_answer", "Five."),
+            ("reason", "Out of scope."),
+        ):
+            with self.subTest(field=field):
+                message = design_tree_errors(
+                    [{**deferred, field: value}], open_questions=questions
+                )
+                self.assertIn(
+                    f"blocks.design_tree[0].{field} is not supported for a deferred node",
+                    message,
+                )
+        for field, value in (("source", "user"), ("superseded_answer", "Five.")):
+            with self.subTest(status="pruned", field=field):
+                message = design_tree_errors(
+                    [
+                        {
+                            "id": "NODE-01",
+                            "label": "Node styling",
+                            "question": "Which colours mark a pruned branch?",
+                            "status": "pruned",
+                            "reason": "Styling is an implementation choice.",
+                            field: value,
+                        }
+                    ]
+                )
+                self.assertIn(
+                    f"blocks.design_tree[0].{field} is not supported for a pruned node",
+                    message,
+                )
+
+    def test_a_deeply_nested_design_tree_validates_and_renders(self) -> None:
+        depth = sys.getrecursionlimit()
+        node = {
+            "id": f"NODE-{depth:04d}",
+            "label": "Leaf",
+            "question": "Is the deepest branch still readable?",
+            "status": "pruned",
+            "reason": "Depth is the point of this fixture.",
+        }
+        for level in range(depth - 1, 0, -1):
+            node = {
+                "id": f"NODE-{level:04d}",
+                "label": "Branch",
+                "question": "Does depth stay a manifest concern?",
+                "status": "settled",
+                "answer": "Yes.",
+                "source": "user",
+                "rationale": "Traversal is iterative.",
+                "children": [node],
+            }
+
+        normalized = BUNDLE.validate_manifest(design_tree_manifest([node]))
+        document = BUNDLE.render_document(normalized)
+
+        self.assertEqual(depth, document.count('class="tree-node"'))
+        self.assertIn(f'id="node-{depth:04d}"', document)
+
+    def test_design_tree_nodes_stay_off_the_coverage_board(self) -> None:
+        manifest = design_tree_manifest(
+            [DESIGN_TREE_ROOT],
+            requirements=[
+                {
+                    "id": "REQ-01",
+                    "title": "Publish the tree",
+                    "description": "The bundle shows the interview tree.",
+                    "exception": "Validation is selected in a later revision.",
+                }
+            ],
+        )
+
+        report = coverage_report(BUNDLE.validate_manifest(manifest)["blocks"])
+
+        self.assertEqual(1, report["tracked"])
+        self.assertNotIn("node-01", report["aspects"])
 
     def test_validation_reports_internal_field_paths_directly(self) -> None:
         manifest = base_manifest()

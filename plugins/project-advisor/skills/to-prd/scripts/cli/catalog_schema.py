@@ -7,6 +7,8 @@ from typing import Any
 
 from ..spec import (
     BLOCK_SPECS,
+    DESIGN_TREE_SOURCES,
+    DESIGN_TREE_STATUSES,
     ENTITY_OPTIONAL_FIELDS_BY_BLOCK,
     INITIATIVE_TYPES,
     REQUIRED_SURFACES_BY_INITIATIVE,
@@ -192,6 +194,22 @@ def _field_shapes(block: str) -> dict[str, str]:
         }
     if spec.kind == "code":
         return {field: "non-empty string" for field in spec.fields}
+    if spec.kind == "tree":
+        return {
+            block: "non-empty array of design tree nodes",
+            "id": "required non-empty string using the node prefix, such as NODE-01",
+            "label": "required non-empty string naming the decision in a few words",
+            "question": "required non-empty string holding the verbatim interview question",
+            "status": "required, one of: " + ", ".join(DESIGN_TREE_STATUSES),
+            "answer": "non-empty string, required for a settled node",
+            "source": "required for a settled node, one of: " + ", ".join(DESIGN_TREE_SOURCES),
+            "rationale": "non-empty string, required for a settled node",
+            "superseded_answer": "optional non-empty string on a settled node",
+            "reason": "non-empty string, required for a pruned node",
+            "relates_to": "array of non-empty entity ids; a deferred node must name an open question id",
+            "evidence": "array of non-empty strings; required when source is research",
+            "children": "optional non-empty array of design tree nodes",
+        }
     return {}
 
 

@@ -183,6 +183,23 @@ class PrdBundleCliTests(unittest.TestCase):
             self.assertEqual(payload["anchors"]["broken"], [])
             self.assertEqual(payload["traceability"]["requirements"], "4")
 
+    def test_inspect_reports_every_nested_design_tree_node(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            output_root = root / "action-items"
+            generated = run_generator(EXAMPLE, output_root)
+            self.assertEqual(generated.returncode, 0, generated.stderr)
+
+            bundle = output_root / "PRD-example-review-bundle"
+            result = run_cli("inspect", str(bundle))
+            payload = load_yaml(result.stdout)
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("design_tree", payload["sections"])
+            for identity in ("node-01", "node-02", "node-03", "node-04", "node-05"):
+                self.assertIn(identity, payload["ids"])
+            self.assertEqual(payload["anchors"]["broken"], [])
+
     def test_template_emits_valid_placeholder_manifest(self) -> None:
         blocks = [
             "goals",

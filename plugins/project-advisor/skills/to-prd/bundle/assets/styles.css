@@ -843,6 +843,86 @@ a.cue-code:hover {
 .requirement-plate h3 { font-size: 1.12rem; }
 
 
+
+/* Design tree: the interview history reads as an indented outline. Each node
+   states its status as a word and a shape as well as a colour, so the branch
+   that was dropped stays legible without the palette. */
+.design-tree,
+.tree-branches {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: 1rem;
+  list-style: none;
+}
+
+.tree-branches {
+  margin-top: 1rem;
+  padding-left: clamp(.75rem, 2.5vw, 1.25rem);
+  border-left: 1px solid var(--edge-soft);
+}
+
+.tree-node {
+  padding: 1.1rem 1.25rem 1.25rem;
+  border: 1px solid var(--edge-soft);
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, var(--plate-raised), var(--plate));
+}
+
+.tree-node[data-status="pruned"] {
+  border-style: dashed;
+  background: var(--sunk);
+}
+
+.tree-node[data-status="deferred"] { border-color: rgb(255 123 174 / 40%); }
+
+.tree-node-head {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tree-node > h3 {
+  margin: .55rem 0 0;
+  color: var(--ink-strong);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -.005em;
+  line-height: 1.35;
+}
+
+.tree-node[data-status="pruned"] > h3 { color: var(--ink-muted); }
+
+.tree-status {
+  display: flex;
+  gap: .45rem;
+  align-items: center;
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+  font-size: .66rem;
+  font-weight: 500;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.tree-status[data-status="settled"] .lamp {
+  border-color: transparent;
+  background: var(--dawn);
+  box-shadow: 0 0 0 3px rgb(255 215 230 / 14%), 0 0 14px 2px rgb(255 215 230 / 45%);
+}
+
+.tree-status[data-status="pruned"] .lamp {
+  border-color: var(--ink-faint);
+  background: transparent;
+}
+
+.tree-status[data-status="deferred"] .lamp {
+  border-color: var(--rose-light);
+  background: rgb(255 123 174 / 22%);
+}
+
 .readout-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);

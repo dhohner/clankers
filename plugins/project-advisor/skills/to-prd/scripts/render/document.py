@@ -154,7 +154,7 @@ def render_document(
         )
 
     has_supporting_details = any(
-        BLOCK_SPECS[name].kind == "diagram" for name in manifest["blocks"]
+        BLOCK_SPECS[name].kind in {"diagram", "tree"} for name in manifest["blocks"]
     )
     replacements = {
         "{{TITLE}}": escape_html(manifest["title"]),

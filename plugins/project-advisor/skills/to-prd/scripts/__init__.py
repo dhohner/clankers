@@ -11,7 +11,12 @@ from .bundle import generate_bundle
 from .manifest_types import NormalizedBlocks, NormalizedManifest
 from .output_validation import BundleValidationError, validate_generated_bundle
 from .paths import ASSET_DIR, SCRIPT_DIR, SOURCE_DIR, TEMPLATE_PATH
-from .render import category_label, category_level, render_document
+from .render import (
+    category_label,
+    category_level,
+    render_document,
+    tree_mermaid_source,
+)
 from .spec import (
     BLOCK_SPECS,
     ENTITY_ID_PATTERN,
@@ -70,6 +75,7 @@ __all__ = [
     "main",
     "parse_args",
     "render_document",
+    "tree_mermaid_source",
     "validate_generated_bundle",
     "validate_manifest",
 ]

@@ -9,7 +9,7 @@ from typing import Any
 
 from ..bundle import generate_bundle
 from ..output_validation import BundleValidationError, validate_generated_bundle
-from ..spec import BLOCK_SPECS
+from ..spec import BLOCK_SPECS, iter_tree_nodes
 from .support import (
     ENTRYPOINT,
     CliFailure,
@@ -248,9 +248,11 @@ def _safe_mtime(path: Path) -> float:
 def _entity_ids(manifest: dict[str, Any]) -> list[str]:
     ids: list[str] = []
     for block, items in manifest["blocks"].items():
-        if not BLOCK_SPECS[block].id_prefix:
+        spec = BLOCK_SPECS[block]
+        if not spec.id_prefix:
             continue
-        ids.extend(item["id"] for item in items)
+        entries = iter_tree_nodes(items) if spec.kind == "tree" else items
+        ids.extend(item["id"] for item in entries)
     return ids
 
 

@@ -32,8 +32,21 @@ Select only decision-relevant blocks; the generator renders them in canonical or
 
 ## Identity and traceability
 
-ID prefixes: `REQ-*`, `DEC-*`, `RISK-*`, `QUESTION-*`, `TEST-*`.
+ID prefixes: `REQ-*`, `DEC-*`, `RISK-*`, `QUESTION-*`, `TEST-*`, `NODE-*`.
 Preserve an ID while its entity's meaning remains stable, and connect entities through supported `relates_to`, `validation`, and `validates` fields.
+
+## Design tree
+
+The optional `design_tree` block records the interview as an ordered list of root nodes, each with optional `children`.
+It renders next to the decision log, so a reviewer reads a decision beside the question that produced it.
+
+- Every node names an explicit `NODE-*` id, a short `label`, the verbatim `question`, and a `status`; nested nodes follow the same rule.
+- A node id is never generated from its position, because a revision that inserts a branch must not renumber the nodes an earlier review already read.
+- `status: settled` carries `answer`, `source`, and `rationale`, and may carry `superseded_answer` when a revision replaced the answer.
+- `status: pruned` carries `reason` and no answer, because the branch left PRD scope.
+- `status: deferred` carries no answer and names an open question through `relates_to`.
+- `source` is `user` for an interview answer or `research` for an agent finding, and a research answer lists its `evidence`.
+- Tree nodes stay off the coverage board; they record how the PRD was reasoned out, not a claim that needs validation.
 
 ## Visuals
 

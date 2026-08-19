@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Iterator
 from dataclasses import dataclass
 
 SLUG_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -47,6 +48,30 @@ MANIFEST_FIELDS = {
 GENERATED_METADATA_LABELS = {"initiative", "review surfaces", "output"}
 
 
+DESIGN_TREE_STATUSES = ("settled", "pruned", "deferred")
+DESIGN_TREE_SOURCES = ("user", "research")
+DESIGN_TREE_NODE_FIELDS = ("id", "label", "question", "status")
+DESIGN_TREE_NODE_OPTIONAL_FIELDS = ("children", "relates_to", "evidence")
+# Each status owns the fields that record why the branch ended the way it did,
+# so a field that belongs to one status is an error on the others.
+DESIGN_TREE_REQUIRED_FIELDS_BY_STATUS = {
+    "settled": ("answer", "source", "rationale"),
+    "pruned": ("reason",),
+    "deferred": (),
+}
+DESIGN_TREE_EXTRA_FIELDS_BY_STATUS = {
+    "settled": ("superseded_answer",),
+    "pruned": (),
+    "deferred": (),
+}
+DESIGN_TREE_STATUS_FIELDS = {
+    field
+    for status in DESIGN_TREE_STATUSES
+    for field in DESIGN_TREE_REQUIRED_FIELDS_BY_STATUS[status]
+    + DESIGN_TREE_EXTRA_FIELDS_BY_STATUS[status]
+}
+
+
 @dataclass(frozen=True)
 class BlockSpec:
     title: str
@@ -75,6 +100,7 @@ BLOCK_SPECS: dict[str, BlockSpec] = {
     "scope": BlockSpec("Scope boundaries", "Explicit limits for implementation planning.", "product-definition", "decisions", "scope"),
     "business_rules": BlockSpec("Business rules", "Durable rules that constrain product behavior.", "product-definition", "validation decisions", "cards", ("rule", "rationale")),
     "decisions": BlockSpec("Decision log", "Settled choices that shape delivery.", "product-definition", "decisions", "cards", ("decision", "rationale"), "dec", "DEC"),
+    "design_tree": BlockSpec("Design tree", "The interview branches behind the settled decisions.", "product-definition", "decisions", "tree", id_prefix="node", label_prefix="NODE"),
     "alternatives": BlockSpec("Alternatives and tradeoffs", "Options considered and why they were not selected.", "product-definition", "decisions", "cards", ("option", "tradeoff")),
     "wireframes": BlockSpec("Wireframes", "Screen concepts used to review layout and hierarchy.", "visual-experience", "all", "frames", ("screen", "intent")),
     "before_after": BlockSpec("Before and after", "The visible change from the current experience.", "visual-experience", "all", "cards", ("before", "after")),
@@ -106,7 +132,7 @@ ENTITY_OPTIONAL_FIELDS_BY_BLOCK = {
     "testing_strategy": {"id", "relates_to", "validates", "evidence"},
 }
 
-ENTITY_ID_PATTERN = re.compile(r"^(req|dec|risk|question|test)-[a-z0-9][a-z0-9-]*$")
+ENTITY_ID_PATTERN = re.compile(r"^(req|dec|risk|question|test|node)-[a-z0-9][a-z0-9-]*$")
 
 
 def normalize_entity_id(value: str) -> str:
@@ -118,8 +144,28 @@ def entity_label(entity_id: str) -> str:
     return f"{prefix.upper()}-{suffix.upper()}"
 
 
+def iter_tree_nodes(nodes: list[dict]) -> Iterator[dict]:
+    """Yield every design tree node in document order, parents before children.
+
+    The walk is iterative because tree depth comes from author input, and a
+    recursive walk would raise RecursionError instead of a manifest error.
+    """
+    stack = list(reversed(nodes))
+    while stack:
+        node = stack.pop()
+        yield node
+        stack.extend(reversed(node.get("children", [])))
+
+
 __all__ = [
     "BLOCK_SPECS",
+    "DESIGN_TREE_EXTRA_FIELDS_BY_STATUS",
+    "DESIGN_TREE_NODE_FIELDS",
+    "DESIGN_TREE_NODE_OPTIONAL_FIELDS",
+    "DESIGN_TREE_REQUIRED_FIELDS_BY_STATUS",
+    "DESIGN_TREE_SOURCES",
+    "DESIGN_TREE_STATUSES",
+    "DESIGN_TREE_STATUS_FIELDS",
     "ENTITY_ID_PATTERN",
     "ENTITY_OPTIONAL_FIELDS_BY_BLOCK",
     "GENERATED_METADATA_LABELS",
@@ -131,5 +177,6 @@ __all__ = [
     "TEMPLATE_MARKER_PATTERN",
     "BlockSpec",
     "entity_label",
+    "iter_tree_nodes",
     "normalize_entity_id",
 ]

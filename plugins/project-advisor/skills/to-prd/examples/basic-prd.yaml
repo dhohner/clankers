@@ -139,6 +139,51 @@ blocks:
       rationale: "Relationships remain deterministic and validator-friendly."
       relates_to:
         - "REQ-04"
+  design_tree:
+    - id: "NODE-01"
+      label: Output shape
+      question: "Should the PRD output stay one fixed document, or become a generated bundle?"
+      status: settled
+      answer: A generated multi-file bundle.
+      source: user
+      rationale: "A bundle can carry assets, so the review surface is no longer limited to prose."
+      relates_to:
+        - "REQ-01"
+      children:
+        - id: "NODE-02"
+          label: Block selection
+          question: "Which blocks does a PRD contain: a fixed set, or a set chosen per initiative?"
+          status: settled
+          answer: "A set chosen from the initiative type and its review surfaces."
+          source: user
+          rationale: A UI initiative and an API initiative need different review aids.
+          relates_to:
+            - "REQ-02"
+          children:
+            - id: "NODE-03"
+              label: Diagram renderer
+              question: Which renderer draws the diagrams in the bundle?
+              status: settled
+              answer: "Mermaid, with a readable text source as the fallback."
+              source: research
+              rationale: The text source keeps the diagram available when the renderer cannot load.
+              evidence:
+                - "plugins/project-advisor/skills/to-prd/bundle/assets/app.js renders Mermaid and degrades to the pinned source."
+              relates_to:
+                - "REQ-02"
+            - id: "NODE-04"
+              label: Presentation variants
+              question: Should a manifest be able to choose a layout variant per block?
+              status: deferred
+              relates_to:
+                - "QUESTION-02"
+        - id: "NODE-05"
+          label: Editable review
+          question: Should a reviewer be able to edit the PRD inside the generated bundle?
+          status: pruned
+          reason: "Editing would make the bundle a second source of truth; the manifest stays authoritative."
+          relates_to:
+            - "REQ-03"
   architecture_diagram:
     description: "Interview state and repository evidence become a manifest, then a reusable generator produces and validates the portable review bundle."
     source: |-

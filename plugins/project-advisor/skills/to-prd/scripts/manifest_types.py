@@ -115,6 +115,28 @@ class OpenQuestionItem(TraceableEntity, total=False):
     question: str
 
 
+class DesignTreeNode(TypedDict, total=False):
+    """One interview question and the branches below it.
+
+    ``status`` selects the fields that must accompany it: ``settled`` carries
+    ``answer``, ``source``, and ``rationale``; ``pruned`` carries ``reason``;
+    ``deferred`` names an open question through ``relates_to``.
+    """
+
+    id: str
+    label: str
+    question: str
+    status: str
+    answer: str
+    source: str
+    rationale: str
+    superseded_answer: str
+    reason: str
+    relates_to: list[str]
+    evidence: list[str]
+    children: list["DesignTreeNode"]
+
+
 CardItem: TypeAlias = dict[str, str]
 CardBlock: TypeAlias = list[CardItem]
 StringBlock: TypeAlias = list[str]
@@ -125,6 +147,7 @@ DecisionsBlock: TypeAlias = list[DecisionItem]
 RisksBlock: TypeAlias = list[RiskItem]
 TestingStrategyBlock: TypeAlias = list[TestingStrategyItem]
 OpenQuestionsBlock: TypeAlias = list[OpenQuestionItem]
+DesignTreeBlock: TypeAlias = list[DesignTreeNode]
 AnnotatedCodeBlock: TypeAlias = list[CodeSample]
 
 NormalizedBlock: TypeAlias = (
@@ -143,6 +166,7 @@ NormalizedBlock: TypeAlias = (
     | TestingStrategyBlock
     | OpenQuestionsBlock
     | AnnotatedCodeBlock
+    | DesignTreeBlock
 )
 
 
@@ -162,6 +186,7 @@ class NormalizedBlocks(TypedDict, total=False):
     scope: ScopeBlock
     business_rules: CardBlock
     decisions: DecisionsBlock
+    design_tree: DesignTreeBlock
     alternatives: CardBlock
     wireframes: WireframesBlock
     before_after: CardBlock
@@ -207,6 +232,8 @@ __all__ = [
     "CodeSample",
     "DecisionItem",
     "DecisionsBlock",
+    "DesignTreeBlock",
+    "DesignTreeNode",
     "DiagramBlock",
     "DiagramEdge",
     "DiagramNode",

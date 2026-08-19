@@ -5,8 +5,16 @@ from __future__ import annotations
 from typing import Any
 
 from .manifest_types import NormalizedBlocks, NormalizedManifest
+from .mermaid import mermaid_label
 from .spec import (
     BLOCK_SPECS,
+    DESIGN_TREE_EXTRA_FIELDS_BY_STATUS,
+    DESIGN_TREE_NODE_FIELDS,
+    DESIGN_TREE_NODE_OPTIONAL_FIELDS,
+    DESIGN_TREE_REQUIRED_FIELDS_BY_STATUS,
+    DESIGN_TREE_SOURCES,
+    DESIGN_TREE_STATUSES,
+    DESIGN_TREE_STATUS_FIELDS,
     ENTITY_ID_PATTERN,
     ENTITY_OPTIONAL_FIELDS_BY_BLOCK,
     GENERATED_METADATA_LABELS,
@@ -34,10 +42,6 @@ def _readable_mermaid_source(source: str) -> str:
     return "\n".join(lines)
 
 
-def _mermaid_label(value: str) -> str:
-    return " ".join(value.split()).replace('"', "'").replace("|", "/")
-
-
 def _native_diagram_to_mermaid(native: dict[str, Any]) -> str:
     node_ids = {
         node["id"]: f"n{index}"
@@ -45,11 +49,11 @@ def _native_diagram_to_mermaid(native: dict[str, Any]) -> str:
     }
     lines = ["flowchart TB"]
     lines.extend(
-        f'  {node_ids[node["id"]]}["{_mermaid_label(node["label"])}"]'
+        f'  {node_ids[node["id"]]}["{mermaid_label(node["label"])}"]'
         for node in native["nodes"]
     )
     lines.extend(
-        f'  {node_ids[edge["from"]]} -->|{_mermaid_label(edge["label"])}| {node_ids[edge["to"]]}'
+        f'  {node_ids[edge["from"]]} -->|{mermaid_label(edge["label"])}| {node_ids[edge["to"]]}'
         for edge in native["edges"]
         if edge["from"] in node_ids and edge["to"] in node_ids
     )
@@ -209,6 +213,121 @@ def _validate_native_diagram(
     return {"nodes": nodes, "edges": edges}
 
 
+def _tree_allowed_fields(status: str) -> set[str]:
+    known = set(DESIGN_TREE_NODE_FIELDS) | set(DESIGN_TREE_NODE_OPTIONAL_FIELDS)
+    if status not in DESIGN_TREE_STATUSES:
+        # The status itself is already reported; listing every status field as
+        # allowed keeps one broken node from raising a second wave of errors.
+        return known | DESIGN_TREE_STATUS_FIELDS
+    return (
+        known
+        | set(DESIGN_TREE_REQUIRED_FIELDS_BY_STATUS[status])
+        | set(DESIGN_TREE_EXTRA_FIELDS_BY_STATUS[status])
+    )
+
+
+def _reject_unsupported_node_fields(
+    item: dict[str, Any],
+    status: str,
+    path: str,
+    errors: list[str],
+) -> None:
+    for field in sorted(set(item) - _tree_allowed_fields(status)):
+        if field in DESIGN_TREE_STATUS_FIELDS:
+            errors.append(f"{path}.{field} is not supported for a {status} node")
+        else:
+            errors.append(f"{path}.{field} is not supported for this block")
+
+
+def _is_tree_node_list(value: Any, path: str, errors: list[str]) -> bool:
+    if isinstance(value, list) and value:
+        return True
+    errors.append(f"{path} must be a non-empty array of design tree nodes")
+    return False
+
+
+def _validate_tree_node(item: Any, path: str, errors: list[str]) -> dict[str, Any]:
+    if not isinstance(item, dict):
+        errors.append(f"{path} must be an object")
+        return {}
+    status = _non_empty_string(item.get("status"), f"{path}.status", errors)
+    if status and status not in DESIGN_TREE_STATUSES:
+        errors.append(f"{path}.status must be one of: " + ", ".join(DESIGN_TREE_STATUSES))
+        status = ""
+    _reject_unsupported_node_fields(item, status, path, errors)
+
+    node: dict[str, Any] = {
+        field: _non_empty_string(item.get(field), f"{path}.{field}", errors)
+        for field in DESIGN_TREE_NODE_FIELDS
+    }
+    node["status"] = status
+    for field in DESIGN_TREE_REQUIRED_FIELDS_BY_STATUS.get(status, ()):
+        node[field] = _non_empty_string(item.get(field), f"{path}.{field}", errors)
+    for field in DESIGN_TREE_EXTRA_FIELDS_BY_STATUS.get(status, ()):
+        if field in item:
+            node[field] = _non_empty_string(item.get(field), f"{path}.{field}", errors)
+    if status == "settled" and node["source"] and node["source"] not in DESIGN_TREE_SOURCES:
+        errors.append(f"{path}.source must be one of: " + ", ".join(DESIGN_TREE_SOURCES))
+
+    for list_field in ("relates_to", "evidence"):
+        if list_field in item:
+            raw = item.get(list_field)
+            node[list_field] = [] if raw == [] else _string_list(
+                raw,
+                f"{path}.{list_field}",
+                errors,
+            )
+    if node.get("source") == "research" and not node.get("evidence"):
+        errors.append(f"{path}.evidence must name at least one finding for a research answer")
+    return node
+
+
+def _validate_tree_nodes(value: Any, path: str, errors: list[str]) -> list[dict[str, Any]]:
+    """Validate a design tree depth-first without recursing on author input."""
+    roots: list[dict[str, Any]] = []
+    if not _is_tree_node_list(value, path, errors):
+        return roots
+    pending: list[tuple[Any, str, list[dict[str, Any]]]] = [
+        (item, f"{path}[{index}]", roots) for index, item in enumerate(value)
+    ]
+    pending.reverse()
+    while pending:
+        item, item_path, siblings = pending.pop()
+        node = _validate_tree_node(item, item_path, errors)
+        siblings.append(node)
+        if not isinstance(item, dict) or "children" not in item:
+            continue
+        children_path = f"{item_path}.children"
+        node["children"] = []
+        if not _is_tree_node_list(item["children"], children_path, errors):
+            continue
+        pending.extend(
+            (child, f"{children_path}[{index}]", node["children"])
+            for index, child in reversed(list(enumerate(item["children"])))
+        )
+    return roots
+
+
+def _iter_tree_node_paths(
+    nodes: list[dict[str, Any]],
+    path: str,
+) -> list[tuple[str, dict[str, Any]]]:
+    entries: list[tuple[str, dict[str, Any]]] = []
+    pending: list[tuple[str, dict[str, Any]]] = [
+        (f"{path}[{index}]", node) for index, node in enumerate(nodes)
+    ]
+    pending.reverse()
+    while pending:
+        node_path, node = pending.pop()
+        entries.append((node_path, node))
+        children = node.get("children", [])
+        pending.extend(
+            (f"{node_path}.children[{index}]", child)
+            for index, child in reversed(list(enumerate(children)))
+        )
+    return entries
+
+
 def _validate_block(name: str, value: Any, errors: list[str]) -> Any:
     spec = BLOCK_SPECS[name]
     path = f"blocks.{name}"
@@ -335,6 +454,8 @@ def _validate_block(name: str, value: Any, errors: list[str]) -> Any:
         return {"columns": columns, "rows": normalized_rows}
     if spec.kind == "code":
         return _object_list(value, path, ("reference", "language", "code", "annotation"), errors)
+    if spec.kind == "tree":
+        return _validate_tree_nodes(value, path, errors)
     raise RuntimeError(f"unsupported renderer kind: {spec.kind}")
 
 
@@ -345,7 +466,7 @@ def _assign_and_validate_traceability(blocks: NormalizedBlocks, errors: list[str
 
     for block_name, items in blocks.items():
         spec = BLOCK_SPECS[block_name]
-        if not spec.id_prefix or not spec.label_prefix:
+        if not spec.id_prefix or not spec.label_prefix or spec.kind == "tree":
             continue
         text_field = "question" if block_name == "open_questions" else spec.fields[0]
         for index, item in enumerate(items, start=1):
@@ -371,9 +492,29 @@ def _assign_and_validate_traceability(blocks: NormalizedBlocks, errors: list[str
                     validation_links.setdefault(normalized_requirement_id, set()).add(entity_id)
             item.get(text_field)
 
+    tree_nodes: list[tuple[str, dict[str, Any]]] = []
     for block_name, items in blocks.items():
         spec = BLOCK_SPECS[block_name]
-        if not spec.id_prefix:
+        if spec.kind != "tree":
+            continue
+        for node_path, node in _iter_tree_node_paths(items, f"blocks.{block_name}"):
+            node_id = normalize_entity_id(node.get("id", ""))
+            if not node_id:
+                continue
+            node["id"] = node_id
+            if not ENTITY_ID_PATTERN.fullmatch(node_id) or not node_id.startswith(f"{spec.id_prefix}-"):
+                errors.append(
+                    f"{node_path}.id must look like {spec.label_prefix}-01 and use the {spec.id_prefix} prefix"
+                )
+            if node_id in entity_ids:
+                errors.append(f"duplicate entity id: {node_id}")
+            else:
+                entity_ids[node_id] = node_path
+            tree_nodes.append((node_path, node))
+
+    for block_name, items in blocks.items():
+        spec = BLOCK_SPECS[block_name]
+        if not spec.id_prefix or spec.kind == "tree":
             continue
         for index, item in enumerate(items, start=1):
             item_path = f"blocks.{block_name}[{index - 1}]"
@@ -390,6 +531,23 @@ def _assign_and_validate_traceability(blocks: NormalizedBlocks, errors: list[str
                         errors.append(f"{item_path}.validates must reference a REQ entity id: {reference}")
                 if field in item:
                     item[field] = normalized_refs
+
+    for node_path, node in tree_nodes:
+        references: list[str] = []
+        for reference in node.get("relates_to", []):
+            reference_id = normalize_entity_id(reference)
+            references.append(reference_id)
+            if reference_id not in entity_ids:
+                errors.append(f"{node_path}.relates_to references missing entity id: {reference}")
+        if "relates_to" in node:
+            node["relates_to"] = references
+        if node.get("status") == "deferred" and not any(
+            reference.startswith("question-") and reference in entity_ids
+            for reference in references
+        ):
+            errors.append(
+                f"{node_path}.relates_to must name an open question id for a deferred node"
+            )
 
     for requirement in requirements:
         requirement_id = requirement["id"]

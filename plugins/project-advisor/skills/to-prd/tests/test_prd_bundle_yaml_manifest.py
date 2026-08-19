@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 import unittest
 
 from support import dump_yaml, load_yaml
@@ -63,6 +64,16 @@ class PrdBundleYamlManifestTests(unittest.TestCase):
         ):
             with self.subTest(text=text), self.assertRaises(ValueError):
                 load_yaml(text)
+
+    def test_reports_an_over_deep_document_instead_of_crashing(self) -> None:
+        document = "".join(
+            f"{' ' * (level * 2)}level:\n" for level in range(sys.getrecursionlimit())
+        )
+
+        with self.assertRaises(ValueError) as raised:
+            load_yaml(document)
+
+        self.assertIn("nests too deeply", str(raised.exception))
 
 
 if __name__ == "__main__":
