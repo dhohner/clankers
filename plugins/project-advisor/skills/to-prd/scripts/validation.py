@@ -8,10 +8,12 @@ from .manifest_types import NormalizedBlocks, NormalizedManifest
 from .mermaid import mermaid_label
 from .spec import (
     BLOCK_SPECS,
+    CURRENT_SCHEMA_VERSION,
     DESIGN_TREE_EXTRA_FIELDS_BY_STATUS,
     DESIGN_TREE_NODE_FIELDS,
     DESIGN_TREE_NODE_OPTIONAL_FIELDS,
     DESIGN_TREE_REQUIRED_FIELDS_BY_STATUS,
+    DESIGN_TREE_REQUIRED_FROM_VERSION,
     DESIGN_TREE_SOURCES,
     DESIGN_TREE_STATUSES,
     DESIGN_TREE_STATUS_FIELDS,
@@ -22,6 +24,7 @@ from .spec import (
     MANIFEST_FIELDS,
     REQUIRED_SURFACES_BY_INITIATIVE,
     REVIEW_SURFACES,
+    SCHEMA_VERSIONS,
     SLUG_PATTERN,
     entity_label,
     normalize_entity_id,
@@ -61,7 +64,7 @@ def _native_diagram_to_mermaid(native: dict[str, Any]) -> str:
 
 
 class ManifestError(ValueError):
-    """Raised when a manifest does not satisfy the version 1 contract."""
+    """Raised when a manifest does not satisfy the version it declares."""
 
     def __init__(self, errors: list[str] | str) -> None:
         if isinstance(errors, str):
@@ -562,6 +565,25 @@ def _assign_and_validate_traceability(blocks: NormalizedBlocks, errors: list[str
             )
 
 
+def _manifest_version(value: Any, errors: list[str]) -> int | None:
+    """Return the declared manifest version, or None when it is unusable.
+
+    An unusable version yields None so the version-specific block rules stay
+    silent, and the manifest reports the version error on its own.
+    """
+    if (
+        not isinstance(value, int)
+        or isinstance(value, bool)
+        or value not in SCHEMA_VERSIONS
+    ):
+        errors.append(
+            "schema_version must be "
+            + " or ".join(f"the number {version}" for version in SCHEMA_VERSIONS)
+        )
+        return None
+    return value
+
+
 def validate_manifest(raw: Any) -> NormalizedManifest:
     errors: list[str] = []
     if not isinstance(raw, dict):
@@ -570,9 +592,7 @@ def validate_manifest(raw: Any) -> NormalizedManifest:
     for field in sorted(set(raw) - MANIFEST_FIELDS):
         errors.append(f"{field} is not a supported manifest field")
 
-    schema_version = raw.get("schema_version")
-    if not isinstance(schema_version, int) or isinstance(schema_version, bool) or schema_version != 1:
-        errors.append("schema_version must be the number 1")
+    schema_version = _manifest_version(raw.get("schema_version"), errors)
 
     slug = _non_empty_string(raw.get("slug"), "slug", errors)
     if slug and not SLUG_PATTERN.fullmatch(slug):
@@ -600,7 +620,9 @@ def validate_manifest(raw: Any) -> NormalizedManifest:
         errors.append("initiative_type mixed requires at least two non-document review surfaces")
 
     normalized: NormalizedManifest = {
-        "schema_version": 1,
+        # An unusable version already recorded an error, so the fallback only
+        # keeps the normalized shape intact until this function raises.
+        "schema_version": CURRENT_SCHEMA_VERSION if schema_version is None else schema_version,
         "slug": slug,
         "title": _non_empty_string(raw.get("title"), "title", errors),
         "summary": _non_empty_string(raw.get("summary"), "summary", errors),
@@ -652,6 +674,14 @@ def validate_manifest(raw: Any) -> NormalizedManifest:
         if name in blocks
     }
     _assign_and_validate_traceability(normalized["blocks"], errors)
+    if (
+        schema_version is not None
+        and schema_version >= DESIGN_TREE_REQUIRED_FROM_VERSION
+        and "design_tree" not in normalized["blocks"]
+    ):
+        errors.append(
+            f"blocks.design_tree is required by schema_version {schema_version}"
+        )
 
     if errors:
         raise ManifestError(errors)

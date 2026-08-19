@@ -1,4 +1,4 @@
-schema_version: 1
+schema_version: 2
 slug: minimal-prd
 title: Minimal PRD Example
 summary: A compact valid manifest for syntax reference.
@@ -19,6 +19,20 @@ blocks:
       description: Generate a portable review bundle from a compact manifest.
       validation:
         - TEST-01
+  design_tree:
+    - id: NODE-01
+      label: Example size
+      question: How much of the manifest contract should the smallest example show?
+      status: settled
+      answer: Only the fields a manifest needs to validate and generate.
+      source: user
+      rationale: A short example stays readable beside the CLI schema output.
+      children:
+        - id: NODE-02
+          label: Visual block
+          question: Should the smallest example also carry a visual block?
+          status: pruned
+          reason: A visual block belongs to a focused fixture, not to the syntax example.
   testing_strategy:
     - id: TEST-01
       target: Bundle generation

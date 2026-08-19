@@ -23,8 +23,10 @@ class PrdBundleRenderingTests(unittest.TestCase):
             manifest = load_example_manifest()
             del manifest["blocks"]["open_questions"]
             # The example tree defers a branch to an open question, so the tree
-            # cannot outlive the block it points at.
+            # cannot outlive the block it points at. Version 1 keeps the tree
+            # optional, so the manifest declares the version that allows this.
             del manifest["blocks"]["design_tree"]
+            manifest["schema_version"] = 1
             manifest_path = root / "manifest.yaml"
             manifest_path.write_text(dump_yaml(manifest), encoding="utf-8")
 

@@ -1,4 +1,4 @@
-schema_version: 1
+schema_version: 2
 slug: "fixture-data-heavy"
 title: "Data-heavy PRD fixture"
 summary: Traceability relationships remain stable as a planning source is regenerated.
@@ -40,6 +40,22 @@ blocks:
   security_privacy:
     - concern: Repository evidence may expose irrelevant sensitive details.
       response: Include only references that materially support a product statement.
+  design_tree:
+    - id: "NODE-ID-STABILITY"
+      label: Identity stability
+      question: Does a regenerated manifest keep the entity ids an earlier review already read?
+      status: settled
+      answer: An unchanged entity keeps its id across regeneration.
+      source: user
+      rationale: A renumbered id breaks every reference an earlier review recorded.
+      relates_to:
+        - "REQ-STABLE-TRACE"
+      children:
+        - id: "NODE-ID-FORMAT"
+          label: Identity format
+          question: Which text format does an entity id use?
+          status: pruned
+          reason: "The id format is a generator detail, not a product decision."
   testing_strategy:
     - id: "TEST-STABLE-TRACE"
       target: Traceability regeneration

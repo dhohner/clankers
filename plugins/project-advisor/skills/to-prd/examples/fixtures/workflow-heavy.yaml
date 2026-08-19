@@ -1,4 +1,4 @@
-schema_version: 1
+schema_version: 2
 slug: "fixture-workflow-heavy"
 title: "Workflow-heavy PRD fixture"
 summary: "A draft moves through review, revision, acceptance, and optional issue handoff."
@@ -33,3 +33,21 @@ blocks:
     - id: "DEC-ACCEPTANCE-GATE"
       decision: Issue splitting is offered only after human acceptance.
       rationale: Draft content must not become implementation work by implication.
+  design_tree:
+    - id: "NODE-ACCEPTANCE-GATE"
+      label: Acceptance gate
+      question: Which event allows the issue handoff?
+      status: settled
+      answer: Only an explicit human acceptance allows the handoff.
+      source: user
+      rationale: A draft must not become implementation work by implication.
+      relates_to:
+        - "DEC-ACCEPTANCE-GATE"
+      children:
+        - id: "NODE-REVISION-LOOP"
+          label: Revision loop
+          question: Where do requested changes return in the flow?
+          status: settled
+          answer: They return to manifest revision and then to a new draft.
+          source: user
+          rationale: The reviewer reads the same surface again after every change.

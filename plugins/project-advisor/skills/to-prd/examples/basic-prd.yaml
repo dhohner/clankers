@@ -1,4 +1,4 @@
-schema_version: 1
+schema_version: 2
 slug: "example-review-bundle"
 title: "Rich Interactive HTML Output for to-prd"
 summary: "Replace the fixed, prose-first PRD template with a generated, multi-file review bundle that selects useful structured and visual blocks while remaining portable and source-control friendly."

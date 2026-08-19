@@ -1,4 +1,4 @@
-schema_version: 1
+schema_version: 2
 slug: "fixture-ui-heavy"
 title: "UI-heavy PRD fixture"
 summary: "A review queue needs visible empty, ready, and blocked states."
@@ -26,6 +26,22 @@ blocks:
       regions:
         - label: Draft list
           detail: Each draft exposes status and the next useful action.
+  design_tree:
+    - id: "NODE-STATE-SIGNAL"
+      label: State signal
+      question: How does the queue separate the three review states?
+      status: settled
+      answer: A text label and an icon accompany every state color.
+      source: user
+      rationale: Color alone excludes readers who cannot separate the hues.
+      relates_to:
+        - "REQ-QUEUE-STATES"
+      children:
+        - id: "NODE-STATE-PALETTE"
+          label: State palette
+          question: Which exact colors mark each state?
+          status: pruned
+          reason: "The palette is a visual implementation choice, not a product decision."
   testing_strategy:
     - id: "TEST-QUEUE-STATES"
       target: Queue states

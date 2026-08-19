@@ -34,6 +34,11 @@ REQUIRED_SURFACES_BY_INITIATIVE = {
     "architecture-heavy": {"document", "architecture"},
     "mixed": {"document"},
 }
+SCHEMA_VERSIONS = (1, 2)
+CURRENT_SCHEMA_VERSION = 2
+# Version 2 requires the design tree. Version 1 keeps it optional, so a manifest
+# published before the tree existed stays valid without a back-filled tree.
+DESIGN_TREE_REQUIRED_FROM_VERSION = 2
 MANIFEST_FIELDS = {
     "schema_version",
     "slug",
@@ -159,10 +164,12 @@ def iter_tree_nodes(nodes: list[dict]) -> Iterator[dict]:
 
 __all__ = [
     "BLOCK_SPECS",
+    "CURRENT_SCHEMA_VERSION",
     "DESIGN_TREE_EXTRA_FIELDS_BY_STATUS",
     "DESIGN_TREE_NODE_FIELDS",
     "DESIGN_TREE_NODE_OPTIONAL_FIELDS",
     "DESIGN_TREE_REQUIRED_FIELDS_BY_STATUS",
+    "DESIGN_TREE_REQUIRED_FROM_VERSION",
     "DESIGN_TREE_SOURCES",
     "DESIGN_TREE_STATUSES",
     "DESIGN_TREE_STATUS_FIELDS",
@@ -173,6 +180,7 @@ __all__ = [
     "MANIFEST_FIELDS",
     "REQUIRED_SURFACES_BY_INITIATIVE",
     "REVIEW_SURFACES",
+    "SCHEMA_VERSIONS",
     "SLUG_PATTERN",
     "TEMPLATE_MARKER_PATTERN",
     "BlockSpec",

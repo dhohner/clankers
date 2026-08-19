@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 from typing import Any
 
-from ..spec import BLOCK_SPECS
+from ..spec import BLOCK_SPECS, CURRENT_SCHEMA_VERSION
 from ..validation import ManifestError, validate_manifest
 from .catalog_blocks import template_block
 from .support import CliFailure, next_command
@@ -35,10 +35,13 @@ def command_template(args: argparse.Namespace) -> dict[str, Any]:
             }
         )
 
-    blocks = {block: template_block(block) for block in block_names}
+    blocks = {
+        block: template_block(block)
+        for block in _with_required_blocks(block_names)
+    }
     _link_template_traceability(blocks)
     manifest = {
-        "schema_version": 1,
+        "schema_version": CURRENT_SCHEMA_VERSION,
         "slug": "draft-prd",
         "title": "Replace with PRD title",
         "summary": "Replace with one-sentence product summary.",
@@ -63,6 +66,22 @@ def command_template(args: argparse.Namespace) -> dict[str, Any]:
             }
         ) from error
     return manifest
+
+
+def _with_required_blocks(block_names: list[str]) -> list[str]:
+    """Return the selected blocks plus the design tree the current version needs.
+
+    The template must validate unchanged, so a missing required block joins the
+    selection at its canonical position rather than waiting for the author.
+    """
+    if "design_tree" in block_names:
+        return block_names
+    order = list(BLOCK_SPECS)
+    position = order.index("design_tree")
+    for index, name in enumerate(block_names):
+        if order.index(name) > position:
+            return [*block_names[:index], "design_tree", *block_names[index:]]
+    return [*block_names, "design_tree"]
 
 
 def _link_template_traceability(blocks: dict[str, Any]) -> None:

@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from ..spec import CURRENT_SCHEMA_VERSION
 from ..validation import ManifestError, validate_manifest
 from ..yaml_manifest import YamlError, loads
 
@@ -127,6 +128,7 @@ def validation_payload(manifest: dict[str, Any], manifest_path: Path) -> dict[st
     return {
         "status": "ok",
         "manifest": display_path(manifest_path),
+        "manifest_version": manifest["schema_version"],
         "normalized_slug": manifest["slug"],
         "review_surfaces": manifest["review_surfaces"],
         "selected_blocks": list(manifest["blocks"]),
@@ -186,8 +188,13 @@ def _fix_for(message: str) -> str:
         return "Add a matching testing_strategy item or set an explicit exception."
     if "references missing entity id" in message:
         return "Add the referenced entity or remove the reference."
+    if message.startswith("blocks.design_tree is required"):
+        return "Add the design_tree block that this manifest version requires."
     if message.startswith("schema_version"):
-        return "Set schema_version: 1."
+        return (
+            f"Set schema_version: {CURRENT_SCHEMA_VERSION} for a new manifest, "
+            "or 1 for an existing manifest without a design tree."
+        )
     if message.startswith("slug"):
         return "Use lowercase kebab-case."
     if "review_surfaces" in message:

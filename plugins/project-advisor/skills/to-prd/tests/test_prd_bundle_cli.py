@@ -81,7 +81,7 @@ class PrdBundleCliTests(unittest.TestCase):
             self.assertNotIn('class="document-header"', document)
             self.assertNotIn('id="print-document"', document)
             self.assertEqual(preserved_manifest["slug"], "example-review-bundle")
-            self.assertEqual(preserved_manifest["schema_version"], 1)
+            self.assertEqual(preserved_manifest["schema_version"], 2)
 
             source_assets = sorted(
                 path.relative_to(SOURCE_ASSETS)
@@ -214,6 +214,10 @@ class PrdBundleCliTests(unittest.TestCase):
             "open_questions",
             "repository_grounding",
         ]
+        # Version 2 requires the design tree, so the template adds it at its
+        # canonical position even when the author did not select it.
+        position = blocks.index("rollout")
+        expected_blocks = [*blocks[:position], "design_tree", *blocks[position:]]
         with tempfile.TemporaryDirectory() as temporary_directory:
             manifest_path = Path(temporary_directory) / "prd.yaml"
             result = run_cli("template", "--blocks", *blocks)
@@ -224,7 +228,12 @@ class PrdBundleCliTests(unittest.TestCase):
 
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual(manifest["slug"], "draft-prd")
-            self.assertEqual(list(manifest["blocks"]), blocks)
+            self.assertEqual(manifest["schema_version"], 2)
+            self.assertEqual(list(manifest["blocks"]), expected_blocks)
+            self.assertEqual(
+                manifest["blocks"]["design_tree"][0]["id"],
+                "NODE-01",
+            )
             self.assertEqual(
                 manifest["blocks"]["goals"][0]["goal"],
                 "Replace with goal.",
@@ -238,7 +247,8 @@ class PrdBundleCliTests(unittest.TestCase):
                 ["REQ-01"],
             )
             self.assertEqual(validation.returncode, 0, validation.stderr)
-            self.assertEqual(validation_payload["selected_blocks"], blocks)
+            self.assertEqual(validation_payload["selected_blocks"], expected_blocks)
+            self.assertEqual(validation_payload["manifest_version"], "2")
 
     def test_schema_and_examples_are_structured(self) -> None:
         top_level_schema = run_cli("schema")
@@ -386,7 +396,7 @@ class PrdBundleCliTests(unittest.TestCase):
             root = Path(temporary_directory)
             manifest_path = root / "invalid.yaml"
             manifest_path.write_text(
-                dump_yaml({"schema_version": 2, "slug": "../escape"}),
+                dump_yaml({"schema_version": 3, "slug": "../escape"}),
                 encoding="utf-8",
             )
 
@@ -397,7 +407,10 @@ class PrdBundleCliTests(unittest.TestCase):
 
             self.assertNotEqual(result.returncode, 0)
             self.assertEqual(payload["code"], "manifest_invalid")
-            self.assertIn("schema_version must be the number 1", messages)
+            self.assertIn(
+                "schema_version must be the number 1 or the number 2",
+                messages,
+            )
             self.assertIn("slug must contain only lowercase", messages)
             self.assertIn("initiative_type must be a non-empty string", messages)
             self.assertIn("review_surfaces must be a non-empty array", messages)
@@ -436,9 +449,134 @@ class PrdBundleCliTests(unittest.TestCase):
 
             self.assertEqual(result.returncode, 2)
             self.assertEqual(payload["code"], "manifest_invalid")
-            self.assertIn("schema_version must be the number 1", payload["errors"][0]["message"])
+            self.assertIn(
+                "schema_version must be the number 1 or the number 2",
+                payload["errors"][0]["message"],
+            )
             self.assertEqual(result.stderr, "")
             self.assertFalse((root / "action-items").exists())
+
+    def test_version_two_manifest_without_a_design_tree_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            manifest = load_example_manifest()
+            del manifest["blocks"]["design_tree"]
+            manifest_path = root / "manifest.yaml"
+            manifest_path.write_text(dump_yaml(manifest), encoding="utf-8")
+
+            result = run_generator(manifest_path, root / "action-items")
+            payload = load_yaml(result.stdout)
+            messages = "\n".join(error["message"] for error in payload["errors"])
+
+            self.assertEqual(result.returncode, 2)
+            self.assertEqual(payload["code"], "manifest_invalid")
+            self.assertIn(
+                "blocks.design_tree is required by schema_version 2",
+                messages,
+            )
+            self.assertEqual(payload["errors"][0]["path"], "blocks.design_tree")
+            self.assertFalse((root / "action-items").exists())
+
+    def test_version_one_manifest_generates_without_a_design_tree(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            manifest = load_example_manifest()
+            manifest["schema_version"] = 1
+            del manifest["blocks"]["design_tree"]
+            manifest_path = root / "manifest.yaml"
+            manifest_path.write_text(dump_yaml(manifest), encoding="utf-8")
+
+            result = run_generator(manifest_path, root / "action-items")
+            payload = load_yaml(result.stdout)
+            preserved_manifest = load_yaml(
+                (
+                    root
+                    / "action-items"
+                    / "PRD-example-review-bundle"
+                    / "prd.yaml"
+                ).read_text(encoding="utf-8")
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(payload["manifest_version"], "1")
+            self.assertEqual(preserved_manifest["schema_version"], 1)
+            self.assertNotIn("design_tree", preserved_manifest["blocks"])
+
+    def test_version_one_manifest_may_carry_a_design_tree(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            manifest = load_example_manifest()
+            manifest["schema_version"] = 1
+            manifest_path = root / "manifest.yaml"
+            manifest_path.write_text(dump_yaml(manifest), encoding="utf-8")
+
+            result = run_cli("validate", str(manifest_path))
+            payload = load_yaml(result.stdout)
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(payload["manifest_version"], "1")
+            self.assertIn("design_tree", payload["selected_blocks"])
+
+    def test_unsupported_schema_versions_name_both_accepted_versions(self) -> None:
+        rejected = {
+            "too_new": 3,
+            "zero": 0,
+            "quoted": "2",
+        }
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            for name, version in rejected.items():
+                with self.subTest(version=name):
+                    manifest = load_example_manifest()
+                    manifest["schema_version"] = version
+                    manifest_path = root / f"{name}.yaml"
+                    manifest_path.write_text(dump_yaml(manifest), encoding="utf-8")
+
+                    result = run_cli("validate", str(manifest_path))
+                    payload = load_yaml(result.stdout)
+                    messages = "\n".join(
+                        error["message"] for error in payload["errors"]
+                    )
+
+                    self.assertEqual(result.returncode, 2)
+                    self.assertEqual(payload["code"], "manifest_invalid")
+                    self.assertIn(
+                        "schema_version must be the number 1 or the number 2",
+                        messages,
+                    )
+                    self.assertNotIn("design_tree is required", messages)
+
+            manifest = load_example_manifest()
+            del manifest["schema_version"]
+            manifest_path = root / "missing.yaml"
+            manifest_path.write_text(dump_yaml(manifest), encoding="utf-8")
+
+            result = run_cli("validate", str(manifest_path))
+            payload = load_yaml(result.stdout)
+
+            self.assertEqual(result.returncode, 2)
+            self.assertIn(
+                "schema_version must be the number 1 or the number 2",
+                payload["errors"][0]["message"],
+            )
+
+    def test_reports_name_the_applied_manifest_version(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            output_root = root / "action-items"
+
+            validation = run_cli("validate", str(EXAMPLE))
+            generation = run_generator(EXAMPLE, output_root)
+            inspection = run_cli(
+                "inspect",
+                str(output_root / "PRD-example-review-bundle"),
+            )
+
+            self.assertEqual(validation.returncode, 0, validation.stderr)
+            self.assertEqual(generation.returncode, 0, generation.stderr)
+            self.assertEqual(inspection.returncode, 0, inspection.stderr)
+            for result in (validation, generation, inspection):
+                self.assertEqual(load_yaml(result.stdout)["manifest_version"], "2")
 
     def test_existing_bundle_requires_force_and_force_replaces_it(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:

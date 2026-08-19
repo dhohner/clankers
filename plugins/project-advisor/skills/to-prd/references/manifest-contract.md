@@ -3,6 +3,14 @@
 `prd.yaml` is the authoring source; generated `index.html` is the review surface.
 The CLI is authoritative for field shapes and supported blocks.
 
+## Manifest version
+
+`schema_version` selects the contract a manifest follows, and nothing else differs between the accepted versions.
+
+- Version 2 is the current contract, so a version 2 manifest must carry a `design_tree` block.
+- Version 1 stays valid for a manifest published before the tree existed, and keeps the tree optional.
+- The source manifest owns the version, and generation copies that value into the published bundle.
+
 ## Rules the CLI does not print
 
 `schema` already prints the field shapes, the supported blocks, and the review-surface constraints. Beyond those:
@@ -37,7 +45,8 @@ Preserve an ID while its entity's meaning remains stable, and connect entities t
 
 ## Design tree
 
-The optional `design_tree` block records the interview as an ordered list of root nodes, each with optional `children`.
+The `design_tree` block records the interview as an ordered list of root nodes, each with optional `children`.
+Version 2 requires the block, and version 1 accepts it.
 It renders next to the decision log, so a reviewer reads a decision beside the question that produced it.
 
 - Every node names an explicit `NODE-*` id, a short `label`, the verbatim `question`, and a `status`; nested nodes follow the same rule.

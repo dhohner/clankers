@@ -7,12 +7,14 @@ from typing import Any
 
 from ..spec import (
     BLOCK_SPECS,
+    CURRENT_SCHEMA_VERSION,
     DESIGN_TREE_SOURCES,
     DESIGN_TREE_STATUSES,
     ENTITY_OPTIONAL_FIELDS_BY_BLOCK,
     INITIATIVE_TYPES,
     REQUIRED_SURFACES_BY_INITIATIVE,
     REVIEW_SURFACES,
+    SCHEMA_VERSIONS,
 )
 from .catalog_blocks import example_block
 from .support import CliFailure, next_command
@@ -41,7 +43,7 @@ def command_schema(args: argparse.Namespace) -> dict[str, Any]:
             return _block_schema(blocks[0])
         return {
             "status": "ok",
-            "schema_version": 1,
+            "schema_version": CURRENT_SCHEMA_VERSION,
             "schemas": [_block_schema(block, compact=True) for block in blocks],
             "next": [
                 next_command("examples minimal-prd"),
@@ -50,7 +52,8 @@ def command_schema(args: argparse.Namespace) -> dict[str, Any]:
         }
     return {
         "status": "ok",
-        "schema_version": 1,
+        "schema_version": CURRENT_SCHEMA_VERSION,
+        "accepted_manifest_versions": list(SCHEMA_VERSIONS),
         "initiative_types": sorted(INITIATIVE_TYPES),
         "review_surfaces": sorted(REVIEW_SURFACES),
         "required_review_surfaces_by_initiative": {
@@ -58,6 +61,8 @@ def command_schema(args: argparse.Namespace) -> dict[str, Any]:
             for name, surfaces in sorted(REQUIRED_SURFACES_BY_INITIATIVE.items())
         },
         "constraints": [
+            f"A new manifest declares schema_version {CURRENT_SCHEMA_VERSION}, which requires the design_tree block.",
+            "schema_version 1 stays valid for an existing manifest and keeps design_tree optional.",
             "Every initiative requires document in review_surfaces.",
             "Each *-heavy initiative also requires its matching review surface.",
             "mixed requires document and at least two non-document review surfaces.",
@@ -81,7 +86,9 @@ def command_schema(args: argparse.Namespace) -> dict[str, Any]:
 def _authoring_schema() -> dict[str, Any]:
     return {
         "status": "ok",
-        "schema_version": 1,
+        "schema_version": CURRENT_SCHEMA_VERSION,
+        "accepted_manifest_versions": list(SCHEMA_VERSIONS),
+        "required_blocks": ["design_tree"],
         "initiative_types": sorted(INITIATIVE_TYPES),
         "required_review_surfaces_by_initiative": {
             name: _ordered_surfaces(surfaces)
@@ -125,7 +132,7 @@ def _block_schema(block: str, compact: bool = False) -> dict[str, Any]:
         return payload
     return {
         "status": "ok",
-        "schema_version": 1,
+        "schema_version": CURRENT_SCHEMA_VERSION,
         **payload,
         "next": [
             next_command("examples minimal-prd"),

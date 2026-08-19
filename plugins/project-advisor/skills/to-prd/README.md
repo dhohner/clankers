@@ -24,6 +24,16 @@ Assets are copied into the bundle so it can be reviewed without installing the p
 The bundle is a screen artifact and does not support printing.
 Diagrams load Mermaid from `cdn.jsdelivr.net` at review time and fall back to a readable text source when there is no network.
 
+## Manifest versions
+
+`schema_version` names the contract a manifest follows.
+No other rule differs between the two accepted versions.
+
+- Version 2 is the current contract and requires the `design_tree` block.
+- Version 1 stays valid for a manifest published before the tree existed and keeps the tree optional.
+- `template` emits version 2 with a tree placeholder, and `generate` copies the version the source manifest declares.
+- `validate`, `generate`, and `inspect` report the applied version as `manifest_version`.
+
 ## Workflow
 
 `SKILL.md` holds the authoritative loop: ground the decision, author the working manifest, publish and inspect, apply the review gate.

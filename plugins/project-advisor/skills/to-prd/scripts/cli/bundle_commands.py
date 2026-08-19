@@ -128,6 +128,7 @@ def command_generate(args: argparse.Namespace) -> dict[str, Any]:
     return {
         "status": "ok",
         "bundle": display_path(bundle),
+        "manifest_version": manifest["schema_version"],
         "files": {
             "index": display_path(bundle / "index.html"),
             "manifest": display_path(bundle / "prd.yaml"),
@@ -207,6 +208,7 @@ def command_inspect(args: argparse.Namespace) -> dict[str, Any]:
     payload: dict[str, Any] = {
         "status": "ok",
         "bundle": display_path(bundle),
+        "manifest_version": manifest["schema_version"],
         "files": {
             "index": display_path(bundle / "index.html"),
             "manifest": display_path(bundle / "prd.yaml"),

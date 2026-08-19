@@ -34,6 +34,35 @@ def design_tree_errors(nodes: list[dict], **blocks: object) -> str:
 
 
 class PrdBundleValidationTests(unittest.TestCase):
+    def test_manifest_versions_gate_only_the_design_tree_requirement(self) -> None:
+        version_two = design_tree_manifest([dict(DESIGN_TREE_ROOT)])
+        version_two["schema_version"] = 2
+        version_one_with_tree = design_tree_manifest([dict(DESIGN_TREE_ROOT)])
+        version_one_without_tree = base_manifest()
+        version_one_without_tree["blocks"] = {"non_goals": ["An excluded outcome."]}
+        version_two_without_tree = base_manifest()
+        version_two_without_tree["schema_version"] = 2
+        version_two_without_tree["blocks"] = {"non_goals": ["An excluded outcome."]}
+
+        self.assertEqual(
+            BUNDLE.validate_manifest(version_two)["schema_version"],
+            2,
+        )
+        self.assertEqual(
+            BUNDLE.validate_manifest(version_one_with_tree)["schema_version"],
+            1,
+        )
+        self.assertEqual(
+            BUNDLE.validate_manifest(version_one_without_tree)["schema_version"],
+            1,
+        )
+        with self.assertRaises(BUNDLE.ManifestError) as failure:
+            BUNDLE.validate_manifest(version_two_without_tree)
+        self.assertEqual(
+            failure.exception.errors,
+            ["blocks.design_tree is required by schema_version 2"],
+        )
+
     def test_validation_module_normalizes_traceability_ids_directly(self) -> None:
         manifest = base_manifest()
         manifest["blocks"] = {

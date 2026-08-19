@@ -1,4 +1,4 @@
-schema_version: 1
+schema_version: 2
 slug: "fixture-architecture-heavy"
 title: "Architecture-heavy PRD fixture"
 summary: The boundary between agent judgment and deterministic generation must remain explicit.
@@ -32,6 +32,26 @@ blocks:
     - id: "DEC-RESPONSIBILITY-BOUNDARY"
       decision: Agents own product judgment; the generator owns deterministic publication.
       rationale: The boundary preserves adaptability and repeatability.
+  design_tree:
+    - id: "NODE-RESPONSIBILITY-SPLIT"
+      label: Responsibility split
+      question: "Which side owns product judgment, and which side owns publication?"
+      status: settled
+      answer: The agent owns product judgment and the generator owns deterministic publication.
+      source: user
+      rationale: The split keeps discovery adaptable and output repeatable.
+      relates_to:
+        - "DEC-RESPONSIBILITY-BOUNDARY"
+      children:
+        - id: "NODE-RUNTIME-DEPENDENCY"
+          label: Runtime dependency
+          question: May the generator depend on one agent harness?
+          status: settled
+          answer: The generator stays standard-library-only and harness independent.
+          source: research
+          rationale: A portable bundle must open on a machine without the plugin.
+          evidence:
+            - "plugins/project-advisor/skills/to-prd/README.md states that no virtual environment, package installation, Node.js, or browser is required."
   risks:
     - id: "RISK-HARNESS-DEPENDENCY"
       risk: "The workflow assumes a Codex-specific preview or runtime."

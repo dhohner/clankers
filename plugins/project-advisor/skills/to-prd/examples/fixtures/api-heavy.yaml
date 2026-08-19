@@ -1,4 +1,4 @@
-schema_version: 1
+schema_version: 2
 slug: "fixture-api-heavy"
 title: "API-heavy PRD fixture"
 summary: Consumers need a stable readiness result without depending on internal scoring details.
@@ -26,6 +26,22 @@ blocks:
   failure_paths:
     - scenario: The submitted planning source is invalid.
       fallback: Return a concise validation failure and do not publish a partial result.
+  design_tree:
+    - id: "NODE-RESPONSE-SHAPE"
+      label: Response shape
+      question: Should the readiness response expose internal scores or a product-level status?
+      status: settled
+      answer: "A product-level status with blocking gaps, cautions, and a recommended next step."
+      source: user
+      rationale: Consumers stay stable when the internal scoring changes.
+      relates_to:
+        - "REQ-READINESS-CONTRACT"
+      children:
+        - id: "NODE-SCORE-EXPOSURE"
+          label: Score exposure
+          question: Which score fields belong in the response?
+          status: pruned
+          reason: "Score composition is an implementation choice, not a product decision."
   testing_strategy:
     - id: "TEST-READINESS-CONTRACT"
       target: Readiness response

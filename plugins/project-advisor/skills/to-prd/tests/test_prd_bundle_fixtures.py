@@ -40,6 +40,7 @@ class PrdBundleFixtureTests(unittest.TestCase):
                     preserved = load_yaml(
                         (bundle / "prd.yaml").read_text(encoding="utf-8")
                     )
+                    self.assertEqual(preserved["schema_version"], 2)
                     self.assertEqual(preserved["initiative_type"], initiative_type)
                     self.assertEqual(preserved["review_surfaces"], review_surfaces)
                     self.assertEqual(
