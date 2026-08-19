@@ -1,114 +1,81 @@
 ---
 name: simplify
-description: Clean up existing code by reducing duplication and improving quality and efficiency.
+description: Simplify existing code while preserving behavior and edit scope.
 disable-model-invocation: true
 ---
 
 # Simplify Changed Code
 
-Use this skill to clean up existing code without changing intended behavior.
+Apply safe simplifications instead of only reviewing code.
+Preserve intended behavior and the user's momentum.
+Leave ambiguous or risky changes for the user.
 
-The job is not just to review. The job is to identify safe simplifications, apply the ones that are clearly behavior-preserving, and leave the risky or ambiguous items for the user.
+An **edit region** is the smallest coherent unit that contains a changed hunk.
+Typical units are a function, method, class member, test case, or local block.
+Default to edit regions unless the user requests whole-file cleanup.
 
-## What this skill should optimize for
+Use another workflow for findings-only reviews, features, bug hunts, or architecture redesigns.
 
-- Reduce duplication and repeated literals where abstraction improves clarity.
-- Improve readability, structure, and maintainability.
-- Remove avoidable inefficiencies that matter in practice.
-- Keep the scope tight to the smallest enclosing changed region within the selected files unless the user explicitly asks for a broader pass.
-- Preserve behavior, public APIs, and the user's momentum.
+## 1. Determine scope
 
-## When not to use this skill
+Treat text after the invocation as focus guidance.
 
-Do not use this skill when the user primarily wants:
+Select files in this order:
 
-- A review with findings only and no edits.
-- A new feature or a bug investigation.
-- Broad architectural redesign.
-- Risky API changes or semantic rewrites.
+1. Use any user-specified files, directories, commits, or revision ranges.
+2. Otherwise, use staged files from `git diff --cached --name-only`.
+3. Otherwise, use latest-commit files from `git show --name-only --pretty='' HEAD`.
 
-## Inputs to capture
+Ask the user for files and stop when Git scope detection fails or produces an unusable result.
 
-Before doing any cleanup, determine:
+Exclude binary files, generated artifacts, lockfiles, and sourcemaps.
+Also exclude vendored directories such as `node_modules/` and `vendor/`.
 
-- Whether the user specified files, directories, a commit, or a revision range.
-- Whether the user explicitly wants only the changed regions or a broader whole-file pass. Default to changed regions.
-- Whether the user gave focus guidance such as readability, memory efficiency, or duplication.
-- Whether the repo defines enforceable conventions in a project rules file.
-
-If the user includes extra text after invoking the workflow, treat that text as focus guidance and prioritize matching concerns first.
-
-## Workflow
-
-### Step 1 - Determine target files
-
-Use this fallback order:
-
-1. If the user specifies files, a commit, or a range, use that exact scope.
-2. Else use staged changes via `git diff --cached --name-only`.
-3. Else use files from the latest commit via `git show --name-only --pretty='' HEAD`.
-
-If git-based scope detection fails because the directory is not a git repo, the repo has no commits, or the result is otherwise unusable, ask the user to specify files manually and stop.
-
-Apply these filtering rules:
-
-- Exclude binary files.
-- Exclude generated files such as lockfiles, `.min.js`, sourcemaps, and build artifacts.
-- Exclude vendored dependencies such as `node_modules/` and `vendor/`.
-
-If no eligible files remain, respond with exactly:
+If no eligible files remain, respond exactly:
 
 `No eligible files found in the selected scope.`
 
-If more than 15 files remain, list them and ask the user to confirm before proceeding. Offer to narrow the scope to a directory or smaller file set.
+If the scope exceeds 15 files, list the files and request narrowing or batches.
 
-### Step 1.5 - Determine the smallest enclosing changed region in each file
+Derive the selected diff and map each hunk to its edit region.
+Use each edit region as the default boundary.
+Widen only for required helpers, imports, types, or adjacent duplicated branches.
 
-Default to the smallest enclosing changed region that supports a coherent simplification.
+If the map is unavailable, ask for a current diff, revision range, or whole-file pass.
+Honor an explicit whole-file request and record it in the report.
 
-1. Derive a diff for the selected scope.
-2. For each hunk, map it to the smallest enclosing changed region, usually a function, method, class member, test case, or local block.
-3. Use that region as the default edit boundary.
-4. Only widen beyond that region when required for correctness, such as touching a directly shared helper, import, type, or adjacent duplicated branch.
-5. If the user explicitly asks for a whole-file cleanup, honor that request and say so in the report.
+Capture target-file status and current diffs as the **baseline** before editing.
+Preserve baseline changes and distinguish them from skill edits.
 
-If you cannot determine the smallest enclosing changed regions from git metadata or supplied context, ask the user whether to use the current diff, a specific revision range, or a whole-file pass.
+## 2. Load project rules
 
-### Step 2 - Load project rules
+Load every rules file that governs each target file.
+Search from the repository root through each target directory for `AGENTS.md` and `CLAUDE.md`.
+Also load applicable `.github/copilot-instructions.md` and `.cursorrules` files.
+Use repository-defined precedence when available.
+Otherwise, let rules nearest the target override broader rules.
 
-Look for project rules in this order:
+Extract enforceable naming, structure, pattern, and prohibition rules.
+If no rules exist, use language conventions and standard linter guidance.
 
-1. `AGENTS.md`
-2. `.github/copilot-instructions.md`
-3. `CLAUDE.md`
-4. `.cursorrules`
+## 3. Run three review passes
 
-Use the first file found and extract enforceable conventions such as naming, structure, preferred patterns, and forbidden practices.
+Read enough context to understand every edit region safely.
+Run exactly three independent passes with the same input package.
+Run the passes in parallel when isolated pass tools exist.
 
-If no rules file exists, continue with language-idiomatic conventions and normal linter sensibilities. In the final report, state:
+Include this input in every pass:
 
-`No project rules file found - using general best practices.`
+- Include the edit-region map and sufficient surrounding context.
+- Include applicable project rules or `none found - use general best practices`.
+- Include the user's focus guidance when present.
+- Require the finding format below, or an empty list when no meaningful issue exists.
 
-### Step 3 - Run three focused review passes in parallel
+Keep findings inside edit regions.
+Allow adjacent findings only when they directly support safe cleanup.
+Reserve unrelated whole-file findings for an explicit broad request.
 
-Read enough of every target file to understand the changed regions safely. Use the full file when the surrounding context is needed, but keep findings and edits anchored to the smallest enclosing changed regions unless the user asked for a broader pass.
-
-Then run exactly three review passes in parallel using the same input package for each pass.
-
-Shared input for every pass:
-
-- The smallest-enclosing-changed-region map for each target file, plus whatever surrounding file context is needed to reason safely.
-- The extracted project rules, or `none found - use general best practices`.
-- The user's focus guidance, if any.
-- The instruction to return a markdown list of findings using the required format below, or an empty list if nothing meaningful is found.
-
-Scope rule for every pass:
-
-- Prefer findings inside the changed regions.
-- Allow adjacent findings only when they directly support a safe cleanup of the changed code.
-- Do not propose unrelated whole-file tidy-ups just because they are visible.
-
-Required finding format:
+Use this finding format:
 
 ```md
 - **file**: `path/to/file`
@@ -119,121 +86,66 @@ Required finding format:
   **risk**: safe | caution | risky
 ```
 
-Interpret the risk labels this way:
+Use `safe` for behavior-preserving work.
+Use `caution` for possible behavior changes.
+Use `risky` for public API or semantic changes.
 
-- `safe`: behavior-preserving.
-- `caution`: could change behavior.
-- `risky`: changes public API or semantics.
+### 3.1. Code Reuse
 
-Run these three passes:
+Find duplicated logic, repeated literals, useful shared helpers, and copied parameter-only branches.
+Keep explicit test fixtures and small one-off paths when they are clearer.
 
-#### Code Reuse pass
+### 3.2. Code Quality
 
-Look for:
+Find weak names, mixed responsibilities, deep nesting, and feature envy.
+Also find comment defects, dead code, and project-rule violations.
+Replace clever structures when direct code is clearer.
 
-- Duplicated or near-duplicated logic across files or within one file.
-- Repeated literals that should become named constants.
-- Code that should become a shared helper, utility, or base abstraction.
-- Copy-pasted branches that differ only by parameters.
+### 3.3. Efficiency
 
-Do not flag repetition that is clearer left explicit, such as test fixtures or tiny, readable one-off code paths.
+Find avoidable loop work, repeated I/O, and redundant computation.
+Also find dead paths and material complexity improvements.
+Consider batching, caching, streaming, or lazy evaluation only when practical impact justifies them.
 
-#### Code Quality pass
+## 4. Resolve findings
 
-Look for:
+Process findings in this order:
 
-- Misleading or low-signal names.
-- Functions doing too many things.
-- Structural issues such as deep nesting or feature envy.
-- Missing, stale, or misleading comments.
-- Commented-out dead code.
-- Unnecessarily clever code that harms readability.
-- Violations of project rules.
+1. Merge findings about the same line, symbol, or cause, and keep the clearest suggestion.
+2. Resolve conflicts in favor of the smaller, safer change.
+3. Leave unresolved conflicts unchanged and report both suggestions.
+4. Prioritize findings that match the user's focus.
 
-#### Efficiency pass
+Apply findings by confidence and risk:
 
-Look for:
+- Apply `high` confidence and `safe` risk findings.
+- Apply `medium` confidence and `safe` risk findings only with targeted deterministic coverage.
+- Leave `low` confidence, `caution`, and `risky` findings unchanged.
 
-- Unnecessary allocations, copies, or conversions in loops.
-- Repeated I/O or query patterns that should be batched.
-- Algorithmic issues where a simpler complexity class is available.
-- Redundant computation or dead code paths.
-- Places where caching, streaming, or lazy evaluation would materially help.
+## 5. Apply fixes
 
-Do not micro-optimize code that is unlikely to matter.
+Prefer targeted refactors to broad rewrites.
+Edit only edit regions and the minimum adjacent code required for coherence.
+Preserve public APIs, exports, signatures, and intended behavior.
+Change them only on an explicit user request.
+Keep repetition when abstraction would reduce clarity.
 
-### Step 4 - Aggregate and resolve findings
+Update tests only when the refactor requires focused matching changes.
+Preserve test intent, coverage, and assertion strength.
+Keep skill edits unstaged.
 
-After the three passes complete:
+## 6. Validate
 
-1. Deduplicate overlapping findings that point at the same line, symbol, or underlying issue.
-2. Merge duplicates into one item and keep the most concrete suggestion.
-3. Detect contradictory suggestions. If two ideas conflict, prefer the smaller and safer change.
-4. If a conflict cannot be resolved safely, leave it unchanged and record both suggestions for the user.
-5. Prioritize items that match the user's focus guidance.
-6. Drop unrelated whole-file findings unless the user explicitly requested a broader cleanup.
+Run the narrowest relevant tests, type checks, and linters after editing.
+Inspect commands first and use only local validation without remote or shared side effects.
+Retain a medium-confidence fix only when targeted validation covers its behavior and passes.
+When a check fails and causality is unclear, reverse the candidate edit and rerun the failed check.
+If the failure persists, restore the candidate edit and report the failure as unrelated.
+Fix or reverse only the responsible skill edit when validation fails.
+Report actual commands, outcomes, coverage, and untested behavior.
 
-Apply this filter before editing:
+## 7. Report completion
 
-- Auto-apply `high` confidence plus `safe` risk fixes.
-- Auto-apply `medium` confidence plus `safe` risk fixes, but call them out in the report.
-- Do not auto-apply `low` confidence findings.
-- Do not auto-apply `caution` or `risky` findings.
-
-### Step 5 - Apply fixes
-
-When editing:
-
-- Prefer small, targeted refactors over broad rewrites.
-- Default to editing only the smallest enclosing changed regions, plus the minimal adjacent code needed to keep the result coherent.
-- Do not change public APIs, exports, function signatures, or intended behavior unless the user explicitly asked for that.
-- Do not remove or rewrite tests. If test code has issues, report them in `LEFT UNCHANGED` instead.
-- Keep all resulting changes unstaged so the user can inspect them.
-
-### Step 6 - Return a completion report
-
-Use this exact section structure:
-
-```md
-**SCOPE**
-
-- Source: staged changes | last commit | user-specified scope
-- Edit scope: smallest enclosing changed regions | widened for correctness | whole-file by user request
-- Files processed: N
-- Files skipped: N (with reasons if any were filtered)
-- Project rules: `filename` | none found
-- Focus: `<user focus text>` | none
-
-**AGENT FINDINGS**
-
-- Code Reuse: N findings (N high, N medium, N low)
-- Code Quality: N findings (N high, N medium, N low)
-- Efficiency: N findings (N high, N medium, N low)
-
-**APPLIED FIXES**
-
-- [ ] `file:line` - what changed - why - confidence
-
-**LEFT UNCHANGED**
-
-- [ ] `file:line` - reason not auto-fixed (low confidence | risk | conflict | test code)
-
-**SUMMARY**
-
-- Total fixes applied: N
-- Remaining manual items: N
-- Confidence: High | Medium | Low
-- Rollback: `git checkout -- <files>` to undo all changes
-```
-
-If no meaningful improvements are found, respond with exactly:
-
-`No material simplifications found in the selected changes.`
-
-## Practical guidance
-
-- Behavior preservation matters more than elegance.
-- Do not force abstractions where a small amount of repetition is clearer.
-- Make the user's review easy: few files touched, clear diffs, low-risk edits.
-- Treat untouched parts of the same file as out of scope by default. Mention them in `LEFT UNCHANGED` if they are worth noting, but do not edit them unless they directly support the smallest enclosing changed region.
-- When the user gave focus guidance, resolve those items first even if other safe cleanups also exist.
+After validation, read [REPORT.md](REPORT.md) and use its applicable template exactly.
+Make review easy with few touched files, clear diffs, and explicit low-risk edits.
+Mention valuable out-of-scope findings without editing them.
