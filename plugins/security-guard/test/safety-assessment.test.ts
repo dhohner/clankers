@@ -42,8 +42,9 @@ function makeRequest(registry = makeRegistry(), signal?: AbortSignal) {
 }
 
 describe("evaluator provider constants", () => {
-  it("keeps the deprecated singular constant aliased to the preferred provider", () => {
+  it("keeps direct OpenAI preferred and includes both subscription providers", () => {
     expect(SAFETY_EVALUATOR_PROVIDER).toBe("openai");
+    expect(SAFETY_EVALUATOR_PROVIDERS).toEqual(["openai", "openai-codex", "github-copilot"]);
     expect(SAFETY_EVALUATOR_PROVIDERS[0]).toBe(SAFETY_EVALUATOR_PROVIDER);
   });
 });
@@ -124,7 +125,7 @@ describe("evaluateCommandSafety", () => {
     await expect(evaluateCommandSafety(makeRequest(registry))).resolves.toMatchObject({ ok: true });
   });
 
-  it("falls back to github-copilot when the openai model is not available", async () => {
+  it("falls back to the OpenAI subscription provider when the direct OpenAI model is not available", async () => {
     const registry = makeRegistry({
       find: vi.fn((provider: string, modelId: string) =>
         provider === "openai" ? undefined : { provider, id: modelId },
@@ -136,12 +137,12 @@ describe("evaluateCommandSafety", () => {
     expect(evaluation).toMatchObject({ ok: true });
     expect(registry.find.mock.calls).toEqual([
       ["openai", "gpt-5.6-luna"],
-      ["github-copilot", "gpt-5.6-luna"],
+      ["openai-codex", "gpt-5.6-luna"],
     ]);
-    expect(registry.complete.mock.calls[0]?.[0]).toMatchObject({ provider: "github-copilot" });
+    expect(registry.complete.mock.calls[0]?.[0]).toMatchObject({ provider: "openai-codex" });
   });
 
-  it("falls back to github-copilot when openai authentication is not configured", async () => {
+  it("falls back to the OpenAI subscription provider when direct OpenAI authentication is not configured", async () => {
     const registry = makeRegistry({
       hasConfiguredAuth: vi.fn((model: { provider: string }) => model.provider !== "openai"),
     });
@@ -149,15 +150,26 @@ describe("evaluateCommandSafety", () => {
     const evaluation = await evaluateCommandSafety(makeRequest(registry));
 
     expect(evaluation).toMatchObject({ ok: true });
-    expect(registry.complete.mock.calls[0]?.[0]).toMatchObject({ provider: "github-copilot" });
+    expect(registry.complete.mock.calls[0]?.[0]).toMatchObject({ provider: "openai-codex" });
   });
 
-  it("falls back to github-copilot when the openai model lookup throws", async () => {
+  it("falls back to the OpenAI subscription provider when the direct OpenAI model lookup throws", async () => {
     const registry = makeRegistry({
       find: vi.fn((provider: string, modelId: string) => {
         if (provider === "openai") throw new Error("registry unavailable");
         return { provider, id: modelId };
       }),
+    });
+
+    const evaluation = await evaluateCommandSafety(makeRequest(registry));
+
+    expect(evaluation).toMatchObject({ ok: true });
+    expect(registry.complete.mock.calls[0]?.[0]).toMatchObject({ provider: "openai-codex" });
+  });
+
+  it("falls back to GitHub Copilot when neither OpenAI authentication path is configured", async () => {
+    const registry = makeRegistry({
+      hasConfiguredAuth: vi.fn((model: { provider: string }) => model.provider === "github-copilot"),
     });
 
     const evaluation = await evaluateCommandSafety(makeRequest(registry));
@@ -176,10 +188,12 @@ describe("evaluateCommandSafety", () => {
       expect(evaluation.reason).toContain(SAFETY_EVALUATION_BLOCK_PREFIX);
       expect(evaluation.reason).toContain("gpt-5.6-luna");
       expect(evaluation.reason).toContain("openai");
+      expect(evaluation.reason).toContain("openai-codex");
       expect(evaluation.reason).toContain("github-copilot");
     }
     expect(registry.find.mock.calls).toEqual([
       ["openai", "gpt-5.6-luna"],
+      ["openai-codex", "gpt-5.6-luna"],
       ["github-copilot", "gpt-5.6-luna"],
     ]);
     expect(registry.complete).not.toHaveBeenCalled();
@@ -206,6 +220,7 @@ describe("evaluateCommandSafety", () => {
     expect(evaluation.ok).toBe(false);
     if (!evaluation.ok) {
       expect(evaluation.reason).toContain("openai: no authentication is configured");
+      expect(evaluation.reason).toContain("openai-codex: no authentication is configured");
       expect(evaluation.reason).toContain("github-copilot: no authentication is configured");
     }
     expect(registry.complete).not.toHaveBeenCalled();
