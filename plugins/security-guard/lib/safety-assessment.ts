@@ -1,9 +1,10 @@
 import type { ModelRegistry } from "@earendil-works/pi-coding-agent";
 
-// Providers that serve the evaluator model, in preference order: OpenAI stays primary and GitHub
-// Copilot is the fallback. The first provider with the model in the catalog and configured
-// authentication is used; there is no per-request failover between providers.
-export const SAFETY_EVALUATOR_PROVIDERS = ["openai", "github-copilot"] as const;
+// Providers that serve the evaluator model, in preference order: direct OpenAI API access stays
+// primary, OpenAI subscription access is next, and GitHub Copilot is the final fallback. The first
+// provider with the model in the catalog and configured authentication is used; there is no
+// per-request failover between providers.
+export const SAFETY_EVALUATOR_PROVIDERS = ["openai", "openai-codex", "github-copilot"] as const;
 /** @deprecated Use SAFETY_EVALUATOR_PROVIDERS; kept so existing imports keep compiling. */
 export const SAFETY_EVALUATOR_PROVIDER = SAFETY_EVALUATOR_PROVIDERS[0];
 export const SAFETY_EVALUATOR_MODEL_ID = "gpt-5.6-luna";
