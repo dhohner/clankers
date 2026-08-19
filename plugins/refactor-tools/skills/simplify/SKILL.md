@@ -47,6 +47,9 @@ Honor an explicit whole-file request and record it in the report.
 Capture target-file status and current diffs as the **baseline** before editing.
 Preserve baseline changes and distinguish them from skill edits.
 
+Scope is complete when every eligible file has an edit-region map and a recorded baseline.
+Record every excluded file and its reason.
+
 ## 2. Load project rules
 
 Load every rules file that governs each target file.
@@ -58,37 +61,25 @@ Otherwise, let rules nearest the target override broader rules.
 Extract enforceable naming, structure, pattern, and prohibition rules.
 If no rules exist, use language conventions and standard linter guidance.
 
+Rule loading is complete when every target file has a resolved rule set or the documented fallback.
+
 ## 3. Run three review passes
 
 Read enough context to understand every edit region safely.
 Run exactly three independent passes with the same input package.
 Run the passes in parallel when isolated pass tools exist.
 
+Read [the finding template](references/finding-template.md) before running the passes.
 Include this input in every pass:
 
 - Include the edit-region map and sufficient surrounding context.
 - Include applicable project rules or `none found - use general best practices`.
 - Include the user's focus guidance when present.
-- Require the finding format below, or an empty list when no meaningful issue exists.
+- Require the referenced output format.
 
 Keep findings inside edit regions.
 Allow adjacent findings only when they directly support safe cleanup.
 Reserve unrelated whole-file findings for an explicit broad request.
-
-Use this finding format:
-
-```md
-- **file**: `path/to/file`
-  **line**: L or L-L range
-  **issue**: one-sentence description of the problem
-  **suggestion**: concrete code change or refactor to apply
-  **confidence**: high | medium | low
-  **risk**: safe | caution | risky
-```
-
-Use `safe` for behavior-preserving work.
-Use `caution` for possible behavior changes.
-Use `risky` for public API or semantic changes.
 
 ### 3.1. Code Reuse
 
@@ -105,7 +96,9 @@ Replace clever structures when direct code is clearer.
 
 Find avoidable loop work, repeated I/O, and redundant computation.
 Also find dead paths and material complexity improvements.
-Consider batching, caching, streaming, or lazy evaluation only when practical impact justifies them.
+Use batching, caching, streaming, or lazy evaluation only for practical, material gains.
+
+Review is complete when all three passes cover each edit region and return the required output.
 
 ## 4. Resolve findings
 
@@ -122,6 +115,8 @@ Apply findings by confidence and risk:
 - Apply `medium` confidence and `safe` risk findings only with targeted deterministic coverage.
 - Leave `low` confidence, `caution`, and `risky` findings unchanged.
 
+Resolution is complete when every distinct finding has one apply or leave-unchanged decision.
+
 ## 5. Apply fixes
 
 Prefer targeted refactors to broad rewrites.
@@ -134,6 +129,8 @@ Update tests only when the refactor requires focused matching changes.
 Preserve test intent, coverage, and assertion strength.
 Keep skill edits unstaged.
 
+Editing is complete when each apply decision is implemented and the baseline remains intact.
+
 ## 6. Validate
 
 Run the narrowest relevant tests, type checks, and linters after editing.
@@ -144,8 +141,16 @@ If the failure persists, restore the candidate edit and report the failure as un
 Fix or reverse only the responsible skill edit when validation fails.
 Report actual commands, outcomes, coverage, and untested behavior.
 
+Validation is complete when every applicable check has a recorded result and all gaps are reported.
+
 ## 7. Report completion
 
-After validation, read [REPORT.md](REPORT.md) and use its applicable template exactly.
-Make review easy with few touched files, clear diffs, and explicit low-risk edits.
-Mention valuable out-of-scope findings without editing them.
+Follow one report template exactly:
+
+- Read [standard report](references/standard-report.md) when a fix or unchanged finding exists.
+- Read [no-change report](references/no-change-report.md) when no meaningful finding exists.
+
+Replace its placeholders with observed values.
+List incidental out-of-scope findings under `LEFT UNCHANGED` with a `scope` reason.
+
+Reporting is complete when the report accounts for every finding, edit, check, and exclusion.

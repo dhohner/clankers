@@ -1,16 +1,10 @@
-# Completion Report
-
-Use the standard template when fixes or manual items exist.
-Use the no-change template only when no meaningful finding exists.
-Replace every placeholder with an observed value.
-
-## Standard template
+# Standard Report
 
 ```md
 **RESULT**
 
 - Fixes applied: N
-- Manual items: N
+- Findings left unchanged: N
 - Confidence: High | Medium | Low
 
 **SCOPE**
@@ -18,7 +12,7 @@ Replace every placeholder with an observed value.
 - Source: staged changes | last commit | user-specified scope
 - Edit scope: edit regions | widened for correctness | whole-file by user request
 - Files processed: N
-- Files skipped: N (reasons)
+- Files skipped: 0 | N (`path` - reason; ...)
 - Project rules: `paths` | none - general best practices applied
 - Focus: `<user focus text>` | none
 - Baseline changes preserved: yes | no (details)
@@ -47,23 +41,6 @@ Replace every placeholder with an observed value.
 - Reverse only the applied hunks listed above and preserve baseline changes.
 ```
 
-Omit `APPLIED FIXES` or `LEFT UNCHANGED` when that section has no items.
-List each validation command separately.
-Never claim validation from code inspection alone.
-
-## No-change template
-
-```md
-**RESULT**
-
-No material simplifications found.
-
-**SCOPE**
-
-- Source: staged changes | last commit | user-specified scope
-- Edit scope: edit regions | whole-file by user request
-- Files processed: N
-- Files skipped: N (reasons)
-- Project rules: `paths` | none - general best practices applied
-- Focus: `<user focus text>` | none
-```
+Omit empty `APPLIED FIXES` and `LEFT UNCHANGED` sections.
+List validation commands separately.
+Base validation claims on observed command results.
