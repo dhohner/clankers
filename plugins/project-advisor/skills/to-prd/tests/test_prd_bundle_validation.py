@@ -652,8 +652,8 @@ class PrdBundleValidationTests(unittest.TestCase):
         normalized = BUNDLE.validate_manifest(design_tree_manifest([node]))
         document = BUNDLE.render_document(normalized)
 
-        self.assertEqual(depth, document.count('class="tree-node"'))
-        self.assertIn(f'id="node-{depth:04d}"', document)
+        self.assertEqual(depth, document.count("NODE-"))
+        self.assertIn(f"NODE-{depth:04d} Leaf (Pruned)", document)
 
     def test_design_tree_nodes_stay_off_the_coverage_board(self) -> None:
         manifest = design_tree_manifest(

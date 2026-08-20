@@ -149,6 +149,22 @@ def entity_label(entity_id: str) -> str:
     return f"{prefix.upper()}-{suffix.upper()}"
 
 
+# A tree block publishes as one graph, so its nodes carry no anchor of their own
+# and a reference to a node points at the block section that draws it.
+_TREE_BLOCK_BY_ID_PREFIX = {
+    spec.id_prefix: name
+    for name, spec in BLOCK_SPECS.items()
+    if spec.kind == "tree" and spec.id_prefix
+}
+
+
+def entity_anchor(entity_id: str) -> str:
+    """Return the in-page anchor that a reference to this entity may link to."""
+
+    prefix, _, _ = entity_id.partition("-")
+    return _TREE_BLOCK_BY_ID_PREFIX.get(prefix, entity_id)
+
+
 def iter_tree_nodes(nodes: list[dict]) -> Iterator[dict]:
     """Yield every design tree node in document order, parents before children.
 
@@ -184,6 +200,7 @@ __all__ = [
     "SLUG_PATTERN",
     "TEMPLATE_MARKER_PATTERN",
     "BlockSpec",
+    "entity_anchor",
     "entity_label",
     "iter_tree_nodes",
     "normalize_entity_id",

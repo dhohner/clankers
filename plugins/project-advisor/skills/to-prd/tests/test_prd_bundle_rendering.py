@@ -209,7 +209,7 @@ class PrdBundleRenderingTests(unittest.TestCase):
         self.assertNotIn("<Client>", document)
         self.assertNotIn('class="diagram-surface native-diagram"', document)
 
-    def test_design_tree_renders_one_graph_and_every_node_in_the_decisions_area(self) -> None:
+    def test_design_tree_renders_one_graph_in_the_decisions_area(self) -> None:
         manifest = base_manifest()
         manifest["blocks"] = {
             "decisions": sample_block("decisions"),
@@ -272,10 +272,10 @@ class PrdBundleRenderingTests(unittest.TestCase):
         self.assertEqual(1, document.count('id="design_tree-mermaid-source"'))
         self.assertEqual(
             "flowchart TB\n"
-            '  n1["NODE-01 Output surface"]\n'
-            '  n2["NODE-02 Graph library"]\n'
-            '  n3[/"NODE-03 Node styling"/]\n'
-            '  n4(["NODE-04 Depth limit"])\n'
+            '  n1["NODE-01 Output surface (Settled)"]\n'
+            '  n2["NODE-02 Graph library (Settled)"]\n'
+            '  n3[/"NODE-03 Node styling (Pruned)"/]\n'
+            '  n4(["NODE-04 Depth limit (Deferred)"])\n'
             "  n1 --> n2\n"
             "  n1 --> n3\n"
             "  n1 --> n4\n"
@@ -290,25 +290,47 @@ class PrdBundleRenderingTests(unittest.TestCase):
             "  class n4 deferred",
             source,
         )
-        for identity in ("node-01", "node-02", "node-03", "node-04"):
-            self.assertEqual(1, document.count(f'id="{identity}" class="tree-node"'))
-        for question in (
+        self.assertNotIn('class="tree-node"', document)
+        self.assertNotIn('<ol class="design-tree">', document)
+        for node_text in (
             "Where does the design tree get published?",
-            "Which renderer draws the graph?",
-            "Which colours mark a pruned branch?",
-            "How deep may the tree grow?",
+            "In the generated bundle.",
+            "In a separate file.",
+            "Styling is an implementation choice.",
+            "bundle/assets/app.js pins mermaid",
         ):
-            self.assertIn(question, document)
-        self.assertIn("In the generated bundle.", document)
-        self.assertIn("<dt>Superseded answer</dt><dd>In a separate file.</dd>", document)
-        self.assertIn("<dt>Reason</dt><dd>Styling is an implementation choice.</dd>", document)
-        self.assertIn("<dt>Source</dt><dd>Research</dd>", document)
-        self.assertIn("<code>bundle/assets/app.js pins mermaid</code>", document)
-        self.assertIn('href="#question-01"', document)
-        self.assertIn('<span class="tree-status-word">Deferred</span>', document)
-        self.assertIn('<ol class="tree-branches">', document)
+            self.assertNotIn(node_text, document)
 
-    def test_a_deep_design_tree_renders_in_memory_proportional_to_its_output(self) -> None:
+    def test_a_reference_to_a_tree_node_links_to_the_graph_section(self) -> None:
+        manifest = base_manifest()
+        manifest["blocks"] = {
+            "decisions": [
+                {
+                    "id": "DEC-01",
+                    "decision": "The bundle draws the interview as one Mermaid graph.",
+                    "rationale": "A reviewer reads the branches faster than a card stack.",
+                    "relates_to": ["NODE-01"],
+                }
+            ],
+            "design_tree": [
+                {
+                    "id": "NODE-01",
+                    "label": "Output shape",
+                    "question": "How does the tree reach the reviewer?",
+                    "status": "settled",
+                    "answer": "As a graph.",
+                    "source": "user",
+                    "rationale": "The graph carries the branch structure.",
+                }
+            ],
+        }
+
+        document = BUNDLE.render_document(BUNDLE.validate_manifest(manifest))
+
+        self.assertIn('<a class="cue-code" href="#design_tree">NODE-01</a>', document)
+        self.assertNotIn('href="#node-01"', document)
+
+    def test_a_deep_design_tree_graphs_in_memory_proportional_to_its_output(self) -> None:
         depth = 800
         node = {
             "id": f"NODE-{depth:04d}",
@@ -339,11 +361,11 @@ class PrdBundleRenderingTests(unittest.TestCase):
         finally:
             tracemalloc.stop()
 
-        self.assertEqual(depth, document.count('class="tree-node"'))
-        # Keeping a rendered subtree per node made this depth peak above 170 MiB.
+        self.assertEqual(depth, document.count("NODE-"))
+        self.assertIn(f"NODE-{depth:04d} Leaf (Pruned)", document)
         self.assertLess(peak, 32 * 1024 * 1024)
 
-    def test_design_tree_text_stays_escaped_in_the_graph_and_the_list(self) -> None:
+    def test_design_tree_text_stays_escaped_in_the_graph(self) -> None:
         manifest = base_manifest()
         manifest["blocks"] = {
             "design_tree": [
@@ -363,12 +385,12 @@ class PrdBundleRenderingTests(unittest.TestCase):
         document = BUNDLE.render_document(normalized)
         source = BUNDLE.tree_mermaid_source(normalized["blocks"]["design_tree"])
 
-        self.assertEqual("flowchart TB\n  n1[\"NODE-01 The 'quoted' <label>\"]\n"
+        self.assertEqual("flowchart TB\n  n1[\"NODE-01 The 'quoted' <label> (Settled)\"]\n"
                          "  classDef settled fill:#101a33,stroke:#8497ff,stroke-width:1.4px,"
                          "color:#e7e9f2\n  class n1 settled", source)
-        self.assertIn("&lt;script&gt;", document)
-        self.assertNotIn("<script> tag survive", document)
         self.assertIn("&lt;label&gt;", document)
+        self.assertNotIn("<label>", document)
+        self.assertNotIn("script&gt; tag survive", document)
 
     def test_design_tree_survives_generation_and_bundle_revalidation(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:

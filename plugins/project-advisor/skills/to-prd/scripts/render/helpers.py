@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import html
 
-from ..spec import entity_label
+from ..spec import entity_anchor, entity_label
 
 CATEGORY_LABELS = {
     "framing": "Framing",
@@ -58,7 +58,7 @@ def render_relationship_row(label: str, references: list[str]) -> str:
     if not references:
         return ""
     links = ", ".join(
-        f'<a class="cue-code" href="#{escape_html(reference)}">'
+        f'<a class="cue-code" href="#{escape_html(entity_anchor(reference))}">'
         f"{escape_html(entity_label(reference))}</a>"
         for reference in references
     )

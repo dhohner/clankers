@@ -47,7 +47,8 @@ Preserve an ID while its entity's meaning remains stable, and connect entities t
 
 The `design_tree` block records the interview as an ordered list of root nodes, each with optional `children`.
 Version 2 requires the block, and version 1 accepts it.
-It renders next to the decision log, so a reviewer reads a decision beside the question that produced it.
+It renders next to the decision log as a single Mermaid graph whose nodes name their id, label, and status; the full node text stays in `prd.yaml`.
+A reference to a `NODE-*` id links to that graph, because the graph is the node's review surface.
 
 - Every node names an explicit `NODE-*` id, a short `label`, the verbatim `question`, and a `status`; nested nodes follow the same rule.
 - A node id is never generated from its position, because a revision that inserts a branch must not renumber the nodes an earlier review already read.
