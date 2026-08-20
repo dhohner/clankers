@@ -7,14 +7,6 @@
 }
 
 @font-face {
-  font-family: "Saira Stencil One";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("./fonts/saira-stencil-one-latin.woff2") format("woff2");
-}
-
-@font-face {
   font-family: "Martian Mono";
   font-style: normal;
   font-weight: 400 700;
@@ -62,7 +54,7 @@
   --radius: 12px;
   --radius-sm: 7px;
 
-  --font-display: "Saira Stencil One", "Martian Mono", ui-monospace, monospace;
+  --font-display: Archivo, ui-sans-serif, system-ui, "Helvetica Neue", sans-serif;
   --font-body: Archivo, ui-sans-serif, system-ui, "Helvetica Neue", sans-serif;
   --font-mono: "Martian Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
@@ -478,11 +470,10 @@ h1 {
   color: var(--ink-strong);
   font-family: var(--font-display);
   font-size: clamp(1.75rem, 3.4vw, 3.25rem);
-  font-weight: 400;
-  letter-spacing: .005em;
-  line-height: 1.08;
+  font-weight: 700;
+  letter-spacing: -.032em;
+  line-height: 1.03;
   overflow-wrap: break-word;
-  text-transform: uppercase;
   text-wrap: balance;
 }
 
@@ -680,11 +671,11 @@ h1 {
   margin: 0;
   font-family: var(--font-display);
   font-size: clamp(1.3rem, 2.1vw, 1.85rem);
-  font-weight: 400;
-  letter-spacing: .01em;
-  line-height: 1.14;
+  font-weight: 700;
+  letter-spacing: -.022em;
+  line-height: 1.12;
   overflow-wrap: break-word;
-  text-transform: uppercase;
+  text-wrap: balance;
 }
 
 .cue h2 a {

@@ -124,21 +124,25 @@ class PrdBundleAssetsTests(unittest.TestCase):
         self.assertIn("@font-face", styles)
         self.assertIn('src: url("./fonts/archivo-latin.woff2") format("woff2")', styles)
         self.assertIn('src: url("./fonts/martian-mono-latin.woff2") format("woff2")', styles)
-        self.assertIn('src: url("./fonts/saira-stencil-one-latin.woff2") format("woff2")', styles)
         self.assertIn("font-display: swap", styles)
-        # The display register is the world's stencil, not a heavier mono.
-        self.assertIn('--font-display: "Saira Stencil One"', styles)
+        # Headings are the body grotesk at its heaviest cut, so the bundle ships no
+        # third face and headings never reach for a display costume.
+        self.assertIn("--font-display: Archivo,", styles)
+        self.assertNotIn("Saira Stencil One", styles)
         self.assertIn("font-family: var(--font-display)", styles)
         for asset in (
             "archivo-latin.woff2",
             "martian-mono-latin.woff2",
-            "saira-stencil-one-latin.woff2",
         ):
             self.assertTrue(
                 (SOURCE_ASSETS / "fonts" / asset).is_file(),
                 f"{asset} must ship inside the bundle so type is identical everywhere",
             )
-        for licence in ("OFL-Archivo.txt", "OFL-MartianMono.txt", "OFL-SairaStencilOne.txt"):
+        self.assertFalse(
+            any((SOURCE_ASSETS / "fonts").glob("saira*")),
+            "the retired stencil face must not ship as dead weight",
+        )
+        for licence in ("OFL-Archivo.txt", "OFL-MartianMono.txt"):
             self.assertIn(
                 "SIL Open Font License",
                 (SOURCE_ASSETS / "fonts" / licence).read_text(encoding="utf-8"),
