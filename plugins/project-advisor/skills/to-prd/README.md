@@ -18,6 +18,7 @@ action-items/PRD-<slug>/
 ```
 
 `prd.yaml` is the normalized planning source.
+Version 2 requires it to publish the interview design tree beside the decisions.
 `index.html` is the human review surface.
 Assets are copied into the bundle so it can be reviewed without installing the plugin, including the two OFL-licensed faces and their license texts, so typography is identical on every machine.
 
@@ -79,6 +80,7 @@ If no preview mechanism is available, provide the absolute `index.html` path and
 - `examples/basic-prd.yaml`: broad mixed-initiative example.
 - `examples/fixtures/*.yaml`: focused examples by initiative type.
 - `bundle/`: canonical HTML shell and versioned assets.
+- `evals/`: regression prompts and expectations.
 
 ## Test
 

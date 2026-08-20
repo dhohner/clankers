@@ -37,7 +37,25 @@ The _decisions_ are the user's - put each to them and wait.
 A question belongs in `open_questions` only if it is **unaskable now**: it waits on a fact that cannot be found in the environment today.
 Every other uncertainty is a decision the user can make now, so ask it instead.
 
-**Complete when:** the frontier is empty - every branch of the design tree visited, nothing left silently assumed - and the user confirms the shared understanding.
+Prepare one non-colliding scratch manifest before the first round.
+Keep this file through step 2.
+For a revision, copy the existing manifest.
+For a new PRD, create it from `template --blocks design_tree`.
+Replace every template node with the first recorded round.
+
+After each answered round, write its nodes to `blocks.design_tree` before asking the next round.
+Every node records an explicit `NODE-*` id, a short `label`, the verbatim `question`, and a `status`.
+Nest dependent decisions under their parent's `children`.
+
+- `settled`: the user answered or research supplied the fact; record `answer`, `source`, and `rationale`.
+- `pruned`: the branch left PRD scope; record `reason`.
+- `deferred`: the question is unaskable today; link its open question through `relates_to` instead of an answer.
+
+Use `source: user` for user decisions.
+Use `source: research` and `evidence` for research findings.
+The tree records product decisions only; prune questions when they reach implementation.
+
+**Complete when:** the frontier is empty, every visited branch is recorded, no assumption remains, and the user confirms the shared understanding.
 
 ## 2. Author the working manifest
 
@@ -46,10 +64,11 @@ Keep the working manifest outside `action-items/PRD-*`; that directory is a publ
 
 ### Revise an existing PRD
 
-1. Copy the existing manifest to a non-colliding scratch path.
+1. Continue in the scratch copy that step 1 opened.
 2. Edit only the YAML paths required by the feedback or resolved questions.
-3. Preserve unrelated text, ordering, initiative type, review surfaces, and stable IDs.
-4. Rewrite the full manifest only when the user requests a broad initiative-shape change or the YAML cannot be repaired safely.
+3. Set each changed node's `answer` to the current understanding and `superseded_answer` to its earlier answer.
+4. Preserve unrelated text, ordering, initiative type, review surfaces, and stable IDs.
+5. Rewrite the manifest only for a broad initiative-shape change or YAML that cannot be repaired safely.
 
 ### Author a new PRD
 
@@ -63,7 +82,9 @@ python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py template --blo
 
 Choose `initiative_type`, derive its required review surfaces from `schema --authoring`, and select blocks only when they improve a product decision.
 Every initiative includes `document`; `mixed` also includes at least two non-document surfaces.
-After selecting blocks, run one multi-block `schema` call and create a non-colliding scratch manifest from `template --blocks`.
+After selecting blocks, run one multi-block `schema` call.
+Read their shapes from `template --blocks`.
+Add them to the existing scratch manifest while preserving its recorded tree.
 Use [examples/minimal-prd.yaml](./examples/minimal-prd.yaml) for the smallest skeleton, `examples/fixtures/` for one focused surface, and [examples/basic-prd.yaml](./examples/basic-prd.yaml) only for a broad mixed initiative.
 Read [references/manifest-contract.md](./references/manifest-contract.md) only when CLI output, focused fixtures, and validation errors do not settle the contract.
 

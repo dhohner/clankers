@@ -1,0 +1,67 @@
+schema_version: 2
+slug: bundle-review-notes
+title: Reviewer Notes in the PRD Bundle
+summary: A reviewer records a remark beside the bundle section it belongs to.
+status: Draft for review
+initiative_type: small-feature
+review_surfaces:
+  - document
+metadata:
+  Owner: Product advisor team
+blocks:
+  problem:
+    statement: A published PRD bundle has no place for a remark beside a section.
+    evidence:
+      - A remark that moves to chat loses the section it belongs to.
+  requirements:
+    - id: REQ-01
+      title: Note beside a section
+      description: A reviewer records a note against one rendered section of the bundle.
+      validation:
+        - TEST-01
+    - id: REQ-02
+      title: Local-only notes
+      description: A note stays on the reviewer's machine and reaches no server.
+      validation:
+        - TEST-01
+  decisions:
+    - id: DEC-01
+      decision: A note stays on the reviewer's own machine.
+      rationale: The bundle stays a local review artifact and works without a network.
+      relates_to:
+        - REQ-02
+  design_tree:
+    - id: NODE-01
+      label: Note anchor
+      question: What does a reviewer note attach to in the bundle?
+      status: settled
+      answer: One rendered section of the bundle.
+      source: user
+      rationale: A note beside its section keeps the remark and its subject together.
+      relates_to:
+        - REQ-01
+      children:
+        - id: NODE-02
+          label: Note storage location
+          question: Where does a reviewer note live after the reviewer writes it?
+          status: settled
+          answer: Only on the reviewer's own machine.
+          source: user
+          rationale: A local note keeps the bundle usable without a network.
+          relates_to:
+            - REQ-02
+        - id: NODE-03
+          label: Note data format
+          question: Which data format stores a reviewer note?
+          status: pruned
+          reason: The storage format is an implementation decision below PRD altitude.
+  open_questions:
+    - id: QUESTION-01
+      question: Will the unchosen internal review portal host published bundles next year?
+  testing_strategy:
+    - id: TEST-01
+      target: Reviewer note
+      expected_outcome: A note appears beside its section and no request leaves the machine.
+      validates:
+        - REQ-01
+        - REQ-02

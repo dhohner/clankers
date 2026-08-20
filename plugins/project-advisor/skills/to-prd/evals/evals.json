@@ -1,0 +1,46 @@
+{
+  "skill_name": "to-prd",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Write a PRD from plugins/project-advisor/skills/to-prd/evals/inputs/brief-bundle-review-notes.md. Conduct a short interview. Ask each round, use your recommendations as my answers, and continue without waiting. Research repository facts yourself. Accept and publish the PRD.",
+      "expected_output": "A published action-items/PRD-<slug>/ bundle whose design_tree records asked questions, statuses, and settled-node sources.",
+      "files": [
+        "evals/inputs/brief-bundle-review-notes.md"
+      ],
+      "expectations": [
+        "A published bundle exists under action-items/PRD-<slug>/ and contains index.html, prd.yaml, and local assets.",
+        "The published prd.yaml declares schema_version 2 and carries a non-empty design_tree block.",
+        "Every design_tree node has an id, short label, question, and settled, pruned, or deferred status; NODE-* ids publish as node-*.",
+        "Recorded questions match the interview verbatim and remain questions rather than answer summaries.",
+        "Every settled node carries an answer, a source, and a rationale.",
+        "At least one researched node uses source research and evidence with real repository paths, such as bundle assets.",
+        "At least one node answered by the user names source user.",
+        "Note storage format is absent or pruned with a reason because it is an implementation decision.",
+        "The unanswerable review-portal question appears in open_questions; any matching tree node is deferred and relates_to it.",
+        "The tree stays at PRD altitude: no node records a code-level or implementation choice as a settled product decision.",
+        "Dependent decisions are children of their prerequisite decision rather than root nodes.",
+        "The published prd.yaml reads status: Accepted, because the agent accepted the PRD at the review gate.",
+        "The manifest requirements and decisions stay consistent with the brief's settled decisions: a note belongs to one section and stays on the reviewer's machine."
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "Revise plugins/project-advisor/skills/to-prd/evals/inputs/prd-bundle-review-notes.yaml. A reviewer can now export notes and send the file to a colleague, so notes are not local-only. Use your recommended follow-up answers without waiting. Publish the revision in review.",
+      "expected_output": "A republished bundle whose design_tree preserves node ids, records the current answer, and stores the earlier answer in superseded_answer.",
+      "files": [
+        "evals/inputs/prd-bundle-review-notes.yaml"
+      ],
+      "expectations": [
+        "The revised prd.yaml keeps node-01, node-02, and node-03 with their original meanings.",
+        "The note-location node states the new answer and keeps the local-only answer as superseded_answer.",
+        "The tree states the current shared understanding: no settled node still presents the replaced answer as the answer.",
+        "Each new revision question has a new NODE-* id, question, status, and source.",
+        "The pruned storage-format node stays pruned and keeps its reason.",
+        "The problem statement, REQ-01, TEST-01, and open question remain unchanged.",
+        "The published prd.yaml is not Accepted because the revision returns it to review.",
+        "Validation, generation, and inspection of the revised manifest pass."
+      ]
+    }
+  ]
+}
