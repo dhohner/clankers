@@ -1,6 +1,8 @@
+import { execFile } from "node:child_process";
 import { lstat, realpath } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, isAbsolute, relative } from "node:path";
+import { promisify } from "node:util";
 
 // Identifies a directory by filesystem identity rather than by path, so a directory that is removed and
 // recreated (or swapped for another one) at the same path is not mistaken for the one we tracked.
@@ -12,11 +14,25 @@ const DEFAULT_MAX_TRACKED = 128;
 
 let canonicalTemporaryRoots: Promise<string[]> | undefined;
 
+const execFileAsync = promisify(execFile);
+
+async function getDarwinUserTemporaryRoot(): Promise<string | undefined> {
+  if (process.platform !== "darwin") return undefined;
+
+  try {
+    const { stdout } = await execFileAsync("/usr/bin/getconf", ["DARWIN_USER_TEMP_DIR"], { encoding: "utf8" });
+    return stdout.trim() || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function getCanonicalTemporaryRoots(): Promise<string[]> {
   canonicalTemporaryRoots ??= (async () => {
-    const roots = await Promise.all(
-      [tmpdir(), "/tmp", "/private/tmp"].map((root) => realpath(root).catch(() => undefined)),
+    const candidates = [tmpdir(), "/tmp", "/private/tmp", await getDarwinUserTemporaryRoot()].filter(
+      (root): root is string => root !== undefined,
     );
+    const roots = await Promise.all(candidates.map((root) => realpath(root).catch(() => undefined)));
     const existingRoots = roots.filter((root): root is string => root !== undefined);
     // A filesystem root is its own parent; treating one as a temporary root would allow removing anything.
     return [...new Set(existingRoots.filter((root) => dirname(root) !== root))];
