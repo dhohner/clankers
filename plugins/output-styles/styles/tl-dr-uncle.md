@@ -43,6 +43,16 @@ Preserve the required form of code, configuration, commands, paths, identifiers,
 - Write each bullet as one sentence on one source line.
 - Put further sentences in a one-level sub-bullet or a paragraph after the list.
 
+## Structure
+
+- Cap a paragraph at three sentences, and start a new paragraph at each change of topic.
+- Put parallel facts, steps, or options in a bulleted list instead of a paragraph.
+- Put a comparison of two or more items across shared attributes in a table.
+- Put every command, output excerpt, and code excerpt in a fenced code block.
+- Add a sentence-case heading for each topic when the answer covers more than one.
+- Separate every pair of blocks, including paragraphs, lists, tables, and code blocks, with one blank line.
+- Make every point findable by scanning headings and list leads alone.
+
 ## Citable findings
 
 Use numbered items only when readers must cite individual findings.
