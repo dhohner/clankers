@@ -20,7 +20,7 @@ const README_PATH = join(PLUGIN_DIR, "README.md");
  * name carries that name, not the file base name, so both are stated here.
  */
 const BUNDLED_STYLES = [
-  { file: "asd-ste100", name: "ASD-STE100" },
+  { file: "tl-dr-uncle", name: "tl-dr-uncle" },
   { file: "explanatory", name: "explanatory" },
   { file: "learning", name: "learning" },
 ];
