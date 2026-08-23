@@ -1,13 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
 import {
-  evaluateCommandSafety,
   parseSafetyAssessment,
   SAFETY_EVALUATION_BLOCK_PREFIX,
+} from "../src/policy/assessment/assessment-codec.js";
+import {
+  evaluateCommandSafety,
   SAFETY_EVALUATION_TIMEOUT_MS,
   SAFETY_EVALUATOR_PROVIDER,
   SAFETY_EVALUATOR_PROVIDERS,
   type SafetyEvaluatorRegistry,
-} from "../lib/safety-assessment.js";
+} from "../src/infrastructure/pi/model-assessor.js";
 
 const VALID_REPLY = JSON.stringify({
   verdict: "unsafe",

@@ -8,6 +8,8 @@ export default defineConfig({
     sequence: { shuffle: { files: true, tests: true } },
     // Restores every vi.spyOn after each test, so a spy cannot outlive the test that installed it.
     restoreMocks: true,
+    globalSetup: ["./test/global-setup.ts"],
+    setupFiles: ["./test/setup.ts"],
   },
   resolve: {
     alias: {

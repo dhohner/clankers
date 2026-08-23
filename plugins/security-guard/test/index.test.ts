@@ -1,13 +1,16 @@
-import { mkdir, mkdtemp, rename, rm } from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { mkdtemp, rm, symlink } from "node:fs/promises";
 import { join } from "node:path";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import extension, {
   DESTRUCTIVE_APPROVAL_REASON,
   SAFETY_EVALUATION_BLOCK_PREFIX,
   SAFETY_EVALUATION_CANCELLED_REASON,
   SAFETY_EVALUATION_WORKING_MESSAGE,
 } from "../index.js";
+
+// `os.tmpdir()` honours TMPDIR, which the extension deliberately does not trust, so a host launched with
+// TMPDIR outside the platform roots would put these workspaces where the exception never applies.
+const TEMPORARY_ROOT = "/tmp";
 
 function makeMockPi() {
   return { on: vi.fn() };
@@ -37,6 +40,18 @@ function makeApprovalContext({ approve = true, verdict = "unsafe", signal = unde
   };
 }
 
+const cleanups: Array<() => Promise<unknown>> = [];
+
+async function makeTemporaryDirectory(): Promise<string> {
+  const directory = await mkdtemp(join(TEMPORARY_ROOT, "security-guard-test-"));
+  cleanups.push(() => rm(directory, { recursive: true, force: true }));
+  return directory;
+}
+
+afterEach(async () => {
+  await Promise.all(cleanups.splice(0).map((cleanup) => cleanup()));
+});
+
 function makeToolCallHandler() {
   const pi = makeMockPi();
   extension(pi as never);
@@ -44,14 +59,14 @@ function makeToolCallHandler() {
 }
 
 describe("extension entrypoint", () => {
-  it("registers tool_call, tool_result, and user_bash handlers", () => {
+  it("registers tool_call and user_bash handlers", () => {
     const pi = makeMockPi();
     extension(pi as never);
 
     // The registration order carries no meaning, so only the set of handled events is asserted.
     const events = pi.on.mock.calls.map(([event]) => event);
-    expect(events).toHaveLength(3);
-    expect(events).toEqual(expect.arrayContaining(["tool_call", "tool_result", "user_bash"]));
+    expect(events).toHaveLength(2);
+    expect(events).toEqual(expect.arrayContaining(["tool_call", "user_bash"]));
   });
 
   it("blocks Bash tool calls regardless of casing", async () => {
@@ -91,129 +106,106 @@ describe("extension entrypoint", () => {
     });
   });
 
-  it("allows removing a temporary directory created by an earlier Bash call", async () => {
-    const temporaryDirectory = await mkdtemp(join(tmpdir(), "security-guard-test-"));
+  it("allows destructive Bash calls whose targets stay inside a temporary working directory", async () => {
+    const handler = makeToolCallHandler();
+    const ctx = { ...makeApprovalContext(), cwd: await makeTemporaryDirectory() };
+    const command = [
+      'probe="lint-parity-probe.tsx"',
+      "printf '%s\\n' 'temporary probe' > \"$probe\"",
+      'rm "$probe"',
+      "rm -rf ./*",
+      "exit 0",
+    ].join("\n");
 
-    try {
-      const pi = makeMockPi();
-      extension(pi as never);
-      const resultHandler = pi.on.mock.calls.find(([event]) => event === "tool_result")?.[1];
-      const callHandler = pi.on.mock.calls.find(([event]) => event === "tool_call")?.[1];
-
-      await resultHandler({
-        toolName: "bash",
-        input: { command: "mktemp -d" },
-        content: [{ type: "text", text: `${temporaryDirectory}\n` }],
-        isError: false,
-      });
-
-      const removalEvent = { toolName: "bash", input: { command: `rm -rf '${temporaryDirectory}'` } };
-      await expect(callHandler(removalEvent, { hasUI: false })).resolves.toBeUndefined();
-      await expect(callHandler(removalEvent, { hasUI: false })).resolves.toEqual({
-        block: true,
-        reason: DESTRUCTIVE_APPROVAL_REASON,
-      });
-    } finally {
-      await rm(temporaryDirectory, { recursive: true, force: true });
-    }
+    await expect(handler({ toolName: "bash", input: { command } }, ctx)).resolves.toBeUndefined();
+    expect(ctx.modelRegistry.complete).not.toHaveBeenCalled();
+    expect(ctx.ui.confirm).not.toHaveBeenCalled();
   });
 
-  it("tracks temporary directories from results that omit isError", async () => {
-    const temporaryDirectory = await mkdtemp(join(tmpdir(), "security-guard-test-"));
+  it("allows cleanup of a directory created by mktemp -d in the same call from any working directory", async () => {
+    const handler = makeToolCallHandler();
+    const ctx = { ...makeApprovalContext(), cwd: "/" };
+    const command = 'set -e\nd=$(mktemp -d)\ntouch "$d/probe"\nrm -rf "$d"';
 
-    try {
-      const pi = makeMockPi();
-      extension(pi as never);
-      const resultHandler = pi.on.mock.calls.find(([event]) => event === "tool_result")?.[1];
-      const callHandler = pi.on.mock.calls.find(([event]) => event === "tool_call")?.[1];
-
-      await resultHandler({
-        toolName: "bash",
-        input: { command: "mktemp -d" },
-        content: [{ type: "text", text: `${temporaryDirectory}\n` }],
-      });
-
-      await expect(
-        callHandler({ toolName: "bash", input: { command: `rm -rf '${temporaryDirectory}'` } }, { hasUI: false }),
-      ).resolves.toBeUndefined();
-    } finally {
-      await rm(temporaryDirectory, { recursive: true, force: true });
-    }
+    await expect(handler({ toolName: "bash", input: { command } }, ctx)).resolves.toBeUndefined();
+    expect(ctx.modelRegistry.complete).not.toHaveBeenCalled();
+    expect(ctx.ui.confirm).not.toHaveBeenCalled();
   });
 
-  it("ignores failed mktemp results", async () => {
-    const temporaryDirectory = await mkdtemp(join(tmpdir(), "security-guard-test-"));
+  it("allows temporary-workspace cleanup without UI or a model request", async () => {
+    const handler = makeToolCallHandler();
+    const directory = await makeTemporaryDirectory();
+    const ctx = { ...makeApprovalContext(), cwd: "/", hasUI: false };
 
-    try {
-      const pi = makeMockPi();
-      extension(pi as never);
-      const resultHandler = pi.on.mock.calls.find(([event]) => event === "tool_result")?.[1];
-      const callHandler = pi.on.mock.calls.find(([event]) => event === "tool_call")?.[1];
-
-      await resultHandler({
-        toolName: "bash",
-        input: { command: "mktemp -d" },
-        content: [{ type: "text", text: `${temporaryDirectory}\n` }],
-        isError: true,
-      });
-
-      await expect(
-        callHandler({ toolName: "bash", input: { command: `rm -rf '${temporaryDirectory}'` } }, { hasUI: false }),
-      ).resolves.toEqual({ block: true, reason: DESTRUCTIVE_APPROVAL_REASON });
-    } finally {
-      await rm(temporaryDirectory, { recursive: true, force: true });
-    }
+    await expect(handler({ toolName: "bash", input: { command: `rm -rf '${directory}'` } }, ctx)).resolves.toBeUndefined();
+    expect(ctx.modelRegistry.complete).not.toHaveBeenCalled();
+    expect(ctx.ui.confirm).not.toHaveBeenCalled();
   });
 
-  it("never treats the temporary root itself as a created directory", async () => {
-    const pi = makeMockPi();
-    extension(pi as never);
-    const resultHandler = pi.on.mock.calls.find(([event]) => event === "tool_result")?.[1];
-    const callHandler = pi.on.mock.calls.find(([event]) => event === "tool_call")?.[1];
+  it.each([
+    "rm -rf /Users/example/project",
+    "rm -rf ../../../../../../../../etc",
+    "rm -rf lint-parity-probe.tsx /etc/hosts",
+    'rm "$probe"',
+    'probe="$HOME/project"; rm -rf "$probe"',
+    "d=$(mktemp -d /Users/example/XXXX); rm -rf $d",
+    // A failed mktemp leaves the variable empty, so the suffix becomes an absolute path from the root.
+    'd=$(mktemp -d); rm -rf "$d/probe"',
+    // A wrapper option moves the working directory the operands are resolved against.
+    "env -C /Users/example rm -rf Documents",
+    "/usr/bin/time -o /Users/example/probe rm -rf local.txt",
+    // An xargs option taking a value once hid the destructive command word.
+    "printf '%s\\n' local.txt | xargs -n 1 rm -rf",
+    "rm -rf ~/project",
+    "dd if=/dev/zero of=disk.img",
+    "git reset --hard",
+    "bash -c 'rm -rf build'",
+    "rm -rf escape/etc",
+    "rm -rf escape/*",
+    "rm -rf */*",
+    "echo $(rm -rf /Users/example/project); rm -rf local.txt",
+    "rm -rf inner; ln -s / inner; rm -rf inner/etc",
+    "mv --target-directory=/Users/example local.txt",
+    "truncate -s 0 *",
+  ])("requires approval from a temporary working directory for %s", async (command) => {
+    const handler = makeToolCallHandler();
+    const directory = await makeTemporaryDirectory();
+    await symlink("/", join(directory, "escape"));
+    const ctx = { ...makeApprovalContext(), cwd: directory };
 
-    await resultHandler({
-      toolName: "bash",
-      input: { command: "mktemp -d" },
-      content: [{ type: "text", text: `${tmpdir()}\n` }],
-      isError: false,
+    await expect(handler({ toolName: "bash", input: { command } }, ctx)).resolves.toBeUndefined();
+    expect(ctx.modelRegistry.complete).toHaveBeenCalledOnce();
+    expect(ctx.ui.confirm).toHaveBeenCalledOnce();
+  });
+
+  it("requires approval for the temporary root itself", async () => {
+    const handler = makeToolCallHandler();
+    const ctx = { ...makeApprovalContext(), cwd: TEMPORARY_ROOT };
+
+    await expect(handler({ toolName: "bash", input: { command: `rm -rf '${TEMPORARY_ROOT}'` } }, ctx)).resolves.toBeUndefined();
+    expect(ctx.modelRegistry.complete).toHaveBeenCalledOnce();
+    expect(ctx.ui.confirm).toHaveBeenCalledOnce();
+  });
+
+  it("requires approval for relative targets outside temporary roots", async () => {
+    const handler = makeToolCallHandler();
+    const ctx = { ...makeApprovalContext(), cwd: "/", hasUI: false };
+
+    await expect(handler({ toolName: "bash", input: { command: "rm file.txt" } }, ctx)).resolves.toEqual({
+      block: true,
+      reason: DESTRUCTIVE_APPROVAL_REASON,
     });
-
-    await expect(
-      callHandler({ toolName: "bash", input: { command: `rm -rf '${tmpdir()}'` } }, { hasUI: false }),
-    ).resolves.toEqual({ block: true, reason: DESTRUCTIVE_APPROVAL_REASON });
   });
 
-  it("requires approval if a tracked temporary directory was replaced", async () => {
-    const temporaryDirectory = await mkdtemp(join(tmpdir(), "security-guard-test-"));
-    const originalDirectory = `${temporaryDirectory}-original`;
+  it("still blocks secret access from a temporary working directory", async () => {
+    const handler = makeToolCallHandler();
+    const ctx = { ...makeApprovalContext(), cwd: await makeTemporaryDirectory() };
 
-    try {
-      const pi = makeMockPi();
-      extension(pi as never);
-      const resultHandler = pi.on.mock.calls.find(([event]) => event === "tool_result")?.[1];
-      const callHandler = pi.on.mock.calls.find(([event]) => event === "tool_call")?.[1];
-
-      await resultHandler({
-        toolName: "bash",
-        input: { command: "mktemp -d" },
-        content: [{ type: "text", text: `${temporaryDirectory}\n` }],
-        isError: false,
-      });
-      await rename(temporaryDirectory, originalDirectory);
-      await mkdir(temporaryDirectory);
-
-      await expect(
-        callHandler(
-          { toolName: "bash", input: { command: `rm -rf '${temporaryDirectory}'` } },
-          { hasUI: false },
-        ),
-      ).resolves.toEqual({ block: true, reason: DESTRUCTIVE_APPROVAL_REASON });
-    } finally {
-      await Promise.all([
-        rm(temporaryDirectory, { recursive: true, force: true }),
-        rm(originalDirectory, { recursive: true, force: true }),
-      ]);
-    }
+    await expect(handler({ toolName: "bash", input: { command: "cat .env; rm probe" } }, ctx)).resolves.toMatchObject({
+      block: true,
+    });
+    expect(ctx.modelRegistry.complete).not.toHaveBeenCalled();
+    expect(ctx.ui.confirm).not.toHaveBeenCalled();
   });
 
   it("allows approved destructive Bash tool calls after one safety assessment", async () => {
@@ -362,32 +354,5 @@ describe("extension entrypoint", () => {
     await expect(handler({ toolName: "bash", input: { command: "ls -la" } }, ctx)).resolves.toBeUndefined();
     expect(ctx.modelRegistry.complete).not.toHaveBeenCalled();
     expect(ctx.ui.confirm).not.toHaveBeenCalled();
-  });
-
-  it("removes verified tracked temporary directories without any model request", async () => {
-    const temporaryDirectory = await mkdtemp(join(tmpdir(), "security-guard-test-"));
-
-    try {
-      const pi = makeMockPi();
-      extension(pi as never);
-      const resultHandler = pi.on.mock.calls.find(([event]) => event === "tool_result")?.[1];
-      const callHandler = pi.on.mock.calls.find(([event]) => event === "tool_call")?.[1];
-      const ctx = makeApprovalContext();
-
-      await resultHandler({
-        toolName: "bash",
-        input: { command: "mktemp -d" },
-        content: [{ type: "text", text: `${temporaryDirectory}\n` }],
-        isError: false,
-      });
-
-      await expect(
-        callHandler({ toolName: "bash", input: { command: `rm -rf '${temporaryDirectory}'` } }, ctx),
-      ).resolves.toBeUndefined();
-      expect(ctx.modelRegistry.complete).not.toHaveBeenCalled();
-      expect(ctx.ui.confirm).not.toHaveBeenCalled();
-    } finally {
-      await rm(temporaryDirectory, { recursive: true, force: true });
-    }
   });
 });

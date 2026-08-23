@@ -1,120 +1,112 @@
 # Security Guard Plugin
 
-Prevents agent tool work from printing the current user environment or reading common local credentials.
+Stops agent tool calls from dumping the user environment or reading local credentials, and requires human approval before destructive shell commands.
 
-This plugin supports Claude-format hooks and Pi extensions. The Claude-format hook is intentionally scoped to Unix-like environments and direct terminal commands handled through Bash-compatible hosts. The Pi extension intercepts Pi `bash` and `read` tool calls, and asks for human approval before destructive Pi Bash commands such as `rm`, forced `mv`, and risky permission changes.
+It ships two integrations for Unix-like hosts:
 
-## What It Does
+| Protection | Claude-format hook | Pi extension |
+| --- | --- | --- |
+| Block environment dumps | yes | yes |
+| Block credential reads | yes | yes |
+| Approval for destructive Bash commands | no | yes |
+| Advisory model safety assessment | no | yes |
+| Temporary-directory exception | no | yes |
 
-This hook runs on the agent `PreToolUse` lifecycle event and blocks likely environment-dump commands before they execute:
+Both integrations run before the tool call executes and deny with the same policy message.
+The Claude-format hook writes the reason to stderr and exits with code `2`; the Pi extension returns a blocked tool call.
+The message tells the agent not to look for workarounds.
 
-- `printenv`
-- standalone `env`
-- `export` / `export -p`
-- `declare -x`
-- standalone `set`
+## Blocked commands
 
-The exact `env | grep '^PI_' | sort` pipeline is allowed so agents can inspect Pi's documented runtime and session metadata.
-Pi provider credentials use other environment variable names.
-The exception rejects extra commands, pipeline stages, redirects, grep options, and broader patterns.
-Do not store credentials in custom `PI_*` variables because the allowed pipeline intentionally prints every value in that namespace.
+Environment dumps: `printenv`, standalone `env`, `export` / `export -p`, `declare -x`, and standalone `set`.
 
-It also blocks direct attempts to read or print common secret material:
+One exception: both integrations allow the exact pipeline `env | grep '^PI_' | sort` so agents can inspect Pi's documented runtime metadata.
+Do not store credentials in custom `PI_*` variables; the allowed pipeline prints every value in that namespace.
+
+Credential reads, both direct file access and token-printing commands:
 
 - dotenv files such as `.env` and `.env.local`
-- SSH private keys and `.pem` key files
-- shell history and credential helper files such as `.netrc` and `.git-credentials`
-- common cloud and tool credential stores, including AWS, gcloud, Azure, kube, Docker, and npm config files
-- token-printing commands such as `gh auth token`, `gcloud auth print-access-token`, `aws configure export-credentials`, `az account get-access-token`, and selected password-manager reads
+- SSH private keys and `.pem` files
+- shell history and credential helpers such as `.netrc` and `.git-credentials`
+- cloud and tool credential stores: AWS, gcloud, Azure, kube, Docker, npm
+- token commands such as `gh auth token`, `gcloud auth print-access-token`, `aws configure export-credentials`, `az account get-access-token`, and selected password-manager reads
 
-The Claude-format hook writes a denial reason to stderr and exits with code `2`, which is the shared blocking path for Claude-format hooks and is also supported by VS Code agent hooks. The Pi extension returns a blocked tool call with the same policy message. The denial reason explicitly tells the agent not to suggest workarounds, alternate commands, or indirect ways to print the current user environment or read sensitive credentials.
+## Destructive command approval (Pi)
 
-The Pi extension also requires explicit UI approval before agent-run Bash commands starting `rm`, `truncate`, `dd`, or `mkfs`; risky `mv`, `chmod`, or `chown`; plus destructive Git commands (`git reset --hard`, `git clean -fd`, `git push --force`).
-In non-interactive mode, those commands are blocked by default without any model request.
+The Pi extension requires explicit UI approval before Bash commands that can destroy work:
 
-## Command Safety Assessment
+- removal and overwrite: `rm`, `rmdir`, `unlink`, `shred`, `truncate`, `dd`, `mkfs`
+- risky `mv`, `chmod`, and `chown`, including forced moves and modes that add write permission
+- Git commands that discard state: `git reset --hard`, non-dry-run `git clean`, forced or deleting `git push`, and working-tree overwrites such as `git rm`, `git restore`, and `git checkout` with a pathspec
 
-Before the approval dialog for a matched destructive command, the Pi extension asks a fixed evaluator model for an advisory safety assessment.
-The approval dialog then shows the assessment's Verdict, Intent, and Reason next to Pi's normal rendering of the pending Bash tool call.
-The user decides for every valid verdict, including `unsafe` and `uncertain`; the assessment itself never approves or executes anything.
+The analyzer resolves wrappers (`sudo`, `env`, `xargs`, `nice`, `timeout`, `find -exec`, `eval`, and others) to the command they run, and reads nested `bash -c` scripts as command lists of their own.
+Anything it cannot prove safe requires approval: a command word built by expansion, an unknown option that could hide an operand, or unsupported shell syntax.
+In non-interactive mode the extension blocks these commands outright instead of prompting.
 
-The assessment is fail-closed.
-If the model is missing, authentication is not configured, the request fails, times out, is cancelled, or the response is not a valid assessment, the command is blocked without an approval dialog.
-The extension sends at most one model request per assessment and adds no retry loop above provider behavior; a failed request is never retried against another provider.
-Each matched tool call gets its own independent assessment and approval; nothing is reused between calls.
-Assessments are transient UI content and are never appended to the Pi session or sent back into model context.
+The exact recognition rules live in [`analyze-command.ts`](./src/policy/command-analysis/analyze-command.ts) and [`command-registry.ts`](./src/policy/command-analysis/command-registry.ts).
 
-Data boundary and requirements:
+## Safety assessment
 
-- The evaluator is exactly `gpt-5.6-luna` with `high` reasoning effort; no other model is ever contacted.
-- The model is requested through the direct OpenAI API when its authentication is configured, through the OpenAI Codex provider for an OpenAI subscription otherwise, and finally through GitHub Copilot; no other provider is ever used.
-- Each evaluation sends only a fixed system instruction, the exact Bash command, and the current working directory to the selected provider.
-- No tools, session messages, user requests, file contents, or conversation history are included in the request.
-- The command and working directory are treated as untrusted data, not as evaluator instructions.
-- Configured direct OpenAI API, OpenAI subscription, or GitHub Copilot authentication in Pi is required; without any of them, matched destructive commands are blocked.
-- Pi 0.84.0 or later is required, the first release whose extension model registry exposes the `complete()` request API; its catalog also includes `gpt-5.6-luna` for all three providers.
+Before each approval dialog, the extension asks a fixed evaluator model for an advisory assessment and shows its Verdict, Intent, and Reason next to the pending command.
+The user decides for every verdict; the assessment never approves or executes anything.
 
-## Temporary Directory Exception
+The assessment fails closed.
+If the model is unavailable, the request fails, or the response is invalid, the extension blocks the command without a dialog.
+Each tool call gets one independent request with no retries across providers, and assessments never enter the Pi session or model context.
 
-A narrow exception skips confirmation once when a direct `rm` targets only directories returned by an earlier successful, standalone `mktemp -d` Bash call.
-Leading and trailing whitespace in the command string, including edge newlines, does not disqualify an otherwise supported creation or removal command.
-The extension verifies that each directory remains under a system temporary root, is owned by the current user, and still has the same filesystem identity before allowing removal.
-A removal allowed by this exception executes without any safety assessment request or approval dialog.
-Nested paths, untracked directories, compound commands, and repeated removal attempts still require approval.
-Only the most recent 128 created directories stay tracked, so older ones fall back to requiring approval.
-The exception is POSIX-only: where process ownership cannot be read, no removal is ever skipped.
+Data boundary:
 
-## Scope
+- The evaluator is exactly `gpt-5.6-luna` at `high` reasoning effort, reached through the direct OpenAI API, the OpenAI Codex subscription provider, or GitHub Copilot, in that order of preference.
+- Each request contains only a fixed system instruction, the exact command, and the working directory; no session messages, file contents, or history.
+- The system instruction tells the evaluator to treat the command and working directory as untrusted data, never as instructions.
+- With none of the three provider authentications configured in Pi, the extension blocks matched destructive commands.
 
-- Targets macOS and Linux only; Windows is intentionally not supported
-- Intercepts Bash or terminal tool calls before they execute in Claude-format hosts
-- Intercepts `bash` and `read` tool calls before they execute in Pi
-- Requires explicit human approval for destructive Pi Bash commands such as `rm`, `truncate`, `dd`, `mkfs`, risky `mv`/`chmod`/`chown`, and selected destructive Git commands
-- Shows an advisory, fail-closed safety assessment from `gpt-5.6-luna` (via the direct OpenAI API, an OpenAI subscription, or GitHub Copilot) before each destructive-command approval in Pi
-- Skips one approval for direct removal of unchanged, current-user directories created by a successful standalone `mktemp -d` call under a system temporary root
-- Blocks direct commands and simple nested shell invocations containing env-dump or sensitive credential access commands
-- Allows only the exact `env | grep '^PI_' | sort` environment pipeline, with harmless whitespace and quote variations
-- Intentionally favors clear, high-signal secret paths and token commands over broad keyword matching
-- Requires `jq` to inspect hook input in Claude-format hosts
+## Temporary directory exception
 
-## Usage
+`rm`, `rmdir`, `unlink`, `truncate`, `mv`, `chmod`, and `chown` run without assessment or approval when every path the call writes provably resolves inside a system temporary root: `/tmp`, `/private/tmp`, or the macOS per-user temporary directory.
+The proof ignores `TMPDIR`, `TMP`, and `TEMP`, so pointing them at a project directory does not make it removable.
+Secret-access rules still apply.
 
-```text
-"Run printenv"
-"Show env | sort"
-"Use bash -lc 'printenv'"
-"cat ~/.aws/credentials"
-"gh auth token"
-```
+The proof runs per command and fails closed.
+It checks every write the call can make: operands, redirection targets, variables assigned earlier in the same call, and `$(mktemp -d)` results.
+It also verifies how each command word resolves through `PATH`, that symlinks and hard links do not lead outside the root, and that no wrapper, `set` option, or environment variable can change what runs.
+Anything the proof cannot establish, such as an unquoted expansion, a recursive `chmod`, or `sudo`, requires approval.
 
-The agent will stop the command before it can print environment variables or credential material.
+The full rule set lives in [`decide-tool-call.ts`](./src/application/decide-tool-call.ts) and the [`src/proof/`](./src/proof/) modules.
 
-## Pi Usage
+The exception is a pre-execution check on the filesystem as it is then, not a sandbox.
+Another process with the user's privileges can swap a checked directory for a symlink between check and execution, and such a process could equally act on the external path itself.
 
-This plugin requires Pi 0.84.0 or later, the first release whose extension model registry exposes the `complete()` request API used by the safety evaluator.
-That release's model catalog also includes the `gpt-5.6-luna` safety evaluator model for the direct OpenAI API, OpenAI Codex subscription, and GitHub Copilot providers.
+## Known limitations
 
-Install the plugin as a Pi package from a local checkout:
+The extension does not check Pi's `shellCommandPrefix` and `shellPath` settings.
+Either can redefine `rm`, `set`, or `mktemp` before a command the temporary directory exception allowed, so do not rely on the exception in a session that sets them.
+The extension cannot read them reliably.
+Pi captures them when it builds the Bash tool, and a later read from the settings files can differ from the value the tool runs with.
+
+## Requirements
+
+- macOS or Linux; the plugin deliberately does not support Windows.
+- Pi 0.84.0 or later, the first release whose extension model registry exposes the `complete()` request API and whose catalog includes `gpt-5.6-luna` for all three providers.
+- `jq`, for the Claude-format hook to inspect hook input.
+
+## Install (Pi)
 
 ```bash
 pi install ./plugins/security-guard
 ```
 
-For project-local team use, install it into `.pi/settings.json`:
+Project-local install into `.pi/settings.json`:
 
 ```bash
 pi install -l ./plugins/security-guard
 ```
 
-For one-off testing without installing:
+One-off testing without installing:
 
 ```bash
 pi -e ./plugins/security-guard/index.ts
 ```
-
-## Learn More
-
-See [the hook script](./scripts/block-fups.sh), [hook registration](./hooks/hooks.json), [Pi extension](./index.ts), and [Pi package manifest](./package.json) for implementation details.
 
 ## Authors
 
