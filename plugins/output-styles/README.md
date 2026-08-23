@@ -202,7 +202,7 @@ Any supplied `--output-style` value that matches no style name, a blank value in
 | Style         | Description                                                                           |
 | ------------- | ------------------------------------------------------------------------------------- |
 | `default`     | Pi's standard behavior, with no added style instructions.                             |
-| `tl-dr-uncle` | Direct, concrete technical prose without canned AI wording.                           |
+| `unslop`      | Direct, concrete technical prose without canned AI wording.                           |
 | `explanatory` | Adds short insight notes about the codebase and the reasoning behind choices.         |
 | `learning`    | Collaborates and asks you to write small, clearly marked pieces of the code yourself. |
 

@@ -1,5 +1,5 @@
 ---
-name: tl-dr-uncle
+name: unslop
 description: Direct, concrete technical prose without canned AI wording.
 mode: append
 ---
