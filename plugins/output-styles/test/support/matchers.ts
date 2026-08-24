@@ -3,14 +3,10 @@ import { expect } from "vitest";
 type EqualityCheck = (left: unknown, right: unknown) => boolean;
 
 /** Pairs each expected item with one received item, including overlapping asymmetric matchers. */
-function pairsExactly(
-  received: readonly unknown[],
-  expected: readonly unknown[],
-  equals: EqualityCheck,
-): boolean {
+function pairsExactly(received: readonly unknown[], expected: readonly unknown[], equals: EqualityCheck): boolean {
   if (received.length !== expected.length) return false;
 
-  const expectedIndexByReceivedIndex = new Array<number>(received.length).fill(-1);
+  const expectedIndexByReceivedIndex = Array.from({ length: received.length }, () => -1);
 
   function pair(expectedIndex: number, visitedReceivedIndexes: Set<number>): boolean {
     for (let receivedIndex = 0; receivedIndex < received.length; receivedIndex += 1) {

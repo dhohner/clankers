@@ -1,8 +1,7 @@
 import type { ProvableCall, ProofFailure } from "../../proof/types.ts";
 import type { UnsupportedShellSyntax } from "../../shell/tokenizer.ts";
 
-export const DESTRUCTIVE_APPROVAL_REASON =
-  "Destructive command blocked because it was not approved by the user.";
+export const DESTRUCTIVE_APPROVAL_REASON = "Destructive command blocked because it was not approved by the user.";
 
 export type ApprovalRequirement =
   | { kind: "unsupported-syntax"; detail: UnsupportedShellSyntax }

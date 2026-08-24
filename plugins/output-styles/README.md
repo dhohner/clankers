@@ -19,7 +19,7 @@ In `replace` mode the style instruction text takes the place of Pi's response an
 The system prompt for the turn is rebuilt from the structured options Pi assembled, so the tool list, the tool guidelines, the loaded context files, the loaded skills, and the working directory stay in the prompt.
 The style text opens the rebuilt prompt as the governing response instruction, and the retained sections follow in Pi's own order.
 A replace-mode style also drops the system prompt changes of extensions that ran earlier in the chain, because the prompt is rebuilt from Pi's options instead of the chained text.
-The structured option fields were verified against Pi 0.84.1.
+The structured option fields were verified against Pi 0.84.2.
 
 A replace-mode style takes over the whole response guidance, and Pi's own behavior instructions are gone for that turn.
 When the style text contradicts or ignores the retained tool guidance, the agent can get noticeably weaker at its actual work, so prefer `append` unless the style truly must own the full response contract.
@@ -35,7 +35,7 @@ Switch the style inside a running session:
   An unknown name is reported and leaves the active style unchanged.
 - `Ctrl+Shift+Y` activates the next style in the list and wraps from the last entry to the first.
   The shortcut is a convenience: some terminals do not deliver this key combination, and the command reaches every switch the shortcut can perform.
-  Pi's `~/.pi/agent/keybindings.json` rebinds Pi's own actions by their keybinding id, but an extension shortcut is registered under its literal key and has no id in that file, so this shortcut cannot be rebound there; verified against Pi 0.84.1.
+  Pi's `~/.pi/agent/keybindings.json` rebinds Pi's own actions by their keybinding id, but an extension shortcut is registered under its literal key and has no id in that file, so this shortcut cannot be rebound there; verified against Pi 0.84.2.
   To use a different key, change the `CYCLE_SHORTCUT` constant in the installed copy of `lib/extension.ts` to a combination in Pi's `modifier+key` format, such as `ctrl+shift+x`.
 
 Every `/output-style` invocation, with or without an argument, rescans the three style directories first, so a style file added or edited while the session runs is selectable without a restart.
@@ -210,7 +210,8 @@ All four use `append` mode.
 
 ## Install
 
-This plugin requires Pi 0.84.1 or later and builds against the `@earendil-works/pi-coding-agent` package, declared as a peer dependency with `>=0.84.1`.
+This plugin requires Pi 0.84.2 or later and builds against the `@earendil-works/pi-coding-agent` package, declared as a peer dependency with `>=0.84.2`.
+The floor is 0.84.2 because the replace-mode prompt mirrors the trailing newline that release added to Pi's custom-prompt rendering.
 
 ```bash
 pi install ./plugins/output-styles

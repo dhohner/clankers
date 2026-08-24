@@ -1,0 +1,35 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc", "import", "promise"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "perf": "error"
+  },
+  "rules": {
+    // The policy walks a command left to right, and a later step depends on the previous filesystem answer,
+    // so the awaits in those loops cannot be batched with `Promise.all`.
+    "no-await-in-loop": "off",
+    // The assessment codec rejects model output containing control characters, which it has to match.
+    "no-control-regex": "off",
+    // Command tables and shell-grammar functions are long by nature; splitting them for a line count would
+    // scatter one grammar across files.
+    "max-lines": "off",
+    "max-lines-per-function": "off",
+    "max-depth": "off",
+    // The shell tokenizer matches bytes, not code points. The `u` flag changes escape handling and would
+    // need every pattern re-verified against bash behavior.
+    "require-unicode-regexp": "off",
+    // Predicates here take a single argument, so the extra index and array arguments the rule warns about
+    // are never read.
+    "unicorn/no-array-callback-reference": "off",
+    // Optional results are modelled as `T | undefined`; the rule's suggested `null` would add a second
+    // absent value.
+    "unicorn/no-useless-undefined": "off",
+    // `Array#toSorted` needs an ES2023 lib; this package targets ES2022.
+    "unicorn/no-array-sort": "off",
+    // Test helpers stay inside their `describe` so each suite reads on its own.
+    "unicorn/consistent-function-scoping": "off"
+  },
+  "ignorePatterns": ["dist/**"]
+}

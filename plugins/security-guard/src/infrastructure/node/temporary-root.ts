@@ -130,6 +130,10 @@ export async function isInsideTemporaryRoot(
   }
 
   const directoryEnd = target.lastIndexOf("/", globStart) + 1;
+  // `pattern` is a string and the two checks below are substring checks. oxlint reads any `.slice()` as
+  // an array clone, and its fix builds a Set of single characters where `has("**")` can never match,
+  // letting a recursive glob through.
+  // oxlint-disable-next-line unicorn/prefer-set-has
   const pattern = target.slice(directoryEnd);
   if (pattern.includes("/") || pattern.includes("**")) return false;
 

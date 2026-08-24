@@ -58,7 +58,9 @@ describe("parseFrontmatter", () => {
   });
 
   it("reads quoted escapes, including a unicode escape", () => {
-    const parsed = fields("---\ndescription: \"Dash \\u2014 kept\\nand a \\\" quote\"\nname: 'Pi''s voice'\n---\nBody\n");
+    const parsed = fields(
+      "---\ndescription: \"Dash \\u2014 kept\\nand a \\\" quote\"\nname: 'Pi''s voice'\n---\nBody\n",
+    );
 
     expect(parsed.get("description")).toBe('Dash — kept\nand a " quote');
     expect(parsed.get("name")).toBe("Pi's voice");

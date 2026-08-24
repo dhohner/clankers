@@ -28,9 +28,7 @@ it("reports the settings file instead of starting silently as a fresh installati
 
   expect(harness.notifications).toHaveLength(1);
   expect(harness.notifications[0]?.level).toBe("warning");
-  expect(harness.notifications[0]?.message).toContain(
-    `Output style settings could not be read: ${settingsPath} (`,
-  );
+  expect(harness.notifications[0]?.message).toContain(`Output style settings could not be read: ${settingsPath} (`);
   expect(harness.notifications[0]?.message).toContain("The session continues.");
   // The session still starts, with the built-in default style and no footer entry.
   expect(harness.status()).toBeUndefined();

@@ -59,12 +59,12 @@ function unsupportedShellSyntax(value: string): UnsupportedShellSyntax | undefin
       if (char === "'") quote = "";
       continue;
     }
-    if (quote === "\"") {
-      if (char === "\"") {
+    if (quote === '"') {
+      if (char === '"') {
         quote = "";
         continue;
       }
-    } else if (char === "'" || char === "\"") {
+    } else if (char === "'" || char === '"') {
       quote = char;
       continue;
     }
@@ -75,7 +75,7 @@ function unsupportedShellSyntax(value: string): UnsupportedShellSyntax | undefin
       continue;
     }
     if (quote === "") {
-      if (char === "$" && (next === "'" || next === "\"")) return "ansi-c-quoting";
+      if (char === "$" && (next === "'" || next === '"')) return "ansi-c-quoting";
       if ((char === "<" || char === ">") && next === "(") return "process-substitution";
       if (char === "$" && value.startsWith("$((", index)) return "arithmetic";
       if (char === "(" && next === "(" && substitutionDepth === 0) return "arithmetic";
@@ -323,4 +323,3 @@ export function sliceWord(word: Word, start: number): ShellToken {
 export function isUnquoted(word: Word, end: number): boolean {
   return !/[^ ]/.test(word.quoting.slice(0, end));
 }
-

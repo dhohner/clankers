@@ -150,9 +150,7 @@ function piGuidelinesBlock(options: BuildSystemPromptOptions): string {
  * keeps.
  */
 function expectedPrompt(options: BuildSystemPromptOptions): string {
-  const head = [INSTRUCTIONS, piToolsBlock(options), piGuidelinesBlock(options)]
-    .filter((part) => !!part)
-    .join("\n\n");
+  const head = [INSTRUCTIONS, piToolsBlock(options), piGuidelinesBlock(options)].filter((part) => !!part).join("\n\n");
   return buildSystemPrompt({ ...options, customPrompt: head });
 }
 

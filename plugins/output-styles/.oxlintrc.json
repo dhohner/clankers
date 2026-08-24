@@ -1,0 +1,24 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc", "import", "promise"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "perf": "error"
+  },
+  "rules": {
+    // Style discovery reads its directories in precedence order, because a later source overrides an
+    // earlier one of the same name, and the bounded read pool awaits one file per worker on purpose.
+    // Batching either loop with `Promise.all` would drop the ordering or the concurrency bound.
+    "no-await-in-loop": "off",
+    // `Array#toSorted` needs an ES2023 lib; this package targets ES2022.
+    "unicorn/no-array-sort": "off",
+    // The extension keeps its handlers together inside `registerOutputStyles`, and test helpers stay
+    // inside their `describe`, so each unit reads on its own.
+    "unicorn/consistent-function-scoping": "off",
+    // The settings write queue chains a tail whose handlers exist for their side effect, and its
+    // resolved value is deliberately `undefined`.
+    "promise/always-return": "off"
+  },
+  "ignorePatterns": ["dist/**", "coverage/**"]
+}

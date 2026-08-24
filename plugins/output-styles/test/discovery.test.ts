@@ -173,9 +173,7 @@ describe("readStyleDirectory", () => {
     const discovery = await readStyleDirectory(userDir, "user");
 
     expect(discovery.styles).toEqual([]);
-    expect(discovery.problems).toEqual([
-      { path: userDir, reason: "cannot list directory: EACCES: permission denied" },
-    ]);
+    expect(discovery.problems).toEqual([{ path: userDir, reason: "cannot list directory: EACCES: permission denied" }]);
     expect(discovery.unlistableDirectories).toEqual([userDir]);
   });
 });
@@ -209,9 +207,7 @@ describe("discoverStyles", () => {
 
     expect(discovery.unlistableDirectories).toEqual([userDir]);
     expect(discovery.styles.map((style) => style.name)).toEqualUnordered([DEFAULT_STYLE_NAME, "plain"]);
-    expect(discovery.problems).toEqual([
-      { path: userDir, reason: "cannot list directory: EACCES: permission denied" },
-    ]);
+    expect(discovery.problems).toEqual([{ path: userDir, reason: "cannot list directory: EACCES: permission denied" }]);
   });
 
   it("lets a project style win over a user style and a bundled style", async () => {
@@ -263,7 +259,11 @@ describe("discoverStyles", () => {
 
   it("keeps the built-in default style and reports a file claiming that name", async () => {
     const byFilename = await write(userDir, "default.md", styleFile("Mine.", "My text."));
-    const byField = await write(projectDir, "mine.md", styleFile("Mine.", "Project text.", `name: ${DEFAULT_STYLE_NAME}\n`));
+    const byField = await write(
+      projectDir,
+      "mine.md",
+      styleFile("Mine.", "Project text.", `name: ${DEFAULT_STYLE_NAME}\n`),
+    );
 
     const discovery = await discoverStyles({ bundledDir, userDir, projectDir });
 

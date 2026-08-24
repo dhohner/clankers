@@ -282,7 +282,7 @@ describe("destructive command policy", () => {
     // A single-quoted `$` reaches the nested shell as itself, and an argument is not a command word.
     "bash -c 'echo $HOME'",
     // The operands after the script become `$0` and the positional parameters of the nested shell.
-    'bash -c \'echo hi\' "$extra"',
+    "bash -c 'echo hi' \"$extra\"",
     'bash -c \'grep "$1" f\' _ "$pattern"',
     "timeout 5 ls",
     "timeout -s KILL 5 ls",
@@ -320,5 +320,4 @@ describe("destructive command policy", () => {
       expect(isDestructiveText(command)).toBe(true);
     },
   );
-
 });

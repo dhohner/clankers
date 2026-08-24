@@ -43,7 +43,10 @@ describe("provable calls", () => {
     ["setsid rm -rf build", [literal("build")]],
     ["mv --target-directory=/Users/example source", [literal("/Users/example"), literal("source")]],
     ["mv -t /Users/example source", [literal("/Users/example"), literal("source")]],
-    ["mkdir -p out; touch out/a; printf '%s' x > out/b; rm -rf out; exit 0", [literal("out", true), literal("out/a", true), literal("out/b", true), literal("out")]],
+    [
+      "mkdir -p out; touch out/a; printf '%s' x > out/b; rm -rf out; exit 0",
+      [literal("out", true), literal("out/a", true), literal("out/b", true), literal("out")],
+    ],
     // touch and mkdir create exactly their operands, so those paths are checked like a removal target.
     ["rm -rf local; touch /Users/example/probe", [literal("local"), literal("/Users/example/probe", true)]],
     ["rm -rf local; mkdir -m 700 /Users/example/made", [literal("local"), literal("/Users/example/made", true)]],
@@ -64,11 +67,11 @@ describe("provable calls", () => {
     ["rm -rf build; echo x >> /Users/example/probe", [literal("build"), literal("/Users/example/probe", true)]],
     ["rm -rf build; echo x >| /Users/example/probe", [literal("build"), literal("/Users/example/probe", true)]],
     ["rm -rf build; echo x &> /Users/example/probe", [literal("build"), literal("/Users/example/probe", true)]],
-    ["set -e; d=$(mktemp -d); printf '%s' x > \"$d/log\"; rm -rf \"$d\"", [mktemp("/log", true), mktemp("")]],
-    ["set -o errexit\nd=$(mktemp -d)\ntouch \"$d/probe\"\nrm -rf \"$d\"", [mktemp("/probe", true), mktemp("")]],
-    ["set -euo pipefail; d=$(mktemp -d); rm -rf \"$d/probe\"", [mktemp("/probe")]],
+    ['set -e; d=$(mktemp -d); printf \'%s\' x > "$d/log"; rm -rf "$d"', [mktemp("/log", true), mktemp("")]],
+    ['set -o errexit\nd=$(mktemp -d)\ntouch "$d/probe"\nrm -rf "$d"', [mktemp("/probe", true), mktemp("")]],
+    ['set -euo pipefail; d=$(mktemp -d); rm -rf "$d/probe"', [mktemp("/probe")]],
     // A suffix is only unprovable while mktemp may have failed; the directory itself never needs the guard.
-    ["set +e; d=$(mktemp -d); rm -rf \"$d\"", [mktemp("")]],
+    ['set +e; d=$(mktemp -d); rm -rf "$d"', [mktemp("")]],
     // Only enabling xtrace fails the call; disabling it expands no PS4, so the proof still holds.
     ["set +x; rm -rf build", [literal("build")]],
     ["false && rm -rf build", [literal("build")]],
@@ -86,7 +89,7 @@ describe("provable calls", () => {
     ['probe="lint-parity-probe.tsx"\nrm "$probe"', [literal("lint-parity-probe.tsx")]],
     ["export probe=build; rm -rf ${probe}/out", [literal("build/out")]],
     ['dir=build; probe="$dir/probe.txt"; rm "$probe"', [literal("build/probe.txt")]],
-    ["d=$(mktemp -d)\nrm -rf \"$d\"", [mktemp("")]],
+    ['d=$(mktemp -d)\nrm -rf "$d"', [mktemp("")]],
     ['set -e; d="$(mktemp -d)"; sub="$d/sub"; rm -rf "$sub"', [mktemp("/sub")]],
   ])("lists the path targets of %s", (command, expected) => {
     expect(destructiveTargets(command)).toEqual(expected);
@@ -168,15 +171,15 @@ describe("provable calls", () => {
     "chown -R user *",
     "chmod -R 755",
     // A branch, a subshell, a pipeline, and a background list all leave the earlier value in place.
-    "d=/; false && d=$(mktemp -d); rm -rf \"$d/etc\"",
-    "d=/; true || d=$(mktemp -d); rm -rf \"$d/etc\"",
-    "d=/; (d=$(mktemp -d)); rm -rf \"$d/etc\"",
-    "d=/; { d=$(mktemp -d); }; rm -rf \"$d/etc\"",
-    "d=$(mktemp -d) | cat; rm -rf \"$d/etc\"",
-    "d=$(mktemp -d) & rm -rf \"$d/etc\"",
+    'd=/; false && d=$(mktemp -d); rm -rf "$d/etc"',
+    'd=/; true || d=$(mktemp -d); rm -rf "$d/etc"',
+    'd=/; (d=$(mktemp -d)); rm -rf "$d/etc"',
+    'd=/; { d=$(mktemp -d); }; rm -rf "$d/etc"',
+    'd=$(mktemp -d) | cat; rm -rf "$d/etc"',
+    'd=$(mktemp -d) & rm -rf "$d/etc"',
     // Builtins that write a shell variable or a file are not inert.
-    "d=$(mktemp -d); printf -v d /; rm -rf \"$d/etc\"",
-    "d=$(mktemp -d); sort -o /Users/example/probe input; rm -rf \"$d\"",
+    'd=$(mktemp -d); printf -v d /; rm -rf "$d/etc"',
+    'd=$(mktemp -d); sort -o /Users/example/probe input; rm -rf "$d"',
     // An unquoted expansion whose value has whitespace splits into several operands.
     'p="safe /Users/example/probe"; rm -rf $p',
     "p='a b'; rm -rf $p",
@@ -186,12 +189,12 @@ describe("provable calls", () => {
     // A quoted name is a command, not an assignment.
     'd=$(mktemp -d); "d"=/; rm -rf "$d/etc"',
     // Any assignment that moves the temporary root, changes splitting, or changes command resolution.
-    "export TMPDIR=/Users/example; d=$(mktemp -d); rm -rf \"$d\"",
-    "TMP=/Users/example; d=$(mktemp -d); rm -rf \"$d\"",
-    "d=$(TMPDIR=/Users/example mktemp -d); rm -rf \"$d\"",
-    "d=$(env TMPDIR=/Users/example mktemp -d); rm -rf \"$d\"",
+    'export TMPDIR=/Users/example; d=$(mktemp -d); rm -rf "$d"',
+    'TMP=/Users/example; d=$(mktemp -d); rm -rf "$d"',
+    'd=$(TMPDIR=/Users/example mktemp -d); rm -rf "$d"',
+    'd=$(env TMPDIR=/Users/example mktemp -d); rm -rf "$d"',
     "IFS=/; p=build; rm -rf $p",
-    "PATH=/Users/example/bin; d=$(mktemp -d); rm -rf \"$d\"",
+    'PATH=/Users/example/bin; d=$(mktemp -d); rm -rf "$d"',
     // Variables bash runs on its own fail closed even when this scan cannot read their value: xtrace expands
     // PS4 (a command substitution hidden in ANSI-C quoting included), and PROMPT_COMMAND runs before a prompt.
     "PS4=$'\\x24(echo pwned)'; set -x; rm -rf /tmp/work",
@@ -199,7 +202,7 @@ describe("provable calls", () => {
     "PROMPT_COMMAND=whatever; rm -rf /tmp/work",
     // Enabling xtrace expands an inherited PS4 this scan never sees, so a `set -x` fails the whole call.
     "set -x; rm -rf /tmp/work",
-    "set -ex; d=$(mktemp -d); rm -rf \"$d\"",
+    'set -ex; d=$(mktemp -d); rm -rf "$d"',
     "set -o xtrace; rm -rf /tmp/work",
     // A descriptor duplication whose target is a path, a dynamic or wildcard target, and a heredoc body.
     "rm -rf build; echo x >& /Users/example/probe",
@@ -221,9 +224,9 @@ describe("provable calls", () => {
     // A substitution anywhere in the call runs before the proof sees it, a reading redirection included.
     'rm -rf local < "$(rm -rf /Users/example/important)"',
     "rm -rf local <<< $(rm -rf /Users/example/important)",
-    "d=$(mktemp -d --suffix $(rm -rf /Users/example/important)); rm -rf \"$d\"",
-    "d=$(mktemp -d --suffix \"$(rm -rf /Users/example/important)\"); rm -rf \"$d\"",
-    "d=$(mktemp -d --suffix $x); rm -rf \"$d\"",
+    'd=$(mktemp -d --suffix $(rm -rf /Users/example/important)); rm -rf "$d"',
+    'd=$(mktemp -d --suffix "$(rm -rf /Users/example/important)"); rm -rf "$d"',
+    'd=$(mktemp -d --suffix $x); rm -rf "$d"',
     // A `$` quoted apart from the name after it is literal to bash, so the operand is not the assigned value.
     'a=/tmp/x; rm -rf "$"{a}',
     'a=/tmp/x; rm -rf "$"a',
@@ -296,20 +299,20 @@ describe("provable calls", () => {
     "time --output=/Users/example/probe rm -rf build",
     // nohup writes `nohup.out` in the working directory when standard output is a terminal.
     "nohup rm -rf build",
-    "d=$(env -C / mktemp -d); rm -rf \"$d\"",
+    'd=$(env -C / mktemp -d); rm -rf "$d"',
     // Without errexit a failed mktemp leaves the variable empty and bash reads the suffix from the root.
-    "d=$(mktemp -d); touch \"$d/probe\"",
-    "d=$(mktemp -d); rm -rf \"$d/probe\"",
-    "d=$(mktemp -d); printf '%s' x > \"$d/log\"; rm -rf \"$d\"",
+    'd=$(mktemp -d); touch "$d/probe"',
+    'd=$(mktemp -d); rm -rf "$d/probe"',
+    'd=$(mktemp -d); printf \'%s\' x > "$d/log"; rm -rf "$d"',
     'd="$(mktemp -dt work)"; sub="$d/sub"; rm -rf "$sub"',
     // errexit must already hold when mktemp runs, and `set +e` before it takes the guard away again.
-    "d=$(mktemp -d); set -e; rm -rf \"$d/probe\"",
-    "set -e; set +e; d=$(mktemp -d); rm -rf \"$d/probe\"",
-    "set -e; set +o errexit; d=$(mktemp -d); rm -rf \"$d/probe\"",
-    "[ -d out ] && set -e; d=$(mktemp -d); rm -rf \"$d/probe\"",
+    'd=$(mktemp -d); set -e; rm -rf "$d/probe"',
+    'set -e; set +e; d=$(mktemp -d); rm -rf "$d/probe"',
+    'set -e; set +o errexit; d=$(mktemp -d); rm -rf "$d/probe"',
+    '[ -d out ] && set -e; d=$(mktemp -d); rm -rf "$d/probe"',
     // A `set` call that is not a plain option list leaves the option state unreadable.
-    "set -- -e; d=$(mktemp -d); rm -rf \"$d/probe\"",
-    "set -o; d=$(mktemp -d); rm -rf \"$d/probe\"",
+    'set -- -e; d=$(mktemp -d); rm -rf "$d/probe"',
+    'set -o; d=$(mktemp -d); rm -rf "$d/probe"',
     "set -o definitely-invalid; rm -rf build",
     "set -e extra; rm -rf build",
   ])("cannot prove the targets of %s", (command) => {
@@ -333,5 +336,4 @@ describe("provable calls", () => {
   ])("lists the PATH-resolved command names of %s", (command, expected) => {
     expect(provableCall(command)?.commands).toEqual(expected);
   });
-
 });

@@ -93,7 +93,9 @@ describe("applyStyle in replace mode", () => {
     const prompt = applyStyle(
       CHAINED_PROMPT,
       style({ mode: "replace" }),
-      promptOptions({ promptGuidelines: ["Use bash for file operations like ls, rg, find", "Same twice", "Same twice"] }),
+      promptOptions({
+        promptGuidelines: ["Use bash for file operations like ls, rg, find", "Same twice", "Same twice"],
+      }),
     );
     expect(prompt.match(/Use bash for file operations/g)).toHaveLength(1);
     expect(prompt.match(/Same twice/g)).toHaveLength(1);
@@ -185,7 +187,7 @@ describe("applyStyle in replace mode with the optional options omitted", () => {
     expect(prompt()).not.toContain("<available_skills>");
   });
 
-  it("ends with the working directory line", () => {
-    expect(prompt()).toMatch(/\nCurrent working directory: \/work\/project$/);
+  it("ends with the working directory line and Pi's closing newline", () => {
+    expect(prompt()).toMatch(/\nCurrent working directory: \/work\/project\n$/);
   });
 });

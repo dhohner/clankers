@@ -85,5 +85,7 @@ function buildReplacePrompt(instructions: string, options: BuildSystemPromptOpti
     prompt += formatSkillsForPrompt(skills);
   }
 
-  return `${prompt}\nCurrent working directory: ${options.cwd.replace(/\\/g, "/")}`;
+  // Pi's custom-prompt branch closes the working directory line with a newline; the default branch
+  // does not. The replace mode mirrors the custom-prompt branch.
+  return `${prompt}\nCurrent working directory: ${options.cwd.replace(/\\/g, "/")}\n`;
 }

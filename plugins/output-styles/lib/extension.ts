@@ -16,13 +16,7 @@ import {
   type StartupOrigin,
   writePersistedStyleName,
 } from "./settings.ts";
-import {
-  DEFAULT_STYLE,
-  NEW_STYLE_NAME,
-  type NotifyLevel,
-  type StyleDefinition,
-  type StyleProblem,
-} from "./types.ts";
+import { DEFAULT_STYLE, NEW_STYLE_NAME, type NotifyLevel, type StyleDefinition, type StyleProblem } from "./types.ts";
 
 export const FLAG_NAME = "output-style";
 
@@ -164,7 +158,11 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
    * the pair with the reason, so a directory whose failure reason changes between the two scans is
    * still reported once.
    */
-  function reportKeptList(ctx: StyleExtensionContext, problem: StyleProblem, reportedThisInvocation: Set<string>): void {
+  function reportKeptList(
+    ctx: StyleExtensionContext,
+    problem: StyleProblem,
+    reportedThisInvocation: Set<string>,
+  ): void {
     if (reportedThisInvocation.has(problem.path)) return;
     reportedThisInvocation.add(problem.path);
     notify(ctx, `Output styles keep the previous list: ${problem.path} (${problem.reason})`, "warning");
@@ -284,7 +282,11 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
   async function readStartupValue(ctx: StyleExtensionContext, path: string): Promise<string | undefined> {
     const read = await readPersistedStyleName(path);
     if (read.status === "failed") {
-      notify(ctx, `Output style settings could not be read: ${path} (${read.failure}). The session continues.`, "warning");
+      notify(
+        ctx,
+        `Output style settings could not be read: ${path} (${read.failure}). The session continues.`,
+        "warning",
+      );
       return undefined;
     }
     return read.status === "selected" ? read.value : undefined;
@@ -450,9 +452,7 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
       const flagValue = typeof requested === "string" ? requested : undefined;
 
       // An untrusted project's settings file is never read, matching the rule for its style files.
-      const projectValue = ctx.isProjectTrusted()
-        ? await readStartupValue(ctx, projectSettingsPath(ctx))
-        : undefined;
+      const projectValue = ctx.isProjectTrusted() ? await readStartupValue(ctx, projectSettingsPath(ctx)) : undefined;
       const globalValue = await readStartupValue(ctx, globalSettingsPath);
 
       // The starting style comes from this resolution alone. The flag is a one-run override and is

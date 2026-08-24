@@ -31,9 +31,7 @@ describe("pi extension loader", () => {
     const result = await discoverAndLoadExtensions([pluginRoot], cwd, agentDir);
 
     expect(result.errors).toEqual([]);
-    expect(result.extensions.map((extension) => extension.path)).toEqual([
-      join(pluginRoot, "index.ts"),
-    ]);
+    expect(result.extensions.map((extension) => extension.path)).toEqual([join(pluginRoot, "index.ts")]);
   });
 
   it("declares the loaded entry point in the package manifest", async () => {
@@ -53,10 +51,7 @@ describe("pi extension loader", () => {
 
     expect([...extension.commands.keys()]).toEqualUnordered([COMMAND_NAME]);
     expect([...extension.flags.keys()]).toEqualUnordered([FLAG_NAME]);
-    expect([...extension.handlers.keys()]).toEqualUnordered([
-      "session_start",
-      "before_agent_start",
-    ]);
+    expect([...extension.handlers.keys()]).toEqualUnordered(["session_start", "before_agent_start"]);
   });
 
   it("registers no shortcut before a session starts", async () => {

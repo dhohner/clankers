@@ -4,7 +4,5 @@ export type UserBashDecision = { kind: "allow" } | { kind: "block"; reason: stri
 
 export function decideUserBash(command: string): UserBashDecision {
   const decision = evaluateCredentialAccess(command);
-  return decision.blocked
-    ? { kind: "block", reason: decision.reason }
-    : { kind: "allow" };
+  return decision.blocked ? { kind: "block", reason: decision.reason } : { kind: "allow" };
 }

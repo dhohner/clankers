@@ -7,11 +7,13 @@ const SOURCE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../../src"
 
 async function typescriptFiles(directory: string): Promise<string[]> {
   const entries = await readdir(directory, { withFileTypes: true });
-  const nested = await Promise.all(entries.map((entry) => {
-    const path = join(directory, entry.name);
-    if (entry.isDirectory()) return typescriptFiles(path);
-    return entry.name.endsWith(".ts") ? [path] : [];
-  }));
+  const nested = await Promise.all(
+    entries.map((entry) => {
+      const path = join(directory, entry.name);
+      if (entry.isDirectory()) return typescriptFiles(path);
+      return entry.name.endsWith(".ts") ? [path] : [];
+    }),
+  );
   return nested.flat();
 }
 

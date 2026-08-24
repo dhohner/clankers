@@ -1,8 +1,4 @@
-import {
-  commandRule,
-  COMMAND_RULES,
-  type ClassificationOptions,
-} from "../command-registry.ts";
+import { commandRule, COMMAND_RULES, type ClassificationOptions } from "../command-registry.ts";
 import { LITERAL } from "../../../shell/tokenizer.ts";
 import type { ShellToken, Word } from "../../../shell/types.ts";
 
@@ -100,4 +96,3 @@ export function nestedShellIsDestructive(
   if (expandsBeforeUse(script)) return true;
   return isDestructiveText(script.text);
 }
-

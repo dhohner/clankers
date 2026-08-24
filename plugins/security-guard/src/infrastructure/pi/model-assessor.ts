@@ -105,7 +105,9 @@ export async function evaluateCommandSafety(request: SafetyEvaluationRequest): P
 
   if (response.stopReason === "aborted") return { ok: false, reason: SAFETY_EVALUATION_CANCELLED_REASON };
   if (response.stopReason !== "stop") {
-    const detail = response.errorMessage ? describeError(response.errorMessage) : `stop reason "${response.stopReason}"`;
+    const detail = response.errorMessage
+      ? describeError(response.errorMessage)
+      : `stop reason "${response.stopReason}"`;
     return blocked(`the safety evaluation did not complete (${detail})`);
   }
 

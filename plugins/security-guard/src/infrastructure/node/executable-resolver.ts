@@ -11,7 +11,8 @@ import { SYSTEM_EXECUTABLE_DIRECTORIES } from "../../shell/command-parser.ts";
 function spawnSearchPath(): string | undefined {
   const path = process.env.PATH;
   if (path === undefined) return undefined;
-  const agentDirectory = process.env.PI_CODING_AGENT_DIR?.replace(/^~(?=\/|$)/, homedir()) || join(homedir(), ".pi", "agent");
+  const agentDirectory =
+    process.env.PI_CODING_AGENT_DIR?.replace(/^~(?=\/|$)/, homedir()) || join(homedir(), ".pi", "agent");
   const binDirectory = join(agentDirectory, "bin");
   const entries = path.split(delimiter).filter(Boolean);
   return entries.includes(binDirectory) ? path : [binDirectory, path].join(delimiter);

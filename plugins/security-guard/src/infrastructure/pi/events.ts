@@ -1,18 +1,11 @@
-import type {
-  ExtensionContext,
-  ToolCallEvent,
-  UserBashEvent,
-} from "@earendil-works/pi-coding-agent";
+import type { ExtensionContext, ToolCallEvent, UserBashEvent } from "@earendil-works/pi-coding-agent";
 import { decideToolCall, type ToolCall } from "../../application/decide-tool-call.ts";
 import { decideUserBash } from "../../application/decide-user-bash.ts";
 import { formatSafetyAssessment } from "../../policy/assessment/assessment-codec.ts";
 import { BLOCK_REASON } from "../../policy/credential-access/result.ts";
 import { allSystemExecutables as verifySystemExecutables } from "../node/executable-resolver.ts";
 import { allInsideTemporaryRoot as verifyTemporaryPaths } from "../node/temporary-root.ts";
-import {
-  evaluateCommandSafety,
-  SAFETY_EVALUATION_WORKING_MESSAGE,
-} from "./model-assessor.ts";
+import { evaluateCommandSafety, SAFETY_EVALUATION_WORKING_MESSAGE } from "./model-assessor.ts";
 
 function inputRecord(event: ToolCallEvent): Record<string, unknown> {
   const compatible = event as ToolCallEvent & { args?: Record<string, unknown> };
@@ -63,11 +56,7 @@ export async function handlePiToolCall(event: ToolCallEvent, ctx: ExtensionConte
       },
       requestApproval: ({ assessment, signal }) => {
         if (!context) throw new Error("Pi did not provide an extension context");
-        return context.ui.confirm(
-          "Approve destructive command?",
-          formatSafetyAssessment(assessment),
-          { signal },
-        );
+        return context.ui.confirm("Approve destructive command?", formatSafetyAssessment(assessment), { signal });
       },
     },
   );

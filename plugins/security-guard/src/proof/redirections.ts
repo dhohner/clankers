@@ -47,4 +47,3 @@ export function extractRedirectionTargets(
   }
   return proven(targets);
 }
-

@@ -1,6 +1,4 @@
-export {
-  analyzeCommand,
-} from "./policy/command-analysis/analyze-command.ts";
+export { analyzeCommand } from "./policy/command-analysis/analyze-command.ts";
 export {
   COMMAND_RULES,
   commandRule,
@@ -48,9 +46,4 @@ export {
 } from "./infrastructure/node/executable-resolver.ts";
 export { allInsideTemporaryRoot, isInsideTemporaryRoot } from "./infrastructure/node/temporary-root.ts";
 export { isDestructiveText } from "./policy/command-analysis/commands/classify-command.ts";
-export {
-  destructiveTargets,
-  provableCall,
-  type DestructiveTarget,
-  type ProvableCall,
-} from "./proof/provable-call.ts";
+export { destructiveTargets, provableCall, type DestructiveTarget, type ProvableCall } from "./proof/provable-call.ts";

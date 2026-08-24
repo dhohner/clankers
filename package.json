@@ -10,10 +10,10 @@
     "test": "pnpm -r --if-present test"
   },
   "devDependencies": {
-    "vitest": "^4.1.5"
+    "vitest": "^4.1.11"
   },
   "peerDependencies": {
-    "@earendil-works/pi-coding-agent": ">=0.84.0"
+    "@earendil-works/pi-coding-agent": ">=0.84.2"
   },
   "pi": {
     "extensions": [

@@ -107,7 +107,7 @@ function enqueueSettingsWrite<T>(path: string, task: () => Promise<T>): Promise<
     () => undefined,
   );
   writeQueues.set(path, tail);
-  void tail.then(() => {
+  void tail.finally(() => {
     if (writeQueues.get(path) === tail) writeQueues.delete(path);
   });
   return result;
@@ -127,7 +127,9 @@ async function readSettingsObject(path: string): Promise<Record<string, unknown>
   try {
     parsed = JSON.parse(content);
   } catch (error) {
-    throw new Error(`settings file is not valid JSON: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`settings file is not valid JSON: ${error instanceof Error ? error.message : String(error)}`, {
+      cause: error,
+    });
   }
   if (!isPlainObject(parsed)) throw new Error("settings file does not hold a JSON object");
   return parsed;

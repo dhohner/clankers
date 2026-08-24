@@ -26,7 +26,11 @@ function makeAssessmentReply(verdict = "unsafe") {
   };
 }
 
-function makeApprovalContext({ approve = true, verdict = "unsafe", signal = undefined as AbortSignal | undefined } = {}) {
+function makeApprovalContext({
+  approve = true,
+  verdict = "unsafe",
+  signal = undefined as AbortSignal | undefined,
+} = {}) {
   return {
     hasUI: true,
     cwd: "/workspace",
@@ -92,7 +96,9 @@ describe("extension entrypoint", () => {
     extension(pi as never);
     const handler = pi.on.mock.calls.find(([event]) => event === "tool_call")?.[1];
 
-    await expect(handler({ toolName: "read", args: { path: ".env" } }, { hasUI: false })).resolves.toMatchObject({ block: true });
+    await expect(handler({ toolName: "read", args: { path: ".env" } }, { hasUI: false })).resolves.toMatchObject({
+      block: true,
+    });
   });
 
   it("requires approval for destructive Bash tool calls", async () => {
@@ -137,7 +143,9 @@ describe("extension entrypoint", () => {
     const directory = await makeTemporaryDirectory();
     const ctx = { ...makeApprovalContext(), cwd: "/", hasUI: false };
 
-    await expect(handler({ toolName: "bash", input: { command: `rm -rf '${directory}'` } }, ctx)).resolves.toBeUndefined();
+    await expect(
+      handler({ toolName: "bash", input: { command: `rm -rf '${directory}'` } }, ctx),
+    ).resolves.toBeUndefined();
     expect(ctx.modelRegistry.complete).not.toHaveBeenCalled();
     expect(ctx.ui.confirm).not.toHaveBeenCalled();
   });
@@ -182,7 +190,9 @@ describe("extension entrypoint", () => {
     const handler = makeToolCallHandler();
     const ctx = { ...makeApprovalContext(), cwd: TEMPORARY_ROOT };
 
-    await expect(handler({ toolName: "bash", input: { command: `rm -rf '${TEMPORARY_ROOT}'` } }, ctx)).resolves.toBeUndefined();
+    await expect(
+      handler({ toolName: "bash", input: { command: `rm -rf '${TEMPORARY_ROOT}'` } }, ctx),
+    ).resolves.toBeUndefined();
     expect(ctx.modelRegistry.complete).toHaveBeenCalledOnce();
     expect(ctx.ui.confirm).toHaveBeenCalledOnce();
   });
@@ -340,7 +350,9 @@ describe("extension entrypoint", () => {
     const handler = makeToolCallHandler();
     const ctx = makeApprovalContext();
 
-    await expect(handler({ toolName: "bash", input: { command: "cat ~/.aws/credentials" } }, ctx)).resolves.toMatchObject({
+    await expect(
+      handler({ toolName: "bash", input: { command: "cat ~/.aws/credentials" } }, ctx),
+    ).resolves.toMatchObject({
       block: true,
     });
     expect(ctx.modelRegistry.complete).not.toHaveBeenCalled();

@@ -198,7 +198,9 @@ describe("style persistence", () => {
     expect(harness.notifications).toHaveLength(3);
     expect(harness.notifications[0]?.message).toContain(`could not be read: ${projectSettingsPath()}`);
     expect(harness.notifications[2]?.level).toBe("warning");
-    expect(harness.notifications[2]?.message).toContain('Output style "terse" stays active for this session but could not be persisted:');
+    expect(harness.notifications[2]?.message).toContain(
+      'Output style "terse" stays active for this session but could not be persisted:',
+    );
   });
 
   it("stays silent when neither settings file exists", async () => {

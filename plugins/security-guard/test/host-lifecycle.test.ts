@@ -45,14 +45,23 @@ async function createHost({ approve = true } = {}) {
     complete: vi.fn().mockResolvedValue({
       role: "assistant",
       content: [
-        { type: "text", text: JSON.stringify({ verdict: "unsafe", intent: "Deletes a path", reason: "Removal is permanent" }) },
+        {
+          type: "text",
+          text: JSON.stringify({ verdict: "unsafe", intent: "Deletes a path", reason: "Removal is permanent" }),
+        },
       ],
       stopReason: "stop",
     }),
   };
   const ui = { confirm: vi.fn().mockResolvedValue(approve), setWorkingMessage: vi.fn() };
 
-  const runner = new ExtensionRunner(loaded.extensions, loaded.runtime, workingDirectory, {} as never, modelRegistry as never);
+  const runner = new ExtensionRunner(
+    loaded.extensions,
+    loaded.runtime,
+    workingDirectory,
+    {} as never,
+    modelRegistry as never,
+  );
   const extensionErrors: ExtensionError[] = [];
   runner.onError((error) => extensionErrors.push(error));
   runner.setUIContext(ui as never, "tui");
@@ -276,10 +285,16 @@ describe("reported host lifecycle", () => {
   // that ran no builtin, an assignment whose exit status hid a failed mktemp, a `mktemp` prefix that escapes
   // the root, or a command bash assembles from text this policy reads as something else.
   it.each([
-    ["export reports the builtin's exit status, not the substitution's", `set -e; export d=$(mktemp -d); rm -rf "$d/probe"`],
+    [
+      "export reports the builtin's exit status, not the substitution's",
+      `set -e; export d=$(mktemp -d); rm -rf "$d/probe"`,
+    ],
     ["env runs no shell builtin", `env set -e; d=$(mktemp -d); rm -rf "$d/probe"`],
     ["bash rejects a set call carrying an unknown option letter", `set -eZ; d=$(mktemp -d); rm -rf "$d/probe"`],
-    ["mktemp -t concatenates its prefix onto the root", `set -e; d=$(mktemp -d -t ../security-guard-host-escape); rm -rf "$d"`],
+    [
+      "mktemp -t concatenates its prefix onto the root",
+      `set -e; d=$(mktemp -d -t ../security-guard-host-escape); rm -rf "$d"`,
+    ],
     ["eval runs its concatenated operands", `eval rm -rf ${EXTERNAL_TARGET}`],
     ["a nested shell reads its script from a variable", `c="rm -rf ${EXTERNAL_TARGET}"; bash -c "$c"`],
     ["a command word comes from a variable", `c="rm -rf ${EXTERNAL_TARGET}"; $c`],
@@ -355,9 +370,18 @@ describe("reported host lifecycle", () => {
   // Each of these once reached the temporary-workspace exception although bash would have removed or
   // clobbered EXTERNAL_TARGET. The target stays non-existent, so a regression blocks rather than deletes.
   it.each([
-    ["a conditional assignment leaves the earlier value", `d=/nonexistent; false && d=$(mktemp -d); rm -rf "$d/security-guard-host-probe"`],
-    ["a subshell assignment does not reach this shell", `d=/nonexistent; (d=$(mktemp -d)); rm -rf "$d/security-guard-host-probe"`],
-    ["printf -v reassigns the proven variable", `d=$(mktemp -d); printf -v d /nonexistent; rm -rf "$d/security-guard-host-probe"`],
+    [
+      "a conditional assignment leaves the earlier value",
+      `d=/nonexistent; false && d=$(mktemp -d); rm -rf "$d/security-guard-host-probe"`,
+    ],
+    [
+      "a subshell assignment does not reach this shell",
+      `d=/nonexistent; (d=$(mktemp -d)); rm -rf "$d/security-guard-host-probe"`,
+    ],
+    [
+      "printf -v reassigns the proven variable",
+      `d=$(mktemp -d); printf -v d /nonexistent; rm -rf "$d/security-guard-host-probe"`,
+    ],
     ["TMPDIR moves where mktemp -d creates", `export TMPDIR=/nonexistent; d=$(mktemp -d); rm -rf "$d"`],
     ["a redirection writes a path no operand names", `rm -rf probe; echo x > ${EXTERNAL_TARGET}`],
     ["a quoted substitution assigns its own text", `d='$(mktemp -d)'; rm -rf "$d"`],
@@ -365,10 +389,16 @@ describe("reported host lifecycle", () => {
     ["mkdir creates a path outside the workspace", `rm -rf probe; mkdir ${EXTERNAL_TARGET}`],
     ["a leading redirection precedes the command word", `>probe.log rm -rf ${EXTERNAL_TARGET}`],
     ["a wrapper option takes a value", `nice -n 10 rm -rf ${EXTERNAL_TARGET}`],
-    ["mktemp -d carries an option that may make it fail", `d=$(mktemp -d --definitely-invalid); rm -rf "$d${EXTERNAL_TARGET}"`],
+    [
+      "mktemp -d carries an option that may make it fail",
+      `d=$(mktemp -d --definitely-invalid); rm -rf "$d${EXTERNAL_TARGET}"`,
+    ],
     ["a wrapper option writes a file of its own", `/usr/bin/time -o ${EXTERNAL_TARGET} rm -rf probe`],
     // `mktemp -d -t` fails for want of a prefix, so bash passes the suffix on its own from the root.
-    ["a failed mktemp leaves an empty variable", `d=$(mktemp -d -t)\nrm -rf "$d/nonexistent/security-guard-host-probe"`],
+    [
+      "a failed mktemp leaves an empty variable",
+      `d=$(mktemp -d -t)\nrm -rf "$d/nonexistent/security-guard-host-probe"`,
+    ],
     ["an xargs option takes a value", `printf '%s\\n' ${EXTERNAL_TARGET} | xargs -n 1 rm -rf`],
   ])("requires evaluation and approval when %s", async (_description, command) => {
     const host = await createHost({ approve: false });

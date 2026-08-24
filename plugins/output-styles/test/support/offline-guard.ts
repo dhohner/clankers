@@ -52,9 +52,7 @@ function describeRequestTarget(defaultProtocol: string, args: readonly unknown[]
         ? optionsFromUrl(first)
         : undefined;
   const explicit = fromUrl === undefined ? first : second;
-  const fromOptions = (
-    typeof explicit === "object" && explicit !== null ? explicit : {}
-  ) as RequestOptions;
+  const fromOptions = (typeof explicit === "object" && explicit !== null ? explicit : {}) as RequestOptions;
   const options: RequestOptions = { ...fromUrl, ...fromOptions };
 
   const protocol = typeof options.protocol === "string" ? options.protocol : defaultProtocol;
@@ -100,9 +98,7 @@ function describeConnectTarget(args: readonly unknown[]): string {
 }
 
 function refuse(callName: string, target: string): never {
-  throw new Error(
-    `Network access is not allowed in this test suite. ${callName} tried to reach ${target}.`,
-  );
+  throw new Error(`Network access is not allowed in this test suite. ${callName} tried to reach ${target}.`);
 }
 
 function install(): void {

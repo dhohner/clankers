@@ -7,15 +7,9 @@ export type CommandAssessmentPort = (request: {
   signal?: AbortSignal;
 }) => Promise<SafetyEvaluation>;
 
-export type CommandApprovalPort = (request: {
-  assessment: SafetyAssessment;
-  signal?: AbortSignal;
-}) => Promise<boolean>;
+export type CommandApprovalPort = (request: { assessment: SafetyAssessment; signal?: AbortSignal }) => Promise<boolean>;
 
-export type ExecutableResolutionPort = (
-  commandNames: readonly string[],
-  workingDirectory: string,
-) => Promise<boolean>;
+export type ExecutableResolutionPort = (commandNames: readonly string[], workingDirectory: string) => Promise<boolean>;
 
 export type TemporaryPathVerificationPort = (
   targets: readonly DestructiveTarget[],

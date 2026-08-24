@@ -233,9 +233,9 @@ export function createHarness(options: { flag?: string; trusted?: boolean; hasUI
       )) as { systemPrompt?: string } | undefined;
       return result?.systemPrompt ?? systemPrompt;
     },
-    async turnResult(options = promptOptions()) {
+    async turnResult(systemPromptOptions = promptOptions()) {
       return (await handlers.before_agent_start?.(
-        { systemPrompt: CHAINED_PROMPT, systemPromptOptions: options } as never,
+        { systemPrompt: CHAINED_PROMPT, systemPromptOptions } as never,
         ctx,
       )) as Record<string, unknown> | undefined;
     },

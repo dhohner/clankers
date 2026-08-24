@@ -12,9 +12,7 @@ function word(text: string) {
 describe("proof shell state", () => {
   it("expands a variable assigned earlier in the same call", () => {
     const state: ShellState = {
-      variables: new Map([
-        ["dir", { path: "build", insideMktempDirectory: false, mktempGuarded: false }],
-      ]),
+      variables: new Map([["dir", { path: "build", insideMktempDirectory: false, mktempGuarded: false }]]),
       errexit: false,
     };
 

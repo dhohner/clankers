@@ -92,4 +92,3 @@ export function skipOptionsOf(model: OptionModel, words: readonly Word[], start:
   }
   return { index: index + (model.operands ?? 0), stateful, inspects };
 }
-

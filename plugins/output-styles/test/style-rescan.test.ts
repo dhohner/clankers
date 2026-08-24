@@ -112,7 +112,11 @@ describe("rescan on /output-style invocation", () => {
     await harness.start();
 
     listFailures.path = userStyles;
-    await writeStyle(join(cwd, CONFIG_DIR_NAME, STYLES_DIR_NAME), "local.md", styleFile("Project style.", "Project text."));
+    await writeStyle(
+      join(cwd, CONFIG_DIR_NAME, STYLES_DIR_NAME),
+      "local.md",
+      styleFile("Project style.", "Project text."),
+    );
     harness.answerSelect(undefined);
     await harness.runCommand("");
 
@@ -131,7 +135,11 @@ describe("rescan on /output-style invocation", () => {
     const harness = createHarness({ trusted: true });
     await harness.start();
 
-    await writeStyle(join(cwd, CONFIG_DIR_NAME, STYLES_DIR_NAME), "local.md", styleFile("Project style.", "Project text."));
+    await writeStyle(
+      join(cwd, CONFIG_DIR_NAME, STYLES_DIR_NAME),
+      "local.md",
+      styleFile("Project style.", "Project text."),
+    );
     await harness.runCommand("local");
 
     expect(harness.status()).toBe(styleStatus("local"));
@@ -243,7 +251,11 @@ describe("rescan on /output-style invocation", () => {
   });
 
   it("cycles to the first entry when a rescan removed the active style", async () => {
-    const path = await writeStyle(join(agentDir, STYLES_DIR_NAME), "brief.md", styleFile("Short answers.", "Answer briefly."));
+    const path = await writeStyle(
+      join(agentDir, STYLES_DIR_NAME),
+      "brief.md",
+      styleFile("Short answers.", "Answer briefly."),
+    );
     const harness = createHarness({ flag: "brief" });
     await harness.start();
 

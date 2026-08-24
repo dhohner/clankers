@@ -1,11 +1,6 @@
 import { commandRule } from "../policy/command-analysis/command-registry.ts";
 import { simpleCommandIsDestructive } from "../policy/command-analysis/commands/classify-command.ts";
-import {
-  SHELL_BUILTINS,
-  assignedName,
-  escalatesPrivilege,
-  isTrustedCommandWord,
-} from "../shell/command-parser.ts";
+import { SHELL_BUILTINS, assignedName, escalatesPrivilege, isTrustedCommandWord } from "../shell/command-parser.ts";
 import type { ShellToken } from "../shell/types.ts";
 import {
   extractPathTargets,
@@ -45,7 +40,15 @@ function isInertCommand(name: string, argTexts: readonly string[]): boolean {
 // scan cannot prove would otherwise be dropped while bash still acts on it. Any of them invalidates the
 // reasoning applied to the rest of the call.
 const SENSITIVE_VARIABLES = new Set([
-  "TMPDIR", "TMP", "TEMP", "IFS", "PATH", "ENV", "BASH_ENV", "PS4", "PROMPT_COMMAND",
+  "TMPDIR",
+  "TMP",
+  "TEMP",
+  "IFS",
+  "PATH",
+  "ENV",
+  "BASH_ENV",
+  "PS4",
+  "PROMPT_COMMAND",
 ]);
 
 const HAS_SUBSTITUTION = /\$\(|`/;
@@ -53,9 +56,33 @@ const HAS_SUBSTITUTION = /\$\(|`/;
 // The long names `set -o` and `set +o` accept. An unlisted name may not be an option name at all, which would
 // make the word a positional parameter and the rest of the call something else than it reads as.
 const SET_OPTION_NAMES = new Set([
-  "allexport", "braceexpand", "emacs", "errexit", "errtrace", "functrace", "hashall", "histexpand", "history",
-  "ignoreeof", "interactive-comments", "keyword", "monitor", "noclobber", "noexec", "noglob", "nolog", "notify",
-  "nounset", "onecmd", "physical", "pipefail", "posix", "privileged", "verbose", "vi", "xtrace",
+  "allexport",
+  "braceexpand",
+  "emacs",
+  "errexit",
+  "errtrace",
+  "functrace",
+  "hashall",
+  "histexpand",
+  "history",
+  "ignoreeof",
+  "interactive-comments",
+  "keyword",
+  "monitor",
+  "noclobber",
+  "noexec",
+  "noglob",
+  "nolog",
+  "notify",
+  "nounset",
+  "onecmd",
+  "physical",
+  "pipefail",
+  "posix",
+  "privileged",
+  "verbose",
+  "vi",
+  "xtrace",
 ]);
 
 // The single-letter options bash's `set` accepts, from its own usage line. A word carrying any other letter
@@ -92,7 +119,6 @@ function errexitAfterSet(argTexts: readonly string[], current: boolean): boolean
   return errexit;
 }
 
-
 function addPathResolvedCommands(commands: Set<string>, commandWords: readonly ShellToken[]): void {
   for (const word of commandWords) {
     if (!word.text.includes("/") && !SHELL_BUILTINS.has(word.text)) commands.add(word.text);
@@ -118,10 +144,7 @@ function addPathResolvedCommands(commands: Set<string>, commandWords: readonly S
  * host's PATH decides which file such a word runs, so callers resolve each name with
  * `resolvesToSystemExecutable` before relying on the targets.
  */
-export function proveShellEffects(
-  ast: ShellAst,
-  destructiveStarts: ReadonlySet<number>,
-): ProofResult<ProvableCall> {
+export function proveShellEffects(ast: ShellAst, destructiveStarts: ReadonlySet<number>): ProofResult<ProvableCall> {
   const tokens = ast.tokens;
   if (tokens.some((token) => !token.sep && SENSITIVE_VARIABLES.has(assignedName(token) ?? ""))) {
     return unprovable("sensitive shell variable assignment");

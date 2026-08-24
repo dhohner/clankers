@@ -178,11 +178,7 @@ describe("output styles extension", () => {
   });
 
   it("skips a replace-mode style file with an empty body like an append-mode one", async () => {
-    const path = await writeStyle(
-      join(agentDir, STYLES_DIR_NAME),
-      "empty.md",
-      styleFile("Empty body.", "", "replace"),
-    );
+    const path = await writeStyle(join(agentDir, STYLES_DIR_NAME), "empty.md", styleFile("Empty body.", "", "replace"));
 
     const harness = createHarness({ flag: "empty" });
     await harness.start();

@@ -1,12 +1,5 @@
-import {
-  parseCommand,
-  resolveCommand,
-  simpleCommandExtents,
-} from "./command-parser.ts";
-import {
-  tokenizeShell,
-  type UnsupportedShellSyntax,
-} from "./tokenizer.ts";
+import { parseCommand, resolveCommand, simpleCommandExtents } from "./command-parser.ts";
+import { tokenizeShell, type UnsupportedShellSyntax } from "./tokenizer.ts";
 import type { ShellAst } from "./ast.ts";
 
 export type ShellParseResult =

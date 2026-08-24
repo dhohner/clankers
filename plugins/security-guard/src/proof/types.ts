@@ -35,9 +35,7 @@ export type ProofFailure =
   | "word contains a substitution"
   | "wrapper has unmodeled effects";
 
-export type ProofResult<T> =
-  | { kind: "proven"; value: T }
-  | { kind: "unprovable"; reason: ProofFailure };
+export type ProofResult<T> = { kind: "proven"; value: T } | { kind: "unprovable"; reason: ProofFailure };
 
 export function proven<T>(value: T): ProofResult<T> {
   return { kind: "proven", value };
@@ -49,9 +47,6 @@ export function unprovable<T = never>(reason: ProofFailure): ProofResult<T> {
 
 export type ProvableCall = { targets: DestructiveTarget[]; commands: string[] };
 
-export function provenTarget(
-  { path, insideMktempDirectory }: ShellVariable,
-  followsLinks: boolean,
-): DestructiveTarget {
+export function provenTarget({ path, insideMktempDirectory }: ShellVariable, followsLinks: boolean): DestructiveTarget {
   return { path, insideMktempDirectory, followsLinks };
 }

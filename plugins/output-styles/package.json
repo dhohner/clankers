@@ -3,12 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "description": "Pi extension that selects a named response style and applies it to the agent system prompt.",
-  "type": "module",
   "keywords": [
-    "pi-package",
+    "extension",
     "output-style",
-    "system-prompt",
-    "extension"
+    "pi-package",
+    "system-prompt"
   ],
   "license": "Apache-2.0",
   "author": {
@@ -18,28 +17,6 @@
     "type": "git",
     "url": "https://github.com/dhohner/clankers.git",
     "directory": "plugins/output-styles"
-  },
-  "scripts": {
-    "clean": "rm -rf dist",
-    "build": "pnpm run clean && tsc -p tsconfig.build.json",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "check": "vitest run --coverage && pnpm run typecheck"
-  },
-  "peerDependencies": {
-    "@earendil-works/pi-coding-agent": ">=0.84.1"
-  },
-  "devDependencies": {
-    "@types/node": "^25.6.0",
-    "@types/proper-lockfile": "^4.1.4",
-    "@vitest/coverage-istanbul": "4.1.5",
-    "typescript": "^6.0.3",
-    "vitest": "^4.1.5"
-  },
-  "pi": {
-    "extensions": [
-      "./index.ts"
-    ]
   },
   "files": [
     "README.md",
@@ -52,8 +29,37 @@
     "package.json",
     "LICENSE"
   ],
+  "type": "module",
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "pnpm run clean && tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "oxlint --max-warnings=0",
+    "lint:fix": "oxlint --fix",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check .",
+    "check": "pnpm run lint && pnpm run format:check && vitest run --coverage && pnpm run typecheck"
+  },
   "dependencies": {
     "proper-lockfile": "^4.1.2",
     "yaml": "^2.9.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "@types/proper-lockfile": "^4.1.4",
+    "@vitest/coverage-istanbul": "^4.1.11",
+    "oxfmt": "^0.65.0",
+    "oxlint": "^1.80.0",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.11"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": ">=0.84.2"
+  },
+  "pi": {
+    "extensions": [
+      "./index.ts"
+    ]
   }
 }

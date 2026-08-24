@@ -40,7 +40,7 @@ describe("parseStyleFile", () => {
   it.each([
     ["missing frontmatter", "Be brief.\n", "no readable YAML frontmatter block"],
     ["missing description", "---\nmode: append\n---\nBe brief.\n", 'frontmatter needs a non-empty "description"'],
-    ["empty description", "---\ndescription: \"  \"\n---\nBe brief.\n", 'frontmatter needs a non-empty "description"'],
+    ["empty description", '---\ndescription: "  "\n---\nBe brief.\n', 'frontmatter needs a non-empty "description"'],
     [
       "a comment-only description",
       "---\ndescription: # Answer briefly.\n---\nBe brief.\n",

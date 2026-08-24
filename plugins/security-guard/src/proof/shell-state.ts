@@ -1,18 +1,7 @@
-import {
-  escalatesPrivilege,
-  isAssignment,
-  isTrustedCommandWord,
-  simpleCommandAt,
-} from "../shell/command-parser.ts";
+import { escalatesPrivilege, isAssignment, isTrustedCommandWord, simpleCommandAt } from "../shell/command-parser.ts";
 import { DOUBLE, LITERAL, UNQUOTED, shellTokens, sliceWord } from "../shell/tokenizer.ts";
 import type { ShellToken, Word } from "../shell/types.ts";
-import {
-  proven,
-  unprovable,
-  type ProofResult,
-  type ShellState,
-  type ShellVariable,
-} from "./types.ts";
+import { proven, unprovable, type ProofResult, type ShellState, type ShellVariable } from "./types.ts";
 
 const SUBSTITUTION = /\$\(([\s\S]*)\)|`([^`]*)`/;
 
@@ -114,7 +103,7 @@ function expandWordValue(word: Word, state: ShellState): ShellVariable | undefin
 
   let insideMktempDirectory = false;
   let mktempGuarded = false;
-  let unprovable = false;
+  let unprovableExpansion = false;
   const path = word.text.replace(EXPANSION, (whole: string, braced: string, bare: string, offset: number) => {
     // A single-quoted or backslash-escaped `$` is literal; the leftover `$` fails the check below. So is a
     // `$` quoted apart from the name after it, as in `"$"a` or `$"{a}"`, which bash leaves as written.
@@ -123,23 +112,23 @@ function expandWordValue(word: Word, state: ShellState): ShellVariable | undefin
 
     const variable = state.variables.get(braced ?? bare);
     if (!variable) {
-      unprovable = true;
+      unprovableExpansion = true;
       return "";
     }
     // An unquoted expansion is split on whitespace, so one checked word would become several operands.
     if (word.quoting[offset] === UNQUOTED && /\s/.test(variable.path)) {
-      unprovable = true;
+      unprovableExpansion = true;
       return "";
     }
     if (variable.insideMktempDirectory) {
       // The created path is only known to bash, so an unquoted expansion could split on whitespace in it.
-      if (offset !== 0 || word.quoting[offset] !== DOUBLE) unprovable = true;
+      if (offset !== 0 || word.quoting[offset] !== DOUBLE) unprovableExpansion = true;
       insideMktempDirectory = true;
       mktempGuarded = variable.mktempGuarded;
     }
     return variable.path;
   });
-  if (unprovable || /[$`]/.test(path) || path.startsWith("~")) return undefined;
+  if (unprovableExpansion || /[$`]/.test(path) || path.startsWith("~")) return undefined;
   // Without errexit a failed `mktemp -d` leaves the variable empty and bash passes the suffix on its own, as
   // an absolute path from the filesystem root. Only an empty suffix is harmless then, because every command
   // rejects an empty operand.
@@ -171,4 +160,3 @@ export function expandWord(word: Word, state: ShellState): ProofResult<ShellVari
   const value = expandWordValue(word, state);
   return value ? proven(value) : unprovable("word expansion cannot be proven");
 }
-

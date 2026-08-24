@@ -1,18 +1,7 @@
-import {
-  commandRule,
-  type ClassificationOptions,
-} from "../command-registry.ts";
+import { commandRule, type ClassificationOptions } from "../command-registry.ts";
 import { commandNeedsApproval, gitIsDestructive } from "./filesystem-and-git.ts";
-import {
-  REWRITES_COMMAND_WORD,
-  expandsBeforeUse,
-  nestedShellIsDestructive,
-} from "./nested-shell.ts";
-import {
-  XARGS_OPTIONS,
-  simpleCommandExtents,
-  simpleCommandAt,
-} from "../../../shell/command-parser.ts";
+import { REWRITES_COMMAND_WORD, expandsBeforeUse, nestedShellIsDestructive } from "./nested-shell.ts";
+import { XARGS_OPTIONS, simpleCommandExtents, simpleCommandAt } from "../../../shell/command-parser.ts";
 import { skipOptionsOf } from "../../../shell/option-scanner.ts";
 import { LITERAL, shellTokens } from "../../../shell/tokenizer.ts";
 import type { ShellAst } from "../../../shell/ast.ts";
@@ -67,7 +56,8 @@ export function simpleCommandIsDestructive(
     return args.some(
       (word, offset) =>
         options.writePrimaries.has(word.text) ||
-        (options.commandPrimaries.has(word.text) && simpleCommandIsDestructive(tokens, (argIndices[offset] ?? -2) + 1, failClosed)),
+        (options.commandPrimaries.has(word.text) &&
+          simpleCommandIsDestructive(tokens, (argIndices[offset] ?? -2) + 1, failClosed)),
     );
   }
 
@@ -87,11 +77,7 @@ function containsDestructiveText(value: string, failClosed: boolean): boolean {
   const tokens = shellTokens(value);
   // Each extent is resolved through its own redirections and wrappers, so a leading `>file` cannot hide the
   // command word behind it.
-  if (
-    simpleCommandExtents(tokens).some((extent) =>
-      simpleCommandIsDestructive(tokens, extent.start, failClosed),
-    )
-  ) {
+  if (simpleCommandExtents(tokens).some((extent) => simpleCommandIsDestructive(tokens, extent.start, failClosed))) {
     return true;
   }
   return tokens.some((token) => {
@@ -124,4 +110,3 @@ export function classifyShellAst(ast: ShellAst): ShellDestructiveClassification 
 export function isDestructiveText(value: string): boolean {
   return containsDestructiveText(value, true);
 }
-

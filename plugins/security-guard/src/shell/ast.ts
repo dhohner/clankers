@@ -1,8 +1,4 @@
-import type {
-  CommandExtent,
-  ParsedCommand,
-  SimpleCommand,
-} from "./command-parser.ts";
+import type { CommandExtent, ParsedCommand, SimpleCommand } from "./command-parser.ts";
 import type { ShellToken } from "./types.ts";
 
 export type ParsedCommandInvocation = {

@@ -143,7 +143,11 @@ describe("in-session style switching", () => {
   it("lists every style with name, description, and source and marks the active one", async () => {
     await writeStyle(bundledDir, "plain.md", styleFile("Bundled style.", "Bundled text."));
     await writeStyle(join(agentDir, STYLES_DIR_NAME), "brief.md", styleFile("User style.", "User text."));
-    await writeStyle(join(cwd, CONFIG_DIR_NAME, STYLES_DIR_NAME), "local.md", styleFile("Project style.", "Project text."));
+    await writeStyle(
+      join(cwd, CONFIG_DIR_NAME, STYLES_DIR_NAME),
+      "local.md",
+      styleFile("Project style.", "Project text."),
+    );
 
     const harness = createHarness({ flag: "brief", trusted: true });
     await harness.start();
@@ -195,7 +199,11 @@ describe("in-session style switching", () => {
     await harness.start();
 
     expect(await harness.completions("")).toEqual([
-      { value: "default", label: "default", description: "Pi's standard behavior, with no added style instructions. [bundled]" },
+      {
+        value: "default",
+        label: "default",
+        description: "Pi's standard behavior, with no added style instructions. [bundled]",
+      },
       { value: "brief", label: "brief", description: "Short answers. [user]" },
       { value: "terse", label: "terse", description: "One-line answers. [user]" },
     ]);

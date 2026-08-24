@@ -49,20 +49,20 @@ describe("bundled style files", () => {
     expect(await readdir(BUNDLED_DIR)).toEqualUnordered(BUNDLED_STYLES.map((style) => `${style.file}.md`));
   });
 
-  it.each(BUNDLED_STYLES)("$file parses with a non-empty description, a body, and append mode", async ({
-    file,
-    name,
-  }) => {
-    const path = join(BUNDLED_DIR, `${file}.md`);
-    const result = parseStyleFile(path, await readFile(path, "utf8"), "bundled");
+  it.each(BUNDLED_STYLES)(
+    "$file parses with a non-empty description, a body, and append mode",
+    async ({ file, name }) => {
+      const path = join(BUNDLED_DIR, `${file}.md`);
+      const result = parseStyleFile(path, await readFile(path, "utf8"), "bundled");
 
-    expect(result.ok).toBe(true);
-    if (!result.ok) return;
-    expect(result.style.name).toBe(name);
-    expect(result.style.description).not.toBe("");
-    expect(result.style.instructions).not.toBe("");
-    expect(result.style.mode).toBe("append");
-  });
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.style.name).toBe(name);
+      expect(result.style.description).not.toBe("");
+      expect(result.style.instructions).not.toBe("");
+      expect(result.style.mode).toBe("append");
+    },
+  );
 
   it("offers the built-in default style and every bundled style on a fresh installation", async () => {
     const discovery = await discoverStyles({ bundledDir: BUNDLED_DIR });
@@ -76,7 +76,7 @@ describe("bundled style files", () => {
     const names = (await discoverStyles({ bundledDir: BUNDLED_DIR })).styles.map((style) => style.name);
 
     expect(names[0]).toBe(DEFAULT_STYLE_NAME);
-    expect(names.slice(1)).toEqual([...names.slice(1)].sort((left, right) => left.localeCompare(right, "en")));
+    expect(names.slice(1)).toEqual(names.slice(1).sort((left, right) => left.localeCompare(right, "en")));
   });
 
   it("documents every bundled style in the README table", async () => {

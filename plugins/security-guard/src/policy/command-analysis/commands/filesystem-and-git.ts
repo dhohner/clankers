@@ -1,7 +1,4 @@
-import {
-  commandRule,
-  type ClassificationOptions,
-} from "../command-registry.ts";
+import { commandRule, type ClassificationOptions } from "../command-registry.ts";
 import { extractPathOperands } from "../../../proof/path-operands.ts";
 import { skipOptionsOf, spellsLongOption } from "../../../shell/option-scanner.ts";
 
@@ -83,7 +80,9 @@ export function gitIsDestructive(argTexts: readonly string[]): boolean {
 }
 
 function hasRiskyPath(args: readonly string[]): boolean {
-  return args.some((arg) => arg.startsWith("/") || /[*?[]/.test(arg) || /(^|\/)\.env(\.|$)|(^|\/)\.(ssh|aws|kube)(\/|$)/.test(arg));
+  return args.some(
+    (arg) => arg.startsWith("/") || /[*?[]/.test(arg) || /(^|\/)\.env(\.|$)|(^|\/)\.(ssh|aws|kube)(\/|$)/.test(arg),
+  );
 }
 
 function hasRecursiveOption(
@@ -126,14 +125,25 @@ export function commandNeedsApproval(name: string, args: readonly string[]): boo
     if (extractPathOperands(name, words).kind === "unprovable") return true;
   }
   if (model === "mv" && options?.kind === "mv") {
-    return hasOption(args, options.forceShort, options.forceLong) || filteredArgs(args).length !== 2 || hasRiskyPath(args);
+    return (
+      hasOption(args, options.forceShort, options.forceLong) || filteredArgs(args).length !== 2 || hasRiskyPath(args)
+    );
   }
   if (model === "chmod" && options?.kind === "chmod") {
-    return hasRecursiveOption(args, options) || copiesFromReference(args, options) || modeGrantsWrite(filteredArgs(args)[0] ?? "") || hasRiskyPath(args);
+    return (
+      hasRecursiveOption(args, options) ||
+      copiesFromReference(args, options) ||
+      modeGrantsWrite(filteredArgs(args)[0] ?? "") ||
+      hasRiskyPath(args)
+    );
   }
   if (model === "chown" && options?.kind === "chown") {
-    return hasRecursiveOption(args, options) || copiesFromReference(args, options) || /^(root|0)(:|$)/.test(filteredArgs(args)[0] ?? "") || hasRiskyPath(args);
+    return (
+      hasRecursiveOption(args, options) ||
+      copiesFromReference(args, options) ||
+      /^(root|0)(:|$)/.test(filteredArgs(args)[0] ?? "") ||
+      hasRiskyPath(args)
+    );
   }
   return false;
 }
-

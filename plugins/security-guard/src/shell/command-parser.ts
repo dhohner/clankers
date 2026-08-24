@@ -34,8 +34,25 @@ export function isTrustedCommandWord(word: Word): boolean {
 // Reserved words are not commands: the command they introduce is the next word. Resolving from the reserved
 // word instead reads `then rm -rf build` as a command called `then`, which needs no approval.
 const RESERVED_WORDS = new Set([
-  "!", "[[", "]]", "case", "coproc", "do", "done", "elif", "else", "esac", "fi", "for", "function", "if",
-  "in", "select", "then", "until", "while",
+  "!",
+  "[[",
+  "]]",
+  "case",
+  "coproc",
+  "do",
+  "done",
+  "elif",
+  "else",
+  "esac",
+  "fi",
+  "for",
+  "function",
+  "if",
+  "in",
+  "select",
+  "then",
+  "until",
+  "while",
 ]);
 
 const ASSIGNMENT = /^[A-Za-z_][A-Za-z0-9_]*=/;

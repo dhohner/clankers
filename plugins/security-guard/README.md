@@ -108,6 +108,25 @@ One-off testing without installing:
 pi -e ./plugins/security-guard/index.ts
 ```
 
+## Development
+
+`oxlint` lints and `oxfmt` formats the package; both are configured in `.oxlintrc.json` and `.oxfmtrc.json`.
+
+```bash
+pnpm run lint          # oxlint, warnings fail
+pnpm run lint:fix      # apply only the fixes oxlint considers safe, then review the diff
+pnpm run format        # rewrite files with oxfmt
+pnpm run format:check  # fail on unformatted files
+pnpm run check         # lint, format check, tests, typecheck
+```
+
+`.oxlintrc.json` turns off a short list of rules and states the reason for each one.
+
+Review every `--fix` result before keeping it.
+`unicorn/no-useless-spread` and `unicorn/prefer-set-has` both read any `.slice()` call as an array clone without checking the receiver, so on a string they report a false positive and offer a fix that changes behavior: the first drops the spread that makes `.some` valid, and the second turns substring `includes` checks into a lookup in a set of single characters.
+Both rules stay enabled and are suppressed with an `oxlint-disable-next-line` comment at the one line each affects, in `src/proof/path-operands.ts` and `src/infrastructure/node/temporary-root.ts`.
+The test suite catches either fix if it is ever applied: the spread removal throws, and the set rewrite lets `isInsideTemporaryRoot` accept a `**` glob.
+
 ## Authors
 
 [dhohner](https://github.com/dhohner)

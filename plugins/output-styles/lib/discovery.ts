@@ -62,7 +62,7 @@ export async function readStyleDirectory(directory: string, source: StyleSource)
   // index, so the collision winner and the problem order never depend on which read completes
   // first. A read failure is a value here, not a rejection, so one unreadable file cannot cancel
   // the other reads.
-  const reads = new Array<StyleFileRead>(files.length);
+  const reads = Array.from<StyleFileRead>({ length: files.length });
   let nextIndex = 0;
   await Promise.all(
     Array.from({ length: Math.min(MAX_CONCURRENT_FILE_READS, files.length) }, async () => {

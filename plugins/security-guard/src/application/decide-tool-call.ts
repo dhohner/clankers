@@ -1,20 +1,12 @@
 import { SAFETY_EVALUATION_CANCELLED_REASON } from "../policy/assessment/assessment-codec.ts";
 import { analyzeCommand } from "../policy/command-analysis/analyze-command.ts";
-import {
-  DESTRUCTIVE_APPROVAL_REASON,
-  type ApprovalRequirement,
-} from "../policy/command-analysis/result.ts";
+import { DESTRUCTIVE_APPROVAL_REASON, type ApprovalRequirement } from "../policy/command-analysis/result.ts";
 import { evaluateCredentialAccess } from "../policy/credential-access/evaluate.ts";
 import type { DecisionPorts } from "./ports.ts";
 
-export type ToolCall =
-  | { kind: "bash"; command: string }
-  | { kind: "read"; path: string }
-  | { kind: "other" };
+export type ToolCall = { kind: "bash"; command: string } | { kind: "read"; path: string } | { kind: "other" };
 
-export type ToolCallDecision =
-  | { kind: "allow" }
-  | { kind: "block"; reason: string; analysis?: ApprovalRequirement };
+export type ToolCallDecision = { kind: "allow" } | { kind: "block"; reason: string; analysis?: ApprovalRequirement };
 
 export type ToolCallDecisionRequest = {
   call: ToolCall;
@@ -23,9 +15,7 @@ export type ToolCallDecisionRequest = {
   signal?: AbortSignal;
 };
 
-type CleanupVerification =
-  | { verified: true }
-  | { verified: false; reason: ApprovalRequirement };
+type CleanupVerification = { verified: true } | { verified: false; reason: ApprovalRequirement };
 
 function errorCause(error: unknown): string {
   return error instanceof Error ? error.message : String(error);

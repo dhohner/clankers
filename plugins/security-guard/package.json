@@ -3,13 +3,12 @@
   "version": "0.4.0",
   "private": true,
   "description": "Pi extension and Claude-format hook that block environment dumps and common local credential access.",
-  "type": "module",
   "keywords": [
-    "pi-package",
-    "security",
-    "guardrails",
     "credentials",
-    "hooks"
+    "guardrails",
+    "hooks",
+    "pi-package",
+    "security"
   ],
   "license": "MIT",
   "author": {
@@ -20,28 +19,6 @@
     "url": "https://github.com/dhohner/clankers.git",
     "directory": "plugins/security-guard"
   },
-  "scripts": {
-    "clean": "rm -rf dist",
-    "build": "pnpm run clean && tsc -p tsconfig.build.json",
-    "typecheck": "tsc --noEmit",
-    "test": "pnpm test:shell && pnpm test:unit",
-    "test:shell": "pnpm dlx bats test/*.bats",
-    "test:unit": "pnpm exec vitest run",
-    "check": "pnpm test && pnpm run typecheck"
-  },
-  "peerDependencies": {
-    "@earendil-works/pi-coding-agent": ">=0.84.0"
-  },
-  "devDependencies": {
-    "@types/node": "^25.6.0",
-    "typescript": "^6.0.3",
-    "vitest": "^4.1.5"
-  },
-  "pi": {
-    "extensions": [
-      "./index.ts"
-    ]
-  },
   "files": [
     "README.md",
     "index.ts",
@@ -50,5 +27,34 @@
     "tsconfig.build.json",
     "package.json",
     "LICENSE"
-  ]
+  ],
+  "type": "module",
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "pnpm run clean && tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "pnpm test:shell && pnpm test:unit",
+    "test:shell": "pnpm dlx bats test/*.bats",
+    "test:unit": "pnpm exec vitest run",
+    "lint": "oxlint --max-warnings=0",
+    "lint:fix": "oxlint --fix",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check .",
+    "check": "pnpm run lint && pnpm run format:check && pnpm test && pnpm run typecheck"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "oxfmt": "^0.65.0",
+    "oxlint": "^1.80.0",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.11"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": ">=0.84.0"
+  },
+  "pi": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
 }

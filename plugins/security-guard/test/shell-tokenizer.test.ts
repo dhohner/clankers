@@ -20,9 +20,6 @@ describe("shell tokenizer", () => {
   });
 
   it("does not tokenize commands inside a substitution as outer commands", () => {
-    expect(shellTokens("echo $(rm -rf build)").map((token) => token.text)).toEqual([
-      "echo",
-      "$(rm -rf build)",
-    ]);
+    expect(shellTokens("echo $(rm -rf build)").map((token) => token.text)).toEqual(["echo", "$(rm -rf build)"]);
   });
 });

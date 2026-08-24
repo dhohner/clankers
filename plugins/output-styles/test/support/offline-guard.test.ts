@@ -5,9 +5,7 @@ import { describe, expect, it } from "vitest";
 
 describe("offline guard", () => {
   it("fails a fetch call and names the target", () => {
-    expect(() => fetch("https://example.com/styles")).toThrow(
-      "fetch tried to reach https://example.com/styles",
-    );
+    expect(() => fetch("https://example.com/styles")).toThrow("fetch tried to reach https://example.com/styles");
   });
 
   it("names the target of a URL instance", () => {
@@ -35,9 +33,9 @@ describe("offline guard", () => {
   });
 
   it("prefers the options object over the URL, as Node does", () => {
-    expect(() =>
-      http.request("http://example.com/from-url", { hostname: "other.example", path: "/override" }),
-    ).toThrow("http.request tried to reach http://other.example/override");
+    expect(() => http.request("http://example.com/from-url", { hostname: "other.example", path: "/override" })).toThrow(
+      "http.request tried to reach http://other.example/override",
+    );
   });
 
   it("names a Unix domain socket instead of a host", () => {
@@ -48,9 +46,7 @@ describe("offline guard", () => {
 
   it("fails a request that a named import made", () => {
     // A named import copies the function before any hook runs, so only the socket level sees it.
-    expect(() => httpRequest("http://example.com/named")).toThrow(
-      "A socket connection tried to reach example.com:80",
-    );
+    expect(() => httpRequest("http://example.com/named")).toThrow("A socket connection tried to reach example.com:80");
     expect(() => httpsRequest("https://example.com/named")).toThrow(
       "A socket connection tried to reach example.com:443",
     );
@@ -66,9 +62,7 @@ describe("offline guard", () => {
   });
 
   it("states the rule in the failure message", () => {
-    expect(() => fetch("https://example.com")).toThrow(
-      "Network access is not allowed in this test suite.",
-    );
+    expect(() => fetch("https://example.com")).toThrow("Network access is not allowed in this test suite.");
   });
 });
 
@@ -79,9 +73,7 @@ describe.concurrent("offline guard under concurrent tests", () => {
   it("holds while a shorter concurrent test finishes", async () => {
     await new Promise((resolve) => setTimeout(resolve, 20));
 
-    expect(() => fetch("https://example.com/late")).toThrow(
-      "fetch tried to reach https://example.com/late",
-    );
+    expect(() => fetch("https://example.com/late")).toThrow("fetch tried to reach https://example.com/late");
     expect(() => http.request("http://example.com/late")).toThrow(
       "http.request tried to reach http://example.com/late",
     );
@@ -91,8 +83,6 @@ describe.concurrent("offline guard under concurrent tests", () => {
   });
 
   it("finishes early", () => {
-    expect(() => fetch("https://example.com/early")).toThrow(
-      "fetch tried to reach https://example.com/early",
-    );
+    expect(() => fetch("https://example.com/early")).toThrow("fetch tried to reach https://example.com/early");
   });
 });

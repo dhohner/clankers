@@ -1,8 +1,4 @@
-import {
-  commandRule,
-  COMMAND_RULES,
-  type PathOptionModel,
-} from "../policy/command-analysis/command-registry.ts";
+import { commandRule, COMMAND_RULES, type PathOptionModel } from "../policy/command-analysis/command-registry.ts";
 import { spellsLongOption } from "../shell/option-scanner.ts";
 import { sliceWord } from "../shell/tokenizer.ts";
 import type { ShellToken } from "../shell/types.ts";
@@ -97,6 +93,9 @@ function extractModeCommandPaths(args: readonly ShellToken[], model: ModeOptionM
       if (!model.longFlags.has(arg)) return undefined;
       continue;
     }
+    // `arg` is a string, so `String#slice` returns a string and the spread is what makes `.some` valid.
+    // oxlint reads any `.slice()` as an array clone, and its fix removes the spread, which throws.
+    // oxlint-disable-next-line unicorn/no-useless-spread
     if ([...arg.slice(1)].some((letter) => !model.shortFlags.includes(letter))) return undefined;
   }
 
@@ -153,9 +152,7 @@ function globStaysShallow(path: string): boolean {
 
 export function extractPathOperands(name: string, args: readonly ShellToken[]): ProofResult<ShellToken[]> {
   const words = extractPathOperandsValue(name, args);
-  return words && words.length > 0
-    ? proven(words)
-    : unprovable("path operands cannot be identified");
+  return words && words.length > 0 ? proven(words) : unprovable("path operands cannot be identified");
 }
 
 export function extractPathTargets(
@@ -231,4 +228,3 @@ export function extractWriteTargets(
   }
   return proven(targets);
 }
-

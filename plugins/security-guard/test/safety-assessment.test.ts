@@ -1,8 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import {
-  parseSafetyAssessment,
-  SAFETY_EVALUATION_BLOCK_PREFIX,
-} from "../src/policy/assessment/assessment-codec.js";
+import { parseSafetyAssessment, SAFETY_EVALUATION_BLOCK_PREFIX } from "../src/policy/assessment/assessment-codec.js";
 import {
   evaluateCommandSafety,
   SAFETY_EVALUATION_TIMEOUT_MS,
@@ -316,9 +313,11 @@ describe("evaluateCommandSafety", () => {
 
   it("blocks invalid assessment payloads", async () => {
     const registry = makeRegistry({
-      complete: vi.fn().mockResolvedValue(
-        assistantReply({ content: [{ type: "text", text: '{"verdict":"maybe","intent":"x","reason":"y"}' }] }),
-      ),
+      complete: vi
+        .fn()
+        .mockResolvedValue(
+          assistantReply({ content: [{ type: "text", text: '{"verdict":"maybe","intent":"x","reason":"y"}' }] }),
+        ),
     });
 
     const evaluation = await evaluateCommandSafety(makeRequest(registry));
@@ -335,7 +334,9 @@ describe("parseSafetyAssessment", () => {
   });
 
   it("parses a pretty-printed assessment object", () => {
-    const parsed = parseSafetyAssessment('{\n  "verdict": "safe",\n  "intent": "Lists files",\n  "reason": "Read-only"\n}');
+    const parsed = parseSafetyAssessment(
+      '{\n  "verdict": "safe",\n  "intent": "Lists files",\n  "reason": "Read-only"\n}',
+    );
     expect(parsed).toEqual({ verdict: "safe", intent: "Lists files", reason: "Read-only" });
   });
 
