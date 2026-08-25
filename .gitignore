@@ -5,3 +5,4 @@ coverage/
 .playwright/
 .pi/
 .claude/
+.corpus-workspace-*/
