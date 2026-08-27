@@ -85,6 +85,8 @@
   { "command": "cat > src/new.ts <<'TS'\nexport const a = 1;\nTS", "expect": "allow" },
   { "command": "docker exec -i pg psql -U postgres <<'SQL'\nDROP TABLE IF EXISTS t;\nSQL", "expect": "allow" },
   { "command": "python - <<'PY'\nimport os\nprint(os.getcwd())\nPY", "expect": "allow" },
+  { "command": "docker exec -i pg psql -U postgres <<'SQL'\nTRUNCATE TABLE t;\nSQL", "expect": "allow" },
+  { "command": "psql <<'SQL'\nTRUNCATE t;\nSQL", "expect": "allow" },
 
   { "command": "git clean -fd", "expect": "gate" },
   { "command": "git reset --hard HEAD", "expect": "gate" },
@@ -114,16 +116,6 @@
     "command": "git checkout HEAD~1",
     "expect": "pending",
     "promotedBy": "a host check that treats an operand naming no existing file as a branch or commit switch"
-  },
-  {
-    "command": "docker exec -i pg psql -U postgres <<'SQL'\nTRUNCATE TABLE t;\nSQL",
-    "expect": "pending",
-    "promotedBy": "a change that treats a heredoc body as data unless a shell reads it"
-  },
-  {
-    "command": "psql <<'SQL'\nTRUNCATE t;\nSQL",
-    "expect": "pending",
-    "promotedBy": "a change that treats a heredoc body as data unless a shell reads it"
   },
   {
     "command": "[[ -f .env.example ]] && echo present",

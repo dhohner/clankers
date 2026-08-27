@@ -8,4 +8,9 @@ export type ShellToken = Word & {
   redirect: boolean;
   /** True for here-document data, which is not shell command syntax but may contain command substitutions. */
   heredoc?: boolean;
+  /**
+   * For here-document data, the index of the first token of the command whose redirection reads the body.
+   * The body arrives after the newline that ends the command line, so this is its only link to its reader.
+   */
+  heredocOwner?: number;
 };

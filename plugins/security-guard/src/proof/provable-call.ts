@@ -1,5 +1,8 @@
 import { commandRule } from "../policy/command-analysis/command-registry.ts";
-import { simpleCommandIsDestructive } from "../policy/command-analysis/commands/classify-command.ts";
+import {
+  simpleCommandIsDestructive,
+  substitutionContents,
+} from "../policy/command-analysis/commands/classify-command.ts";
 import { SHELL_BUILTINS, assignedName, escalatesPrivilege, isTrustedCommandWord } from "../shell/command-parser.ts";
 import type { ShellToken } from "../shell/types.ts";
 import {
@@ -148,6 +151,11 @@ export function proveShellEffects(ast: ShellAst, destructiveStarts: ReadonlySet<
   const tokens = ast.tokens;
   if (tokens.some((token) => !token.sep && SENSITIVE_VARIABLES.has(assignedName(token) ?? ""))) {
     return unprovable("sensitive shell variable assignment");
+  }
+  // The reader of a here-document only receives data, but this shell expands an unquoted body first, so a
+  // substitution there runs unseen whatever the reader is.
+  if (tokens.some((token) => token.heredoc && substitutionContents(token).length > 0)) {
+    return unprovable("word contains a substitution");
   }
 
   const state: ShellState = { variables: new Map(), errexit: false };

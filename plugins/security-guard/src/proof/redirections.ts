@@ -9,8 +9,6 @@ import {
   type ShellState,
 } from "./types.ts";
 
-// A heredoc may expand substitutions and supplies data rather than a path, so this proof does not model it.
-const HEREDOC_OPERATORS: ReadonlySet<string> = new Set(["<<", "<<-"]);
 // Redirections that create or truncate their target; `<>` opens it for writing too.
 const WRITE_OPERATORS: ReadonlySet<string> = new Set([">", ">>", ">|", "&>", "&>>", "<>"]);
 // Descriptor duplication; bash writes to a file instead when the target is not a descriptor.
@@ -28,14 +26,14 @@ export function extractRedirectionTargets(
 ): ProofResult<DestructiveTarget[]> {
   const targets: DestructiveTarget[] = [];
   for (const { operator, target } of redirections) {
-    if (HEREDOC_OPERATORS.has(operator)) return unprovable("heredoc body cannot be distinguished from commands");
     // Bash expands the target of a reading redirection too, so a substitution there runs unseen.
     if (target && HAS_SUBSTITUTION.test(target.text)) return unprovable("redirection target contains a substitution");
     if (DUPLICATE_OPERATORS.has(operator)) {
       if (!target || !FILE_DESCRIPTOR.test(target.text)) return unprovable("descriptor target is not a descriptor");
       continue;
     }
-    // `<` and `<<<` only read their target.
+    // `<`, `<<<`, and `<<` only read; a here-document supplies data and names no path, and `proveShellEffects`
+    // checks its body for substitutions separately.
     if (!WRITE_OPERATORS.has(operator)) continue;
     if (!target) return unprovable("write redirection has no target");
     const expanded = expandWord(target, state);

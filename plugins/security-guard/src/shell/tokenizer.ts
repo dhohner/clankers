@@ -108,7 +108,7 @@ export function tokenizeShell(value: string): ShellTokenization {
 /** Tokenizes accepted shell words for low-level helpers that already fail closed on unknown constructs. */
 export function shellTokens(value: string): ShellToken[] {
   const tokens: ShellToken[] = [];
-  const pendingHeredocs: Array<{ delimiter: string; expands: boolean; stripTabs: boolean }> = [];
+  const pendingHeredocs: Array<{ delimiter: string; expands: boolean; stripTabs: boolean; owner: number }> = [];
   let heredocTarget: { stripTabs: boolean } | undefined;
   let text = "";
   let quoting = "";
@@ -121,6 +121,8 @@ export function shellTokens(value: string): ShellToken[] {
 
   // True where a command name would stand: at the start, and after every control operator.
   let atCommandStart = true;
+  // Index of the first token of the current command, redirections included; matches `simpleCommandExtents`.
+  let commandStart = 0;
 
   const push = () => {
     if (!text) return;
@@ -130,6 +132,7 @@ export function shellTokens(value: string): ShellToken[] {
         delimiter: text,
         expands: !/[^ ]/.test(quoting),
         stripTabs: heredocTarget.stripTabs,
+        owner: commandStart,
       });
       heredocTarget = undefined;
     }
@@ -171,7 +174,7 @@ export function shellTokens(value: string): ShellToken[] {
         const comparable = heredoc.stripTabs ? line.replace(/^\t+/, "") : line;
         if (comparable === heredoc.delimiter) {
           const body = heredocWord(value.slice(bodyStart, cursor), heredoc.expands);
-          tokens.push({ ...body, sep: true, redirect: false, heredoc: true });
+          tokens.push({ ...body, sep: true, redirect: false, heredoc: true, heredocOwner: heredoc.owner });
           cursor = newline < 0 ? value.length : newline + 1;
           terminated = true;
           break;
@@ -184,7 +187,7 @@ export function shellTokens(value: string): ShellToken[] {
       }
       if (!terminated) {
         const body = heredocWord(value.slice(bodyStart), heredoc.expands);
-        tokens.push({ ...body, sep: true, redirect: false, heredoc: true });
+        tokens.push({ ...body, sep: true, redirect: false, heredoc: true, heredocOwner: heredoc.owner });
         break;
       }
     }
@@ -303,9 +306,12 @@ export function shellTokens(value: string): ShellToken[] {
       push();
       tokens.push({ text: operator, quoting: "", sep: true, redirect });
       if (operator === "<<" || operator === "<<-") heredocTarget = { stripTabs: operator === "<<-" };
-      if (!redirect) atCommandStart = true;
       i += operator.length - 1;
       if (operator === "\n" && pendingHeredocs.length > 0) i = consumeHeredocs(i + 1) - 1;
+      if (!redirect) {
+        atCommandStart = true;
+        commandStart = tokens.length;
+      }
       continue;
     }
 

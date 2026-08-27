@@ -1,6 +1,6 @@
 import { commandRule, type ClassificationOptions } from "../command-registry.ts";
 import { commandNeedsApproval, gitIsDestructive } from "./filesystem-and-git.ts";
-import { REWRITES_COMMAND_WORD, expandsBeforeUse, nestedShellIsDestructive } from "./nested-shell.ts";
+import { NESTED_SHELLS, REWRITES_COMMAND_WORD, expandsBeforeUse, nestedShellIsDestructive } from "./nested-shell.ts";
 import { XARGS_OPTIONS, simpleCommandExtents, simpleCommandAt } from "../../../shell/command-parser.ts";
 import { skipOptionsOf } from "../../../shell/option-scanner.ts";
 import { LITERAL, shellTokens } from "../../../shell/tokenizer.ts";
@@ -64,7 +64,8 @@ export function simpleCommandIsDestructive(
   return false;
 }
 
-function substitutionContents(word: Word): string[] {
+/** The text of every command substitution the shell expands in `word`; a quoted one is literal and skipped. */
+export function substitutionContents(word: Word): string[] {
   const contents: string[] = [];
   for (const match of word.text.matchAll(/\$\(([\s\S]*?)\)(?![^(]*\))|`([^`]*)`/g)) {
     if (word.quoting[match.index] !== LITERAL) contents.push(match[1] ?? match[2] ?? "");
@@ -80,10 +81,32 @@ function containsDestructiveText(value: string, failClosed: boolean): boolean {
   if (simpleCommandExtents(tokens).some((extent) => simpleCommandIsDestructive(tokens, extent.start, failClosed))) {
     return true;
   }
-  return tokens.some((token) => {
-    if (token.heredoc && containsDestructiveText(token.text, false)) return true;
-    return (!token.sep || token.heredoc) && substitutionContents(token).some(isDestructiveText);
-  });
+  return tokens.some((token) => nestedTextIsDestructive(tokens, token));
+}
+
+/**
+ * Whether the program reading a here-document body parses it as shell commands. Only a shell does; every
+ * other reader takes the body as data, so its words are never command names. An owner that cannot be
+ * resolved, through an unknown wrapper option or a command word the shell rewrites, is read as a shell.
+ */
+function heredocReaderIsShell(tokens: readonly ShellToken[], body: ShellToken): boolean {
+  if (body.heredocOwner === undefined) return true;
+  const owner = simpleCommandAt(tokens, body.heredocOwner);
+  if (owner.kind === "unresolved") return true;
+  if (owner.commandWords.some((word) => REWRITES_COMMAND_WORD.test(word.text))) return true;
+  return NESTED_SHELLS.has(owner.name);
+}
+
+/**
+ * Whether text the current shell runs apart from the command words is destructive: a substitution in any
+ * word, an unquoted here-document body's substitutions, and a here-document body a shell reads as commands.
+ */
+function nestedTextIsDestructive(tokens: readonly ShellToken[], token: ShellToken): boolean {
+  if (token.heredoc) {
+    if (heredocReaderIsShell(tokens, token) && isDestructiveText(token.text)) return true;
+    return substitutionContents(token).some(isDestructiveText);
+  }
+  return !token.sep && substitutionContents(token).some(isDestructiveText);
 }
 
 export type ShellDestructiveClassification = {
@@ -100,10 +123,7 @@ export function classifyShellAst(ast: ShellAst): ShellDestructiveClassification 
     }
   }
 
-  const nestedDestructive = ast.tokens.some((token) => {
-    if (token.heredoc && containsDestructiveText(token.text, false)) return true;
-    return (!token.sep || token.heredoc) && substitutionContents(token).some(isDestructiveText);
-  });
+  const nestedDestructive = ast.tokens.some((token) => nestedTextIsDestructive(ast.tokens, token));
   return { destructive: destructiveStarts.size > 0 || nestedDestructive, destructiveStarts };
 }
 

@@ -84,6 +84,10 @@ describe("provable calls", () => {
     ["chmod 777 file.txt", [literal("file.txt", true)]],
     ["chown root file.txt", [literal("file.txt", true)]],
     ["rm -rf build; echo x > log", [literal("build"), literal("log", true)]],
+    // A heredoc reads data and names no path; a quoted body keeps its `$(` literal.
+    ["rm -rf build; cat <<EOF\nx\nEOF", [literal("build")]],
+    ["rm -rf build; cat <<'EOF'\n$(rm -rf /Users/example/important)\nEOF", [literal("build")]],
+    ["cat <<EOF; rm -rf build\nx\nEOF", [literal("build")]],
     ["echo start; rm file.txt", [literal("file.txt")]],
     ["ls -la", []],
     ['probe="lint-parity-probe.tsx"\nrm "$probe"', [literal("lint-parity-probe.tsx")]],
@@ -204,11 +208,14 @@ describe("provable calls", () => {
     "set -x; rm -rf /tmp/work",
     'set -ex; d=$(mktemp -d); rm -rf "$d"',
     "set -o xtrace; rm -rf /tmp/work",
-    // A descriptor duplication whose target is a path, a dynamic or wildcard target, and a heredoc body.
+    // A descriptor duplication whose target is a path, and a dynamic or wildcard target.
     "rm -rf build; echo x >& /Users/example/probe",
     "rm -rf build; echo x > $undefined",
     "rm -rf build; echo x > out/*",
-    "rm -rf build; cat <<EOF\nx\nEOF",
+    // This shell expands an unquoted heredoc body, so a substitution there runs whatever reads the body.
+    "rm -rf build; cat <<EOF\n$(rm -rf /Users/example/important)\nEOF",
+    "rm -rf build; cat <<EOF\n`rm -rf /Users/example/important`\nEOF",
+    "cat <<EOF; rm -rf build\n$(rm -rf /Users/example/important)\nEOF",
     // A command word naming an executable the agent can write obeys none of the operand rules above.
     "./rm local",
     "bin/rm local",

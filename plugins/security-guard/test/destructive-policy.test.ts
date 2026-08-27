@@ -116,8 +116,20 @@ describe("destructive command policy", () => {
     "find . -name '*.tmp' -execdir rm {} +",
     "printf '%s\n' file.txt | xargs rm",
     "printf '%s\n' file.txt | xargs -I {} rm {}",
-    // A heredoc body is read as commands, so a destructive line inside one still asks.
-    "cat <<'EOF'\nrm -rf build\nEOF",
+    // A shell reading its standard input runs the heredoc body as commands, wrappers resolved through.
+    "bash <<'EOF'\nrm -rf build\nEOF",
+    "sh <<'SQL'\nTRUNCATE TABLE t;\nSQL",
+    "sudo bash <<'SQL'\nTRUNCATE TABLE t;\nSQL",
+    "bash -c 'true' <<'EOF'\nrm -rf build\nEOF",
+    // The current shell expands an unquoted body before any reader sees it.
+    "psql <<EOF\n$(rm -rf build)\nEOF",
+    // A reader that cannot be resolved is read as a shell: an unknown wrapper option or a rewritten command word.
+    "nice --unknown psql <<'EOF'\nSELECT 1;\nEOF",
+    "$c <<'EOF'\nSELECT 1;\nEOF",
+    // A heredoc on a destructive command hides nothing about that command.
+    "rm -rf build <<'EOF'\nx\nEOF",
+    // Two heredocs on one line belong, in operator order, to the command that opened each.
+    "psql <<'A' && bash -c 'true' <<'B'\nhello\nA\nrm -rf build\nB",
     // A leading redirection must not hide the command word behind it.
     ">/tmp/log rm -rf build",
     "2>/dev/null rm -rf build",
@@ -308,7 +320,16 @@ describe("destructive command policy", () => {
     "grep $pattern file.txt",
     'echo "a>b"',
     "awk '{print $1}' file.txt",
+    // A heredoc body is data unless a shell reads it, so a destructive word inside one is not a command.
     "cat <<'EOF'\nhello\nEOF",
+    "cat <<'EOF'\nrm -rf build\nEOF",
+    "psql <<'SQL'\nTRUNCATE TABLE t;\nSQL",
+    "psql <<SQL\nTRUNCATE TABLE t;\nSQL",
+    "docker exec -i pg psql -U postgres <<'SQL'\nTRUNCATE TABLE t;\nSQL",
+    "env FOO=1 psql <<'SQL'\nTRUNCATE TABLE t;\nSQL",
+    // A quoted delimiter expands nothing, so a substitution in the body is literal text.
+    "psql <<'EOF'\n$(rm -rf build)\nEOF",
+    "bash -c 'true' <<'A' && psql <<'B'\nhello\nA\nrm -rf build\nB",
     "echo x > rm",
   ])("does not require approval for %s", (text) => {
     expect(isDestructiveText(text)).toBe(false);
