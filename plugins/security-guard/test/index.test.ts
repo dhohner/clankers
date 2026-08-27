@@ -233,6 +233,16 @@ describe("extension entrypoint", () => {
     expect(options).toMatchObject({ reasoningEffort: "high" });
   });
 
+  it("allows safe assessments without showing an approval dialog", async () => {
+    const handler = makeToolCallHandler();
+    const ctx = makeApprovalContext({ approve: false, verdict: "safe" });
+
+    await expect(handler({ toolName: "bash", input: { command: "rm file.txt" } }, ctx)).resolves.toBeUndefined();
+
+    expect(ctx.modelRegistry.complete).toHaveBeenCalledOnce();
+    expect(ctx.ui.confirm).not.toHaveBeenCalled();
+  });
+
   it("shows only the assessment in the approval dialog, not the command", async () => {
     const handler = makeToolCallHandler();
     const ctx = makeApprovalContext();

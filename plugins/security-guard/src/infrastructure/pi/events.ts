@@ -56,6 +56,9 @@ export async function handlePiToolCall(event: ToolCallEvent, ctx: ExtensionConte
       },
       requestApproval: ({ assessment, signal }) => {
         if (!context) throw new Error("Pi did not provide an extension context");
+        if (assessment.verdict === "safe") {
+          return Promise.resolve(true);
+        }
         return context.ui.confirm("Approve destructive command?", formatSafetyAssessment(assessment), { signal });
       },
     },
