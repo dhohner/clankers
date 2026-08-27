@@ -13,6 +13,10 @@ This plugin currently bundles four connected skills:
 
 Together they support a natural workflow from product bet to approved PRD to implementation-ready work items.
 
+## Workflow
+
+![Project Advisor workflow: next-thing pitches one product bet, to-prd turns it into an accepted prd.yaml through a design-tree interview and a revision loop, and once the manifest reaches status Accepted the work forks into to-issues, which writes German Jira slices, and to-agent-tasks, which writes self-contained tasks for autonomous coding agents.](./assets/workflow.svg)
+
 ## Usage
 
 ```text

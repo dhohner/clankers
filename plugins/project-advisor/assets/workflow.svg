@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1280 600" width="1280" height="600" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pa-workflow-title pa-workflow-desc">
+    <title id="pa-workflow-title">Project Advisor workflow</title>
+    <desc id="pa-workflow-desc">The next-thing skill picks one product bet, to-prd turns it into an accepted prd.yaml manifest through a design-tree interview and a revision loop, and once the manifest reaches status Accepted the work forks into to-issues, which writes German Jira slices, and to-agent-tasks, which writes self-contained tasks for autonomous coding agents.</desc>
+    <defs>
+      <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4e5399"/></marker>
+      <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#fd6a23"/></marker>
+      <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#0089b3"/></marker>
+
+      <linearGradient id="glass" x1="0" y1="0" x2="0.4" y2="1">
+        <stop offset="0" stop-color="#ffffff" stop-opacity="0.92"/>
+        <stop offset="1" stop-color="#ffffff" stop-opacity="0.56"/>
+      </linearGradient>
+      <linearGradient id="glass-accent" x1="0" y1="0" x2="0.4" y2="1">
+        <stop offset="0" stop-color="#ffffff" stop-opacity="0.88"/>
+        <stop offset="1" stop-color="#fd6a23" stop-opacity="0.16"/>
+      </linearGradient>
+      <filter id="blob" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="70"/></filter>
+    </defs>
+
+    <rect width="100%" height="100%" fill="#ffffff"/>
+    <g filter="url(#blob)" aria-hidden="true">
+      <circle cx="340" cy="240" r="180" fill="#00035c" opacity="0.10"/>
+      <circle cx="700" cy="300" r="132" fill="#fd6a23" opacity="0.10"/>
+      <circle cx="1020" cy="140" r="170" fill="#0089b3" opacity="0.07"/>
+      <circle cx="1000" cy="450" r="160" fill="#00035c" opacity="0.06"/>
+    </g>
+
+    <!-- zones -->
+    <rect x="760" y="32" width="496" height="144" rx="8" fill="rgba(0,3,92,0.02)" stroke="rgba(0,3,92,0.10)" stroke-width="0.8"/>
+    <rect x="820" y="36" width="104" height="12" rx="2" fill="#ffffff"/>
+    <text x="872" y="45" fill="rgba(0,3,92,0.40)" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.14em">TRACKER PATH</text>
+
+    <rect x="760" y="368" width="496" height="144" rx="8" fill="rgba(0,3,92,0.02)" stroke="rgba(0,3,92,0.10)" stroke-width="0.8"/>
+    <rect x="828" y="372" width="88" height="12" rx="2" fill="#ffffff"/>
+    <text x="872" y="381" fill="rgba(0,3,92,0.40)" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.14em">AGENT PATH</text>
+
+    <!-- connectors (before nodes) -->
+    <line x1="248" y1="280" x2="308" y2="280" stroke="#4e5399" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <rect x="258" y="260" width="44" height="12" rx="2" fill="#ffffff"/>
+    <text x="280" y="269" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">PITCH</text>
+
+    <line x1="520" y1="280" x2="580" y2="280" stroke="#4e5399" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <rect x="532" y="260" width="40" height="12" rx="2" fill="#ffffff"/>
+    <text x="552" y="269" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">DRAFT</text>
+
+    <path d="M 720,268 H 880 Q 888,268 888,260 V 164" fill="none" stroke="#fd6a23" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+    <rect x="774" y="248" width="52" height="12" rx="2" fill="#ffffff"/>
+    <text x="800" y="257" fill="#c8430c" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">TRACKER</text>
+
+    <path d="M 720,292 H 856 Q 864,292 864,300 V 396" fill="none" stroke="#fd6a23" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+    <rect x="768" y="272" width="48" height="12" rx="2" fill="#ffffff"/>
+    <text x="792" y="281" fill="#c8430c" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">AGENTS</text>
+
+    <line x1="992" y1="112" x2="1052" y2="112" stroke="#4e5399" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <line x1="992" y1="448" x2="1052" y2="448" stroke="#4e5399" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+    <path d="M 652,316 V 360 Q 652,368 644,368 H 432 Q 424,368 424,360 V 332" fill="none" stroke="#4e5399" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+    <rect x="514" y="348" width="48" height="12" rx="2" fill="#ffffff"/>
+    <text x="538" y="357" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">REVISE</text>
+
+    <!-- node: next-thing -->
+    <rect x="40" y="232" width="208" height="96" rx="8" fill="url(#glass)" stroke="rgba(0,3,92,0.18)" stroke-width="1"/>
+    <path d="M 52,233 H 236" stroke="rgba(255,255,255,0.95)" stroke-width="1" fill="none"/>
+    <rect x="52" y="244" width="52" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.32)" stroke-width="0.8"/>
+    <text x="78" y="253" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">STEP 1</text>
+    <text x="144" y="284" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">next-thing</text>
+    <text x="144" y="300" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">3 bets &#8594; 1 recommendation</text>
+    <text x="144" y="314" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">repo evidence · PM pitch</text>
+
+    <!-- node: to-prd -->
+    <rect x="312" y="232" width="208" height="96" rx="8" fill="url(#glass)" stroke="rgba(0,3,92,0.18)" stroke-width="1"/>
+    <path d="M 324,233 H 508" stroke="rgba(255,255,255,0.95)" stroke-width="1" fill="none"/>
+    <rect x="324" y="244" width="52" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.32)" stroke-width="0.8"/>
+    <text x="350" y="253" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">STEP 2</text>
+    <text x="416" y="284" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">to-prd</text>
+    <text x="416" y="300" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">design-tree interview</text>
+    <text x="416" y="314" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">schema · template · bundle.py</text>
+
+    <!-- node: acceptance gate (focal) -->
+    <rect x="584" y="244" width="136" height="72" rx="8" fill="url(#glass-accent)" stroke="#fd6a23" stroke-width="1.2"/>
+    <path d="M 596,245 H 708" stroke="rgba(255,255,255,0.95)" stroke-width="1" fill="none"/>
+    <rect x="596" y="256" width="40" height="12" rx="2" fill="rgba(253,106,35,0.18)" stroke="rgba(253,106,35,0.55)" stroke-width="0.8"/>
+    <text x="616" y="265" fill="#c8430c" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">GATE</text>
+    <text x="652" y="290" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">prd.yaml</text>
+    <text x="652" y="304" fill="#c8430c" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">status: Accepted</text>
+
+    <!-- node: to-issues -->
+    <rect x="784" y="64" width="208" height="96" rx="8" fill="url(#glass)" stroke="rgba(0,3,92,0.18)" stroke-width="1"/>
+    <path d="M 796,65 H 980" stroke="rgba(255,255,255,0.95)" stroke-width="1" fill="none"/>
+    <rect x="796" y="76" width="56" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.32)" stroke-width="0.8"/>
+    <text x="824" y="85" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">STEP 3A</text>
+    <text x="888" y="116" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">to-issues</text>
+    <text x="888" y="132" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">German tracer bullets</text>
+    <text x="888" y="146" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">ledger · slice · draft · check</text>
+
+    <!-- node: to-agent-tasks -->
+    <rect x="784" y="400" width="208" height="96" rx="8" fill="url(#glass)" stroke="rgba(0,3,92,0.18)" stroke-width="1"/>
+    <path d="M 796,401 H 980" stroke="rgba(255,255,255,0.95)" stroke-width="1" fill="none"/>
+    <rect x="796" y="412" width="56" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.32)" stroke-width="0.8"/>
+    <text x="824" y="421" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">STEP 3B</text>
+    <text x="888" y="452" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">to-agent-tasks</text>
+    <text x="888" y="468" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">airgapped executor tasks</text>
+    <text x="888" y="482" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">fixed · delegated · escalated</text>
+
+    <!-- node: jira output -->
+    <rect x="1056" y="64" width="176" height="96" rx="8" fill="url(#glass)" stroke="rgba(0,3,92,0.30)" stroke-width="1" stroke-dasharray="4,3"/>
+    <path d="M 1068,65 H 1220" stroke="rgba(255,255,255,0.95)" stroke-width="1" fill="none"/>
+    <rect x="1068" y="76" width="32" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.32)" stroke-width="0.8"/>
+    <text x="1084" y="85" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">OUT</text>
+    <text x="1144" y="116" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">Jira issues</text>
+    <text x="1144" y="132" fill="#4e5399" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">jira-issues/NN-*.md</text>
+    <text x="1144" y="146" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">DE · dependency order</text>
+
+    <!-- node: agent task output -->
+    <rect x="1056" y="400" width="176" height="96" rx="8" fill="url(#glass)" stroke="rgba(0,3,92,0.30)" stroke-width="1" stroke-dasharray="4,3"/>
+    <path d="M 1068,401 H 1220" stroke="rgba(255,255,255,0.95)" stroke-width="1" fill="none"/>
+    <rect x="1068" y="412" width="32" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.32)" stroke-width="0.8"/>
+    <text x="1084" y="421" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">OUT</text>
+    <text x="1144" y="452" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">Agent tasks</text>
+    <text x="1144" y="468" fill="#4e5399" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">agent-tasks/NN-*.md</text>
+    <text x="1144" y="482" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">model · effort frontmatter</text>
+
+    <!-- legend -->
+    <line x1="40" y1="540" x2="1240" y2="540" stroke="rgba(0,3,92,0.10)" stroke-width="0.8"/>
+    <text x="40" y="564" fill="#4e5399" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" letter-spacing="0.14em">LEGEND</text>
+
+    <rect x="140" y="552" width="16" height="12" rx="2" fill="url(#glass)" stroke="rgba(0,3,92,0.18)" stroke-width="0.8"/>
+    <text x="164" y="562" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">Skill stage</text>
+
+    <rect x="320" y="552" width="16" height="12" rx="2" fill="url(#glass-accent)" stroke="#fd6a23" stroke-width="0.8"/>
+    <text x="344" y="562" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">Acceptance gate</text>
+
+    <rect x="540" y="552" width="16" height="12" rx="2" fill="url(#glass)" stroke="rgba(0,3,92,0.30)" stroke-width="0.8" stroke-dasharray="3,2"/>
+    <text x="564" y="562" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">Written files</text>
+
+    <line x1="740" y1="558" x2="776" y2="558" stroke="#4e5399" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <text x="788" y="562" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">Handoff</text>
+
+    <line x1="920" y1="558" x2="956" y2="558" stroke="#4e5399" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+    <text x="968" y="562" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">Revision loop</text>
+
+    <line x1="1100" y1="558" x2="1136" y2="558" stroke="#fd6a23" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+    <text x="1148" y="562" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">Unlocked by gate</text>
+  </svg>
