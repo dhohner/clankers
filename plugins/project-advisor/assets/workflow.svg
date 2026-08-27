@@ -1,145 +1,104 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="0 0 1280 600" width="1280" height="600" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pa-workflow-title pa-workflow-desc">
+<svg viewBox="0 24 1280 476" width="1280" height="476" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pa-workflow-title pa-workflow-desc">
     <title id="pa-workflow-title">Project Advisor workflow</title>
     <desc id="pa-workflow-desc">The next-thing skill picks one product bet, to-prd turns it into an accepted prd.yaml manifest through a design-tree interview and a revision loop, and once the manifest reaches status Accepted the work forks into to-issues, which writes German Jira slices, and to-agent-tasks, which writes self-contained tasks for autonomous coding agents.</desc>
     <defs>
       <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4e5399"/></marker>
       <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#fd6a23"/></marker>
-      <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#0089b3"/></marker>
 
-      <linearGradient id="glass" x1="0" y1="0" x2="0.4" y2="1">
-        <stop offset="0" stop-color="#ffffff" stop-opacity="0.92"/>
-        <stop offset="1" stop-color="#ffffff" stop-opacity="0.56"/>
-      </linearGradient>
-      <linearGradient id="glass-accent" x1="0" y1="0" x2="0.4" y2="1">
-        <stop offset="0" stop-color="#ffffff" stop-opacity="0.88"/>
-        <stop offset="1" stop-color="#fd6a23" stop-opacity="0.16"/>
-      </linearGradient>
-      <filter id="blob" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="70"/></filter>
     </defs>
 
-    <rect width="100%" height="100%" fill="#ffffff"/>
-    <g filter="url(#blob)" aria-hidden="true">
-      <circle cx="340" cy="240" r="180" fill="#00035c" opacity="0.10"/>
-      <circle cx="700" cy="300" r="132" fill="#fd6a23" opacity="0.10"/>
-      <circle cx="1020" cy="140" r="170" fill="#0089b3" opacity="0.07"/>
-      <circle cx="1000" cy="450" r="160" fill="#00035c" opacity="0.06"/>
-    </g>
+    <rect x="0" y="24" width="1280" height="476" fill="#ffffff"/>
 
-    <!-- zones -->
-    <rect x="760" y="32" width="496" height="144" rx="8" fill="rgba(0,3,92,0.02)" stroke="rgba(0,3,92,0.10)" stroke-width="0.8"/>
-    <rect x="820" y="36" width="104" height="12" rx="2" fill="#ffffff"/>
-    <text x="872" y="45" fill="rgba(0,3,92,0.40)" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.14em">TRACKER PATH</text>
+    <!-- connectors, drawn before nodes -->
+    <line x1="240" y1="256" x2="296" y2="256" stroke="#4e5399" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <rect x="248" y="236" width="44" height="12" rx="2" fill="#ffffff"/>
+    <text x="270" y="245" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">PITCH</text>
 
-    <rect x="760" y="368" width="496" height="144" rx="8" fill="rgba(0,3,92,0.02)" stroke="rgba(0,3,92,0.10)" stroke-width="0.8"/>
-    <rect x="828" y="372" width="88" height="12" rx="2" fill="#ffffff"/>
-    <text x="872" y="381" fill="rgba(0,3,92,0.40)" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.14em">AGENT PATH</text>
+    <line x1="504" y1="256" x2="560" y2="256" stroke="#4e5399" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <rect x="514" y="236" width="40" height="12" rx="2" fill="#ffffff"/>
+    <text x="534" y="245" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">DRAFT</text>
 
-    <!-- connectors (before nodes) -->
-    <line x1="248" y1="280" x2="308" y2="280" stroke="#4e5399" stroke-width="1.2" marker-end="url(#arrow)"/>
-    <rect x="258" y="260" width="44" height="12" rx="2" fill="#ffffff"/>
-    <text x="280" y="269" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">PITCH</text>
+    <path d="M 712,240 H 868 Q 876,240 876,232 V 164" fill="none" stroke="#fd6a23" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+    <rect x="764" y="220" width="52" height="12" rx="2" fill="#ffffff"/>
+    <text x="790" y="229" fill="#c8430c" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">TRACKER</text>
 
-    <line x1="520" y1="280" x2="580" y2="280" stroke="#4e5399" stroke-width="1.2" marker-end="url(#arrow)"/>
-    <rect x="532" y="260" width="40" height="12" rx="2" fill="#ffffff"/>
-    <text x="552" y="269" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">DRAFT</text>
+    <path d="M 712,276 H 844 Q 852,276 852,284 V 348" fill="none" stroke="#fd6a23" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+    <rect x="758" y="256" width="48" height="12" rx="2" fill="#ffffff"/>
+    <text x="782" y="265" fill="#c8430c" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">AGENTS</text>
 
-    <path d="M 720,268 H 880 Q 888,268 888,260 V 164" fill="none" stroke="#fd6a23" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
-    <rect x="774" y="248" width="52" height="12" rx="2" fill="#ffffff"/>
-    <text x="800" y="257" fill="#c8430c" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">TRACKER</text>
+    <line x1="976" y1="120" x2="1032" y2="120" stroke="#4e5399" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <line x1="976" y1="392" x2="1032" y2="392" stroke="#4e5399" stroke-width="1.2" marker-end="url(#arrow)"/>
 
-    <path d="M 720,292 H 856 Q 864,292 864,300 V 396" fill="none" stroke="#fd6a23" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
-    <rect x="768" y="272" width="48" height="12" rx="2" fill="#ffffff"/>
-    <text x="792" y="281" fill="#c8430c" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">AGENTS</text>
+    <path d="M 640,288 V 316 Q 640,324 632,324 H 412 Q 404,324 404,316 V 304" fill="none" stroke="#4e5399" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+    <rect x="498" y="304" width="48" height="12" rx="2" fill="#ffffff"/>
+    <text x="522" y="313" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">REVISE</text>
 
-    <line x1="992" y1="112" x2="1052" y2="112" stroke="#4e5399" stroke-width="1.2" marker-end="url(#arrow)"/>
-    <line x1="992" y1="448" x2="1052" y2="448" stroke="#4e5399" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <!-- next-thing -->
+    <rect x="40" y="216" width="200" height="80" rx="6" fill="#ffffff" stroke="rgba(0,3,92,0.20)" stroke-width="1"/>
+    <rect x="52" y="228" width="52" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.28)" stroke-width="0.8"/>
+    <text x="78" y="237" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">STEP 1</text>
+    <text x="140" y="266" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">next-thing</text>
+    <text x="140" y="282" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">3 bets · 1 recommendation</text>
 
-    <path d="M 652,316 V 360 Q 652,368 644,368 H 432 Q 424,368 424,360 V 332" fill="none" stroke="#4e5399" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
-    <rect x="514" y="348" width="48" height="12" rx="2" fill="#ffffff"/>
-    <text x="538" y="357" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">REVISE</text>
+    <!-- to-prd -->
+    <rect x="304" y="216" width="200" height="80" rx="6" fill="#ffffff" stroke="rgba(0,3,92,0.20)" stroke-width="1"/>
+    <rect x="316" y="228" width="52" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.28)" stroke-width="0.8"/>
+    <text x="342" y="237" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">STEP 2</text>
+    <text x="404" y="266" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">to-prd</text>
+    <text x="404" y="282" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">design-tree interview</text>
 
-    <!-- node: next-thing -->
-    <rect x="40" y="232" width="208" height="96" rx="8" fill="url(#glass)" stroke="rgba(0,3,92,0.18)" stroke-width="1"/>
-    <path d="M 52,233 H 236" stroke="rgba(255,255,255,0.95)" stroke-width="1" fill="none"/>
-    <rect x="52" y="244" width="52" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.32)" stroke-width="0.8"/>
-    <text x="78" y="253" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">STEP 1</text>
-    <text x="144" y="284" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">next-thing</text>
-    <text x="144" y="300" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">3 bets &#8594; 1 recommendation</text>
-    <text x="144" y="314" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">repo evidence · PM pitch</text>
+    <!-- acceptance gate (focal) -->
+    <rect x="568" y="224" width="144" height="64" rx="6" fill="rgba(253,106,35,0.07)" stroke="#fd6a23" stroke-width="1.2"/>
+    <rect x="580" y="236" width="40" height="12" rx="2" fill="rgba(253,106,35,0.16)" stroke="rgba(253,106,35,0.50)" stroke-width="0.8"/>
+    <text x="600" y="245" fill="#c8430c" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">GATE</text>
+    <text x="640" y="268" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">prd.yaml</text>
+    <text x="640" y="282" fill="#c8430c" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">status: Accepted</text>
 
-    <!-- node: to-prd -->
-    <rect x="312" y="232" width="208" height="96" rx="8" fill="url(#glass)" stroke="rgba(0,3,92,0.18)" stroke-width="1"/>
-    <path d="M 324,233 H 508" stroke="rgba(255,255,255,0.95)" stroke-width="1" fill="none"/>
-    <rect x="324" y="244" width="52" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.32)" stroke-width="0.8"/>
-    <text x="350" y="253" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">STEP 2</text>
-    <text x="416" y="284" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">to-prd</text>
-    <text x="416" y="300" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">design-tree interview</text>
-    <text x="416" y="314" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">schema · template · bundle.py</text>
+    <!-- to-issues -->
+    <rect x="776" y="80" width="200" height="80" rx="6" fill="#ffffff" stroke="rgba(0,3,92,0.20)" stroke-width="1"/>
+    <rect x="788" y="92" width="52" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.28)" stroke-width="0.8"/>
+    <text x="814" y="101" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">STEP 3</text>
+    <text x="876" y="130" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">to-issues</text>
+    <text x="876" y="146" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">German tracer bullets</text>
 
-    <!-- node: acceptance gate (focal) -->
-    <rect x="584" y="244" width="136" height="72" rx="8" fill="url(#glass-accent)" stroke="#fd6a23" stroke-width="1.2"/>
-    <path d="M 596,245 H 708" stroke="rgba(255,255,255,0.95)" stroke-width="1" fill="none"/>
-    <rect x="596" y="256" width="40" height="12" rx="2" fill="rgba(253,106,35,0.18)" stroke="rgba(253,106,35,0.55)" stroke-width="0.8"/>
-    <text x="616" y="265" fill="#c8430c" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">GATE</text>
-    <text x="652" y="290" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">prd.yaml</text>
-    <text x="652" y="304" fill="#c8430c" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">status: Accepted</text>
+    <!-- to-agent-tasks -->
+    <rect x="776" y="352" width="200" height="80" rx="6" fill="#ffffff" stroke="rgba(0,3,92,0.20)" stroke-width="1"/>
+    <rect x="788" y="364" width="52" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.28)" stroke-width="0.8"/>
+    <text x="814" y="373" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">STEP 3</text>
+    <text x="876" y="402" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">to-agent-tasks</text>
+    <text x="876" y="418" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">self-contained tasks</text>
 
-    <!-- node: to-issues -->
-    <rect x="784" y="64" width="208" height="96" rx="8" fill="url(#glass)" stroke="rgba(0,3,92,0.18)" stroke-width="1"/>
-    <path d="M 796,65 H 980" stroke="rgba(255,255,255,0.95)" stroke-width="1" fill="none"/>
-    <rect x="796" y="76" width="56" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.32)" stroke-width="0.8"/>
-    <text x="824" y="85" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">STEP 3A</text>
-    <text x="888" y="116" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">to-issues</text>
-    <text x="888" y="132" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">German tracer bullets</text>
-    <text x="888" y="146" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">ledger · slice · draft · check</text>
+    <!-- Jira issues -->
+    <rect x="1040" y="80" width="200" height="80" rx="6" fill="#ffffff" stroke="rgba(0,3,92,0.28)" stroke-width="1" stroke-dasharray="4,3"/>
+    <rect x="1052" y="92" width="52" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.28)" stroke-width="0.8"/>
+    <text x="1078" y="101" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">OUTPUT</text>
+    <text x="1140" y="130" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">Jira issues</text>
+    <text x="1140" y="146" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">jira-issues/NN-*.md</text>
 
-    <!-- node: to-agent-tasks -->
-    <rect x="784" y="400" width="208" height="96" rx="8" fill="url(#glass)" stroke="rgba(0,3,92,0.18)" stroke-width="1"/>
-    <path d="M 796,401 H 980" stroke="rgba(255,255,255,0.95)" stroke-width="1" fill="none"/>
-    <rect x="796" y="412" width="56" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.32)" stroke-width="0.8"/>
-    <text x="824" y="421" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">STEP 3B</text>
-    <text x="888" y="452" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">to-agent-tasks</text>
-    <text x="888" y="468" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">airgapped executor tasks</text>
-    <text x="888" y="482" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">fixed · delegated · escalated</text>
-
-    <!-- node: jira output -->
-    <rect x="1056" y="64" width="176" height="96" rx="8" fill="url(#glass)" stroke="rgba(0,3,92,0.30)" stroke-width="1" stroke-dasharray="4,3"/>
-    <path d="M 1068,65 H 1220" stroke="rgba(255,255,255,0.95)" stroke-width="1" fill="none"/>
-    <rect x="1068" y="76" width="32" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.32)" stroke-width="0.8"/>
-    <text x="1084" y="85" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">OUT</text>
-    <text x="1144" y="116" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">Jira issues</text>
-    <text x="1144" y="132" fill="#4e5399" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">jira-issues/NN-*.md</text>
-    <text x="1144" y="146" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">DE · dependency order</text>
-
-    <!-- node: agent task output -->
-    <rect x="1056" y="400" width="176" height="96" rx="8" fill="url(#glass)" stroke="rgba(0,3,92,0.30)" stroke-width="1" stroke-dasharray="4,3"/>
-    <path d="M 1068,401 H 1220" stroke="rgba(255,255,255,0.95)" stroke-width="1" fill="none"/>
-    <rect x="1068" y="412" width="32" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.32)" stroke-width="0.8"/>
-    <text x="1084" y="421" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">OUT</text>
-    <text x="1144" y="452" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">Agent tasks</text>
-    <text x="1144" y="468" fill="#4e5399" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">agent-tasks/NN-*.md</text>
-    <text x="1144" y="482" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">model · effort frontmatter</text>
+    <!-- Agent tasks -->
+    <rect x="1040" y="352" width="200" height="80" rx="6" fill="#ffffff" stroke="rgba(0,3,92,0.28)" stroke-width="1" stroke-dasharray="4,3"/>
+    <rect x="1052" y="364" width="52" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.28)" stroke-width="0.8"/>
+    <text x="1078" y="373" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">OUTPUT</text>
+    <text x="1140" y="402" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">Agent tasks</text>
+    <text x="1140" y="418" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">agent-tasks/NN-*.md</text>
 
     <!-- legend -->
-    <line x1="40" y1="540" x2="1240" y2="540" stroke="rgba(0,3,92,0.10)" stroke-width="0.8"/>
-    <text x="40" y="564" fill="#4e5399" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" letter-spacing="0.14em">LEGEND</text>
+    <line x1="40" y1="464" x2="1240" y2="464" stroke="rgba(0,3,92,0.10)" stroke-width="0.8"/>
+    <text x="40" y="486" fill="#4e5399" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" letter-spacing="0.14em">LEGEND</text>
 
-    <rect x="140" y="552" width="16" height="12" rx="2" fill="url(#glass)" stroke="rgba(0,3,92,0.18)" stroke-width="0.8"/>
-    <text x="164" y="562" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">Skill stage</text>
+    <rect x="128" y="476" width="16" height="12" rx="2" fill="#ffffff" stroke="rgba(0,3,92,0.20)" stroke-width="0.8"/>
+    <text x="152" y="486" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">Skill stage</text>
 
-    <rect x="320" y="552" width="16" height="12" rx="2" fill="url(#glass-accent)" stroke="#fd6a23" stroke-width="0.8"/>
-    <text x="344" y="562" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">Acceptance gate</text>
+    <rect x="352" y="476" width="16" height="12" rx="2" fill="rgba(253,106,35,0.07)" stroke="#fd6a23" stroke-width="0.8"/>
+    <text x="376" y="486" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">Acceptance gate</text>
 
-    <rect x="540" y="552" width="16" height="12" rx="2" fill="url(#glass)" stroke="rgba(0,3,92,0.30)" stroke-width="0.8" stroke-dasharray="3,2"/>
-    <text x="564" y="562" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">Written files</text>
+    <rect x="576" y="476" width="16" height="12" rx="2" fill="#ffffff" stroke="rgba(0,3,92,0.28)" stroke-width="0.8" stroke-dasharray="3,2"/>
+    <text x="600" y="486" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">Written files</text>
 
-    <line x1="740" y1="558" x2="776" y2="558" stroke="#4e5399" stroke-width="1.2" marker-end="url(#arrow)"/>
-    <text x="788" y="562" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">Handoff</text>
+    <line x1="800" y1="482" x2="836" y2="482" stroke="#4e5399" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <text x="848" y="486" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">Handoff</text>
 
-    <line x1="920" y1="558" x2="956" y2="558" stroke="#4e5399" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
-    <text x="968" y="562" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">Revision loop</text>
-
-    <line x1="1100" y1="558" x2="1136" y2="558" stroke="#fd6a23" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
-    <text x="1148" y="562" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">Unlocked by gate</text>
+    <line x1="1024" y1="482" x2="1060" y2="482" stroke="#4e5399" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+    <text x="1072" y="486" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">Revision loop</text>
   </svg>
