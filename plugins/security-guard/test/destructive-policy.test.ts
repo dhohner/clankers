@@ -211,6 +211,38 @@ describe("destructive command policy", () => {
     "stdbuf -o0 rm -rf build",
     "setsid rm -rf build",
     "timeout --unknown 5 ls",
+    // A test expression, arithmetic expansion, or process substitution runs the substitutions inside it.
+    '[[ -n "$(rm -rf build)" ]]',
+    "[[ -f a && `rm -rf build` ]]",
+    "diff <(rm -rf build) a.ts",
+    "tee >(rm -rf build)",
+    "echo $(( $(rm -rf build) + 1 ))",
+    "echo $(( 1 + $(( $(rm -rf build) )) ))",
+    "diff <(echo ')'; rm -rf build) a.ts",
+    // Arithmetic evaluates a variable's value as an expression of its own, subscript substitutions included.
+    "x='a[$(rm -rf build)]'; echo $((x))",
+    "echo $(( $x + 1 ))",
+    "echo $(( ${x} ))",
+    "echo $(( 1 + n ))",
+    "[[ $x -eq 1 ]]",
+    "[[ 1 -lt x ]]",
+    "[[ -f a && n -ge 2 ]]",
+    // `-eq` as an operand cannot be told from the operator once quotes are gone, so it fails closed.
+    "[[ $x == -eq ]]",
+    "cat <<EOF\n$((x))\nEOF",
+    "x='a[$(rm -rf build)]'; echo $(( $((x)) ))",
+    "echo $(( 1 + $(( 2 * $((x)) )) ))",
+    "echo $(( $(echo 1) + 1 ))",
+    "echo $(( `echo 1` ))",
+    // A word that merely looks like a reserved word is an argument, and the command after `&&` still runs.
+    "echo if [[ x && rm -rf build ]]",
+    "echo ! [[ x && rm -rf build ]]",
+    "true; echo time [[ x && rm -rf build ]]",
+    // A command word a process substitution helps build names a command the text never shows.
+    "<(printf rm) -rf build",
+    "bash <(printf 'rm -rf build')",
+    "bash -c <(printf 'rm -rf build')",
+    "eval <(printf 'rm -rf build')",
     // A quoted delimiter is data, so the substitution ends at the last parenthesis, not the quoted one.
     'echo $(echo ")" ; rm -rf build)',
     "echo $(echo ')' ; rm -rf build)",
@@ -331,6 +363,32 @@ describe("destructive command policy", () => {
     "psql <<'EOF'\n$(rm -rf build)\nEOF",
     "bash -c 'true' <<'A' && psql <<'B'\nhello\nA\nrm -rf build\nB",
     "echo x > rm",
+    // A test expression is not a command, and neither is a word it compares.
+    "[[ -f .env.example ]] && echo present",
+    "[[ -f a && -f b ]]",
+    "[[ rm == $x || ! -f b ]]",
+    '[[ -n "$(git status --short)" ]]',
+    // Arithmetic and process substitution are read for the commands they run, and nothing more.
+    "echo $((1 + 1))",
+    "echo $(( (1 + 2) * 3 ))",
+    "echo $(( 0x1F + 16#ff + 2#101 ))",
+    "echo $(( 1 + $(( 2 * 3 )) ))",
+    "echo '$((1+1))'",
+    "echo '$((x))'",
+    "[[ 1 -eq 1 && $x == y ]]",
+    // Reserved words that introduce a command keep the test expression in command position.
+    "if [[ -f a && rm == $x ]]; then echo ok; fi",
+    "while [[ -f a && rm == $x ]]; do break; done",
+    "! [[ -f a && rm == $x ]]",
+    "time [[ -f a && rm == $x ]]",
+    "time -p [[ -f a && rm == $x ]]",
+    // A `)` that closes a substitution belongs to its word, so bash rejects these and runs nothing.
+    "[[ -n $(git status --short)]] && rm -rf build",
+    "[[ -f a]] && rm -rf build",
+    'if [[ -n "$x" ]]; then echo ok; elif [[ -z "$y" ]]; then echo no; fi',
+    "diff <(git show main:a.ts) a.ts",
+    'echo "<(rm -rf build)"',
+    "echo '<(rm -rf build)'",
   ])("does not require approval for %s", (text) => {
     expect(isDestructiveText(text)).toBe(false);
   });
@@ -341,4 +399,12 @@ describe("destructive command policy", () => {
       expect(isDestructiveText(command)).toBe(true);
     },
   );
+
+  it.each([
+    // A `)` that closes a group ends the expression in bash, so the command after `&&` is a real command.
+    "[[ (-f a)]] && rm -rf build",
+    "[[ ! (1)]] && rm -rf build",
+  ])("reads the command after %s, whose test expression bash ends at the `)`", (command) => {
+    expect(isDestructiveText(command)).toBe(true);
+  });
 });

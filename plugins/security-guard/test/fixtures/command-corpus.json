@@ -102,6 +102,9 @@
   { "command": "git checkout README.md", "expect": "gate" },
   { "command": "git checkout main README.md", "expect": "gate" },
   { "command": "git checkout -f main", "expect": "gate" },
+  { "command": "[[ -f .env.example ]] && echo present", "expect": "allow" },
+  { "command": "echo $((1 + 1))", "expect": "allow" },
+  { "command": "diff <(git show main:a.ts) a.ts", "expect": "allow" },
   { "command": "[[ -n \"$(rm -rf build)\" ]]", "expect": "gate" },
   { "command": "diff <(rm -rf build) a.ts", "expect": "gate" },
   { "command": "bash <<'EOF'\nrm -rf build\nEOF", "expect": "gate" },
@@ -116,21 +119,6 @@
     "command": "git checkout HEAD~1",
     "expect": "pending",
     "promotedBy": "a host check that treats an operand naming no existing file as a branch or commit switch"
-  },
-  {
-    "command": "[[ -f .env.example ]] && echo present",
-    "expect": "pending",
-    "promotedBy": "parser support for test expressions"
-  },
-  {
-    "command": "echo $((1 + 1))",
-    "expect": "pending",
-    "promotedBy": "parser support for arithmetic expansion"
-  },
-  {
-    "command": "diff <(git show main:a.ts) a.ts",
-    "expect": "pending",
-    "promotedBy": "parser support for process substitution"
   },
   {
     "command": "trap \"docker rm -f $CID\" EXIT",
@@ -161,5 +149,7 @@
     "command": "rm -rf packages/a/node_modules",
     "expect": "pending",
     "promotedBy": "an exception for regenerable build directories"
-  }
+  },
+  { "command": "rm -rf dist < <(cat manifest.txt)", "expect": "gate" },
+  { "command": "echo $[1+1]", "expect": "gate" }
 ]

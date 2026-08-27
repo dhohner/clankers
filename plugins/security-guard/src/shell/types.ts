@@ -9,6 +9,11 @@ export type ShellToken = Word & {
   /** True for here-document data, which is not shell command syntax but may contain command substitutions. */
   heredoc?: boolean;
   /**
+   * True for a whole `[[ ... ]]` test expression, `[[` and `]]` included. It runs no command of its own, so
+   * command resolution skips it like a reserved word, but the substitutions inside it still run.
+   */
+  testExpression?: boolean;
+  /**
    * For here-document data, the index of the first token of the command whose redirection reads the body.
    * The body arrives after the newline that ends the command line, so this is its only link to its reader.
    */

@@ -1,25 +1,37 @@
 import { commandRule, COMMAND_RULES, type ClassificationOptions } from "../command-registry.ts";
-import { LITERAL } from "../../../shell/tokenizer.ts";
+import { LITERAL, UNQUOTED } from "../../../shell/tokenizer.ts";
 import type { ShellToken, Word } from "../../../shell/types.ts";
 
 type DestructiveTextPredicate = (value: string) => boolean;
 
+function hasProcessSubstitution(word: Word): boolean {
+  for (let i = 0; i < word.text.length; i += 1) {
+    const char = word.text[i];
+    if ((char === "<" || char === ">") && word.text[i + 1] === "(" && word.quoting[i] === UNQUOTED) return true;
+  }
+  return false;
+}
+
 /**
  * Reports whether the shell reading this word expands part of it away. A `$` or backtick inside single
  * quotes, or escaped, survives as itself; anywhere else it is replaced before the text is used, so text that
- * a nested shell or `eval` parses afterwards is not the text written here.
+ * a nested shell or `eval` parses afterwards is not the text written here. An unquoted `<(` or `>(` is a
+ * process substitution, replaced by the path of a pipe.
  */
 export function expandsBeforeUse(word: Word): boolean {
   for (let i = 0; i < word.text.length; i += 1) {
     const char = word.text[i] ?? "";
     if ((char === "$" || char === "`") && word.quoting[i] !== LITERAL) return true;
   }
-  return false;
+  return hasProcessSubstitution(word);
 }
 
-// A word the shell rewrites before it resolves a command name: parameter expansion, command substitution, or
-// brace expansion. What runs cannot be read from the text as written.
-export const REWRITES_COMMAND_WORD = /[$`{}]/;
+const REWRITES_COMMAND_WORD = /[$`{}]/;
+
+/** Whether the shell rewrites `word` before resolving it as a command name. */
+export function rewritesCommandWord(word: Word): boolean {
+  return REWRITES_COMMAND_WORD.test(word.text) || hasProcessSubstitution(word);
+}
 
 // Shells that take a command list on `-c` or read one from a script operand or standard input.
 export const NESTED_SHELLS = new Set(
@@ -61,11 +73,11 @@ export function nestedShellIsDestructive(
     if (arg === "-" || !(arg.startsWith("-") || arg.startsWith("+"))) {
       // The word ending the options is the script. Before `-c` names one, a word that rewrites could become
       // options of its own, `-c` among them.
-      if (!commandMode && REWRITES_COMMAND_WORD.test(arg)) return true;
+      if (!commandMode && args[index] && rewritesCommandWord(args[index])) return true;
       break;
     }
     // An option word that rewrites could carry a `-c` whose text would run instead.
-    if (REWRITES_COMMAND_WORD.test(arg)) return true;
+    if (args[index] && rewritesCommandWord(args[index])) return true;
 
     if (arg.startsWith("--")) {
       const inline = arg.indexOf("=");

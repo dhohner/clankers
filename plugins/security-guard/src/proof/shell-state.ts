@@ -1,5 +1,11 @@
-import { escalatesPrivilege, isAssignment, isTrustedCommandWord, simpleCommandAt } from "../shell/command-parser.ts";
-import { DOUBLE, LITERAL, UNQUOTED, shellTokens, sliceWord } from "../shell/tokenizer.ts";
+import {
+  assignmentOf,
+  escalatesPrivilege,
+  isAssignment,
+  isTrustedCommandWord,
+  simpleCommandAt,
+} from "../shell/command-parser.ts";
+import { DOUBLE, LITERAL, UNQUOTED, runsSubstitution, shellTokens, sliceWord } from "../shell/tokenizer.ts";
 import type { ShellToken, Word } from "../shell/types.ts";
 import { proven, unprovable, type ProofResult, type ShellState, type ShellVariable } from "./types.ts";
 
@@ -34,11 +40,11 @@ export function mktempDirectoryCommandWords(word: Word): ShellToken[] | undefine
 
   const command = simpleCommandAt(tokens, 0);
   if (command.kind === "unresolved") return undefined;
-  const { name, argTexts, commandWords, statefulWrapper } = command;
+  const { name, args, argTexts, commandWords, statefulWrapper } = command;
   if (statefulWrapper || name !== "mktemp" || !commandWords.every(isTrustedCommandWord)) return undefined;
   if (escalatesPrivilege(commandWords)) return undefined;
   // An option value is never inspected as a path, so a substitution or expansion in one would run unseen.
-  if (argTexts.some((arg) => /[$`]/.test(arg))) return undefined;
+  if (args.some((arg) => /[$`]/.test(arg.text) || runsSubstitution(arg))) return undefined;
 
   let createsDirectory = false;
   for (let i = 0; i < argTexts.length; i += 1) {
@@ -148,12 +154,13 @@ export function assignmentAt(
   const viaExport = words[i]?.text === "export";
   if (viaExport) i += 1;
   const word = words[i];
-  if (!word || words.length !== i + 1 || !isAssignment(word)) return undefined;
-  return {
-    name: word.text.slice(0, word.text.indexOf("=")),
-    value: sliceWord(word, word.text.indexOf("=") + 1),
-    viaExport,
-  };
+  if (!word || words.length !== i + 1) return undefined;
+  const assignment = assignmentOf(word);
+  // `arr[0]=x` sets one element and `x+=y` appends to a value this text may not show, so neither states the
+  // variable's whole value. Reporting no assignment leaves the command unmodeled, which fails the whole call
+  // closed rather than proving the appended text as the variable's value.
+  if (!assignment || assignment.subscript !== undefined || assignment.appends) return undefined;
+  return { name: assignment.name, value: sliceWord(word, assignment.valueStart), viaExport };
 }
 
 export function expandWord(word: Word, state: ShellState): ProofResult<ShellVariable> {

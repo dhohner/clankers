@@ -1,6 +1,6 @@
 import { commandRule, COMMAND_RULES } from "../policy/command-analysis/command-registry.ts";
 import { skipOptionsOf, type OptionModel, type OptionScan } from "./option-scanner.ts";
-import { SEQUENTIAL_CONTROLS, isUnquoted } from "./tokenizer.ts";
+import { SEQUENTIAL_CONTROLS, isUnquoted, subscriptEnd } from "./tokenizer.ts";
 import type { ShellToken, Word } from "./types.ts";
 
 // Lower-cased because a case-insensitive filesystem, the default on macOS, runs `/bin/RM` as `rm`.
@@ -55,17 +55,66 @@ const RESERVED_WORDS = new Set([
   "while",
 ]);
 
-const ASSIGNMENT = /^[A-Za-z_][A-Za-z0-9_]*=/;
+const ASSIGNMENT_NAME = /^[A-Za-z_][A-Za-z0-9_]*/;
 
-// A quoted name is not an assignment to bash: `"d"=/` runs a command called `d=/`.
+/** One assignment word, split into the parts a caller has to tell apart. */
+export type Assignment = {
+  /** The variable the assignment names, subscript excluded, so `PATH[0]=x` reports `PATH`. */
+  name: string;
+  /** The array subscript between the brackets, or undefined when the word assigns the variable itself. */
+  subscript: string | undefined;
+  /** True for the `+=` form, which appends to the current value instead of replacing it. */
+  appends: boolean;
+  /** The index where `=` or `+=` starts. */
+  operatorStart: number;
+  /** The index just after `=`, where the assigned value starts. */
+  valueStart: number;
+};
+
+/**
+ * The assignment `text` spells, quoting disregarded. Bash accepts `NAME=`, `NAME+=`, and the array element
+ * forms `NAME[subscript]=` and `NAME[subscript]+=`. `declare` and its aliases receive an operand after quote
+ * removal, so `declare 'arr[x]=1'` assigns the same element as `declare arr[x]=1`; use `assignmentOf` for a
+ * word standing before a command, where bash requires the name and the operator to be literal.
+ */
+function assignmentInText(text: string): Assignment | undefined {
+  const match = ASSIGNMENT_NAME.exec(text);
+  if (!match) return undefined;
+  let cursor = match[0].length;
+  let subscript: string | undefined;
+  if (text[cursor] === "[") {
+    const close = subscriptEnd(text, cursor);
+    if (close < 0) return undefined;
+    subscript = text.slice(cursor + 1, close);
+    cursor = close + 1;
+  }
+  const operatorStart = cursor;
+  const appends = text[cursor] === "+";
+  if (appends) cursor += 1;
+  if (text[cursor] !== "=") return undefined;
+  return { name: match[0], subscript, appends, operatorStart, valueStart: cursor + 1 };
+}
+
+/**
+ * The assignment `word` is when it stands before a command word, or undefined when it is not one, so
+ * `arr[0]=1 rm -rf build` runs `rm`. The name and the operator must be literal: `"d"=/` and `x"="1` are
+ * command words bash looks up. A subscript may be quoted, because bash removes the quotes before it evaluates
+ * the subscript, which makes `arr["a"]=1` the same assignment as `arr[a]=1`.
+ */
+export function assignmentOf(word: Word | undefined): Assignment | undefined {
+  if (!word) return undefined;
+  const assignment = assignmentInText(word.text);
+  if (!assignment || !isUnquoted(word, assignment.name.length)) return undefined;
+  const operator = word.quoting.slice(assignment.operatorStart, assignment.valueStart);
+  return /[^ ]/.test(operator) ? undefined : assignment;
+}
+
 export function isAssignment(word: Word | undefined): boolean {
-  if (!word) return false;
-  const match = ASSIGNMENT.exec(word.text);
-  return match !== null && isUnquoted(word, match[0].length);
+  return assignmentOf(word) !== undefined;
 }
 
 export function assignedName(word: Word): string | undefined {
-  return isAssignment(word) ? word.text.slice(0, word.text.indexOf("=")) : undefined;
+  return assignmentOf(word)?.name;
 }
 
 const xargsOptions = commandRule("xargs")?.operandCommandOptions;
@@ -132,11 +181,15 @@ export function resolveCommand(parsed: ParsedCommand): SimpleCommand {
   const commandWords: ShellToken[] = [];
   let statefulWrapper = false;
   let i = 0;
-  while (RESERVED_WORDS.has(words[i]?.text ?? "")) i += 1;
+  while (RESERVED_WORDS.has(words[i]?.text ?? "") || words[i]?.testExpression) i += 1;
   while (isAssignment(words[i])) i += 1;
 
   while (i < words.length) {
     const word = words[i];
+    if (word?.testExpression) {
+      i += 1;
+      continue;
+    }
     const name = commandName(word?.text ?? "");
     // `env` and `sudo` both take `NAME=value` words before the command they run.
     const wrapsEnvironment = name === "env" || name === "sudo";

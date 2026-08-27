@@ -84,10 +84,10 @@ describe("decideToolCall", () => {
 
   it("preserves an unsupported syntax reason on a denied decision", async () => {
     const ports = makePorts();
-    await expect(decideToolCall(request("echo $((1 + 1))", false), ports)).resolves.toEqual({
+    await expect(decideToolCall(request("f() { rm -rf build; }", false), ports)).resolves.toEqual({
       kind: "block",
       reason: DESTRUCTIVE_APPROVAL_REASON,
-      analysis: { kind: "unsupported-syntax", detail: "arithmetic" },
+      analysis: { kind: "unsupported-syntax", detail: "function-definition" },
     });
   });
 });

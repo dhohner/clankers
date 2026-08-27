@@ -1,3 +1,4 @@
+import { runsSubstitution } from "../shell/tokenizer.ts";
 import { commandRule } from "../policy/command-analysis/command-registry.ts";
 import {
   simpleCommandIsDestructive,
@@ -53,8 +54,6 @@ const SENSITIVE_VARIABLES = new Set([
   "PS4",
   "PROMPT_COMMAND",
 ]);
-
-const HAS_SUBSTITUTION = /\$\(|`/;
 
 // The long names `set -o` and `set +o` accept. An unlisted name may not be an option name at all, which would
 // make the word a positional parameter and the rest of the call something else than it reads as.
@@ -172,7 +171,7 @@ export function proveShellEffects(ast: ShellAst, destructiveStarts: ReadonlySet<
 
     const assignment = assignmentAt(parsed.words);
     if (assignment) {
-      if (HAS_SUBSTITUTION.test(assignment.value.text)) {
+      if (runsSubstitution(assignment.value)) {
         // The substitution runs `mktemp` through the host's PATH like any other command, so a look-alike
         // there could return any directory at all.
         const mktempWords = mktempDirectoryCommandWords(assignment.value);
@@ -188,9 +187,11 @@ export function proveShellEffects(ast: ShellAst, destructiveStarts: ReadonlySet<
       continue;
     }
 
-    if (parsed.words.some((word) => HAS_SUBSTITUTION.test(word.text))) {
+    if (parsed.words.some(runsSubstitution)) {
       return unprovable("word contains a substitution");
     }
+    // A test expression compares and runs nothing, and its substitutions were rejected just above.
+    if (parsed.words.every((word) => word.testExpression)) continue;
 
     if (command.kind === "unresolved") return unprovable("command cannot be resolved");
     const { name, args, argTexts, commandWords, statefulWrapper } = command;

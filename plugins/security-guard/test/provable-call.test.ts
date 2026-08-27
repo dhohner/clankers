@@ -93,6 +93,12 @@ describe("provable calls", () => {
     ['probe="lint-parity-probe.tsx"\nrm "$probe"', [literal("lint-parity-probe.tsx")]],
     ["export probe=build; rm -rf ${probe}/out", [literal("build/out")]],
     ['dir=build; probe="$dir/probe.txt"; rm "$probe"', [literal("build/probe.txt")]],
+    // Quoting makes a process substitution a literal operand: bash hands `rm` the text and runs nothing.
+    ["rm -rf build '<(printf x)'", [literal("build"), literal("<(printf x)")]],
+    ['rm -rf build "<(printf x)"', [literal("build"), literal("<(printf x)")]],
+    ["rm -rf build \\<\\(x\\)", [literal("build"), literal("<(x)")]],
+    ["set -e; d=$(mktemp -d --suffix '<(x)'); rm -rf \"$d\"", [mktemp("")]],
+    ['set -e; d=$(mktemp -d --suffix "<(x)"); rm -rf "$d"', [mktemp("")]],
     ['d=$(mktemp -d)\nrm -rf "$d"', [mktemp("")]],
     ['set -e; d="$(mktemp -d)"; sub="$d/sub"; rm -rf "$sub"', [mktemp("/sub")]],
   ])("lists the path targets of %s", (command, expected) => {
@@ -228,6 +234,9 @@ describe("provable calls", () => {
     "doas rm -rf local",
     "nice sudo rm -rf local",
     'd=$(sudo mktemp -d); rm -rf "$d"',
+    // An unquoted process substitution runs its command list wherever the word stands.
+    "rm -rf build <(rm -rf /Users/example/important)",
+    'rm -rf build "$(printf x)<(y)"',
     // A substitution anywhere in the call runs before the proof sees it, a reading redirection included.
     'rm -rf local < "$(rm -rf /Users/example/important)"',
     "rm -rf local <<< $(rm -rf /Users/example/important)",
