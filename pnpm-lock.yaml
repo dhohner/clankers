@@ -11,6 +11,12 @@ importers:
       '@earendil-works/pi-coding-agent':
         specifier: '>=0.84.2'
         version: 0.84.2(supports-color@7.2.0)(ws@8.21.3)
+      proper-lockfile:
+        specifier: ^4.1.2
+        version: 4.1.2
+      yaml:
+        specifier: ^2.9.0
+        version: 2.9.0
     devDependencies:
       vitest:
         specifier: ^4.1.11
