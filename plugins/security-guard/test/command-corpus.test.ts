@@ -138,7 +138,7 @@ describe("command corpus shape", () => {
   it("keeps a promotion note on every pending entry and nowhere else", () => {
     const pending = corpus.filter((entry) => entry.expect === "pending");
     // Deleting a `pending` marker without a policy change has to fail here rather than pass quietly.
-    expect(pending.length, "the accepted requirements leave five commands that are wrong today").toBe(5);
+    expect(pending.length, "the accepted requirements leave four commands that are wrong today").toBe(4);
     for (const entry of corpus) {
       if (entry.expect === "pending") {
         expect(entry.promotedBy ?? "", `${entry.command} must name the policy change that promotes it`).not.toBe("");

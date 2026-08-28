@@ -88,9 +88,14 @@ function destructiveByClassification(
     return isDestructiveText(argTexts.join(" "));
   }
   if (classification === "trap") {
-    // The handler runs when the shell exits or the signal arrives, which the agent's shell always does.
-    if (args.some(expandsBeforeUse)) return true;
-    const handler = argTexts.find((arg) => !arg.startsWith("-"));
+    // The handler runs when the shell exits or the signal arrives, which the agent's shell always does. It is
+    // judged as command text by its command word, so an interpolated operand (`docker rm -f $CID`) passes and
+    // a handler whose command word is itself an expansion (`"$CLEANUP"`) fails closed. An expanded option or
+    // signal operand keeps failing closed: its value can change which word is the handler or hide which
+    // signals arm it.
+    const handlerIndex = argTexts.findIndex((arg) => !arg.startsWith("-"));
+    if (args.some((arg, index) => index !== handlerIndex && expandsBeforeUse(arg))) return true;
+    const handler = argTexts[handlerIndex];
     return handler !== undefined && isDestructiveText(handler);
   }
   if (classification === "xargs") {

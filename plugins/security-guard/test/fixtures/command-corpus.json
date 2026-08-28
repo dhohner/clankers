@@ -112,11 +112,7 @@
 
   { "command": "git checkout main", "expect": "allow" },
   { "command": "git checkout HEAD~1", "expect": "allow" },
-  {
-    "command": "trap \"docker rm -f $CID\" EXIT",
-    "expect": "pending",
-    "promotedBy": "a change that judges a trap handler by its command word"
-  },
+  { "command": "trap \"docker rm -f $CID\" EXIT", "expect": "allow" },
   { "command": "mv a.ts b.ts c.ts src/", "expect": "allow" },
   {
     "command": "rm -rf node_modules",

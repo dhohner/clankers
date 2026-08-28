@@ -163,6 +163,7 @@ describe("destructive command policy", () => {
     "eval 'rm' '-rf' build",
     // An operand that still expands hides what eval would run.
     'eval "$command"',
+    'eval "rm -rf $DIR"',
     "eval $command",
     // A command word that still expands names a command the text never shows.
     'c="rm -rf /Users/example/project"; bash -c "$c"',
@@ -258,6 +259,15 @@ describe("destructive command policy", () => {
     // A trap handler runs when the shell exits, which the agent's shell always does.
     "trap 'rm -rf build' EXIT",
     "trap -- 'rm -rf build' EXIT",
+    'trap "rm -rf $DIR" EXIT',
+    'trap "git reset --hard" EXIT',
+    // A handler that is itself an expansion has no command word to read.
+    'trap "$CLEANUP" EXIT',
+    "trap $CLEANUP EXIT",
+    'trap "$(cat handler)" EXIT',
+    // An expanded signal or option operand keeps its treatment: it can change which word is the handler.
+    "trap 'echo done' \"$SIGNAL\"",
+    "trap $OPTS 'echo done' EXIT",
     // Removal commands that are not `rm`, and Git subcommands that overwrite the working tree.
     "unlink build/probe",
     // A case-insensitive filesystem runs `/bin/RM` as `rm`.
@@ -341,6 +351,18 @@ describe("destructive command policy", () => {
     "git -C repo checkout -b feature",
     "git --no-pager log",
     "trap 'echo done' EXIT",
+    'trap "echo done" EXIT INT TERM',
+    // An expansion inside the handler does not hide its command word.
+    'trap "docker rm -f $CID" EXIT',
+    "trap 'docker rm -f pg' EXIT",
+    'trap "echo $?" EXIT',
+    // No handler, `-`, and an empty handler run nothing.
+    "trap",
+    "trap - EXIT",
+    "trap -- - EXIT",
+    "trap '' INT",
+    "trap -l",
+    "trap -p EXIT",
     "echo $(echo ')')",
     "# just a comment",
     "echo hi # rm -rf build",
