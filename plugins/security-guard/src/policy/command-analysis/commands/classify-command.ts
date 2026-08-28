@@ -1,12 +1,21 @@
-import { commandRule, type ClassificationOptions } from "../command-registry.ts";
-import { commandNeedsApproval, gitIsDestructive } from "./filesystem-and-git.ts";
+import { commandRule, type ClassificationOptions, type CommandClassificationModel } from "../command-registry.ts";
+import { commandVerdict, gitVerdict, type ClassificationVerdict } from "./filesystem-and-git.ts";
 import { NESTED_SHELLS, expandsBeforeUse, nestedShellIsDestructive, rewritesCommandWord } from "./nested-shell.ts";
-import { XARGS_OPTIONS, simpleCommandExtents, simpleCommandAt } from "../../../shell/command-parser.ts";
+import {
+  XARGS_OPTIONS,
+  assignedName,
+  escalatesPrivilege,
+  isTrustedCommandWord,
+  pathResolvedCommandNames,
+  simpleCommandExtents,
+  simpleCommandAt,
+} from "../../../shell/command-parser.ts";
 import { skipOptionsOf } from "../../../shell/option-scanner.ts";
 import { LITERAL, UNQUOTED, substitutionEnd, tokenizeShell } from "../../../shell/tokenizer.ts";
 import type { ShellAst } from "../../../shell/ast.ts";
 import type { SimpleCommand } from "../../../shell/command-parser.ts";
 import type { ShellToken, Word } from "../../../shell/types.ts";
+import type { HostPathCheck } from "../result.ts";
 
 type FindClassificationOptions = Extract<ClassificationOptions, { kind: "find" }>;
 
@@ -16,22 +25,62 @@ function findOptions(): FindClassificationOptions {
   return options;
 }
 
+/**
+ * One simple command's verdict. A destructive one may carry a host check: the command is harmless if the
+ * host confirms the check, and needs approval otherwise. Only a top-level command keeps the check; a command
+ * a nested shell, `xargs`, `find`, or `eval` runs reads it as destructive outright.
+ */
+export type CommandVerdict = { destructive: false } | { destructive: true; hostCheck?: HostPathCheck };
+
+const NOT_DESTRUCTIVE: CommandVerdict = { destructive: false };
+const DESTRUCTIVE: CommandVerdict = { destructive: true };
+
+function toCommandVerdict(verdict: ClassificationVerdict): CommandVerdict {
+  if (verdict.kind === "safe") return NOT_DESTRUCTIVE;
+  if (verdict.kind === "approval") return DESTRUCTIVE;
+  return { destructive: true, hostCheck: verdict.check };
+}
+
 export function simpleCommandIsDestructive(
   tokens: readonly ShellToken[],
   start: number,
   failClosed = true,
   resolvedCommand?: SimpleCommand,
 ): boolean {
+  return simpleCommandVerdict(tokens, start, failClosed, resolvedCommand).destructive;
+}
+
+export function simpleCommandVerdict(
+  tokens: readonly ShellToken[],
+  start: number,
+  failClosed = true,
+  resolvedCommand?: SimpleCommand,
+): CommandVerdict {
   const command = resolvedCommand ?? simpleCommandAt(tokens, start);
 
   // An unrecognized wrapper option hides which command runs, so assume the one needing approval.
-  if (command.kind === "unresolved") return failClosed;
+  if (command.kind === "unresolved") return failClosed ? DESTRUCTIVE : NOT_DESTRUCTIVE;
   const { name, args, argTexts, argIndices, commandWords } = command;
   // So does a command word the shell rewrites: `c='rm -rf /'; $c` runs a command this text never names.
-  if (commandWords.some(rewritesCommandWord)) return failClosed;
+  if (commandWords.some(rewritesCommandWord)) return failClosed ? DESTRUCTIVE : NOT_DESTRUCTIVE;
   const classification = commandRule(name)?.classification;
-  if (commandNeedsApproval(name, argTexts)) return true;
-  if (classification === "git") return gitIsDestructive(argTexts);
+  const verdict = commandVerdict(name, args);
+  if (verdict.kind !== "safe") return toCommandVerdict(verdict);
+  if (classification === "git") return toCommandVerdict(gitVerdict(args));
+  return destructiveByClassification(classification, tokens, name, args, argTexts, argIndices, failClosed)
+    ? DESTRUCTIVE
+    : NOT_DESTRUCTIVE;
+}
+
+function destructiveByClassification(
+  classification: CommandClassificationModel | undefined,
+  tokens: readonly ShellToken[],
+  name: string,
+  args: ShellToken[],
+  argTexts: string[],
+  argIndices: number[],
+  failClosed: boolean,
+): boolean {
   if (classification === "nested-shell") return nestedShellIsDestructive(name, args, argTexts, isDestructiveText);
   if (classification === "eval") {
     // bash joins the operands with a space and parses the result, so one the outer shell expands hides it.
@@ -223,19 +272,66 @@ function nestedTextIsDestructive(tokens: readonly ShellToken[], token: ShellToke
 export type ShellDestructiveClassification = {
   destructive: boolean;
   destructiveStarts: ReadonlySet<number>;
+  /**
+   * The host check that would clear the one command in the text, with the bare command words the host must
+   * resolve to system executables first, or undefined when the text holds anything else: a second command,
+   * a redirection, or an assignment could create or move the checked path between the inspection and the
+   * command.
+   */
+  hostCheck: { checks: HostPathCheck[]; commands: string[] } | undefined;
 };
+
+// Assignment prefixes that change where Git looks or what runs: `GIT_*` moves the repository, working tree,
+// or executable directory, `HOME` and `XDG_CONFIG_HOME` select a configuration that may set `core.worktree`,
+// `PATH` selects the binary, and the loader variables inject code into it.
+const GIT_CONTEXT_ASSIGNMENT = /^(GIT_|DYLD_|LD_)|^(PATH|HOME|XDG_CONFIG_HOME)$/;
+
+/**
+ * Whether the host's answer about a path still holds when the command runs. Only a lone simple command
+ * whose words the shell passes through unchanged qualifies. An earlier command in a list (`printf x > main;
+ * git checkout main`), a redirection, and any expansion in any word (`X=$(touch main) git checkout main`,
+ * `git checkout -q$(touch main) main`) run first and can create the very path that was found absent. A
+ * literal assignment prefix is inert unless it changes Git's context, and a wrapper that moves the working
+ * directory makes the answer meaningless. The command words obey the proof's rules too: an executable
+ * outside the system directories or a privilege escalation runs something other than the tool judged here.
+ */
+function hostCheckHolds(ast: ShellAst): boolean {
+  if (ast.commands.length !== 1) return false;
+  const resolved = ast.commands[0]?.resolved;
+  if (!resolved || resolved.kind !== "resolved" || resolved.statefulWrapper) return false;
+  if (resolved.redirections.length > 0) return false;
+  if (!resolved.commandWords.every(isTrustedCommandWord) || escalatesPrivilege(resolved.commandWords)) return false;
+  return !ast.tokens.some(
+    (token) =>
+      token.redirect ||
+      token.heredoc ||
+      expandsBeforeUse(token) ||
+      GIT_CONTEXT_ASSIGNMENT.test(assignedName(token) ?? ""),
+  );
+}
 
 /** Classifies the commands retained in one AST without tokenizing or resolving them again. */
 export function classifyShellAst(ast: ShellAst): ShellDestructiveClassification {
   const destructiveStarts = new Set<number>();
+  let hostCheck: HostPathCheck | undefined;
   for (const command of ast.commands) {
-    if (simpleCommandIsDestructive(ast.tokens, command.extent.start, true, command.resolved)) {
-      destructiveStarts.add(command.extent.start);
-    }
+    const verdict = simpleCommandVerdict(ast.tokens, command.extent.start, true, command.resolved);
+    if (!verdict.destructive) continue;
+    destructiveStarts.add(command.extent.start);
+    hostCheck = verdict.hostCheck;
   }
 
   const nestedDestructive = ast.tokens.some((token) => nestedTextIsDestructive(ast.tokens, token));
-  return { destructive: destructiveStarts.size > 0 || nestedDestructive, destructiveStarts };
+  const command = ast.commands[0]?.resolved;
+  const hostCheckResult =
+    hostCheck && command?.kind === "resolved" && !nestedDestructive && hostCheckHolds(ast)
+      ? { checks: [hostCheck], commands: pathResolvedCommandNames(command.commandWords) }
+      : undefined;
+  return {
+    destructive: destructiveStarts.size > 0 || nestedDestructive,
+    destructiveStarts,
+    hostCheck: hostCheckResult,
+  };
 }
 
 export function isDestructiveText(value: string): boolean {

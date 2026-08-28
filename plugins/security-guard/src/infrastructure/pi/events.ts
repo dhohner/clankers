@@ -4,6 +4,7 @@ import { decideUserBash } from "../../application/decide-user-bash.ts";
 import { formatSafetyAssessment } from "../../policy/assessment/assessment-codec.ts";
 import { BLOCK_REASON } from "../../policy/credential-access/result.ts";
 import { allSystemExecutables as verifySystemExecutables } from "../node/executable-resolver.ts";
+import { inspectPath } from "../node/path-presence.ts";
 import { allInsideTemporaryRoot as verifyTemporaryPaths } from "../node/temporary-root.ts";
 import { evaluateCommandSafety, SAFETY_EVALUATION_WORKING_MESSAGE } from "./model-assessor.ts";
 
@@ -40,6 +41,7 @@ export async function handlePiToolCall(event: ToolCallEvent, ctx: ExtensionConte
     {
       resolveExecutables: verifySystemExecutables,
       verifyTemporaryPaths,
+      inspectPath,
       assessCommand: async ({ command, workingDirectory, signal }) => {
         if (!context) throw new Error("Pi did not provide an extension context");
         context.ui.setWorkingMessage(SAFETY_EVALUATION_WORKING_MESSAGE);

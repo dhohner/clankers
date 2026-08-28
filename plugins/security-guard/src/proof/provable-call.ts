@@ -4,7 +4,12 @@ import {
   simpleCommandIsDestructive,
   substitutionContents,
 } from "../policy/command-analysis/commands/classify-command.ts";
-import { SHELL_BUILTINS, assignedName, escalatesPrivilege, isTrustedCommandWord } from "../shell/command-parser.ts";
+import {
+  assignedName,
+  escalatesPrivilege,
+  isTrustedCommandWord,
+  pathResolvedCommandNames,
+} from "../shell/command-parser.ts";
 import type { ShellToken } from "../shell/types.ts";
 import {
   extractPathTargets,
@@ -122,9 +127,7 @@ function errexitAfterSet(argTexts: readonly string[], current: boolean): boolean
 }
 
 function addPathResolvedCommands(commands: Set<string>, commandWords: readonly ShellToken[]): void {
-  for (const word of commandWords) {
-    if (!word.text.includes("/") && !SHELL_BUILTINS.has(word.text)) commands.add(word.text);
-  }
+  for (const name of pathResolvedCommandNames(commandWords)) commands.add(name);
 }
 
 /**

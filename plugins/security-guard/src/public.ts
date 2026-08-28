@@ -11,6 +11,7 @@ export {
   DESTRUCTIVE_APPROVAL_REASON,
   type ApprovalRequirement,
   type CommandAnalysisResult,
+  type HostPathCheck,
 } from "./policy/command-analysis/result.ts";
 export {
   formatSafetyAssessment,
@@ -45,5 +46,7 @@ export {
   resolvesToSystemExecutable,
 } from "./infrastructure/node/executable-resolver.ts";
 export { allInsideTemporaryRoot, isInsideTemporaryRoot } from "./infrastructure/node/temporary-root.ts";
+export { inspectPath } from "./infrastructure/node/path-presence.ts";
+export type { PathPresence } from "./application/ports.ts";
 export { isDestructiveText } from "./policy/command-analysis/commands/classify-command.ts";
 export { destructiveTargets, provableCall, type DestructiveTarget, type ProvableCall } from "./proof/provable-call.ts";

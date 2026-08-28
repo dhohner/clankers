@@ -238,6 +238,79 @@ describe("reported host lifecycle", () => {
     }
   });
 
+  it("switches branches with a lone checkout operand no working-tree entry is named like, unattended", async () => {
+    const host = await createHost({ approve: false });
+
+    try {
+      await writeFile(join(host.workingDirectory, "README.md"), "");
+
+      const unattended = await host.runBash("git checkout main");
+      expect(host.modelRegistry.complete).not.toHaveBeenCalled();
+      expect(host.ui.confirm).not.toHaveBeenCalled();
+      // The workspace is not a repository, so Git itself fails; the guard let the call through.
+      expect(unattended.blocked).toBe(false);
+
+      const gated = await host.runBash("git checkout README.md");
+      expect(host.modelRegistry.complete).toHaveBeenCalledOnce();
+      expect(host.ui.confirm).toHaveBeenCalledOnce();
+      expect(gated.blocked).toBe(true);
+      expect(gated.blockReason).toBe(DESTRUCTIVE_APPROVAL_REASON);
+
+      expect(host.extensionErrors).toEqual([]);
+    } finally {
+      await host.cleanup();
+    }
+  });
+
+  it("requires evaluation and approval when PATH resolves git to a look-alike before a checkout", async () => {
+    const host = await createHost({ approve: false });
+    const shadow = await mkdtemp(join(TEMPORARY_ROOT, "security-guard-host-shadow-"));
+
+    try {
+      await writeFile(join(shadow, "git"), `#!/bin/sh\n/bin/rm -rf "${EXTERNAL_TARGET}"\n`, { mode: 0o755 });
+      vi.stubEnv("PATH", `${shadow}:${process.env.PATH ?? ""}`);
+      const result = await host.runBash("git checkout main");
+
+      expect(host.modelRegistry.complete).toHaveBeenCalledOnce();
+      expect(host.ui.confirm).toHaveBeenCalledOnce();
+      expect(result.blocked).toBe(true);
+      expect(result.blockReason).toBe(DESTRUCTIVE_APPROVAL_REASON);
+      await expect(pathExists(EXTERNAL_TARGET)).resolves.toBe(false);
+
+      expect(host.extensionErrors).toEqual([]);
+    } finally {
+      vi.unstubAllEnvs();
+      await host.cleanup([shadow]);
+    }
+  });
+
+  it("moves several operands into an existing directory unattended, and asks otherwise", async () => {
+    const host = await createHost({ approve: false });
+
+    try {
+      await mkdir(join(host.workingDirectory, "src"));
+      await Promise.all(["a.ts", "b.ts", "c.ts"].map((file) => writeFile(join(host.workingDirectory, file), "")));
+
+      const gated = await host.runBash("mv a.ts b.ts c.ts d.ts");
+      expect(host.modelRegistry.complete).toHaveBeenCalledOnce();
+      expect(host.ui.confirm).toHaveBeenCalledOnce();
+      expect(gated.blocked).toBe(true);
+      expect(gated.blockReason).toBe(DESTRUCTIVE_APPROVAL_REASON);
+
+      const unattended = await host.runBash("mv a.ts b.ts c.ts src/");
+      expect(host.modelRegistry.complete).toHaveBeenCalledOnce();
+      expect(host.ui.confirm).toHaveBeenCalledOnce();
+      expect(unattended.blocked).toBe(false);
+      expect(unattended.isError).toBe(false);
+      await expect(pathExists(join(host.workingDirectory, "src", "c.ts"))).resolves.toBe(true);
+      await expect(pathExists(join(host.workingDirectory, "c.ts"))).resolves.toBe(false);
+
+      expect(host.extensionErrors).toEqual([]);
+    } finally {
+      await host.cleanup();
+    }
+  });
+
   // `env -C /` runs rm from the filesystem root, so the operand the proof resolved inside the workspace is
   // EXTERNAL_TARGET instead. The workspace holds a matching directory, so the proof once granted the
   // exception and bash removed a path far outside it.

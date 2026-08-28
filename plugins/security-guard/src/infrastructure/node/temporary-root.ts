@@ -44,7 +44,7 @@ function getCanonicalTemporaryRoots(): Promise<string[]> {
  * parent, to the kernel it is the parent of whatever the link points at. Only `realpath`, given the path as
  * written, resolves it the way the removal will.
  */
-function absolutePath(cwd: string, target: string): string {
+export function absolutePath(cwd: string, target: string): string {
   if (isAbsolute(target)) return target;
   return cwd.endsWith("/") ? `${cwd}${target}` : `${cwd}/${target}`;
 }

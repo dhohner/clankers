@@ -110,26 +110,14 @@
   { "command": "bash <<'EOF'\nrm -rf build\nEOF", "expect": "gate" },
   { "command": "psql <<EOF\n$(rm -rf build)\nEOF", "expect": "gate" },
 
-  {
-    "command": "git checkout main",
-    "expect": "pending",
-    "promotedBy": "a host check that treats an operand naming no existing file as a branch or commit switch"
-  },
-  {
-    "command": "git checkout HEAD~1",
-    "expect": "pending",
-    "promotedBy": "a host check that treats an operand naming no existing file as a branch or commit switch"
-  },
+  { "command": "git checkout main", "expect": "allow" },
+  { "command": "git checkout HEAD~1", "expect": "allow" },
   {
     "command": "trap \"docker rm -f $CID\" EXIT",
     "expect": "pending",
     "promotedBy": "a change that judges a trap handler by its command word"
   },
-  {
-    "command": "mv a.ts b.ts c.ts src/",
-    "expect": "pending",
-    "promotedBy": "a host check that accepts more than two operands when the last names an existing directory"
-  },
+  { "command": "mv a.ts b.ts c.ts src/", "expect": "allow" },
   {
     "command": "rm -rf node_modules",
     "expect": "pending",

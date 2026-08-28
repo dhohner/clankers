@@ -6,6 +6,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { decideToolCall, type ToolCallDecision } from "../src/application/decide-tool-call.js";
 import type { DecisionPorts } from "../src/application/ports.js";
 import { allSystemExecutables } from "../src/infrastructure/node/executable-resolver.js";
+import { inspectPath } from "../src/infrastructure/node/path-presence.js";
 import { allInsideTemporaryRoot } from "../src/infrastructure/node/temporary-root.js";
 
 type Expectation = "allow" | "gate" | "pending";
@@ -30,18 +31,19 @@ const cases = corpus.map((entry) => ({ ...entry, label: entry.command.replaceAll
 // path regardless of the entry.
 const ASSESSMENT_REFUSAL = "corpus harness: no assessor is available";
 
-// The inventory the corpus is measured against. Several promotions named in the fixture add a host check
-// that reads the filesystem, such as whether an operand names an existing file or whether the last `mv`
-// operand is a directory, so an entry is only reproducible when the working directory holds exactly these
-// paths. `main`, `dist-backup`, and `d.ts` are absent on purpose: their entries must stay gated.
+// The inventory the corpus is measured against. The checkout and `mv` entries hinge on a host check that reads
+// the filesystem, whether an operand names an existing file or whether the last `mv` operand is a directory,
+// so an entry is only reproducible when the working directory holds exactly these paths. `main` and `HEAD~1`
+// are absent on purpose so their checkout entries allow; `dist-backup` and `d.ts` are absent so their entries
+// stay gated.
 const WORKSPACE_DIRECTORIES = ["node_modules", "dist", "dist/cache", "packages/a/node_modules", "src"];
 const WORKSPACE_FILES = ["dist/app.js", "src/a.ts", "README.md", "a.ts", "b.ts", "c.ts"];
 
 let workspace: string;
 
 /**
- * The real host ports, so the temporary-root proof and the executable resolution decide the entry, paired
- * with recording stubs for the two ports that would leave the process.
+ * The real host ports, so the temporary-root proof, the executable resolution, and the path inspection decide
+ * the entry, paired with recording stubs for the two ports that would leave the process.
  */
 function makeRecordingPorts(): { ports: DecisionPorts; calls: { assess: number; approval: number } } {
   const calls = { assess: 0, approval: 0 };
@@ -50,6 +52,7 @@ function makeRecordingPorts(): { ports: DecisionPorts; calls: { assess: number; 
     ports: {
       resolveExecutables: allSystemExecutables,
       verifyTemporaryPaths: allInsideTemporaryRoot,
+      inspectPath,
       assessCommand: async () => {
         calls.assess += 1;
         return { ok: false, reason: ASSESSMENT_REFUSAL };
@@ -135,7 +138,7 @@ describe("command corpus shape", () => {
   it("keeps a promotion note on every pending entry and nowhere else", () => {
     const pending = corpus.filter((entry) => entry.expect === "pending");
     // Deleting a `pending` marker without a policy change has to fail here rather than pass quietly.
-    expect(pending.length, "the accepted requirements name eight commands that are wrong today").toBe(8);
+    expect(pending.length, "the accepted requirements leave five commands that are wrong today").toBe(5);
     for (const entry of corpus) {
       if (entry.expect === "pending") {
         expect(entry.promotedBy ?? "", `${entry.command} must name the policy change that promotes it`).not.toBe("");

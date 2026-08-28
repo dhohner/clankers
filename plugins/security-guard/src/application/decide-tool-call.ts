@@ -1,6 +1,10 @@
 import { SAFETY_EVALUATION_CANCELLED_REASON } from "../policy/assessment/assessment-codec.ts";
 import { analyzeCommand } from "../policy/command-analysis/analyze-command.ts";
-import { DESTRUCTIVE_APPROVAL_REASON, type ApprovalRequirement } from "../policy/command-analysis/result.ts";
+import {
+  DESTRUCTIVE_APPROVAL_REASON,
+  type ApprovalRequirement,
+  type HostPathCheck,
+} from "../policy/command-analysis/result.ts";
 import { evaluateCredentialAccess } from "../policy/credential-access/evaluate.ts";
 import type { DecisionPorts } from "./ports.ts";
 
@@ -15,7 +19,7 @@ export type ToolCallDecisionRequest = {
   signal?: AbortSignal;
 };
 
-type CleanupVerification = { verified: true } | { verified: false; reason: ApprovalRequirement };
+type HostVerification = { verified: true } | { verified: false; reason: ApprovalRequirement };
 
 function errorCause(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
@@ -25,7 +29,7 @@ async function verifyTemporaryCleanup(
   analysis: Extract<ReturnType<typeof analyzeCommand>, { kind: "temporaryCleanup" }>,
   request: ToolCallDecisionRequest,
   ports: DecisionPorts,
-): Promise<CleanupVerification> {
+): Promise<HostVerification> {
   try {
     const [executablesMatch, pathsAreTemporary] = await Promise.all([
       ports.resolveExecutables(analysis.proof.commands, request.workingDirectory),
@@ -56,6 +60,50 @@ async function verifyTemporaryCleanup(
   }
 }
 
+function failedHostPathCheck(check: HostPathCheck): ApprovalRequirement {
+  return {
+    kind: "host-path-check",
+    detail: check.expectation === "absent" ? "path-exists" : "path-is-not-a-directory",
+  };
+}
+
+/**
+ * Asks the host each question the analysis could not settle. The command words have to resolve to system
+ * executables, as for a cleanup proof, and every check has to hold; an answer other than the expected one,
+ * a rejected or thrown inspection, and a working directory the request does not carry all fail closed.
+ */
+async function verifyHostPaths(
+  analysis: Extract<ReturnType<typeof analyzeCommand>, { kind: "hostPathCheck" }>,
+  request: ToolCallDecisionRequest,
+  ports: DecisionPorts,
+): Promise<HostVerification> {
+  const { checks, commands } = analysis;
+  if (request.workingDirectory === "") {
+    return {
+      verified: false,
+      reason: { kind: "host-path-check", detail: "host-verification-error", cause: "working directory is unknown" },
+    };
+  }
+  try {
+    const [executablesMatch, presences] = await Promise.all([
+      ports.resolveExecutables(commands, request.workingDirectory),
+      Promise.all(checks.map((check) => ports.inspectPath(check.path, request.workingDirectory))),
+    ]);
+    if (!executablesMatch) {
+      return { verified: false, reason: { kind: "host-path-check", detail: "executable-resolution-failed" } };
+    }
+    for (const [index, check] of checks.entries()) {
+      if (presences[index] !== check.expectation) return { verified: false, reason: failedHostPathCheck(check) };
+    }
+    return { verified: true };
+  } catch (error) {
+    return {
+      verified: false,
+      reason: { kind: "host-path-check", detail: "host-verification-error", cause: errorCause(error) },
+    };
+  }
+}
+
 /** Applies host-neutral credential, command, proof, assessment, and approval policy for one tool call. */
 export async function decideToolCall(
   request: ToolCallDecisionRequest,
@@ -74,6 +122,10 @@ export async function decideToolCall(
   let analysisReason: ApprovalRequirement;
   if (analysis.kind === "temporaryCleanup") {
     const verification = await verifyTemporaryCleanup(analysis, request, ports);
+    if (verification.verified) return { kind: "allow" };
+    analysisReason = verification.reason;
+  } else if (analysis.kind === "hostPathCheck") {
+    const verification = await verifyHostPaths(analysis, request, ports);
     if (verification.verified) return { kind: "allow" };
     analysisReason = verification.reason;
   } else {

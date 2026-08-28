@@ -22,6 +22,11 @@ export const SHELL_BUILTINS: ReadonlySet<string> = new Set(
   COMMAND_RULES.filter((rule) => rule.shellBuiltin).flatMap((rule) => rule.names),
 );
 
+/** The command words PATH resolves: a bare name that is not a builtin. A word with a slash names its file. */
+export function pathResolvedCommandNames(commandWords: readonly Word[]): string[] {
+  return commandWords.filter((word) => !word.text.includes("/") && !SHELL_BUILTINS.has(word.text)).map((w) => w.text);
+}
+
 export function escalatesPrivilege(commandWords: readonly Word[]): boolean {
   return commandWords.some((word) => commandRule(commandName(word.text))?.escalatesPrivilege === true);
 }
