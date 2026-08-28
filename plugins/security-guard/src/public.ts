@@ -46,6 +46,11 @@ export {
   resolvesToSystemExecutable,
 } from "./infrastructure/node/executable-resolver.ts";
 export { allInsideTemporaryRoot, isInsideTemporaryRoot } from "./infrastructure/node/temporary-root.ts";
+export {
+  allInsideRegenerableDirectory,
+  isInsideRegenerableDirectory,
+  REGENERABLE_DIRECTORY_NAMES,
+} from "./infrastructure/node/regenerable-directory.ts";
 export { inspectPath } from "./infrastructure/node/path-presence.ts";
 export type { PathPresence } from "./application/ports.ts";
 export { isDestructiveText } from "./policy/command-analysis/commands/classify-command.ts";

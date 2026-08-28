@@ -5,6 +5,7 @@ import { formatSafetyAssessment } from "../../policy/assessment/assessment-codec
 import { BLOCK_REASON } from "../../policy/credential-access/result.ts";
 import { allSystemExecutables as verifySystemExecutables } from "../node/executable-resolver.ts";
 import { inspectPath } from "../node/path-presence.ts";
+import { allInsideRegenerableDirectory as verifyRegenerablePaths } from "../node/regenerable-directory.ts";
 import { allInsideTemporaryRoot as verifyTemporaryPaths } from "../node/temporary-root.ts";
 import { evaluateCommandSafety, SAFETY_EVALUATION_WORKING_MESSAGE } from "./model-assessor.ts";
 
@@ -41,6 +42,7 @@ export async function handlePiToolCall(event: ToolCallEvent, ctx: ExtensionConte
     {
       resolveExecutables: verifySystemExecutables,
       verifyTemporaryPaths,
+      verifyRegenerablePaths,
       inspectPath,
       assessCommand: async ({ command, workingDirectory, signal }) => {
         if (!context) throw new Error("Pi did not provide an extension context");

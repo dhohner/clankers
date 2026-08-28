@@ -114,26 +114,19 @@
   { "command": "git checkout HEAD~1", "expect": "allow" },
   { "command": "trap \"docker rm -f $CID\" EXIT", "expect": "allow" },
   { "command": "mv a.ts b.ts c.ts src/", "expect": "allow" },
-  {
-    "command": "rm -rf node_modules",
-    "expect": "pending",
-    "promotedBy": "an exception for regenerable build directories"
-  },
-  {
-    "command": "rm -f dist/*.js",
-    "expect": "pending",
-    "promotedBy": "an exception for regenerable build directories"
-  },
-  {
-    "command": "rm -rf dist/cache",
-    "expect": "pending",
-    "promotedBy": "an exception for regenerable build directories"
-  },
-  {
-    "command": "rm -rf packages/a/node_modules",
-    "expect": "pending",
-    "promotedBy": "an exception for regenerable build directories"
-  },
+  { "command": "rm -rf node_modules", "expect": "allow" },
+  { "command": "rm -f dist/*.js", "expect": "allow" },
+  { "command": "rm -rf dist/cache", "expect": "allow" },
+  { "command": "rm -rf packages/a/node_modules", "expect": "allow" },
+  { "command": "rm -rf dist", "expect": "allow" },
+  { "command": "rm -f dist/app.js", "expect": "allow" },
+  { "command": "rmdir dist/cache", "expect": "allow" },
+  { "command": "rm -rf dist src", "expect": "gate" },
+  { "command": "rm -f build", "expect": "gate" },
+  { "command": "rm -rf target", "expect": "gate" },
+  { "command": "rm -rf dist/../src", "expect": "gate" },
+  { "command": "mv dist /tmp/x", "expect": "gate" },
+  { "command": "truncate -s 0 dist/app.js", "expect": "gate" },
   { "command": "rm -rf dist < <(cat manifest.txt)", "expect": "gate" },
   { "command": "echo $[1+1]", "expect": "gate" }
 ]

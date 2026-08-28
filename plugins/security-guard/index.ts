@@ -8,6 +8,7 @@ export default function securityGuard(pi: ExtensionAPI) {
 
 export {
   analyzeCommand,
+  allInsideRegenerableDirectory,
   allInsideTemporaryRoot,
   allSystemExecutables,
   BLOCK_REASON,
@@ -20,10 +21,12 @@ export {
   inspectPath,
   isBlockedText,
   isDestructiveText,
+  isInsideRegenerableDirectory,
   isInsideTemporaryRoot,
   MAX_ASSESSMENT_FIELD_LENGTH,
   parseSafetyAssessment,
   provableCall,
+  REGENERABLE_DIRECTORY_NAMES,
   resolvesToSystemExecutable,
   SAFETY_EVALUATION_BLOCK_PREFIX,
   SAFETY_EVALUATION_CANCELLED_REASON,

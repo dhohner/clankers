@@ -7,6 +7,7 @@ import { decideToolCall, type ToolCallDecision } from "../src/application/decide
 import type { DecisionPorts } from "../src/application/ports.js";
 import { allSystemExecutables } from "../src/infrastructure/node/executable-resolver.js";
 import { inspectPath } from "../src/infrastructure/node/path-presence.js";
+import { allInsideRegenerableDirectory } from "../src/infrastructure/node/regenerable-directory.js";
 import { allInsideTemporaryRoot } from "../src/infrastructure/node/temporary-root.js";
 
 type Expectation = "allow" | "gate" | "pending";
@@ -35,9 +36,11 @@ const ASSESSMENT_REFUSAL = "corpus harness: no assessor is available";
 // the filesystem, whether an operand names an existing file or whether the last `mv` operand is a directory,
 // so an entry is only reproducible when the working directory holds exactly these paths. `main` and `HEAD~1`
 // are absent on purpose so their checkout entries allow; `dist-backup` and `d.ts` are absent so their entries
-// stay gated.
+// stay gated. `node_modules`, `dist`, `dist/cache`, `dist/app.js`, and `packages/a/node_modules` are the
+// regenerable entries; a missing one would gate its `rm` entry for the wrong reason.
 const WORKSPACE_DIRECTORIES = ["node_modules", "dist", "dist/cache", "packages/a/node_modules", "src"];
-const WORKSPACE_FILES = ["dist/app.js", "src/a.ts", "README.md", "a.ts", "b.ts", "c.ts"];
+// `build` is a regular file, so its `rm` entry proves that an exempt name alone exempts nothing.
+const WORKSPACE_FILES = ["dist/app.js", "src/a.ts", "README.md", "a.ts", "b.ts", "c.ts", "build"];
 
 let workspace: string;
 
@@ -52,6 +55,7 @@ function makeRecordingPorts(): { ports: DecisionPorts; calls: { assess: number; 
     ports: {
       resolveExecutables: allSystemExecutables,
       verifyTemporaryPaths: allInsideTemporaryRoot,
+      verifyRegenerablePaths: allInsideRegenerableDirectory,
       inspectPath,
       assessCommand: async () => {
         calls.assess += 1;
@@ -138,7 +142,7 @@ describe("command corpus shape", () => {
   it("keeps a promotion note on every pending entry and nowhere else", () => {
     const pending = corpus.filter((entry) => entry.expect === "pending");
     // Deleting a `pending` marker without a policy change has to fail here rather than pass quietly.
-    expect(pending.length, "the accepted requirements leave four commands that are wrong today").toBe(4);
+    expect(pending.length, "every accepted requirement has been implemented, so nothing is pending").toBe(0);
     for (const entry of corpus) {
       if (entry.expect === "pending") {
         expect(entry.promotedBy ?? "", `${entry.command} must name the policy change that promotes it`).not.toBe("");

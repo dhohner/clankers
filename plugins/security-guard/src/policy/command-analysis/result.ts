@@ -15,7 +15,11 @@ export type ApprovalRequirement =
   | { kind: "unprovable-effects"; detail: ProofFailure }
   | {
       kind: "temporary-cleanup-verification";
-      detail: "executable-resolution-failed" | "temporary-path-verification-failed" | "host-verification-error";
+      detail:
+        | "executable-resolution-failed"
+        | "temporary-path-verification-failed"
+        | "regenerable-path-verification-failed"
+        | "host-verification-error";
       cause?: string;
     }
   | {

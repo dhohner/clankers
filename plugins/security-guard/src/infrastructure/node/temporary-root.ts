@@ -49,7 +49,7 @@ export function absolutePath(cwd: string, target: string): string {
   return cwd.endsWith("/") ? `${cwd}${target}` : `${cwd}/${target}`;
 }
 
-function isWithinRoot(path: string, root: string): boolean {
+export function isWithinRoot(path: string, root: string): boolean {
   const childPath = relative(root, path);
   return childPath !== "" && !childPath.startsWith("..") && !isAbsolute(childPath);
 }
@@ -104,28 +104,26 @@ async function isActionableEntry(absolute: string, followsLinks: boolean): Promi
 }
 
 /**
- * Reports whether a command target, resolved against `cwd`, can only affect paths strictly inside a system
- * temporary root that the current user owns. `followsLinks` says whether the command acts on what a symlink
+ * Reports whether a command target, resolved against `cwd`, can only affect canonical paths that `qualifies`
+ * accepts, and that the current user owns. `followsLinks` says whether the command acts on what a symlink
  * operand points to rather than on the link entry. A wildcard is reduced to its literal directory prefix,
- * which must itself be strictly inside a root, so `rm -rf /tmp/*` cannot clear the shared root unapproved;
- * the wildcard part must stay in one path component so no matched symlink is traversed. Anything that cannot
- * be proven fails closed.
+ * which must itself qualify, and the wildcard part must stay in one path component so no matched symlink is
+ * traversed. Anything that cannot be proven fails closed. The predicate sees the canonical form of the entry
+ * location, of the link target, or of the wildcard's directory, never the path as written.
  */
-export async function isInsideTemporaryRoot(
+export async function resolvesInsideQualifiedRoot(
   target: string,
   cwd: string | undefined,
-  followsLinks = false,
+  followsLinks: boolean,
+  qualifies: (canonical: string) => Promise<boolean>,
 ): Promise<boolean> {
   if (cwd === undefined || !isAbsolute(cwd) || target === "") return false;
-  const roots = await getCanonicalTemporaryRoots();
 
   const globStart = target.search(GLOB_CHARACTERS);
   if (globStart < 0) {
     const absolute = absolutePath(cwd, target);
     const canonical = await canonicalEntryAndTarget(absolute);
-    if (!canonical || !isInsideAnyRoot(canonical.entry, roots) || !isInsideAnyRoot(canonical.target, roots)) {
-      return false;
-    }
+    if (!canonical || !(await qualifies(canonical.entry)) || !(await qualifies(canonical.target))) return false;
     return isActionableEntry(absolute, followsLinks);
   }
 
@@ -139,9 +137,22 @@ export async function isInsideTemporaryRoot(
 
   const directory = absolutePath(cwd, target.slice(0, directoryEnd) || ".");
   const canonical = await realpath(directory).catch(() => undefined);
-  if (canonical === undefined || !isInsideAnyRoot(canonical, roots)) return false;
+  if (canonical === undefined || !(await qualifies(canonical))) return false;
   const stats = await lstat(canonical).catch(() => undefined);
   return stats !== undefined && isOwnedUnsharedEntry(stats);
+}
+
+/**
+ * Reports whether a command target, resolved against `cwd`, can only affect paths strictly inside a system
+ * temporary root that the current user owns, so `rm -rf /tmp/*` cannot clear the shared root unapproved.
+ */
+export async function isInsideTemporaryRoot(
+  target: string,
+  cwd: string | undefined,
+  followsLinks = false,
+): Promise<boolean> {
+  const roots = await getCanonicalTemporaryRoots();
+  return resolvesInsideQualifiedRoot(target, cwd, followsLinks, async (canonical) => isInsideAnyRoot(canonical, roots));
 }
 
 async function pathExists(path: string): Promise<boolean> {

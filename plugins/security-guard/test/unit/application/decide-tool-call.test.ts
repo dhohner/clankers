@@ -8,6 +8,7 @@ function makePorts(overrides: Partial<DecisionPorts> = {}): DecisionPorts {
   return {
     resolveExecutables: vi.fn().mockResolvedValue(true),
     verifyTemporaryPaths: vi.fn().mockResolvedValue(true),
+    verifyRegenerablePaths: vi.fn().mockResolvedValue(false),
     inspectPath: vi.fn().mockResolvedValue("absent"),
     assessCommand: vi.fn().mockResolvedValue({
       ok: true,
@@ -69,10 +70,153 @@ describe("decideToolCall", () => {
       reason: DESTRUCTIVE_APPROVAL_REASON,
       analysis: {
         kind: "temporary-cleanup-verification",
-        detail: "temporary-path-verification-failed",
+        detail: "regenerable-path-verification-failed",
       },
     });
     expect(ports.assessCommand).not.toHaveBeenCalled();
+  });
+
+  it("names the temporary route when the regenerable route was never tried", async () => {
+    const ports = makePorts({ verifyTemporaryPaths: vi.fn().mockResolvedValue(false) });
+    await expect(decideToolCall(request("truncate -s 0 dist/app.js", false), ports)).resolves.toEqual({
+      kind: "block",
+      reason: DESTRUCTIVE_APPROVAL_REASON,
+      analysis: {
+        kind: "temporary-cleanup-verification",
+        detail: "temporary-path-verification-failed",
+      },
+    });
+    expect(ports.verifyRegenerablePaths).not.toHaveBeenCalled();
+  });
+
+  describe("regenerable build directories", () => {
+    const outsideTemporaryRoot = () =>
+      makePorts({
+        verifyTemporaryPaths: vi.fn().mockResolvedValue(false),
+        verifyRegenerablePaths: vi.fn().mockResolvedValue(true),
+      });
+
+    it.each([
+      "rm -rf node_modules",
+      "rm -rf dist",
+      "rm -rf dist/cache",
+      "rm -f dist/app.js",
+      "rm -f dist/*.js",
+      "rm -rf packages/a/node_modules",
+      "rmdir dist/cache",
+      "rm -rf dist node_modules",
+      "rm -rf dist && rmdir out",
+    ])("allows %s when every target resolves inside a regenerable directory", async (command) => {
+      const ports = outsideTemporaryRoot();
+      await expect(decideToolCall(request(command), ports)).resolves.toEqual({ kind: "allow" });
+      expect(ports.verifyRegenerablePaths).toHaveBeenCalledExactlyOnceWith(
+        expect.arrayContaining([expect.objectContaining({ followsLinks: false })]),
+        "/tmp/work",
+      );
+      expect(ports.assessCommand).not.toHaveBeenCalled();
+      expect(ports.requestApproval).not.toHaveBeenCalled();
+    });
+
+    it("hands the port every target of the call", async () => {
+      const ports = outsideTemporaryRoot();
+      await expect(decideToolCall(request("rm -rf dist src"), ports)).resolves.toEqual({ kind: "allow" });
+      expect(ports.verifyRegenerablePaths).toHaveBeenCalledExactlyOnceWith(
+        [
+          { path: "dist", insideMktempDirectory: false, followsLinks: false },
+          { path: "src", insideMktempDirectory: false, followsLinks: false },
+        ],
+        "/tmp/work",
+      );
+    });
+
+    it.each([
+      "unlink dist/app.js",
+      "truncate -s 0 dist/app.js",
+      "mv dist /tmp/x",
+      "chmod 777 dist",
+      "chown -R user dist",
+      "chmod -R 777 dist",
+      "rm -rf dist && truncate -s 0 dist/app.js",
+      "rm -rf dist > dist/log; unlink dist/app.js",
+      "rm -rf dist; tee dist/app.js",
+    ])("requires approval for %s without asking the regenerable port", async (command) => {
+      const ports = outsideTemporaryRoot();
+      expect((await decideToolCall(request(command, false), ports)).kind).toBe("block");
+      expect(ports.verifyRegenerablePaths).not.toHaveBeenCalled();
+    });
+
+    it("still allows a wrapper or inert command alongside rm", async () => {
+      const ports = outsideTemporaryRoot();
+      await expect(decideToolCall(request("echo cleaning && env rm -rf dist"), ports)).resolves.toEqual({
+        kind: "allow",
+      });
+      expect(ports.verifyRegenerablePaths).toHaveBeenCalledOnce();
+    });
+
+    it("requires approval when the regenerable port rejects the targets", async () => {
+      const ports = makePorts({
+        verifyTemporaryPaths: vi.fn().mockResolvedValue(false),
+        verifyRegenerablePaths: vi.fn().mockResolvedValue(false),
+      });
+      await expect(decideToolCall(request("rm -rf src", false), ports)).resolves.toEqual({
+        kind: "block",
+        reason: DESTRUCTIVE_APPROVAL_REASON,
+        analysis: { kind: "temporary-cleanup-verification", detail: "regenerable-path-verification-failed" },
+      });
+      await expect(decideToolCall(request("rm -rf src"), ports)).resolves.toEqual({ kind: "allow" });
+      expect(ports.assessCommand).toHaveBeenCalledOnce();
+      expect(ports.requestApproval).toHaveBeenCalledOnce();
+    });
+
+    it.each([
+      ["rejects", vi.fn().mockRejectedValue(new Error("regenerable check unavailable"))],
+      [
+        "throws",
+        vi.fn(() => {
+          throw new Error("regenerable check unavailable");
+        }),
+      ],
+    ])("fails closed with the cause when the regenerable port %s", async (_mode, verifyRegenerablePaths) => {
+      const ports = makePorts({ verifyTemporaryPaths: vi.fn().mockResolvedValue(false), verifyRegenerablePaths });
+      await expect(decideToolCall(request("rm -rf dist", false), ports)).resolves.toEqual({
+        kind: "block",
+        reason: DESTRUCTIVE_APPROVAL_REASON,
+        analysis: {
+          kind: "temporary-cleanup-verification",
+          detail: "host-verification-error",
+          cause: "regenerable check unavailable",
+        },
+      });
+      expect(ports.assessCommand).not.toHaveBeenCalled();
+    });
+
+    it("keeps the temporary route independent of the regenerable one", async () => {
+      const ports = makePorts({ verifyRegenerablePaths: vi.fn().mockResolvedValue(false) });
+      await expect(decideToolCall(request("rm -rf /tmp/scratch"), ports)).resolves.toEqual({ kind: "allow" });
+      expect(ports.verifyTemporaryPaths).toHaveBeenCalledOnce();
+      expect(ports.assessCommand).not.toHaveBeenCalled();
+    });
+
+    it("fails closed on an answer outside the port contract", async () => {
+      const ports = makePorts({
+        verifyTemporaryPaths: vi.fn().mockResolvedValue(false),
+        verifyRegenerablePaths: vi.fn().mockResolvedValue("yes"),
+      });
+      expect((await decideToolCall(request("rm -rf dist", false), ports)).kind).toBe("block");
+    });
+
+    it("requires a look-alike rm to be approved even against a regenerable directory", async () => {
+      const ports = makePorts({
+        resolveExecutables: vi.fn().mockResolvedValue(false),
+        verifyTemporaryPaths: vi.fn().mockResolvedValue(false),
+        verifyRegenerablePaths: vi.fn().mockResolvedValue(true),
+      });
+      await expect(decideToolCall(request("rm -rf dist", false), ports)).resolves.toEqual({
+        kind: "block",
+        reason: DESTRUCTIVE_APPROVAL_REASON,
+        analysis: { kind: "temporary-cleanup-verification", detail: "executable-resolution-failed" },
+      });
+    });
   });
 
   it("preserves host verification errors while failing closed", async () => {

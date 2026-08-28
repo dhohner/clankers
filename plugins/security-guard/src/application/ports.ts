@@ -16,6 +16,15 @@ export type TemporaryPathVerificationPort = (
   workingDirectory: string,
 ) => Promise<boolean>;
 
+/**
+ * Answers whether every target resolves inside a regenerable build directory that itself sits inside the
+ * working directory. The caller has already established that only `rm` and `rmdir` act on the targets.
+ */
+export type RegenerablePathVerificationPort = (
+  targets: readonly DestructiveTarget[],
+  workingDirectory: string,
+) => Promise<boolean>;
+
 /** What a path resolved against the working directory names: nothing, a directory, or any other entry. */
 export type PathPresence = "absent" | "directory" | "other";
 
@@ -27,5 +36,6 @@ export type DecisionPorts = {
   requestApproval: CommandApprovalPort;
   resolveExecutables: ExecutableResolutionPort;
   verifyTemporaryPaths: TemporaryPathVerificationPort;
+  verifyRegenerablePaths: RegenerablePathVerificationPort;
   inspectPath: PathInspectionPort;
 };

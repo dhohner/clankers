@@ -6,6 +6,7 @@ import {
   type HostPathCheck,
 } from "../policy/command-analysis/result.ts";
 import { evaluateCredentialAccess } from "../policy/credential-access/evaluate.ts";
+import { PATH_TARGET_COMMANDS, WRITE_TARGET_COMMANDS } from "../proof/path-operands.ts";
 import type { DecisionPorts } from "./ports.ts";
 
 export type ToolCall = { kind: "bash"; command: string } | { kind: "read"; path: string } | { kind: "other" };
@@ -25,15 +26,41 @@ function errorCause(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+// The only commands whose targets may qualify through a regenerable build directory. `unlink`, `truncate`,
+// `mv`, `chmod`, and `chown` keep asking even against one.
+const REGENERABLE_CLEANUP_COMMANDS: ReadonlySet<string> = new Set(["rm", "rmdir"]);
+
+/**
+ * Whether every command in the proof that creates, removes, or rewrites a path is one the regenerable
+ * exemption covers. A proven target does not record which command produced it, but the proof lists every
+ * command word in the call, so a call is eligible exactly when no other path-writing command appears in it.
+ * Wrappers and inert commands write no paths and do not disqualify the call.
+ */
+function onlyRegenerableCleanupCommands(commands: readonly string[]): boolean {
+  return commands.every(
+    (name) =>
+      REGENERABLE_CLEANUP_COMMANDS.has(name) || !(PATH_TARGET_COMMANDS.has(name) || WRITE_TARGET_COMMANDS.has(name)),
+  );
+}
+
+/**
+ * Allows a proven call when its command words are system executables and its targets all lie inside a
+ * temporary root, or, for a call of `rm` and `rmdir` only, all lie inside a regenerable build directory. The
+ * two routes are independent: a call mixing a temporary target with a regenerable one qualifies through
+ * neither. The detail names the last route that was tried.
+ */
 async function verifyTemporaryCleanup(
   analysis: Extract<ReturnType<typeof analyzeCommand>, { kind: "temporaryCleanup" }>,
   request: ToolCallDecisionRequest,
   ports: DecisionPorts,
 ): Promise<HostVerification> {
+  const { commands, targets } = analysis.proof;
+  const regenerableEligible = onlyRegenerableCleanupCommands(commands);
   try {
-    const [executablesMatch, pathsAreTemporary] = await Promise.all([
-      ports.resolveExecutables(analysis.proof.commands, request.workingDirectory),
-      ports.verifyTemporaryPaths(analysis.proof.targets, request.workingDirectory),
+    const [executablesMatch, pathsAreTemporary, pathsAreRegenerable] = await Promise.all([
+      ports.resolveExecutables(commands, request.workingDirectory),
+      ports.verifyTemporaryPaths(targets, request.workingDirectory),
+      regenerableEligible ? ports.verifyRegenerablePaths(targets, request.workingDirectory) : false,
     ]);
     if (!executablesMatch) {
       return {
@@ -41,13 +68,14 @@ async function verifyTemporaryCleanup(
         reason: { kind: "temporary-cleanup-verification", detail: "executable-resolution-failed" },
       };
     }
-    if (!pathsAreTemporary) {
-      return {
-        verified: false,
-        reason: { kind: "temporary-cleanup-verification", detail: "temporary-path-verification-failed" },
-      };
-    }
-    return { verified: true };
+    if (pathsAreTemporary === true || pathsAreRegenerable === true) return { verified: true };
+    return {
+      verified: false,
+      reason: {
+        kind: "temporary-cleanup-verification",
+        detail: regenerableEligible ? "regenerable-path-verification-failed" : "temporary-path-verification-failed",
+      },
+    };
   } catch (error) {
     return {
       verified: false,
