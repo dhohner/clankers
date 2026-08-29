@@ -250,7 +250,7 @@ describe("extension entrypoint", () => {
     await handler({ toolName: "bash", input: { command: "rm file.txt" } }, ctx);
 
     const [title, message] = ctx.ui.confirm.mock.calls[0];
-    expect(title).toBe("Approve destructive command?");
+    expect(title).toBe("Approve command with possible side-effects?");
     expect(message).toBe("Verdict: unsafe\nIntent: Deletes a file\nReason: Removal is permanent");
     expect(message).not.toContain("rm file.txt");
   });
