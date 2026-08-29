@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1280 520" width="1280" height="520" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="sg-decision-title sg-decision-desc">
+  <title id="sg-decision-title">Security Guard decision flow</title>
+  <desc id="sg-decision-desc">Each Bash or Read tool call passes through credential rules, which both the Claude hook and the Pi extension enforce, then in Pi only through command analysis, a host proof for temporary and regenerable paths, an advisory model safety assessment, and a human approval dialog; harmless and proven calls are allowed, matched secrets, missing UI, evaluator errors, and denied dialogs are blocked.</desc>
+  <defs>
+    <marker id="sg-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4e5399"/></marker>
+    <marker id="sg-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#fd6a23"/></marker>
+  </defs>
+
+  <rect x="0" y="0" width="1280" height="520" fill="#ffffff"/>
+
+  <!-- host coverage zones, painted first -->
+  <rect x="48" y="192" width="376" height="140" rx="8" fill="rgba(0,3,92,0.02)" stroke="rgba(0,3,92,0.22)" stroke-width="1" stroke-dasharray="4,4"/>
+  <text x="64" y="212" fill="#4e5399" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" letter-spacing="0.12em">CLAUDE HOOK + PI EXTENSION</text>
+  <rect x="440" y="192" width="784" height="140" rx="8" fill="rgba(0,3,92,0.02)" stroke="rgba(0,3,92,0.22)" stroke-width="1" stroke-dasharray="4,4"/>
+  <text x="456" y="212" fill="#4e5399" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" letter-spacing="0.12em">PI EXTENSION ONLY</text>
+
+  <!-- connectors, drawn before nodes -->
+  <!-- main row, y=268 -->
+  <line x1="208" y1="268" x2="264" y2="268" stroke="#4e5399" stroke-width="1.2" marker-end="url(#sg-arrow)"/>
+
+  <line x1="408" y1="268" x2="464" y2="268" stroke="#4e5399" stroke-width="1.2" marker-end="url(#sg-arrow)"/>
+  <rect x="416" y="248" width="40" height="12" rx="2" fill="#ffffff"/>
+  <text x="436" y="257" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">CLEAN</text>
+
+  <line x1="608" y1="268" x2="664" y2="268" stroke="#4e5399" stroke-width="1.2" marker-end="url(#sg-arrow)"/>
+  <rect x="616" y="248" width="40" height="12" rx="2" fill="#ffffff"/>
+  <text x="636" y="257" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">RISKY</text>
+
+  <line x1="808" y1="268" x2="864" y2="268" stroke="#4e5399" stroke-width="1.2" marker-end="url(#sg-arrow)"/>
+  <rect x="812" y="248" width="48" height="12" rx="2" fill="#ffffff"/>
+  <text x="836" y="257" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">UNPROVEN</text>
+
+  <line x1="1008" y1="268" x2="1064" y2="268" stroke="#4e5399" stroke-width="1.2" marker-end="url(#sg-arrow)"/>
+  <rect x="1012" y="248" width="48" height="12" rx="2" fill="#ffffff"/>
+  <text x="1036" y="257" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">VERDICT</text>
+
+  <!-- up to ALLOW rail (bar bottom y=128) -->
+  <line x1="536" y1="232" x2="536" y2="128" stroke="#4e5399" stroke-width="1.2" marker-end="url(#sg-arrow)"/>
+  <rect x="544" y="172" width="32" height="12" rx="2" fill="#ffffff"/>
+  <text x="548" y="181" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" letter-spacing="0.06em">SAFE</text>
+
+  <line x1="736" y1="232" x2="736" y2="128" stroke="#4e5399" stroke-width="1.2" marker-end="url(#sg-arrow)"/>
+  <rect x="744" y="172" width="44" height="12" rx="2" fill="#ffffff"/>
+  <text x="748" y="181" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" letter-spacing="0.06em">PROVEN</text>
+
+  <line x1="1136" y1="232" x2="1136" y2="128" stroke="#fd6a23" stroke-width="1.2" marker-end="url(#sg-arrow-accent)"/>
+  <rect x="1144" y="172" width="56" height="12" rx="2" fill="#ffffff"/>
+  <text x="1148" y="181" fill="#c8430c" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" letter-spacing="0.06em">APPROVED</text>
+
+  <!-- down to BLOCK rail (bar top y=400) -->
+  <line x1="336" y1="304" x2="336" y2="400" stroke="#4e5399" stroke-width="1.2" marker-end="url(#sg-arrow)"/>
+  <rect x="344" y="344" width="52" height="12" rx="2" fill="#ffffff"/>
+  <text x="348" y="353" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" letter-spacing="0.06em">MATCHED</text>
+
+  <line x1="936" y1="304" x2="936" y2="400" stroke="#4e5399" stroke-width="1.2" marker-end="url(#sg-arrow)"/>
+  <rect x="944" y="344" width="80" height="12" rx="2" fill="#ffffff"/>
+  <text x="948" y="353" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" letter-spacing="0.06em">NO UI · ERROR</text>
+
+  <line x1="1136" y1="304" x2="1136" y2="400" stroke="#fd6a23" stroke-width="1.2" marker-end="url(#sg-arrow-accent)"/>
+  <rect x="1144" y="344" width="44" height="12" rx="2" fill="#ffffff"/>
+  <text x="1148" y="353" fill="#c8430c" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" letter-spacing="0.06em">DENIED</text>
+
+  <!-- ALLOW rail -->
+  <rect x="464" y="88" width="744" height="40" rx="6" fill="#ffffff" stroke="rgba(0,3,92,0.28)" stroke-width="1"/>
+  <text x="484" y="113" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">Allow</text>
+  <text x="536" y="113" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">the tool call runs unchanged</text>
+
+  <!-- BLOCK rail -->
+  <rect x="264" y="400" width="944" height="40" rx="6" fill="rgba(0,3,92,0.05)" stroke="rgba(0,3,92,0.28)" stroke-width="1"/>
+  <text x="284" y="425" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">Block</text>
+  <text x="336" y="425" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">policy reason returned to the agent · Claude hook exits 2 · no workaround hints</text>
+
+  <!-- Tool call -->
+  <rect x="64" y="232" width="144" height="72" rx="6" fill="#ffffff"/>
+  <rect x="64" y="232" width="144" height="72" rx="6" fill="rgba(78,83,153,0.08)" stroke="rgba(0,3,92,0.28)" stroke-width="1"/>
+  <rect x="76" y="244" width="40" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.28)" stroke-width="0.8"/>
+  <text x="96" y="253" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">INPUT</text>
+  <text x="136" y="276" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">Tool call</text>
+  <text x="136" y="292" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">bash command · read path</text>
+
+  <!-- Credential rules -->
+  <rect x="264" y="232" width="144" height="72" rx="6" fill="#ffffff"/>
+  <rect x="264" y="232" width="144" height="72" rx="6" fill="#ffffff" stroke="rgba(0,3,92,0.20)" stroke-width="1"/>
+  <rect x="276" y="244" width="52" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.28)" stroke-width="0.8"/>
+  <text x="302" y="253" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">STAGE 1</text>
+  <text x="336" y="276" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">Credential rules</text>
+  <text x="336" y="292" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">env dumps · secret files</text>
+
+  <!-- Command analysis -->
+  <rect x="464" y="232" width="144" height="72" rx="6" fill="#ffffff"/>
+  <rect x="464" y="232" width="144" height="72" rx="6" fill="#ffffff" stroke="rgba(0,3,92,0.20)" stroke-width="1"/>
+  <rect x="476" y="244" width="52" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.28)" stroke-width="0.8"/>
+  <text x="502" y="253" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">STAGE 2</text>
+  <text x="536" y="276" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">Command analysis</text>
+  <text x="536" y="292" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">rm · git reset · mv</text>
+
+  <!-- Host proof -->
+  <rect x="664" y="232" width="144" height="72" rx="6" fill="#ffffff"/>
+  <rect x="664" y="232" width="144" height="72" rx="6" fill="#ffffff" stroke="rgba(0,3,92,0.20)" stroke-width="1"/>
+  <rect x="676" y="244" width="52" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.28)" stroke-width="0.8"/>
+  <text x="702" y="253" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">STAGE 3</text>
+  <text x="736" y="276" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">Host proof</text>
+  <text x="736" y="292" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">/tmp · build dirs</text>
+
+  <!-- Safety assessment -->
+  <rect x="864" y="232" width="144" height="72" rx="6" fill="#ffffff"/>
+  <rect x="864" y="232" width="144" height="72" rx="6" fill="#ffffff" stroke="rgba(0,3,92,0.20)" stroke-width="1"/>
+  <rect x="876" y="244" width="52" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.28)" stroke-width="0.8"/>
+  <text x="902" y="253" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">STAGE 4</text>
+  <text x="936" y="276" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">Safety assessment</text>
+  <text x="936" y="292" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">gpt-5.6-luna · advisory</text>
+
+  <!-- Approval dialog (focal) -->
+  <rect x="1064" y="232" width="144" height="72" rx="6" fill="#ffffff"/>
+  <rect x="1064" y="232" width="144" height="72" rx="6" fill="rgba(253,106,35,0.07)" stroke="#fd6a23" stroke-width="1.2"/>
+  <rect x="1076" y="244" width="40" height="12" rx="2" fill="rgba(253,106,35,0.16)" stroke="rgba(253,106,35,0.50)" stroke-width="0.8"/>
+  <text x="1096" y="253" fill="#c8430c" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">GATE</text>
+  <text x="1136" y="276" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">Approval dialog</text>
+  <text x="1136" y="292" fill="#c8430c" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">the user decides</text>
+
+  <!-- legend -->
+  <line x1="40" y1="472" x2="1240" y2="472" stroke="rgba(0,3,92,0.10)" stroke-width="0.8"/>
+  <text x="40" y="494" fill="#4e5399" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" letter-spacing="0.14em">LEGEND</text>
+  <rect x="128" y="484" width="16" height="12" rx="2" fill="#ffffff" stroke="rgba(0,3,92,0.20)" stroke-width="0.8"/>
+  <text x="152" y="494" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">Policy stage, fails closed</text>
+  <rect x="352" y="484" width="16" height="12" rx="2" fill="rgba(253,106,35,0.07)" stroke="#fd6a23" stroke-width="0.8"/>
+  <text x="376" y="494" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">Human gate</text>
+  <rect x="528" y="484" width="16" height="12" rx="2" fill="rgba(0,3,92,0.05)" stroke="rgba(0,3,92,0.28)" stroke-width="0.8"/>
+  <text x="552" y="494" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">Outcome</text>
+  <rect x="672" y="484" width="16" height="12" rx="2" fill="rgba(0,3,92,0.02)" stroke="rgba(0,3,92,0.22)" stroke-width="0.8" stroke-dasharray="3,2"/>
+  <text x="696" y="494" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">Integration that enforces the stage</text>
+  <line x1="928" y1="490" x2="964" y2="490" stroke="#4e5399" stroke-width="1.2" marker-end="url(#sg-arrow)"/>
+  <text x="976" y="494" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">Decision path</text>
+</svg>

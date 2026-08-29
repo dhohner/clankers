@@ -63,7 +63,9 @@ export async function handlePiToolCall(event: ToolCallEvent, ctx: ExtensionConte
         if (assessment.verdict === "safe") {
           return Promise.resolve(true);
         }
-        return context.ui.confirm("Approve command with possible side-effects?", formatSafetyAssessment(assessment), { signal });
+        return context.ui.confirm("Approve command with possible side-effects?", formatSafetyAssessment(assessment), {
+          signal,
+        });
       },
     },
   );
