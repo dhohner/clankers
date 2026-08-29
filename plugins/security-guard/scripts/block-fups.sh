@@ -34,6 +34,31 @@ is_allowed_env_command() {
   matches "$command" "^[[:blank:]]*env[[:blank:]]*\\|[[:blank:]]*grep[[:blank:]]+('\^PI_'|\"\^PI_\")[[:blank:]]*\\|[[:blank:]]*sort[[:blank:]]*$"
 }
 
+# Every .pem path is blocked unless its final component is a conventional public
+# certificate name. Delimiters are doubled before extraction so that adjacent
+# paths sharing one delimiter are each extracted, since grep -o consumes the
+# boundary characters it matched.
+is_blocked_pem_path() {
+  local command="$1" match component
+  local leading_delimiter='[[:space:];|&<>"'"'"'({]'
+  local trailing_delimiter='[[:space:];|&<>"'"'"')}]'
+
+  while IFS= read -r match; do
+    [ -n "$match" ] || continue
+    component="${match#$leading_delimiter}"
+    component="${component%$trailing_delimiter}"
+    component="${component##*/}"
+    case "$component" in
+      cert.pem|fullchain.pem|chain.pem|ca.pem|cacert.pem|*-cert.pem) ;;
+      *) return 0 ;;
+    esac
+  done < <(printf '%s\n' "$command" \
+    | sed -E "s/([[:space:];|&<>\"'(){}])/\1\1/g" \
+    | grep -Eo "(^|[[:space:];|&<>\"'({])([^[:space:];|&<>\"'()]+/)?[^[:space:];|&<>\"'()/]+\.pem([[:space:];|&<>\"')}]|$)" || true)
+
+  return 1
+}
+
 is_blocked_command() {
   local command="$1"
 
@@ -51,7 +76,7 @@ is_blocked_command() {
 
   # Private keys, shell history, and common credential files.
   matches "$command" "(^|[[:space:];|&<>\"'({])(~|\\\$HOME)?/?\.ssh/(id_[A-Za-z0-9_-]+|[^[:space:];|&<>\"'()]+\.pem)([[:space:];|&<>\"')}]|$)" && return 0
-  matches "$command" "(^|[[:space:];|&<>\"'({])([^[:space:];|&<>\"'()]+/)?[^[:space:];|&<>\"'()]+\.pem([[:space:];|&<>\"')}]|$)" && return 0
+  is_blocked_pem_path "$command" && return 0
   matches "$command" "(^|[[:space:];|&<>\"'({])(~|\\\$HOME)?/?\.(bash_history|zsh_history|python_history|psql_history|mysql_history|git-credentials|netrc)([[:space:];|&<>\"')}]|$)" && return 0
   matches "$command" "(^|[[:space:];|&<>\"'({])(~|\\\$HOME)?/?\.(aws/credentials|kube/config|docker/config\.json|npmrc)([[:space:];|&<>\"')}]|$)" && return 0
   matches "$command" "(^|[[:space:];|&<>\"'({])(~|\\\$HOME)?/?\.config/gcloud/(application_default_credentials\.json|credentials\.db)([[:space:];|&<>\"')}]|$)" && return 0

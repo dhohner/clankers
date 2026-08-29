@@ -10,7 +10,8 @@ export const BLOCKED_PATTERNS: readonly RegExp[] = [
   /(^|[;&|({"']\s*)set\s*([;|&)>"']|$)/,
   /(^|[\s;|&<>"'({])([^\s;|&<>"'()]*\/)?\.env(\.(local|development|production|staging|test))?([\s;|&<>"')}]|$)/,
   /(^|[\s;|&<>"'({])(~|\$HOME)?\/?\.ssh\/(id_[A-Za-z0-9_-]+|[^\s;|&<>"'()]+\.pem)([\s;|&<>"')}]|$)/,
-  /(^|[\s;|&<>"'({])([^\s;|&<>"'()]+\/)?[^\s;|&<>"'()]+\.pem([\s;|&<>"')}]|$)/,
+  // Public certificate names are exempt from the generic .pem rule only; the .ssh rule above still applies.
+  /(^|[\s;|&<>"'({])([^\s;|&<>"'()]+\/)?(?!(cert|fullchain|chain|ca|cacert|[^\s;|&<>"'()/]*-cert)\.pem([\s;|&<>"')}]|$))[^\s;|&<>"'()/]+\.pem([\s;|&<>"')}]|$)/,
   /(^|[\s;|&<>"'({])(~|\$HOME)?\/?\.(bash_history|zsh_history|python_history|psql_history|mysql_history|git-credentials|netrc)([\s;|&<>"')}]|$)/,
   /(^|[\s;|&<>"'({])(~|\$HOME)?\/?\.(aws\/credentials|kube\/config|docker\/config\.json|npmrc)([\s;|&<>"')}]|$)/,
   /(^|[\s;|&<>"'({])(~|\$HOME)?\/?\.config\/gcloud\/(application_default_credentials\.json|credentials\.db)([\s;|&<>"')}]|$)/,
