@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { classifyShellAst } from "../../src/policy/command-analysis/commands/classify-command.js";
-import { proveShellEffects } from "../../src/proof/provable-call.js";
-import { analyzeCommand } from "../../src/policy/command-analysis/analyze-command.js";
-import { COMMAND_RULES, registeredCommandAliases } from "../../src/policy/command-analysis/command-registry.js";
-import { parseShell } from "../../src/shell/parse.js";
+import { classifyShellAst } from "../../../src/policy/command-analysis/commands/classify-command.js";
+import { proveShellEffects } from "../../../src/proof/provable-call.js";
+import { analyzeCommand } from "../../../src/policy/command-analysis/analyze-command.js";
+import { COMMAND_RULES, registeredCommandAliases } from "../../../src/policy/command-analysis/command-registry.js";
+import { parseShell } from "../../../src/shell/parse.js";
 
 describe("command registry contract", () => {
   it("gives every potentially destructive command an extractor or approval-only policy", () => {

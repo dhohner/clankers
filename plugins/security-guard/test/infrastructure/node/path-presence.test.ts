@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { inspectPath } from "../src/infrastructure/node/path-presence.js";
+import { inspectPath } from "../../../src/infrastructure/node/path-presence.js";
 
 let workspace: string;
 

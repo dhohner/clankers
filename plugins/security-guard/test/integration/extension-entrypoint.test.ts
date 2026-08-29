@@ -6,7 +6,7 @@ import extension, {
   SAFETY_EVALUATION_BLOCK_PREFIX,
   SAFETY_EVALUATION_CANCELLED_REASON,
   SAFETY_EVALUATION_WORKING_MESSAGE,
-} from "../index.js";
+} from "../../index.js";
 
 // `os.tmpdir()` honours TMPDIR, which the extension deliberately does not trust, so a host launched with
 // TMPDIR outside the platform roots would put these workspaces where the exception never applies.

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { expandWord } from "../src/proof/shell-state.js";
-import type { ShellState } from "../src/proof/types.js";
-import { shellTokens } from "../src/shell/tokenizer.js";
+import { expandWord } from "../../src/proof/shell-state.js";
+import type { ShellState } from "../../src/proof/types.js";
+import { shellTokens } from "../../src/shell/tokenizer.js";
 
 function word(text: string) {
   const token = shellTokens(text)[0];

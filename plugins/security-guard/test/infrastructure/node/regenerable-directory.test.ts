@@ -6,8 +6,8 @@ import {
   allInsideRegenerableDirectory,
   isInsideRegenerableDirectory,
   REGENERABLE_DIRECTORY_NAMES,
-} from "../src/infrastructure/node/regenerable-directory.js";
-import { isInsideTemporaryRoot } from "../src/infrastructure/node/temporary-root.js";
+} from "../../../src/infrastructure/node/regenerable-directory.js";
+import { isInsideTemporaryRoot } from "../../../src/infrastructure/node/temporary-root.js";
 
 // `stat` stays the real one; the wrapper only counts calls, for the memoization test below.
 vi.mock("node:fs/promises", async (importOriginal) => {
@@ -18,7 +18,7 @@ vi.mock("node:fs/promises", async (importOriginal) => {
 // Under the package, never under `/tmp` or `os.tmpdir()`: a fixture inside a temporary root would make the
 // temporary-root proof accept every target, and these tests would pass without the regenerable rule doing
 // anything. `.gitignore` covers the prefix.
-const PACKAGE_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+const PACKAGE_ROOT = join(dirname(fileURLToPath(import.meta.url)), "../../..");
 
 const cleanups: Array<() => Promise<unknown>> = [];
 

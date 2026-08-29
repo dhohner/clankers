@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DOUBLE, LITERAL, UNQUOTED, shellTokens } from "../src/shell/tokenizer.js";
+import { DOUBLE, LITERAL, UNQUOTED, shellTokens } from "../../src/shell/tokenizer.js";
 
 describe("shell tokenizer", () => {
   it("keeps quote state and redirections with each token", () => {

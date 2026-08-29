@@ -34,7 +34,7 @@
     "build": "pnpm run clean && tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "test": "pnpm test:shell && pnpm test:unit",
-    "test:shell": "pnpm dlx bats test/*.bats",
+    "test:shell": "pnpm dlx bats -r test",
     "test:unit": "pnpm exec vitest run",
     "lint": "oxlint --max-warnings=0",
     "lint:fix": "oxlint --fix",

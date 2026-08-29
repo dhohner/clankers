@@ -3,7 +3,7 @@
 bats_require_minimum_version 1.5.0
 
 setup() {
-  PLUGIN_ROOT="$(cd "$BATS_TEST_DIRNAME/.." && pwd)"
+  PLUGIN_ROOT="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
   SCRIPT="$PLUGIN_ROOT/scripts/block-fups.sh"
 }
 
@@ -60,7 +60,7 @@ payload_for_tool() {
   assert_blocked
 }
 
-# Shared with test/policy.test.ts so the TypeScript policy and scripts/block-fups.sh,
+# Shared with test/policy/credential-access/evaluate.test.ts so the TypeScript policy and scripts/block-fups.sh,
 # which reimplement the same patterns for different hosts, cannot drift apart unnoticed.
 @test "matches the shared blocked-text cases" {
   local failures=0
@@ -79,7 +79,7 @@ payload_for_tool() {
       printf 'expected allowed, got status %s: %q\n' "$status" "$command" >&3
       failures=$((failures + 1))
     fi
-  done < <(jq -c '.[]' "$BATS_TEST_DIRNAME/fixtures/blocked-text-cases.json")
+  done < <(jq -c '.[]' "$BATS_TEST_DIRNAME/../fixtures/blocked-text-cases.json")
 
   [ "$failures" -eq 0 ]
 }

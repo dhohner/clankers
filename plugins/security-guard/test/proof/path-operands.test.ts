@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { extractPathOperands, extractPathTargets } from "../src/proof/path-operands.js";
-import type { ShellState } from "../src/proof/types.js";
-import { shellTokens } from "../src/shell/tokenizer.js";
+import { extractPathOperands, extractPathTargets } from "../../src/proof/path-operands.js";
+import type { ShellState } from "../../src/proof/types.js";
+import { shellTokens } from "../../src/shell/tokenizer.js";
 
 const emptyState: ShellState = { variables: new Map(), errexit: false };
 

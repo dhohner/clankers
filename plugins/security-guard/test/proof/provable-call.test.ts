@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { destructiveTargets, provableCall } from "../src/proof/provable-call.js";
+import { destructiveTargets, provableCall } from "../../src/proof/provable-call.js";
 
 describe("provable calls", () => {
   const literal = (path: string, followsLinks = false) => ({ path, insideMktempDirectory: false, followsLinks });

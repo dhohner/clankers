@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import { decideToolCall } from "../../../src/application/decide-tool-call.js";
-import type { DecisionPorts } from "../../../src/application/ports.js";
-import { BLOCK_REASON } from "../../../src/policy/credential-access/result.js";
-import { DESTRUCTIVE_APPROVAL_REASON } from "../../../src/policy/command-analysis/result.js";
+import { decideToolCall } from "../../src/application/decide-tool-call.js";
+import type { DecisionPorts } from "../../src/application/ports.js";
+import { BLOCK_REASON } from "../../src/policy/credential-access/result.js";
+import { DESTRUCTIVE_APPROVAL_REASON } from "../../src/policy/command-analysis/result.js";
 
 function makePorts(overrides: Partial<DecisionPorts> = {}): DecisionPorts {
   return {

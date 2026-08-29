@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { translatePiToolCall } from "../src/infrastructure/pi/events.js";
+import { translatePiToolCall } from "../../../src/infrastructure/pi/events.js";
 
 describe("Pi event translation", () => {
   it("normalizes Bash tool names", () => {

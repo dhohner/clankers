@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { assignedName, commandName, simpleCommandAt, simpleCommandExtents } from "../src/shell/command-parser.js";
-import { shellTokens } from "../src/shell/tokenizer.js";
-import type { ShellToken } from "../src/shell/types.js";
+import { assignedName, commandName, simpleCommandAt, simpleCommandExtents } from "../../src/shell/command-parser.js";
+import { shellTokens } from "../../src/shell/tokenizer.js";
+import type { ShellToken } from "../../src/shell/types.js";
 
 describe("command parser", () => {
   it("resolves assignments and wrappers to the command that runs", () => {

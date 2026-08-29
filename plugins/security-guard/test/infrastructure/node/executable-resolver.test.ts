@@ -5,7 +5,7 @@ import {
   allSystemExecutables,
   inheritedShellStartupIsInert,
   resolvesToSystemExecutable,
-} from "../src/infrastructure/node/executable-resolver.js";
+} from "../../../src/infrastructure/node/executable-resolver.js";
 
 const TEMPORARY_ROOT = "/tmp";
 const SYSTEM_PATH = "/usr/bin:/bin:/usr/sbin:/sbin";

@@ -2,7 +2,7 @@ import { link, mkdir, mkdtemp, realpath, rm, symlink, writeFile } from "node:fs/
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { allInsideTemporaryRoot, isInsideTemporaryRoot } from "../src/infrastructure/node/temporary-root.js";
+import { allInsideTemporaryRoot, isInsideTemporaryRoot } from "../../../src/infrastructure/node/temporary-root.js";
 
 // `os.tmpdir()` reads TMPDIR, which this module deliberately does not trust, so a run whose TMPDIR sits
 // outside the platform roots would build these fixtures where none of the assertions below hold.
@@ -202,7 +202,7 @@ describe("temporary root targets", () => {
     vi.resetModules();
 
     try {
-      const { isInsideTemporaryRoot: isolated } = await import("../src/infrastructure/node/temporary-root.js");
+      const { isInsideTemporaryRoot: isolated } = await import("../../../src/infrastructure/node/temporary-root.js");
       await expect(isolated("/etc/hosts", "/")).resolves.toBe(false);
     } finally {
       if (previous === undefined) delete process.env.TMPDIR;

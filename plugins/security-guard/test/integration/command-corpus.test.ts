@@ -3,12 +3,12 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { decideToolCall, type ToolCallDecision } from "../src/application/decide-tool-call.js";
-import type { DecisionPorts } from "../src/application/ports.js";
-import { allSystemExecutables } from "../src/infrastructure/node/executable-resolver.js";
-import { inspectPath } from "../src/infrastructure/node/path-presence.js";
-import { allInsideRegenerableDirectory } from "../src/infrastructure/node/regenerable-directory.js";
-import { allInsideTemporaryRoot } from "../src/infrastructure/node/temporary-root.js";
+import { decideToolCall, type ToolCallDecision } from "../../src/application/decide-tool-call.js";
+import type { DecisionPorts } from "../../src/application/ports.js";
+import { allSystemExecutables } from "../../src/infrastructure/node/executable-resolver.js";
+import { inspectPath } from "../../src/infrastructure/node/path-presence.js";
+import { allInsideRegenerableDirectory } from "../../src/infrastructure/node/regenerable-directory.js";
+import { allInsideTemporaryRoot } from "../../src/infrastructure/node/temporary-root.js";
 
 type Expectation = "allow" | "gate" | "pending";
 
@@ -20,7 +20,7 @@ type CorpusEntry = {
   promotedBy?: string;
 };
 
-const PACKAGE_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+const PACKAGE_ROOT = join(dirname(fileURLToPath(import.meta.url)), "../..");
 
 const corpus: CorpusEntry[] = JSON.parse(readFileSync(join(PACKAGE_ROOT, "test/fixtures/command-corpus.json"), "utf8"));
 
