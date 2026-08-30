@@ -9,7 +9,7 @@ import {
   type ToolCallEventResult,
 } from "@earendil-works/pi-coding-agent";
 import { describe, expect, it, vi } from "vitest";
-import { DESTRUCTIVE_APPROVAL_REASON } from "../../index.js";
+import { DESTRUCTIVE_APPROVAL_REASON } from "../../src/policy/command-analysis/result.js";
 
 // `os.tmpdir()` honours TMPDIR, which the extension deliberately does not trust, so a host launched with
 // TMPDIR outside the platform roots would put these workspaces where the exception never applies.

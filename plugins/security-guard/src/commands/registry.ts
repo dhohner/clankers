@@ -1,18 +1,11 @@
-import type { OptionModel } from "../../shell/option-scanner.ts";
+import type { OptionModel } from "./option-model.ts";
 
-export type CommandClassificationModel =
-  | "never"
-  | "always"
-  | "mv"
-  | "chmod"
-  | "chown"
-  | "git"
-  | "nested-shell"
-  | "eval"
-  | "trap"
-  | "xargs"
-  | "find";
-
+/**
+ * What each command does to the words it is given: which of them name paths, which options carry a value,
+ * whether it wraps another command, and whether the shell runs it itself. This is the vocabulary the parser
+ * and the proof read, so it carries no policy: whether a command needs approval is decided by its classifier
+ * in `policy/command-analysis/classifiers.ts`, which the layers below this one never import.
+ */
 export type SymlinkBehavior = "entry" | "target";
 
 export type PathOptionModel =
@@ -40,7 +33,10 @@ export type PathOptionModel =
     };
 
 export type EffectModel =
+  /** The command has no effect of its own: a wrapper, or a builtin that touches no path. */
   | { kind: "none" }
+  /** The command has effects this package does not model, so no proof can clear one of its calls. */
+  | { kind: "unmodeled" }
   | { kind: "path"; options: PathOptionModel; symlinkBehavior: SymlinkBehavior; allowsShallowGlob: boolean }
   | {
       kind: "write";
@@ -51,52 +47,22 @@ export type EffectModel =
   | { kind: "inert"; unsafeOption?: RegExp }
   | { kind: "shell-state" };
 
-export type ClassificationOptions =
-  | { kind: "mv"; forceShort: string; forceLong: readonly string[] }
-  | {
-      kind: "chmod" | "chown";
-      recursiveShort: string;
-      recursiveLong: readonly string[];
-      referenceLong: readonly string[];
-    }
-  | {
-      kind: "git";
-      leading: OptionModel;
-      checkoutBranch: ReadonlySet<string>;
-      checkoutBranchValue: ReadonlySet<string>;
-      checkoutDestructive: RegExp;
-      forcingRefspec: RegExp;
-    }
-  | {
-      kind: "nested-shell";
-      flagLetters: string;
-      flags: ReadonlySet<string>;
-      valueOptions: ReadonlySet<string>;
-    }
-  | {
-      kind: "find";
-      commandPrimaries: ReadonlySet<string>;
-      writePrimaries: ReadonlySet<string>;
-    };
-
 export type CommandRule = {
   names: readonly string[];
-  classification: CommandClassificationModel;
-  classificationOptions?: ClassificationOptions;
   effect: EffectModel;
-  approvalOnly?: boolean;
   wrapper?: OptionModel;
-  operandCommandOptions?: OptionModel;
   shellBuiltin?: boolean;
   escalatesPrivilege?: boolean;
 };
+
+/** Shells that take a command list on `-c`, or read one from a script operand or standard input. */
+export const NESTED_SHELL_NAMES = ["bash", "sh", "zsh", "ksh", "dash", "ash"] as const;
 
 const emptyOptions = (): OptionModel => ({ value: new Set(), flag: new Set() });
 
 const rules: readonly CommandRule[] = [
   {
     names: ["rm"],
-    classification: "always",
     effect: {
       kind: "path",
       options: {
@@ -121,7 +87,6 @@ const rules: readonly CommandRule[] = [
   },
   {
     names: ["rmdir"],
-    classification: "always",
     effect: {
       kind: "path",
       options: {
@@ -139,7 +104,6 @@ const rules: readonly CommandRule[] = [
   },
   {
     names: ["unlink"],
-    classification: "always",
     effect: {
       kind: "path",
       options: { kind: "standard", longFlags: [], longValues: [], shortFlags: "", shortValues: "" },
@@ -149,7 +113,6 @@ const rules: readonly CommandRule[] = [
   },
   {
     names: ["truncate"],
-    classification: "always",
     effect: {
       kind: "path",
       options: {
@@ -165,8 +128,6 @@ const rules: readonly CommandRule[] = [
   },
   {
     names: ["mv"],
-    classification: "mv",
-    classificationOptions: { kind: "mv", forceShort: "f", forceLong: ["--force"] },
     effect: {
       kind: "path",
       options: {
@@ -193,13 +154,6 @@ const rules: readonly CommandRule[] = [
   },
   ...(["chmod", "chown"] as const).map((name): CommandRule => ({
     names: [name],
-    classification: name,
-    classificationOptions: {
-      kind: name,
-      recursiveShort: "R",
-      recursiveLong: ["--recursive"],
-      referenceLong: ["--reference"],
-    },
     effect: {
       kind: "path",
       options: {
@@ -222,143 +176,30 @@ const rules: readonly CommandRule[] = [
   })),
   ...(["dd", "mkfs", "shred"] as const).map((name): CommandRule => ({
     names: [name],
-    classification: "always",
-    effect: { kind: "none" },
-    approvalOnly: true,
+    effect: { kind: "unmodeled" },
   })),
   {
     names: ["git"],
-    classification: "git",
-    classificationOptions: {
-      kind: "git",
-      leading: {
-        value: new Set([
-          "-C",
-          "-c",
-          "--git-dir",
-          "--work-tree",
-          "--namespace",
-          "--super-prefix",
-          "--config-env",
-          "--list-cmds",
-          "--attr-source",
-        ]),
-        flag: new Set([
-          "-p",
-          "--paginate",
-          "-P",
-          "--no-pager",
-          "--bare",
-          "--no-replace-objects",
-          "--no-lazy-fetch",
-          "--no-optional-locks",
-          "--no-advice",
-          "--literal-pathspecs",
-          "--glob-pathspecs",
-          "--noglob-pathspecs",
-          "--icase-pathspecs",
-          "--exec-path",
-          "--html-path",
-          "--man-path",
-          "--info-path",
-          "--version",
-          "--help",
-        ]),
-      },
-      checkoutBranch: new Set(["-b", "--orphan", "-t", "--track", "--detach"]),
-      checkoutBranchValue: new Set(["-b", "--orphan"]),
-      checkoutDestructive: /^(--ours|--theirs|-p|--patch|--pathspec-from-file(=.*)?|-B|--force)$/,
-      forcingRefspec: /^\+|^:./,
-    },
-    effect: { kind: "none" },
-    approvalOnly: true,
+    effect: { kind: "unmodeled" },
   },
-  ...(["bash", "sh", "zsh", "ksh", "dash", "ash"] as const).map((name): CommandRule => ({
+  ...NESTED_SHELL_NAMES.map((name): CommandRule => ({
     names: [name],
-    classification: "nested-shell",
-    classificationOptions: {
-      kind: "nested-shell",
-      flagLetters: "abefhiklmnprstuvxBCDEHPT",
-      flags: new Set([
-        "--debugger",
-        "--dump-po-strings",
-        "--dump-strings",
-        "--help",
-        "--login",
-        "--noediting",
-        "--noprofile",
-        "--norc",
-        "--posix",
-        "--pretty-print",
-        "--restricted",
-        "--verbose",
-        "--version",
-      ]),
-      valueOptions: new Set(["--rcfile", "--init-file"]),
-    },
-    effect: { kind: "none" },
-    approvalOnly: true,
+    effect: { kind: "unmodeled" },
   })),
   ...(["eval", "trap"] as const).map((name): CommandRule => ({
     names: [name],
-    classification: name,
-    effect: { kind: "none" },
-    approvalOnly: true,
+    effect: { kind: "unmodeled" },
   })),
   {
     names: ["find"],
-    classification: "find",
-    classificationOptions: {
-      kind: "find",
-      commandPrimaries: new Set(["-exec", "-execdir", "-ok", "-okdir"]),
-      writePrimaries: new Set(["-delete", "-fprint", "-fprint0", "-fprintf", "-fls"]),
-    },
-    effect: { kind: "none" },
-    approvalOnly: true,
+    effect: { kind: "unmodeled" },
   },
   {
     names: ["xargs"],
-    classification: "xargs",
-    effect: { kind: "none" },
-    approvalOnly: true,
-    operandCommandOptions: {
-      value: new Set([
-        "-a",
-        "--arg-file",
-        "-d",
-        "--delimiter",
-        "-E",
-        "-I",
-        "-J",
-        "-L",
-        "-n",
-        "--max-args",
-        "-P",
-        "--max-procs",
-        "-R",
-        "-S",
-        "-s",
-        "--max-chars",
-      ]),
-      flag: new Set([
-        "-0",
-        "--null",
-        "-o",
-        "--open-tty",
-        "-p",
-        "--interactive",
-        "-r",
-        "--no-run-if-empty",
-        "-t",
-        "--verbose",
-        "-x",
-        "--exit",
-      ]),
-    },
+    effect: { kind: "unmodeled" },
   },
   {
     names: ["mkdir"],
-    classification: "never",
     effect: {
       kind: "write",
       valueOptions: new Set(["-m", "--mode"]),
@@ -368,7 +209,6 @@ const rules: readonly CommandRule[] = [
   },
   {
     names: ["touch"],
-    classification: "never",
     effect: {
       kind: "write",
       valueOptions: new Set(["-r", "--reference", "-t", "-d", "--date", "--time"]),
@@ -376,7 +216,7 @@ const rules: readonly CommandRule[] = [
       symlinkBehavior: "target",
     },
   },
-  { names: ["set"], classification: "never", effect: { kind: "shell-state" }, shellBuiltin: true },
+  { names: ["set"], effect: { kind: "shell-state" }, shellBuiltin: true },
   ...(
     [
       "cat",
@@ -396,59 +236,50 @@ const rules: readonly CommandRule[] = [
     ] as const
   ).map((name): CommandRule => ({
     names: [name],
-    classification: "never",
     effect: { kind: "inert" },
     shellBuiltin: ["echo", "exit", "false", "pwd", "test", "true"].includes(name),
   })),
-  { names: ["["], classification: "never", effect: { kind: "inert" }, shellBuiltin: true },
+  { names: ["["], effect: { kind: "inert" }, shellBuiltin: true },
   {
     names: ["printf"],
-    classification: "never",
     effect: { kind: "inert", unsafeOption: /^-[A-Za-z]*v/ },
     shellBuiltin: true,
   },
   {
     names: ["diff"],
-    classification: "never",
     effect: { kind: "inert", unsafeOption: /^(-[A-Za-z]*o|--o[a-z]*(=|$))/ },
   },
-  { names: ["export"], classification: "never", effect: { kind: "none" }, shellBuiltin: true },
+  { names: ["export"], effect: { kind: "none" }, shellBuiltin: true },
   {
     names: ["builtin"],
-    classification: "never",
     effect: { kind: "none" },
     wrapper: emptyOptions(),
     shellBuiltin: true,
   },
   {
     names: ["command"],
-    classification: "never",
     effect: { kind: "none" },
     wrapper: { value: new Set(), flag: new Set(["-p", "-v", "-V"]), inspect: new Set(["-v", "-V"]) },
     shellBuiltin: true,
   },
   {
     names: ["exec"],
-    classification: "never",
     effect: { kind: "none" },
     wrapper: { value: new Set(["-a"]), flag: new Set(["-c", "-l"]) },
     shellBuiltin: true,
   },
   {
     names: ["setsid"],
-    classification: "never",
     effect: { kind: "none" },
     wrapper: { value: new Set(), flag: new Set(["-c", "--ctty", "-f", "--fork", "-w", "--wait"]) },
   },
   {
     names: ["stdbuf"],
-    classification: "never",
     effect: { kind: "none" },
     wrapper: { value: new Set(["-i", "--input", "-o", "--output", "-e", "--error"]), flag: new Set() },
   },
   {
     names: ["timeout"],
-    classification: "never",
     effect: { kind: "none" },
     wrapper: {
       value: new Set(["-s", "--signal", "-k", "--kill-after"]),
@@ -458,19 +289,16 @@ const rules: readonly CommandRule[] = [
   },
   {
     names: ["nohup"],
-    classification: "never",
     effect: { kind: "none" },
     wrapper: { ...emptyOptions(), alwaysStateful: true },
   },
   {
     names: ["nice"],
-    classification: "never",
     effect: { kind: "none" },
     wrapper: { value: new Set(["-n", "--adjustment"]), flag: new Set(), numeric: true },
   },
   {
     names: ["time"],
-    classification: "never",
     effect: { kind: "none" },
     wrapper: {
       value: new Set(["-o", "--output", "-f", "--format"]),
@@ -481,7 +309,6 @@ const rules: readonly CommandRule[] = [
   },
   {
     names: ["sudo"],
-    classification: "never",
     effect: { kind: "none" },
     wrapper: {
       value: new Set([
@@ -542,14 +369,12 @@ const rules: readonly CommandRule[] = [
   },
   {
     names: ["doas"],
-    classification: "never",
     effect: { kind: "none" },
     wrapper: { value: new Set(["-C", "-u"]), flag: new Set(["-L", "-n"]) },
     escalatesPrivilege: true,
   },
   {
     names: ["env"],
-    classification: "never",
     effect: { kind: "none" },
     wrapper: {
       value: new Set(["-u", "--unset", "-C", "--chdir"]),
@@ -571,8 +396,4 @@ export const COMMAND_RULES: readonly CommandRule[] = rules;
 
 export function commandRule(name: string): CommandRule | undefined {
   return aliases.get(name);
-}
-
-export function registeredCommandAliases(): readonly string[] {
-  return [...aliases.keys()];
 }

@@ -1,52 +1,25 @@
-import { commandRule, COMMAND_RULES, type ClassificationOptions } from "../command-registry.ts";
-import { LITERAL, UNQUOTED } from "../../../shell/tokenizer.ts";
-import type { ShellToken, Word } from "../../../shell/types.ts";
+import { NESTED_SHELL_NAMES } from "../../../commands/registry.ts";
+import { expandsBeforeUse, rewritesCommandWord } from "../../../shell/expansion.ts";
+import type { ShellToken } from "../../../shell/types.ts";
+import { APPROVAL, SAFE, type ClassificationContext, type ClassifierRegistration } from "../classification.ts";
 
-type DestructiveTextPredicate = (value: string) => boolean;
-
-function hasProcessSubstitution(word: Word): boolean {
-  for (let i = 0; i < word.text.length; i += 1) {
-    const char = word.text[i];
-    if ((char === "<" || char === ">") && word.text[i + 1] === "(" && word.quoting[i] === UNQUOTED) return true;
-  }
-  return false;
-}
-
-/**
- * Reports whether the shell reading this word expands part of it away. A `$` or backtick inside single
- * quotes, or escaped, survives as itself; anywhere else it is replaced before the text is used, so text that
- * a nested shell or `eval` parses afterwards is not the text written here. An unquoted `<(` or `>(` is a
- * process substitution, replaced by the path of a pipe.
- */
-export function expandsBeforeUse(word: Word): boolean {
-  for (let i = 0; i < word.text.length; i += 1) {
-    const char = word.text[i] ?? "";
-    if ((char === "$" || char === "`") && word.quoting[i] !== LITERAL) return true;
-  }
-  return hasProcessSubstitution(word);
-}
-
-const REWRITES_COMMAND_WORD = /[$`{}]/;
-
-/** Whether the shell rewrites `word` before resolving it as a command name. */
-export function rewritesCommandWord(word: Word): boolean {
-  return REWRITES_COMMAND_WORD.test(word.text) || hasProcessSubstitution(word);
-}
-
-// Shells that take a command list on `-c` or read one from a script operand or standard input.
-export const NESTED_SHELLS = new Set(
-  COMMAND_RULES.filter((rule) => rule.classification === "nested-shell").flatMap((rule) => rule.names),
-);
-
-type NestedShellOptions = Extract<ClassificationOptions, { kind: "nested-shell" }>;
-
-function nestedShellOptions(name: string): NestedShellOptions {
-  const options = commandRule(name)?.classificationOptions;
-  if (!options || options.kind !== "nested-shell") {
-    throw new Error(`The ${name} command rule must declare nested-shell options`);
-  }
-  return options;
-}
+const FLAG_LETTERS = "abefhiklmnprstuvxBCDEHPT";
+const FLAGS = new Set([
+  "--debugger",
+  "--dump-po-strings",
+  "--dump-strings",
+  "--help",
+  "--login",
+  "--noediting",
+  "--noprofile",
+  "--norc",
+  "--posix",
+  "--pretty-print",
+  "--restricted",
+  "--verbose",
+  "--version",
+]);
+const VALUE_OPTIONS = new Set(["--rcfile", "--init-file"]);
 
 /**
  * Whether a nested shell invocation can run a destructive command. Options are scanned the way the shell
@@ -54,13 +27,11 @@ function nestedShellOptions(name: string): NestedShellOptions {
  * the script is not the word after `-c`. An option this table does not cover leaves the script unfindable and
  * fails the call closed.
  */
-export function nestedShellIsDestructive(
-  name: string,
+function nestedShellIsDestructive(
   args: readonly ShellToken[],
   argTexts: readonly string[],
-  isDestructiveText: DestructiveTextPredicate,
+  isDestructiveText: (value: string) => boolean,
 ): boolean {
-  const options = nestedShellOptions(name);
   let commandMode = false;
   let index = 0;
 
@@ -82,11 +53,11 @@ export function nestedShellIsDestructive(
     if (arg.startsWith("--")) {
       const inline = arg.indexOf("=");
       const base = inline < 0 ? arg : arg.slice(0, inline);
-      if (options.valueOptions.has(base)) {
+      if (VALUE_OPTIONS.has(base)) {
         if (inline < 0) index += 1;
         continue;
       }
-      if (!options.flags.has(base)) return true;
+      if (!FLAGS.has(base)) return true;
       continue;
     }
 
@@ -95,7 +66,7 @@ export function nestedShellIsDestructive(
         commandMode = true;
         continue;
       }
-      if (!options.flagLetters.includes(letter)) return true;
+      if (!FLAG_LETTERS.includes(letter)) return true;
     }
   }
 
@@ -108,3 +79,14 @@ export function nestedShellIsDestructive(
   if (expandsBeforeUse(script)) return true;
   return isDestructiveText(script.text);
 }
+
+function classifyNestedShell({ args, argTexts, isDestructiveText }: ClassificationContext) {
+  return nestedShellIsDestructive(args, argTexts, isDestructiveText) ? APPROVAL : SAFE;
+}
+
+export const NESTED_SHELL_CLASSIFIERS: readonly ClassifierRegistration[] = [
+  { names: NESTED_SHELL_NAMES, classify: classifyNestedShell },
+];
+
+/** The command names that read their operand or standard input as shell commands. */
+export const NESTED_SHELLS: ReadonlySet<string> = new Set(NESTED_SHELL_NAMES);

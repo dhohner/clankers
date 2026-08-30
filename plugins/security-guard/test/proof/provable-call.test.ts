@@ -1,5 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { destructiveTargets, provableCall } from "../../src/proof/provable-call.js";
+import { classifyShellAst } from "../../src/policy/command-analysis/commands/classify-command.js";
+import { proveShellEffects } from "../../src/proof/provable-call.js";
+import { parseShell } from "../../src/shell/parse.js";
+import type { DestructiveTarget, ProvableCall } from "../../src/proof/types.js";
+
+// The pipeline analyzeCommand runs, minus the approval policy it wraps around the proof, so these cases
+// measure proveShellEffects against exactly the classification the extension feeds it.
+function provableCall(value: string): ProvableCall | undefined {
+  const parsed = parseShell(value);
+  if (parsed.kind === "unsupported") return undefined;
+  const proof = proveShellEffects(parsed.ast, classifyShellAst(parsed.ast).destructiveStarts);
+  return proof.kind === "proven" ? proof.value : undefined;
+}
+
+function destructiveTargets(value: string): DestructiveTarget[] | undefined {
+  return provableCall(value)?.targets;
+}
 
 describe("provable calls", () => {
   const literal = (path: string, followsLinks = false) => ({ path, insideMktempDirectory: false, followsLinks });

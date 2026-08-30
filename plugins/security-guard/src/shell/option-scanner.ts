@@ -1,3 +1,4 @@
+import type { OptionModel } from "../commands/option-model.ts";
 import type { Word } from "./types.ts";
 
 /**
@@ -10,24 +11,6 @@ export function spellsLongOption(arg: string, long: readonly string[]): boolean 
   const name = inline < 0 ? arg : arg.slice(0, inline);
   return name.length > 2 && long.some((option) => option.startsWith(name));
 }
-
-/**
- * The options of a command that runs another one. `value` options take the following word, `flag` options
- * stand alone, and `numeric` allows a bare adjustment such as `nice -10`. A `stateful` option moves the
- * working directory or root, or writes a file of its own, so the wrapped command's operands stop describing
- * every path the call affects; `alwaysStateful` says the same about the command whatever its options are.
- */
-export type OptionModel = {
-  value: ReadonlySet<string>;
-  flag: ReadonlySet<string>;
-  numeric?: boolean;
-  stateful?: ReadonlySet<string>;
-  alwaysStateful?: boolean;
-  /** Options after which the wrapper only reports on the following word and runs nothing, such as `command -v`. */
-  inspect?: ReadonlySet<string>;
-  /** Non-option operands the command takes before the command word, such as `timeout`'s duration. */
-  operands?: number;
-};
 
 /**
  * Where one option ends, whether it puts paths outside the command's operands, and whether it turns the
@@ -91,4 +74,18 @@ export function skipOptionsOf(model: OptionModel, words: readonly Word[], start:
     index = step.index;
   }
   return { index: index + (model.operands ?? 0), stateful, inspects };
+}
+
+/** Whether `args` carry the short option `letter` in any bundle, or one of the `long` spellings, before `--`. */
+export function hasOption(args: readonly string[], letter: string | undefined, long: readonly string[]): boolean {
+  for (const arg of args) {
+    if (arg === "--") return false;
+    if (!arg.startsWith("-")) continue;
+    if (arg.startsWith("--")) {
+      if (spellsLongOption(arg, long)) return true;
+    } else if (letter !== undefined && arg.includes(letter)) {
+      return true;
+    }
+  }
+  return false;
 }

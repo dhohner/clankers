@@ -1,4 +1,4 @@
-import { commandRule, COMMAND_RULES, type PathOptionModel } from "../policy/command-analysis/command-registry.ts";
+import { commandRule, COMMAND_RULES, type PathOptionModel } from "../commands/registry.ts";
 import { spellsLongOption } from "../shell/option-scanner.ts";
 import { sliceWord } from "../shell/tokenizer.ts";
 import type { ShellToken } from "../shell/types.ts";

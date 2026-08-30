@@ -2,7 +2,8 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { BLOCK_REASON, evaluateText, isBlockedText } from "../../../src/public.js";
+import { evaluateCredentialAccess, isBlockedText } from "../../../src/policy/credential-access/evaluate.js";
+import { BLOCK_REASON } from "../../../src/policy/credential-access/result.js";
 
 // Shared with test/scripts/block-fups.bats so the TypeScript policy and scripts/block-fups.sh,
 // which reimplement the same patterns for different hosts, cannot drift apart unnoticed.
@@ -16,7 +17,7 @@ describe("blocked-text policy", () => {
   });
 
   it("returns the shared block reason", () => {
-    expect(evaluateText("printenv")).toEqual({
+    expect(evaluateCredentialAccess("printenv")).toEqual({
       blocked: true,
       reason: BLOCK_REASON,
     });

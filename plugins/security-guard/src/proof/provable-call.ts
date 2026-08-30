@@ -1,9 +1,6 @@
 import { runsSubstitution } from "../shell/tokenizer.ts";
-import { commandRule } from "../policy/command-analysis/command-registry.ts";
-import {
-  simpleCommandIsDestructive,
-  substitutionContents,
-} from "../policy/command-analysis/commands/classify-command.ts";
+import { commandRule } from "../commands/registry.ts";
+import { substitutionContents } from "../shell/expansion.ts";
 import {
   assignedName,
   escalatesPrivilege,
@@ -20,7 +17,6 @@ import {
 import { extractRedirectionTargets } from "./redirections.ts";
 import { assignmentAt, expandWord, mktempDirectoryCommandWords } from "./shell-state.ts";
 import type { ShellAst } from "../shell/ast.ts";
-import { parseShell } from "../shell/parse.ts";
 import {
   proven,
   unprovable,
@@ -29,7 +25,6 @@ import {
   type ProvableCall,
   type ShellState,
 } from "./types.ts";
-export type { DestructiveTarget, ProvableCall } from "./types.ts";
 
 function isInertCommand(name: string, argTexts: readonly string[]): boolean {
   const effect = commandRule(name)?.effect;
@@ -227,21 +222,4 @@ export function proveShellEffects(ast: ShellAst, destructiveStarts: ReadonlySet<
     }
   }
   return proven({ targets, commands: [...commands] });
-}
-
-export function provableCall(value: string): ProvableCall | undefined {
-  const parsed = parseShell(value);
-  if (parsed.kind === "unsupported") return undefined;
-  const destructiveStarts = new Set(
-    parsed.ast.commands
-      .filter((command) => simpleCommandIsDestructive(parsed.ast.tokens, command.extent.start, true, command.resolved))
-      .map((command) => command.extent.start),
-  );
-  const proof = proveShellEffects(parsed.ast, destructiveStarts);
-  return proof.kind === "proven" ? proof.value : undefined;
-}
-
-/** The targets of `provableCall`, for callers that resolve the command names themselves. */
-export function destructiveTargets(value: string): DestructiveTarget[] | undefined {
-  return provableCall(value)?.targets;
 }

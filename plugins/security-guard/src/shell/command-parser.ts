@@ -1,5 +1,5 @@
-import { commandRule, COMMAND_RULES } from "../policy/command-analysis/command-registry.ts";
-import { skipOptionsOf, type OptionModel, type OptionScan } from "./option-scanner.ts";
+import { commandRule, COMMAND_RULES } from "../commands/registry.ts";
+import { skipOptionsOf, type OptionScan } from "./option-scanner.ts";
 import { SEQUENTIAL_CONTROLS, isUnquoted, subscriptEnd } from "./tokenizer.ts";
 import type { ShellToken, Word } from "./types.ts";
 
@@ -121,10 +121,6 @@ export function isAssignment(word: Word | undefined): boolean {
 export function assignedName(word: Word): string | undefined {
   return assignmentOf(word)?.name;
 }
-
-const xargsOptions = commandRule("xargs")?.operandCommandOptions;
-if (!xargsOptions) throw new Error("The xargs command rule must declare operand command options");
-export const XARGS_OPTIONS: OptionModel = xargsOptions;
 
 function skipWrapperOptions(name: string, words: readonly Word[], start: number): OptionScan | undefined {
   const model = commandRule(name)?.wrapper;

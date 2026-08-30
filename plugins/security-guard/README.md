@@ -64,6 +64,10 @@ Security Guard blocks:
 - AWS, gcloud, Azure, Kubernetes, Docker, and npm credential stores.
 - Token commands such as `gh auth token`, `gcloud auth print-access-token`, and selected password-manager reads.
 
+The credential rules exist twice on purpose: as JavaScript regular expressions in [`rules.ts`](./src/policy/credential-access/rules.ts) for the Pi extension, and as POSIX extended regular expressions in [`block-fups.sh`](./scripts/block-fups.sh) for the Claude-format hook, which runs with `bash` and `jq` alone and cannot load the TypeScript.
+POSIX ERE has no negative lookahead, so the `.pem` exemption is a shell function there rather than one pattern.
+The two implementations are held together by [`blocked-text-cases.json`](./test/fixtures/blocked-text-cases.json), which both test suites run, so neither can change without the other failing.
+
 The exact command `env | grep '^PI_' | sort` remains available for Pi runtime metadata.
 Do not store credentials in custom `PI_*` variables because this command prints every matching value.
 
@@ -83,7 +87,8 @@ It also inspects command substitutions, process substitutions, and unquoted here
 Unknown syntax, unresolved commands, and unproven operands require approval.
 
 Non-interactive Pi sessions block commands that require approval.
-The exact analysis rules are in [`analyze-command.ts`](./src/policy/command-analysis/analyze-command.ts) and [`command-registry.ts`](./src/policy/command-analysis/command-registry.ts).
+The exact analysis rules are in [`analyze-command.ts`](./src/policy/command-analysis/analyze-command.ts) and [`classifiers.ts`](./src/policy/command-analysis/classifiers.ts).
+Each command's classifier sits beside that table in [`src/policy/command-analysis/commands/`](./src/policy/command-analysis/commands/), and what its words mean to the parser and the proof is in [`registry.ts`](./src/commands/registry.ts).
 
 ### Safety assessment in Pi
 

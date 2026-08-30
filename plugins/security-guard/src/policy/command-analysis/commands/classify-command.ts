@@ -1,8 +1,4 @@
-import { commandRule, type ClassificationOptions, type CommandClassificationModel } from "../command-registry.ts";
-import { commandVerdict, gitVerdict, type ClassificationVerdict } from "./filesystem-and-git.ts";
-import { NESTED_SHELLS, expandsBeforeUse, nestedShellIsDestructive, rewritesCommandWord } from "./nested-shell.ts";
 import {
-  XARGS_OPTIONS,
   assignedName,
   escalatesPrivilege,
   isTrustedCommandWord,
@@ -10,27 +6,27 @@ import {
   simpleCommandExtents,
   simpleCommandAt,
 } from "../../../shell/command-parser.ts";
-import { skipOptionsOf } from "../../../shell/option-scanner.ts";
-import { LITERAL, UNQUOTED, substitutionEnd, tokenizeShell } from "../../../shell/tokenizer.ts";
+import {
+  evaluatesUnreadableArithmetic,
+  expandsBeforeUse,
+  rewritesCommandWord,
+  scanSubstitutions,
+} from "../../../shell/expansion.ts";
+import { tokenizeShell } from "../../../shell/tokenizer.ts";
 import type { ShellAst } from "../../../shell/ast.ts";
 import type { SimpleCommand } from "../../../shell/command-parser.ts";
-import type { ShellToken, Word } from "../../../shell/types.ts";
+import type { ShellToken } from "../../../shell/types.ts";
+import { classifierFor } from "../classifiers.ts";
+import type { ClassificationVerdict } from "../classification.ts";
 import type { HostPathCheck } from "../result.ts";
-
-type FindClassificationOptions = Extract<ClassificationOptions, { kind: "find" }>;
-
-function findOptions(): FindClassificationOptions {
-  const options = commandRule("find")?.classificationOptions;
-  if (!options || options.kind !== "find") throw new Error("The find command rule must declare classification options");
-  return options;
-}
+import { NESTED_SHELLS } from "./nested-shell.ts";
 
 /**
  * One simple command's verdict. A destructive one may carry a host check: the command is harmless if the
  * host confirms the check, and needs approval otherwise. Only a top-level command keeps the check; a command
  * a nested shell, `xargs`, `find`, or `eval` runs reads it as destructive outright.
  */
-export type CommandVerdict = { destructive: false } | { destructive: true; hostCheck?: HostPathCheck };
+type CommandVerdict = { destructive: false } | { destructive: true; hostCheck?: HostPathCheck };
 
 const NOT_DESTRUCTIVE: CommandVerdict = { destructive: false };
 const DESTRUCTIVE: CommandVerdict = { destructive: true };
@@ -41,7 +37,7 @@ function toCommandVerdict(verdict: ClassificationVerdict): CommandVerdict {
   return { destructive: true, hostCheck: verdict.check };
 }
 
-export function simpleCommandIsDestructive(
+function simpleCommandIsDestructive(
   tokens: readonly ShellToken[],
   start: number,
   failClosed = true,
@@ -50,7 +46,7 @@ export function simpleCommandIsDestructive(
   return simpleCommandVerdict(tokens, start, failClosed, resolvedCommand).destructive;
 }
 
-export function simpleCommandVerdict(
+function simpleCommandVerdict(
   tokens: readonly ShellToken[],
   start: number,
   failClosed = true,
@@ -63,172 +59,19 @@ export function simpleCommandVerdict(
   const { name, args, argTexts, argIndices, commandWords } = command;
   // So does a command word the shell rewrites: `c='rm -rf /'; $c` runs a command this text never names.
   if (commandWords.some(rewritesCommandWord)) return failClosed ? DESTRUCTIVE : NOT_DESTRUCTIVE;
-  const classification = commandRule(name)?.classification;
-  const verdict = commandVerdict(name, args);
-  if (verdict.kind !== "safe") return toCommandVerdict(verdict);
-  if (classification === "git") return toCommandVerdict(gitVerdict(args));
-  return destructiveByClassification(classification, tokens, name, args, argTexts, argIndices, failClosed)
-    ? DESTRUCTIVE
-    : NOT_DESTRUCTIVE;
-}
 
-function destructiveByClassification(
-  classification: CommandClassificationModel | undefined,
-  tokens: readonly ShellToken[],
-  name: string,
-  args: ShellToken[],
-  argTexts: string[],
-  argIndices: number[],
-  failClosed: boolean,
-): boolean {
-  if (classification === "nested-shell") return nestedShellIsDestructive(name, args, argTexts, isDestructiveText);
-  if (classification === "eval") {
-    // bash joins the operands with a space and parses the result, so one the outer shell expands hides it.
-    if (args.some(expandsBeforeUse)) return true;
-    return isDestructiveText(argTexts.join(" "));
-  }
-  if (classification === "trap") {
-    // The handler runs when the shell exits or the signal arrives, which the agent's shell always does. It is
-    // judged as command text by its command word, so an interpolated operand (`docker rm -f $CID`) passes and
-    // a handler whose command word is itself an expansion (`"$CLEANUP"`) fails closed. An expanded option or
-    // signal operand keeps failing closed: its value can change which word is the handler or hide which
-    // signals arm it.
-    const handlerIndex = argTexts.findIndex((arg) => !arg.startsWith("-"));
-    if (args.some((arg, index) => index !== handlerIndex && expandsBeforeUse(arg))) return true;
-    const handler = argTexts[handlerIndex];
-    return handler !== undefined && isDestructiveText(handler);
-  }
-  if (classification === "xargs") {
-    // An option outside the table could take the command word as its value, hiding what actually runs.
-    const scan = skipOptionsOf(XARGS_OPTIONS, args, 0);
-    if (!scan) return true;
-    const index = argIndices[scan.index];
-    return index !== undefined && simpleCommandIsDestructive(tokens, index, failClosed);
-  }
-  if (classification === "find") {
-    const options = findOptions();
-    return args.some(
-      (word, offset) =>
-        options.writePrimaries.has(word.text) ||
-        (options.commandPrimaries.has(word.text) &&
-          simpleCommandIsDestructive(tokens, (argIndices[offset] ?? -2) + 1, failClosed)),
-    );
-  }
-
-  return false;
-}
-
-const MAX_ARITHMETIC_NESTING = 64;
-
-type SubstitutionScan = { contents: string[]; nestingLimitExceeded: boolean };
-
-/**
- * Finds command lists iteratively so adversarial arithmetic nesting cannot exhaust the JavaScript call stack.
- * The limit also bounds repeated delimiter scans; exceeding it makes classification fail closed.
- */
-function scanSubstitutions(word: Word): SubstitutionScan {
-  const contents: string[] = [];
-  const arithmeticEnds: number[] = [];
-  const { text, quoting } = word;
-  for (let i = 0; i < text.length; i += 1) {
-    while (arithmeticEnds.length > 0 && i >= (arithmeticEnds.at(-1) ?? 0)) arithmeticEnds.pop();
-
-    const char = text[i];
-    if (quoting[i] === LITERAL) continue;
-    if (char === "`") {
-      const end = text.indexOf("`", i + 1);
-      const stop = end < 0 ? text.length : end;
-      contents.push(text.slice(i + 1, stop));
-      i = stop;
-      continue;
-    }
-    if (text[i + 1] !== "(") continue;
-    const command = char === "$";
-    const process = (char === "<" || char === ">") && quoting[i] === UNQUOTED;
-    if (!command && !process) continue;
-    const end = substitutionEnd(text, i);
-    if (command && text[i + 2] === "(" && text[end - 1] === ")") {
-      arithmeticEnds.push(end);
-      if (arithmeticEnds.length > MAX_ARITHMETIC_NESTING) {
-        return { contents, nestingLimitExceeded: true };
-      }
-      i += 2;
-      continue;
-    }
-    contents.push(text.slice(i + 2, end));
-    i = end;
-  }
-  return { contents, nestingLimitExceeded: false };
-}
-
-/**
- * The text of every command list the shell runs while expanding `word`: `$( ... )`, backticks, and the
- * process substitutions `<( ... )` and `>( ... )`. A quoted one is literal and skipped. An arithmetic expansion
- * `$(( ... ))` runs no command of its own, so only the substitutions inside it are listed.
- */
-export function substitutionContents(word: Word): string[] {
-  return scanSubstitutions(word).contents;
-}
-
-// Number forms bash arithmetic accepts that contain letters: hexadecimal and `base#digits`.
-const ARITHMETIC_NUMBER = /0[xX][0-9a-fA-F]+|[0-9]+#[0-9a-zA-Z@_]+/g;
-// The `[[ ... ]]` operators whose operands bash evaluates as arithmetic expressions.
-const ARITHMETIC_TEST_OPERATORS = new Set(["-eq", "-ne", "-lt", "-le", "-gt", "-ge"]);
-const INTEGER = /^[+-]?[0-9]+$/;
-
-/**
- * Whether bash can read a value this text does not show while evaluating `expression`. Arithmetic evaluates
- * a named variable's value as an expression of its own, recursively, and expands the subscript of an array
- * reference on the way, so `x='a[$(rm -rf build)]'; echo $((x))` runs `rm` although this text never names
- * it. A nested arithmetic expansion is checked the same way, and a command substitution or backtick inside
- * arithmetic supplies source that bash evaluates again, so it fails closed whatever it runs.
- */
-function arithmeticReadsVariable(expression: string): boolean {
-  let stripped = "";
-  const arithmeticEnds: number[] = [];
-  for (let i = 0; i < expression.length; i += 1) {
-    while (arithmeticEnds.length > 0 && i >= (arithmeticEnds.at(-1) ?? 0)) arithmeticEnds.pop();
-
-    const char = expression[i] ?? "";
-    if (char === "`") return true;
-    if (char === "$" && expression[i + 1] === "(") {
-      const end = substitutionEnd(expression, i);
-      if (expression[i + 2] !== "(" || expression[end - 1] !== ")") return true;
-      arithmeticEnds.push(end);
-      if (arithmeticEnds.length > MAX_ARITHMETIC_NESTING) return true;
-      i += 2;
-      continue;
-    }
-    stripped += char;
-  }
-  return /[A-Za-z_$]/.test(stripped.replace(ARITHMETIC_NUMBER, ""));
-}
-
-/**
- * Whether the shell evaluates, while expanding `word`, an arithmetic expression whose value this text does not
- * show: an arithmetic expansion that names a variable, or a `[[ ... ]]` arithmetic comparison whose operand is
- * not an integer literal. Either reads a value that may carry a substitution of its own.
- */
-function evaluatesUnreadableArithmetic(word: ShellToken): boolean {
-  const { text, quoting } = word;
-  for (let i = 0; i < text.length; i += 1) {
-    if (quoting[i] === LITERAL) continue;
-    if (text.startsWith("$((", i)) {
-      const end = substitutionEnd(text, i);
-      if (text[end - 1] !== ")") continue;
-      if (arithmeticReadsVariable(text.slice(i + 3, end - 1))) return true;
-      i = end;
-      continue;
-    }
-  }
-  if (!word.testExpression) return false;
-  // Quotes are gone from the text, so a quoted operand holding a space splits here; every piece that is not an
-  // integer fails closed, which is the safe direction.
-  const operands = text.slice(2, -2).split(/\s+/);
-  return operands.some(
-    (operand, index) =>
-      ARITHMETIC_TEST_OPERATORS.has(operand) &&
-      !(INTEGER.test(operands[index - 1] ?? "") && INTEGER.test(operands[index + 1] ?? "")),
+  const classify = classifierFor(name);
+  if (!classify) return NOT_DESTRUCTIVE;
+  return toCommandVerdict(
+    classify({
+      name,
+      args,
+      argTexts,
+      argIndices,
+      failClosed,
+      isDestructiveText,
+      isDestructiveCommandAt: (nested) => simpleCommandIsDestructive(tokens, nested, failClosed),
+    }),
   );
 }
 

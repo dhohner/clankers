@@ -1,12 +1,13 @@
 import { mkdtemp, rm, symlink } from "node:fs/promises";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import extension, {
-  DESTRUCTIVE_APPROVAL_REASON,
+import extension from "../../index.js";
+import {
   SAFETY_EVALUATION_BLOCK_PREFIX,
   SAFETY_EVALUATION_CANCELLED_REASON,
-  SAFETY_EVALUATION_WORKING_MESSAGE,
-} from "../../index.js";
+} from "../../src/policy/assessment/assessment-codec.js";
+import { DESTRUCTIVE_APPROVAL_REASON } from "../../src/policy/command-analysis/result.js";
+import { SAFETY_EVALUATION_WORKING_MESSAGE } from "../../src/infrastructure/pi/model-assessor.js";
 
 // `os.tmpdir()` honours TMPDIR, which the extension deliberately does not trust, so a host launched with
 // TMPDIR outside the platform roots would put these workspaces where the exception never applies.
