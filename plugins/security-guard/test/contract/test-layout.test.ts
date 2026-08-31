@@ -10,7 +10,7 @@ const TEST_ROOT = join(PACKAGE_ROOT, "test");
 // A unit test is named for the module it covers and sits at the module's path, so a reader who opens a source
 // file can predict its test. These directories are the exceptions, because what they assert belongs to no
 // single module: `integration` drives the whole extension, `contract` asserts rules across all of `src`.
-const UNMIRRORED_DIRECTORIES = new Set(["contract", "fixtures", "integration", "scripts", "support"]);
+const UNMIRRORED_DIRECTORIES = new Set(["contract", "fixtures", "integration", "support"]);
 
 async function testFiles(directory: string): Promise<string[]> {
   const entries = await readdir(directory, { withFileTypes: true });

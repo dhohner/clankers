@@ -1,30 +1,10 @@
 # Security Guard
 
-Security Guard blocks agent commands that dump the user environment or read common local credentials.
-Its Pi extension also requires approval for destructive shell commands.
-
-| Protection | Claude-format hook | Pi extension |
-| --- | --- | --- |
-| Block environment dumps | yes | yes |
-| Block credential reads | yes | yes |
-| Approve destructive commands | no | yes |
-| Assess destructive commands with a model | no | yes |
-| Allow proven temporary or build-output cleanup | no | yes |
+Security Guard is a Pi extension that blocks agent commands which dump the user environment or read common local credentials.
+It also requires approval for destructive shell commands.
+The Claude-format hook with the same environment and credential rules is the [`agent-hooks`](../agent-hooks) plugin.
 
 ## Install
-
-### Claude Code
-
-Add the marketplace and install the plugin:
-
-```bash
-/plugin marketplace add dhohner/clankers
-/plugin install security-guard@dhohner-clankers
-```
-
-The Claude-format hook requires `jq`.
-
-### Pi
 
 Pi requires version 0.84.0 or later.
 Install from a local checkout:
@@ -49,11 +29,9 @@ Security Guard supports macOS and Linux, not Windows.
 
 ## How it works
 
-![Security Guard decision flow: the Claude hook checks Bash calls for blocked environment and credential access. The Pi extension checks Bash and Read calls, analyzes destructive commands, proves eligible temporary and build-output paths, requests a model assessment, and asks for approval.](./assets/decision-flow.svg)
+![Security Guard decision flow: the Pi extension checks Bash and Read calls, analyzes destructive commands, proves eligible temporary and build-output paths, requests a model assessment, and asks for approval. The agent-hooks Claude hook checks Bash calls for blocked environment and credential access only.](./assets/decision-flow.svg)
 
-Both integrations check tool calls before execution.
-The Claude-format hook rejects a call through stderr and exit code `2`.
-The Pi extension returns a blocked tool call.
+The extension checks tool calls before execution and returns a blocked tool call.
 
 ### Environment and credentials
 
@@ -64,9 +42,8 @@ Security Guard blocks:
 - AWS, gcloud, Azure, Kubernetes, Docker, and npm credential stores.
 - Token commands such as `gh auth token`, `gcloud auth print-access-token`, and selected password-manager reads.
 
-The credential rules exist twice on purpose: as JavaScript regular expressions in [`rules.ts`](./src/policy/credential-access/rules.ts) for the Pi extension, and as POSIX extended regular expressions in [`block-fups.sh`](./scripts/block-fups.sh) for the Claude-format hook, which runs with `bash` and `jq` alone and cannot load the TypeScript.
-POSIX ERE has no negative lookahead, so the `.pem` exemption is a shell function there rather than one pattern.
-The two implementations are held together by [`blocked-text-cases.json`](./test/fixtures/blocked-text-cases.json), which both test suites run, so neither can change without the other failing.
+The credential rules exist twice on purpose: as JavaScript regular expressions in [`rules.ts`](./src/policy/credential-access/rules.ts) for the Pi extension, and as POSIX extended regular expressions in the agent-hooks [`block-fups.sh`](../agent-hooks/scripts/block-fups.sh), which runs with `bash` and `jq` alone and cannot load the TypeScript.
+Each plugin tests its rules against its own copy of `test/fixtures/blocked-text-cases.json`, so apply a rule change to both plugins and both fixtures.
 
 The exact command `env | grep '^PI_' | sort` remains available for Pi runtime metadata.
 Do not store credentials in custom `PI_*` variables because this command prints every matching value.
@@ -129,7 +106,7 @@ Run all package checks:
 pnpm run check
 ```
 
-The command runs lint, format checks, shell tests, unit tests, and TypeScript checks.
+The command runs lint, format checks, unit tests, and TypeScript checks.
 Use `pnpm run lint:fix` and `pnpm run format` only when you intend to rewrite files, then review the diff.
 
 ## Author

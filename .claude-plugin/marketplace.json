@@ -23,10 +23,10 @@
       "tags": ["refactor", "quality", "review"]
     },
     {
-      "name": "security-guard",
-      "source": "./plugins/security-guard",
-      "description": "Block terminal commands that try to print the current user environment or read common secrets, tokens, keys, credential stores, and shell history.",
-      "homepage": "https://github.com/dhohner/clankers/tree/main/plugins/security-guard",
+      "name": "agent-hooks",
+      "source": "./plugins/agent-hooks",
+      "description": "Claude-format hook that blocks terminal commands which print the current user environment or read common secrets, tokens, keys, credential stores, and shell history.",
+      "homepage": "https://github.com/dhohner/clankers/tree/main/plugins/agent-hooks",
       "repository": "https://github.com/dhohner/clankers",
       "category": "development",
       "tags": ["hooks", "security", "environment"]

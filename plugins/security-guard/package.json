@@ -1,12 +1,11 @@
 {
   "name": "security-guard",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
-  "description": "Pi extension and Claude-format hook that block environment dumps and common local credential access.",
+  "description": "Pi extension that blocks environment dumps and common local credential access and asks for approval before destructive commands.",
   "keywords": [
     "credentials",
     "guardrails",
-    "hooks",
     "pi-package",
     "security"
   ],
@@ -33,9 +32,7 @@
     "clean": "rm -rf dist",
     "build": "pnpm run clean && tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
-    "test": "pnpm test:shell && pnpm test:unit",
-    "test:shell": "pnpm dlx bats -r test",
-    "test:unit": "pnpm exec vitest run",
+    "test": "pnpm exec vitest run",
     "lint": "oxlint --max-warnings=0",
     "lint:fix": "oxlint --fix",
     "format": "oxfmt .",

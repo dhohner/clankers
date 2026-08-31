@@ -5,8 +5,6 @@ import { describe, expect, it } from "vitest";
 import { evaluateCredentialAccess, isBlockedText } from "../../../src/policy/credential-access/evaluate.js";
 import { BLOCK_REASON } from "../../../src/policy/credential-access/result.js";
 
-// Shared with test/scripts/block-fups.bats so the TypeScript policy and scripts/block-fups.sh,
-// which reimplement the same patterns for different hosts, cannot drift apart unnoticed.
 const blockedTextCases: Array<{ command: string; blocked: boolean }> = JSON.parse(
   readFileSync(join(dirname(fileURLToPath(import.meta.url)), "../../fixtures/blocked-text-cases.json"), "utf8"),
 );

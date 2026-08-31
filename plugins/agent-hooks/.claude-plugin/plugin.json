@@ -1,0 +1,12 @@
+{
+  "name": "agent-hooks",
+  "version": "0.1.0",
+  "description": "Claude-format hook that blocks terminal commands which print the current user environment or read common secrets, tokens, keys, credential stores, and shell history.",
+  "author": {
+    "name": "dhohner"
+  },
+  "homepage": "https://github.com/dhohner/clankers/tree/main/plugins/agent-hooks",
+  "repository": "https://github.com/dhohner/clankers",
+  "license": "MIT",
+  "keywords": ["hooks", "security", "environment"]
+}

@@ -60,8 +60,6 @@ payload_for_tool() {
   assert_blocked
 }
 
-# Shared with test/policy/credential-access/evaluate.test.ts so the TypeScript policy and scripts/block-fups.sh,
-# which reimplement the same patterns for different hosts, cannot drift apart unnoticed.
 @test "matches the shared blocked-text cases" {
   local failures=0
   local command expected
@@ -83,4 +81,3 @@ payload_for_tool() {
 
   [ "$failures" -eq 0 ]
 }
-
