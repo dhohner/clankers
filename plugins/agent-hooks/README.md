@@ -1,7 +1,8 @@
 # Agent Hooks
 
-Agent Hooks is a Claude-format `PreToolUse` hook that blocks agent commands which dump the user environment or read common local credentials.
-The hook runs with `bash` and `jq` alone, so it works without Node.js or a build step.
+Agent Hooks is a Claude-format `PreToolUse` hook.
+It denies environment and credential dumps, then asks for approval before tools access common credential files.
+It requires only `bash` and `jq`.
 
 ## Install
 
@@ -14,35 +15,56 @@ Add the marketplace and install the plugin:
 /plugin install agent-hooks@dhohner-clankers
 ```
 
-The hook requires `jq`.
+Install `jq` before using the hook.
+Without `jq`, the hook warns on stderr and cannot inspect the call.
 
-Agent Hooks supports macOS and Linux, not Windows.
+Agent Hooks supports macOS and Linux.
 
 ## How it works
 
-The hook reads the tool call from stdin, and exits `0` for any tool other than `Bash`, `run_in_terminal`, or `runTerminalCommand`.
-For a terminal command it prints `{"continue":true}` and exits `0` when the command is harmless.
-It writes `Command blocked by security policy.` to stderr and exits `2` when the command matches a rule, so the host rejects the call.
+The hook reads one tool call from stdin.
+It returns one of these decisions:
 
-### Blocked commands
+- Deny environment and credential dump commands with exit code `2` and `Command blocked by security policy.` on stderr.
+- Ask Claude Code for approval when a tool call references a credential file.
+- Continue other inspected calls with exit code `0` and no output, so the normal permission flow applies.
+
+### Inspected tools
+
+- `Bash`, `run_in_terminal`, and `runTerminalCommand` terminal commands.
+- `Read` file paths.
+- `Grep` paths and glob filters.
+- `Glob` patterns and paths.
+
+The hook does not inspect `Grep` content patterns, so searches for source strings such as `process.env` continue.
+The bundled `hooks/hooks.json` registers two matcher groups that select the mode.
+Terminal tools run `credential-guard.sh command` and file tools run `credential-guard.sh path`.
+Custom hook configurations must add each tool name to the matching group and pass its mode argument.
+
+### Denied commands
 
 - Environment dumps such as `printenv`, standalone `env`, `export -p`, `declare -x`, and standalone `set`.
-- Dotenv files, SSH private keys, non-certificate `.pem` files, shell history, and credential helpers.
-- AWS, gcloud, Azure, Kubernetes, Docker, and npm credential stores.
-- Token commands such as `gh auth token`, `gcloud auth print-access-token`, and selected password-manager reads.
+- Interpreter one-liners that print the environment, such as `node -e 'console.log(process.env)'` and `python3 -c 'import os;print(os.environ)'`.
+- Token commands such as `gh auth token`, `gh auth status --show-token`, `gcloud auth print-access-token`, and selected password-manager reads.
 
 The exact command `env | grep '^PI_' | sort` remains available for Pi runtime metadata.
 Do not store credentials in custom `PI_*` variables because this command prints every matching value.
 
-The `.pem` rule allows public certificate names such as `cert.pem`, `fullchain.pem`, `chain.pem`, `ca.pem`, `cacert.pem`, and names ending in `-cert.pem`.
-Files under `.ssh/` remain blocked, and the certificate-name match is case-sensitive.
+### Credential files that trigger a prompt
 
-### Relation to security-guard
+- Dotenv files, SSH private keys, non-certificate `.pem` files, shell history, and credential helpers.
+- AWS, gcloud, Azure, Kubernetes, Docker, npm, PyPI, and Terraform credential stores, the gh CLI `hosts.yml`, and `/proc/<pid>/environ`.
 
-The same rules exist as JavaScript regular expressions in the [`security-guard`](../security-guard) Pi extension.
-This hook reimplements them as POSIX extended regular expressions in [`block-fups.sh`](./scripts/block-fups.sh) because it cannot load the TypeScript.
-POSIX ERE has no negative lookahead, so the `.pem` exemption is a shell function rather than one pattern.
-Each plugin tests its rules against its own copy of `test/fixtures/blocked-text-cases.json`, so apply a rule change to both plugins and both fixtures.
+The rules match relative and absolute paths, including `~` and `$HOME` prefixes.
+The `.pem` rule allows `cert.pem`, `fullchain.pem`, `chain.pem`, `ca.pem`, `cacert.pem`, and names ending in `-cert.pem`.
+The exemption is case-sensitive and does not apply under `.ssh/`.
+
+### Threat model
+
+Quoting tricks such as `cat .e"nv"`, variable indirection, and encoding can bypass the text patterns.
+The deny message tells cooperative agents not to bypass a match.
+Use OS-level sandboxing or permission deny rules to enforce access controls.
+
 
 ## Development
 

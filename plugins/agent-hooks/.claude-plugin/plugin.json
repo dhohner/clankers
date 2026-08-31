@@ -1,7 +1,7 @@
 {
   "name": "agent-hooks",
   "version": "0.1.0",
-  "description": "Claude-format hook that blocks terminal commands which print the current user environment or read common secrets, tokens, keys, credential stores, and shell history.",
+  "description": "Claude-format hook that denies environment dumps and asks for approval before tools access common credential files.",
   "author": {
     "name": "dhohner"
   },

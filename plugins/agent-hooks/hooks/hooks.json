@@ -2,11 +2,21 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Bash",
+        "matcher": "Bash|run_in_terminal|runTerminalCommand",
         "hooks": [
           {
             "type": "command",
-            "command": "bash -lc 'if [ -n \"${CLAUDE_PLUGIN_ROOT:-}\" ] && [ -f \"${CLAUDE_PLUGIN_ROOT}/scripts/block-fups.sh\" ]; then exec bash \"${CLAUDE_PLUGIN_ROOT}/scripts/block-fups.sh\"; fi'",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/credential-guard.sh\" command",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Grep|Glob",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/credential-guard.sh\" path",
             "timeout": 5
           }
         ]

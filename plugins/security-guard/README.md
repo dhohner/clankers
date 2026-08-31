@@ -42,9 +42,6 @@ Security Guard blocks:
 - AWS, gcloud, Azure, Kubernetes, Docker, and npm credential stores.
 - Token commands such as `gh auth token`, `gcloud auth print-access-token`, and selected password-manager reads.
 
-The credential rules exist twice on purpose: as JavaScript regular expressions in [`rules.ts`](./src/policy/credential-access/rules.ts) for the Pi extension, and as POSIX extended regular expressions in the agent-hooks [`block-fups.sh`](../agent-hooks/scripts/block-fups.sh), which runs with `bash` and `jq` alone and cannot load the TypeScript.
-Each plugin tests its rules against its own copy of `test/fixtures/blocked-text-cases.json`, so apply a rule change to both plugins and both fixtures.
-
 The exact command `env | grep '^PI_' | sort` remains available for Pi runtime metadata.
 Do not store credentials in custom `PI_*` variables because this command prints every matching value.
 
