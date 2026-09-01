@@ -1,5 +1,5 @@
 ---
-name: implement-task
+name: implement
 description: >-
   Implement one `to-agent-tasks` task through red-green TDD, requirement verification, and independent review-fix loops.
   Use when the user names a task file or number, or requests the next task.

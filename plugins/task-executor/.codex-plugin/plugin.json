@@ -1,0 +1,36 @@
+{
+  "name": "task-executor",
+  "version": "0.2.0",
+  "description": "Implements coding-agent task files with TDD, requirement verification, and independent review-fix loops.",
+  "author": {
+    "name": "dhohner",
+    "url": "https://github.com/dhohner"
+  },
+  "homepage": "https://github.com/dhohner/clankers/tree/main/plugins/task-executor",
+  "repository": "https://github.com/dhohner/clankers",
+  "license": "MIT",
+  "keywords": [
+    "tdd",
+    "implementation",
+    "verification",
+    "coding-agents"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Task Executor",
+    "shortDescription": "TDD implementation of coding-agent task files.",
+    "longDescription": "Implements one to-agent-tasks task file at a time through red-green TDD, verifies requirement coverage with fresh subagents, and runs independent review-fix loops before reporting.",
+    "developerName": "dhohner",
+    "category": "Development",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Use the implement skill to implement the next agent task.",
+      "Implement action-items/agent-tasks/01-short-task-title.md with the implement skill.",
+      "Implement task 02 with up to 5 review passes."
+    ],
+    "brandColor": "#B45309"
+  }
+}

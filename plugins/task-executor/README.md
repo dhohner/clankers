@@ -4,7 +4,7 @@ Implements coding-agent task files and verifies each result before reporting com
 
 ## What it does
 
-The `implement-task` skill executes one task file from `project-advisor:to-agent-tasks`.
+The `implement` skill executes one task file from `project-advisor:to-agent-tasks`.
 
 - Rejects tasks with missing required sections or listed blockers.
 - Implements every required behavior through red-green TDD.
@@ -23,14 +23,14 @@ A requested verification limit applies separately to both loops.
 ## Usage
 
 ```text
-/task-executor:implement-task action-items/agent-tasks/01-short-task-title.md
+/task-executor:implement action-items/agent-tasks/01-short-task-title.md
 "Implement the next agent task"
 "Implement task 02 with up to 5 review passes"
 ```
 
 ## Learn more
 
-The plugin bundles the [`implement-task`](./skills/implement-task/SKILL.md) skill.
+The plugin bundles the [`implement`](./skills/implement/SKILL.md) skill.
 
 ## Authors
 

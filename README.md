@@ -1,6 +1,6 @@
 # Clankers
 
-Clankers publishes coding-agent plugins for product planning, code refactoring, command safety, and Pi response styles.
+Clankers publishes coding-agent plugins for product planning, task implementation, code refactoring, command safety, and Pi response styles.
 The plugins support Claude Code, Codex App, and Pi Coding Agent.
 
 > Review each plugin before installation.
@@ -11,6 +11,7 @@ The plugins support Claude Code, Codex App, and Pi Coding Agent.
 | Plugin | Purpose | Claude Code | Codex App | Pi |
 | --- | --- | --- | --- | --- |
 | [`project-advisor`](./plugins/project-advisor) | Recommends product work, writes PRDs, and converts accepted PRDs into Jira issues or coding-agent tasks. | Yes | Yes | No |
+| [`task-executor`](./plugins/task-executor) | Implements coding-agent task files with TDD, requirement verification, and independent review-fix loops. | Yes | Yes | No |
 | [`refactor-tools`](./plugins/refactor-tools) | Simplifies code, tightens AI-generated prose without changing meaning, and reviews changes for quality, security, and maintainability. | Yes | Yes | No |
 | [`agent-hooks`](./plugins/agent-hooks) | Blocks environment dumps and common credential reads through a Claude-format hook. | Yes | No | No |
 | [`security-guard`](./plugins/security-guard) | Blocks environment dumps and common credential reads, and asks Pi users to approve destructive commands. | No | No | Yes |
@@ -32,6 +33,7 @@ Install a plugin by name.
 
 ```text
 /plugin install project-advisor@dhohner-clankers
+/plugin install task-executor@dhohner-clankers
 /plugin install refactor-tools@dhohner-clankers
 /plugin install agent-hooks@dhohner-clankers
 ```
@@ -49,7 +51,7 @@ The Codex marketplace uses local plugin paths, so install it from a local checko
 1. Clone this repository and open it in Codex App.
 2. Open the plugin directory.
 3. Select the marketplace named `dhohner/clankers`.
-4. Install `project-advisor` or `refactor-tools`.
+4. Install `project-advisor`, `task-executor`, or `refactor-tools`.
 
 ### Pi Coding Agent
 
