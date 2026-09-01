@@ -11,7 +11,7 @@ The plugins support Claude Code, Codex App, and Pi Coding Agent.
 | Plugin | Purpose | Claude Code | Codex App | Pi |
 | --- | --- | --- | --- | --- |
 | [`project-advisor`](./plugins/project-advisor) | Recommends product work, writes PRDs, and converts accepted PRDs into Jira issues or coding-agent tasks. | Yes | Yes | No |
-| [`refactor-tools`](./plugins/refactor-tools) | Simplifies existing code and reviews changes for quality, security, and maintainability. | Yes | Yes | No |
+| [`refactor-tools`](./plugins/refactor-tools) | Simplifies code, tightens AI-generated prose without changing meaning, and reviews changes for quality, security, and maintainability. | Yes | Yes | No |
 | [`agent-hooks`](./plugins/agent-hooks) | Blocks environment dumps and common credential reads through a Claude-format hook. | Yes | No | No |
 | [`security-guard`](./plugins/security-guard) | Blocks environment dumps and common credential reads, and asks Pi users to approve destructive commands. | No | No | Yes |
 | [`output-styles`](./plugins/output-styles) | Selects a Pi response style at startup or during a session. | No | No | Yes |

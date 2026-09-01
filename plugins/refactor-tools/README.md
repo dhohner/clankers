@@ -18,6 +18,8 @@ The `review-changes` skill judges a change set instead of editing it. It reports
 - A split between findings observed by running a command and findings inferred from reading
 - The validation commands that ran, and the risks that stayed untested
 
+The `tighten-prose` skill shortens AI-generated prose in staged changes, named paths, or commit ranges without changing meaning.
+
 ## Usage
 
 `simplify` runs on its own when the request matches:
@@ -36,12 +38,20 @@ The `review-changes` skill judges a change set instead of editing it. It reports
 "Review my staged changes before I commit"
 ```
 
+`tighten-prose` runs only by direct invocation:
+
+```text
+/refactor-tools:tighten-prose
+/refactor-tools:tighten-prose docs/ main..HEAD
+```
+
 ## Learn More
 
 Current bundled skills:
 
 - `simplify` - see [the skill definition](./skills/simplify/SKILL.md)
 - `review-changes` - see [the skill definition](./skills/review-changes/SKILL.md)
+- `tighten-prose` - see [the skill definition](./skills/tighten-prose/SKILL.md)
 
 ## Authors
 
