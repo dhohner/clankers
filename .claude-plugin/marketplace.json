@@ -23,6 +23,13 @@
       "tags": ["refactor", "quality", "review"]
     },
     {
+      "name": "task-executor",
+      "source": "./plugins/task-executor",
+      "description": "Implements coding-agent task files with TDD, requirement verification, and independent review-fix loops.",
+      "category": "development",
+      "tags": ["tdd", "implementation", "verification", "coding-agents"]
+    },
+    {
       "name": "agent-hooks",
       "source": "./plugins/agent-hooks",
       "description": "Claude-format hook that blocks terminal commands which print the current user environment or read common secrets, tokens, keys, credential stores, and shell history.",

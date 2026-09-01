@@ -1,0 +1,16 @@
+{
+  "name": "task-executor",
+  "version": "0.1.0",
+  "description": "Implements coding-agent task files with TDD, requirement verification, and independent review-fix loops.",
+  "author": {
+    "name": "dhohner"
+  },
+  "repository": "https://github.com/dhohner/clankers",
+  "license": "MIT",
+  "keywords": [
+    "tdd",
+    "implementation",
+    "verification",
+    "coding-agents"
+  ]
+}

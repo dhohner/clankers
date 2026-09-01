@@ -28,11 +28,12 @@ The `review-changes` skill judges a change set instead of editing it. It reports
 "Refactor these staged changes for readability and less duplication"
 ```
 
-`review-changes` runs only when you name it:
+`review-changes` runs for matching review requests, direct invocation, or independent review from another skill:
 
 ```text
 /refactor-tools:review-changes
 /refactor-tools:review-changes the change implements the attached task description
+"Review my staged changes before I commit"
 ```
 
 ## Learn More

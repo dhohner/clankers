@@ -1,7 +1,8 @@
 ---
 name: review-changes
-description: Evidence-based scoring of changed code across six quality dimensions.
-disable-model-invocation: true
+description: >-
+  Review changed code across six scored quality dimensions with observed or inferred evidence.
+  Use for diffs, working-tree changes, commits, named files, merge readiness, or requirement compliance.
 ---
 
 # Review Changed Code
