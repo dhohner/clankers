@@ -1,6 +1,6 @@
 {
   "name": "agent-hooks",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Claude-format hook that denies environment dumps and asks for approval before tools access common credential files.",
   "author": {
     "name": "dhohner"

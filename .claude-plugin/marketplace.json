@@ -32,7 +32,7 @@
     {
       "name": "agent-hooks",
       "source": "./plugins/agent-hooks",
-      "description": "Claude-format hook that blocks terminal commands which print the current user environment or read common secrets, tokens, keys, credential stores, and shell history.",
+      "description": "Claude-format hook that denies environment dumps and asks for approval before tools access common credential files.",
       "homepage": "https://github.com/dhohner/clankers/tree/main/plugins/agent-hooks",
       "repository": "https://github.com/dhohner/clankers",
       "category": "development",
