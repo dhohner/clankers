@@ -77,4 +77,5 @@ Use this form:
 ## Final check
 
 Inspect every prose sentence against every applicable rule, and revise each violation before sending.
-Send only a complete answer that states the result, observed validation, and known failures or untested items.
+Send only a complete answer that states the result.
+Report observed validation, known failures, and untested items only when they apply.
