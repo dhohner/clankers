@@ -13,7 +13,6 @@ The plugins support Claude Code, Codex App, and Pi Coding Agent.
 | [`project-advisor`](./plugins/project-advisor) | Recommends product work, writes PRDs, and converts accepted PRDs into Jira issues or coding-agent tasks. | Yes | Yes | No |
 | [`task-executor`](./plugins/task-executor) | Implements coding-agent task files with TDD, requirement verification, and independent review-fix loops. | Yes | Yes | No |
 | [`refactor-tools`](./plugins/refactor-tools) | Simplifies code, tightens AI-generated prose without changing meaning, and reviews changes for quality, security, and maintainability. | Yes | Yes | No |
-| [`agent-hooks`](./plugins/agent-hooks) | Blocks environment dumps and common credential reads through a Claude-format hook. | Yes | No | No |
 | [`security-guard`](./plugins/security-guard) | Blocks environment dumps and common credential reads, and asks Pi users to approve destructive commands. | No | No | Yes |
 | [`output-styles`](./plugins/output-styles) | Selects a Pi response style at startup or during a session. | No | No | Yes |
 
@@ -35,7 +34,6 @@ Install a plugin by name.
 /plugin install project-advisor@dhohner-clankers
 /plugin install task-executor@dhohner-clankers
 /plugin install refactor-tools@dhohner-clankers
-/plugin install agent-hooks@dhohner-clankers
 ```
 
 Run the following command to browse the marketplace instead.

@@ -31,8 +31,6 @@
       "Refactor these staged changes for readability and less duplication.",
       "Review the staged changes and score them per quality dimension."
     ],
-    "brandColor": "#7C3AED",
-    "composerIcon": "./assets/icon.png",
-    "logo": "./assets/logo.png"
+    "brandColor": "#7C3AED"
   }
 }

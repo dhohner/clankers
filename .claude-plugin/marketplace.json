@@ -28,15 +28,6 @@
       "description": "Implements coding-agent task files with TDD, requirement verification, and independent review-fix loops.",
       "category": "development",
       "tags": ["tdd", "implementation", "verification", "coding-agents"]
-    },
-    {
-      "name": "agent-hooks",
-      "source": "./plugins/agent-hooks",
-      "description": "Claude-format hook that denies environment dumps and asks for approval before tools access common credential files.",
-      "homepage": "https://github.com/dhohner/clankers/tree/main/plugins/agent-hooks",
-      "repository": "https://github.com/dhohner/clankers",
-      "category": "development",
-      "tags": ["hooks", "security", "environment"]
     }
   ]
 }

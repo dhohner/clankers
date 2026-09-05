@@ -32,8 +32,6 @@
       "Break this PRD into Jira-ready vertical slices with the to-issues skill.",
       "Turn this accepted prd.yaml into self-contained implementation tasks with the to-agent-tasks skill."
     ],
-    "brandColor": "#0F766E",
-    "composerIcon": "./assets/icon.png",
-    "logo": "./assets/logo.png"
+    "brandColor": "#0F766E"
   }
 }
