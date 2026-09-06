@@ -11,12 +11,12 @@ The `simplify` skill handles cleanup and simplification requests. It improves ex
 - Small, behavior-preserving refactors where confidence is high
 - Clear separation between safe automatic fixes and risky follow-up ideas
 
-The `review-changes` skill judges a change set instead of editing it. It reports:
+The `review-changes` skill reviews without editing and reports:
 
-- One score from 1 to 10 for quality, security, simplicity, robustness, scalability, and maintainability
-- Findings ordered by importance, each with a location, a concrete cost, and a fix
-- A split between findings observed by running a command and findings inferred from reading
-- The validation commands that ran, and the risks that stayed untested
+- Scores from 1 to 10 for quality, security, simplicity, robustness, scalability, and maintainability, each with confidence and coverage limits
+- Findings ranked by severity and concrete cost, each with a blocker, follow-up, or nit classification, location, and fix
+- Evidence per finding, labelled as an executed check, static trace, or hypothesis with a settling check
+- Executed validation commands, skipped checks with reasons, the negative control outcome, and untested risks
 
 The `tighten-prose` skill shortens AI-generated prose in staged changes, named paths, or commit ranges without changing meaning.
 
