@@ -2,7 +2,6 @@
 
 Security Guard is a Pi extension that blocks agent commands which dump the user environment or read common local credentials.
 It also requires approval for destructive shell commands.
-The Claude-format hook with the same environment and credential rules is the [`agent-hooks`](../agent-hooks) plugin.
 
 ## Install
 
