@@ -1,6 +1,7 @@
 ---
 name: to-agent-tasks
 description: Convert an accepted `to-prd` `prd.yaml` bundle into self-contained, dependency-ordered tracer-bullet tasks for autonomous coding agents. Use when the user asks to break an accepted PRD into coding-agent tasks for an autonomous agent such as Claude Code, Codex, or Pi. For Jira or tracker tickets, use `to-issues`.
+argument-hint: "[DO NOT USE - PREVIEW]"
 ---
 
 # Accepted PRD to Agent Tasks
@@ -73,9 +74,6 @@ Read [references/agent-task-template.md](references/agent-task-template.md) and 
 Inspect the destination and preserve existing files unless the user explicitly authorizes replacement.
 Use non-colliding dependency-ordered names such as `01-short-task-title.md`.
 Write one self-contained file per approved slice and describe prerequisite contracts inline.
-Assign each task a frontmatter model category, effort, and one-sentence rationale for both choices.
-Use **frontier** (e.g. Claude Opus) for contract-sensitive, high-ambiguity, or architecture-shaping slices and **standard** (e.g. Claude Sonnet) otherwise.
-Pick the first matching effort: `xhigh` when errors could corrupt durable data or break contracts that successor tasks depend on; `high` for other frontier or multi-contract slices; otherwise `medium`.
 Audit each file against the ledger and every applicable checklist item before saving it.
 
 Report files in execution order, labeled assumptions, and unresolved blockers.

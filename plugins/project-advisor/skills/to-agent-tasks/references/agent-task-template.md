@@ -1,10 +1,3 @@
----
-model_category: <frontier | standard>
-effort: <medium | high | xhigh>
-selection_rationale: >-
-  <One sentence justifying both choices with task-specific signals.>
----
-
 # <Task title>
 
 ## Outcome

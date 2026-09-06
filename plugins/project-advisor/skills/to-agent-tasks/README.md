@@ -29,7 +29,6 @@ action-items/agent-tasks/
 
 Each task includes:
 
-- YAML frontmatter that assigns a model category and effort with a one-sentence rationale;
 - one observable outcome and the source-backed required behavior;
 - a boundary: what the task may change, what must survive intact, which choices are the executing agent's own, and labeled assumptions and blockers;
 - inspected repository notes that point at entry points and binding contracts rather than touring the code;
