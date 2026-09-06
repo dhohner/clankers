@@ -28,7 +28,7 @@ Security Guard supports macOS and Linux, not Windows.
 
 ## How it works
 
-![Security Guard decision flow: the Pi extension checks Bash and Read calls, analyzes destructive commands, proves eligible temporary and build-output paths, requests a model assessment, and asks for approval. The agent-hooks Claude hook checks Bash calls for blocked environment and credential access only.](./assets/decision-flow.svg)
+![Security Guard decision flow: the Pi extension checks agent Bash calls, agent Read paths, and user shell commands against the credential rules, then analyzes destructive Bash commands, verifies eligible temporary, build-output, and path-presence questions against the host, requests an advisory model assessment, and asks for approval unless the verdict is safe.](./assets/decision-flow.svg)
 
 The extension checks tool calls before execution and returns a blocked tool call.
 
