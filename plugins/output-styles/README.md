@@ -13,16 +13,15 @@ Start a session with a style:
 pi --output-style explanatory
 ```
 
-In `append` mode, the default, the style instruction text is appended to the end of the system prompt for every agent turn of that session, after the project instruction files and context files Pi already loaded, so the style is the last instruction the model reads.
+The plugin appends style instructions to the chained system prompt for every agent turn.
+It preserves Pi's guidance, custom system prompts, loaded context, skills, and earlier extensions' prompt changes without rebuilding them.
+Later extensions can still modify the prompt.
 
-In `replace` mode the style instruction text takes the place of Pi's response and behavior guidance.
-The system prompt for the turn is rebuilt from the structured options Pi assembled, so the tool list, the tool guidelines, the loaded context files, the loaded skills, and the working directory stay in the prompt.
-The style text opens the rebuilt prompt as the governing response instruction, and the retained sections follow in Pi's own order.
-A replace-mode style also drops the system prompt changes of extensions that ran earlier in the chain, because the prompt is rebuilt from Pi's options instead of the chained text.
-The structured option fields were verified against Pi 0.84.2.
-
-A replace-mode style takes over the whole response guidance, and Pi's own behavior instructions are gone for that turn.
-When the style text contradicts or ignores the retained tool guidance, the agent can get noticeably weaker at its actual work, so prefer `append` unless the style truly must own the full response contract.
+Only append behavior is supported.
+Legacy files declaring `mode: replace` are skipped with a migration message, not silently converted or rewritten.
+To migrate, review the instructions for use alongside Pi's guidance, then remove the `mode` field or change it to `mode: append`.
+Startup skips an unavailable selection and continues through the normal fallback order.
+If a rescan rejects the active style and no same-name definition remains, the plugin falls back to `default` without changing the persisted selection.
 
 Without a flag value that names a known style, the starting style comes from the persisted project settings value, then the persisted global settings value, then the built-in `default` style, as the Persistence section describes.
 Under `default` the system prompt is unchanged, so a fresh installation without the flag behaves exactly like Pi without this plugin.
@@ -35,7 +34,7 @@ Switch the style inside a running session:
   An unknown name is reported and leaves the active style unchanged.
 - `Ctrl+Shift+Y` activates the next style in the list and wraps from the last entry to the first.
   The shortcut is a convenience: some terminals do not deliver this key combination, and the command reaches every switch the shortcut can perform.
-  Pi's `~/.pi/agent/keybindings.json` rebinds Pi's own actions by their keybinding id, but an extension shortcut is registered under its literal key and has no id in that file, so this shortcut cannot be rebound there; verified against Pi 0.84.2.
+  Pi's `~/.pi/agent/keybindings.json` rebinds Pi's own actions by their keybinding id, but an extension shortcut is registered under its literal key and has no id in that file, so this shortcut cannot be rebound there; verified against Pi 0.85.1.
   To use a different key, change the `CYCLE_SHORTCUT` constant in the installed copy of `lib/extension.ts` to a combination in Pi's `modifier+key` format, such as `ctrl+shift+x`.
 
 Every `/output-style` invocation, with or without an argument, rescans the three style directories first, so a style file added or edited while the session runs is selectable without a restart.
@@ -71,7 +70,7 @@ Create a style inside a running session:
   After a whitespace refusal the editor re-opens prefilled with the trimmed text.
 
 A style never changes the provider, the model, the thinking level, or the active tool set, so a style is safe at any point of a session.
-No bundled style uses `replace` mode.
+All styles append instructions; none replace the existing prompt.
 
 ## Scope
 
@@ -169,7 +168,8 @@ Skip preamble, restatement of the question, and closing offers of further help.
 
 - `description` is required and must be non-empty.
 - `name` is optional and defaults to the filename without the `.md` suffix.
-- `mode` is optional, allows `append` and `replace`, and defaults to `append`.
+- `mode` is optional and accepts only `append`, which is also the default.
+- `mode: replace` is no longer supported and causes the file to be skipped with migration instructions.
 - The body after the frontmatter is the style instruction text and must be non-empty.
 
 A commented copy of this example ships at [`examples/terse.md`](./examples/terse.md).
@@ -210,8 +210,10 @@ All four use `append` mode.
 
 ## Install
 
-This plugin requires Pi 0.84.2 or later and builds against the `@earendil-works/pi-coding-agent` package, declared as a peer dependency with `>=0.84.2`.
-The floor is 0.84.2 because the replace-mode prompt mirrors the trailing newline that release added to Pi's custom-prompt rendering.
+This plugin requires Pi 0.85.1 or later, the version it is built and tested against.
+It declares `@earendil-works/pi-coding-agent` as an optional peer dependency with `*`, so Pi supplies the runtime package.
+The specifier stays `*` rather than a version range.
+Under `autoInstallPeers`, pnpm 12.3.4 resolves a range here as a normal dependency and drops the optional markers from Pi's platform-specific clipboard binaries in `pnpm-lock.yaml`, which would make a Linux or Windows install try to fetch the macOS binary.
 
 ```bash
 pi install ./plugins/output-styles

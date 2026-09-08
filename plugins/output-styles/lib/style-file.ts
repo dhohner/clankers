@@ -1,16 +1,12 @@
 import { basename } from "node:path";
 import { parseFrontmatter } from "./frontmatter.ts";
-import { STYLE_MODES, type StyleMode, type StyleParseResult, type StyleSource } from "./types.ts";
+import type { StyleParseResult, StyleSource } from "./types.ts";
 
 export const STYLE_FILE_SUFFIX = ".md";
 
 /** The style name a file carries when its frontmatter omits `name`. */
 export function styleNameFromPath(path: string): string {
   return basename(path, STYLE_FILE_SUFFIX);
-}
-
-function isStyleMode(value: string): value is StyleMode {
-  return (STYLE_MODES as readonly string[]).includes(value);
 }
 
 export function parseStyleFile(path: string, content: string, source: StyleSource): StyleParseResult {
@@ -27,8 +23,15 @@ export function parseStyleFile(path: string, content: string, source: StyleSourc
   }
 
   const declaredMode = frontmatter.fields.get("mode");
-  if (declaredMode !== undefined && !isStyleMode(declaredMode)) {
-    return { ok: false, reason: `frontmatter "mode" must be ${STYLE_MODES.join(" or ")}` };
+  if (declaredMode === "replace") {
+    return {
+      ok: false,
+      reason:
+        'frontmatter "mode: replace" is no longer supported; remove the mode field or use "mode: append" to append these instructions',
+    };
+  }
+  if (declaredMode !== undefined && declaredMode !== "append") {
+    return { ok: false, reason: 'frontmatter "mode" must be append' };
   }
 
   const instructions = frontmatter.body.trim();
@@ -39,7 +42,6 @@ export function parseStyleFile(path: string, content: string, source: StyleSourc
     style: {
       name: declaredName?.trim() ?? styleNameFromPath(path),
       description: description.trim(),
-      mode: declaredMode ?? "append",
       instructions,
       source,
       path,

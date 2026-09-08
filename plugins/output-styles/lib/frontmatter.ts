@@ -17,7 +17,7 @@ export const NO_FRONTMATTER_REASON = "no readable YAML frontmatter block";
 const DELIMITER_LINE = /^---[ \t]*$/;
 
 const PARSE_OPTIONS = {
-  // The core schema keeps `mode: replace` a string instead of resolving YAML 1.1 oddities such as
+  // The core schema keeps `mode: append` a string instead of resolving YAML 1.1 oddities such as
   // `no` to a boolean, and a duplicate key is an error rather than a silent last-one-wins.
   schema: "core",
   version: "1.2",

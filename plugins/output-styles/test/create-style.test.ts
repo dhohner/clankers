@@ -29,7 +29,7 @@ describe("serializeStyleFile", () => {
     const content = serializeStyleFile(description, instructions);
     expect(parseStyleFile(path, content, "user")).toEqual({
       ok: true,
-      style: { name: "brief", description, mode: "append", instructions, source: "user", path },
+      style: { name: "brief", description, instructions, source: "user", path },
     });
   }
 

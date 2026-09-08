@@ -44,7 +44,9 @@ A test belongs here when it needs no extension harness.
 | `bundled-styles.test.ts` | The style files this package ships in `styles/`.                     |
 | `example-style.test.ts`  | The style file in `examples/`.                                       |
 | `loader.test.ts`         | The extension entry point that Pi loads.                             |
-| `prompt-parity.test.ts`  | The agreement of the replace-mode prompt with Pi's own prompt builder. |
+
+No test compares the produced prompt against Pi's own prompt builder.
+The extension only appends to the chained prompt, so Pi's prompt rendering cannot affect the result and needs no parity guard.
 
 ### A regression test
 
@@ -58,7 +60,7 @@ A test that states normal behavior belongs in the concern file above, even when 
 
 - A fixture that more than one file needs belongs in `support/`.
   No test file re-implements a fixture that `support/extension-harness.ts` already offers.
-  That module owns the harness factory, the temporary directory variables `root`, `bundledDir`, `agentDir`, and `cwd`, the helpers `writeStyle`, `styleFile`, `promptOptions`, and `styleStatus`, and the `beforeEach` and `afterEach` hooks that rebuild and remove the temporary root.
+  That module owns the harness factory, the temporary directory variables `root`, `bundledDir`, `agentDir`, and `cwd`, the helpers `writeStyle`, `styleFile`, and `styleStatus`, and the `beforeEach` and `afterEach` hooks that rebuild and remove the temporary root.
 - A `vi.mock` block belongs in the test file that needs it.
   Vitest hoists `vi.mock` and `vi.hoisted` per test file, so a shared module cannot register a module mock for another file.
   A file that injects a filesystem failure therefore declares its own mock block, and clears the failure record in its own `afterEach`.

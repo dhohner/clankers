@@ -100,7 +100,6 @@ describe("create flow (/output-style new)", () => {
       style: {
         name: "brief",
         description: "Short answers.",
-        mode: "append",
         instructions: "Answer briefly.\nSkip preamble.",
         source: "user",
         path,

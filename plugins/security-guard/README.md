@@ -5,7 +5,7 @@ It also requires approval for destructive shell commands.
 
 ## Install
 
-Pi requires version 0.84.0 or later.
+Pi requires version 0.85.1 or later.
 Install from a local checkout:
 
 ```bash

@@ -16,6 +16,5 @@ describe("example style file", () => {
     expect(result.style.name).toBe("terse");
     expect(result.style.description).not.toBe("");
     expect(result.style.instructions).not.toBe("");
-    expect(result.style.mode).toBe("append");
   });
 });

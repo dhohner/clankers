@@ -60,7 +60,6 @@ describe("bundled style files", () => {
       expect(result.style.name).toBe(name);
       expect(result.style.description).not.toBe("");
       expect(result.style.instructions).not.toBe("");
-      expect(result.style.mode).toBe("append");
     },
   );
 
@@ -91,7 +90,7 @@ describe("bundled style files", () => {
 
     expect(builtIn).toBeDefined();
     const prompt = "You are an expert coding assistant operating inside pi.";
-    expect(applyStyle(prompt, builtIn, { cwd: "/work/project" })).toBe(prompt);
+    expect(applyStyle(prompt, builtIn)).toBe(prompt);
   });
 
   it("lets a user style shadow a bundled style of the same name", async () => {

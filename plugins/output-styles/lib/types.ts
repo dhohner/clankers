@@ -1,6 +1,3 @@
-/** How a style's instruction text relates to the chained system prompt. */
-export type StyleMode = "append" | "replace";
-
 /** Severity of a message the extension reports, matching the levels Pi's notification takes. */
 export type NotifyLevel = "info" | "warning" | "error";
 
@@ -10,7 +7,6 @@ export type StyleSource = "bundled" | "user" | "project";
 export type StyleDefinition = {
   name: string;
   description: string;
-  mode: StyleMode;
   /** Style instruction text. Empty only for the built-in `default` style, which changes nothing. */
   instructions: string;
   source: StyleSource;
@@ -37,8 +33,6 @@ export type StyleDiscovery = {
   unlistableDirectories: string[];
 };
 
-export const STYLE_MODES: readonly StyleMode[] = ["append", "replace"];
-
 export const DEFAULT_STYLE_NAME = "default";
 
 /** Reserved for the `/output-style new` create subcommand, so no style may claim it. */
@@ -47,7 +41,6 @@ export const NEW_STYLE_NAME = "new";
 export const DEFAULT_STYLE: StyleDefinition = {
   name: DEFAULT_STYLE_NAME,
   description: "Pi's standard behavior, with no added style instructions.",
-  mode: "append",
   instructions: "",
   source: "bundled",
 };

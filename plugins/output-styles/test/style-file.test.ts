@@ -16,7 +16,6 @@ describe("parseStyleFile", () => {
       style: {
         name: "terse",
         description: "Answer briefly.",
-        mode: "append",
         instructions: "Be brief.",
         source: "user",
         path: PATH,
@@ -30,11 +29,11 @@ describe("parseStyleFile", () => {
     expect(result.ok && result.style.description).toBe("Answers briefly, in few words.");
   });
 
-  it("keeps a declared name and mode", () => {
-    const result = parse("---\nname: short\ndescription: Answer briefly.\nmode: replace\n---\nBe brief.\n");
+  it("keeps a declared name and accepts an explicit append mode", () => {
+    const result = parse("---\nname: short\ndescription: Answer briefly.\nmode: append\n---\nBe brief.\n");
 
     expect(result.ok && result.style.name).toBe("short");
-    expect(result.ok && result.style.mode).toBe("replace");
+    expect(result.ok && result.style.instructions).toBe("Be brief.");
   });
 
   it.each([
@@ -55,7 +54,12 @@ describe("parseStyleFile", () => {
     [
       "unknown mode",
       "---\ndescription: Answer briefly.\nmode: prepend\n---\nBe brief.\n",
-      'frontmatter "mode" must be append or replace',
+      'frontmatter "mode" must be append',
+    ],
+    [
+      "removed replace mode",
+      "---\ndescription: Answer briefly.\nmode: replace\n---\nBe brief.\n",
+      'frontmatter "mode: replace" is no longer supported; remove the mode field or use "mode: append" to append these instructions',
     ],
     ["empty body", "---\ndescription: Answer briefly.\n---\n\n   \n", "style instruction text is empty"],
   ])("rejects %s", (_case, content, reason) => {

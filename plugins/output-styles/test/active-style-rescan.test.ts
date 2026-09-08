@@ -134,10 +134,12 @@ describe("active style follows its file after a rescan", () => {
     expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer briefly.`);
   });
 
-  it("applies an edited mode change of the active style from the next turn", async () => {
+  it("falls back without changing the persisted selection when an edit introduces removed replace mode", async () => {
     const path = await writeStyle(join(agentDir, STYLES_DIR_NAME), "terse.md", terse());
     const harness = createHarness({ flag: "terse" });
     await harness.start();
+    await harness.runCommand("terse");
+    harness.notifications.length = 0;
     expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer in one line.`);
 
     await writeFile(path, styleFile("One-line answers.", "Answer like a pirate.", "replace"), "utf8");
@@ -145,9 +147,15 @@ describe("active style follows its file after a rescan", () => {
     await harness.runCommand("");
 
     const prompt = await harness.turn();
-    expect(prompt).toContain("Answer like a pirate.");
-    expect(prompt).not.toContain(CHAINED_PROMPT);
-    expect(harness.notifications).toEqual([]);
+    expect(prompt).toBe(CHAINED_PROMPT);
+    expect(harness.notifications).toEqual([
+      {
+        message: `Output style skipped: ${path} (frontmatter "mode: replace" is no longer supported; remove the mode field or use "mode: append" to append these instructions)`,
+        level: "warning",
+      },
+      fallbackReport,
+    ]);
+    expect(JSON.parse(await readFile(join(agentDir, SETTINGS_FILE_NAME), "utf8"))[OUTPUT_STYLE_KEY]).toBe("terse");
   });
 
   it("marks default active in the selector of the invocation whose rescan lost the style", async () => {

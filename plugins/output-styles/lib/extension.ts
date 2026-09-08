@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import type { BuildSystemPromptOptions, ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import {
   type CreateFlowDependencies,
   type CreateFlowTargets,
@@ -76,7 +76,7 @@ export type StyleExtensionApi = {
   on(
     event: "before_agent_start",
     handler: (
-      event: { systemPrompt: string; systemPromptOptions: BuildSystemPromptOptions },
+      event: { systemPrompt: string },
       ctx: StyleExtensionContext,
     ) => Promise<{ systemPrompt?: string } | undefined>,
   ): void;
@@ -478,11 +478,8 @@ export function registerOutputStyles(pi: StyleExtensionApi, options: StyleExtens
     // mid-session leaves the entry in the previous colors. Rendering it again on every turn start
     // repairs that at the next turn; the text is unchanged when the theme is, so nothing flickers.
     showFooterStatus(ctx);
-    // The handler receives the chained prompt, so an append-mode value built from it preserves the
-    // system prompt changes of extensions that ran earlier in the chain. The structured options may
-    // carry full context file contents: they go into applyStyle only, never into notifications.
     try {
-      const systemPrompt = applyStyle(event.systemPrompt, activeStyle, event.systemPromptOptions);
+      const systemPrompt = applyStyle(event.systemPrompt, activeStyle);
       return systemPrompt === event.systemPrompt ? undefined : { systemPrompt };
     } catch (error) {
       notify(ctx, `Output style not applied: ${describeError(error)}`, "warning");

@@ -2,6 +2,7 @@ packages:
   - "plugins/*"
 allowBuilds:
   '@google/genai': true
+  esbuild: true
   protobufjs: true
 minimumReleaseAgeExclude:
   - '@oxfmt/binding-android-arm-eabi@0.65.0'

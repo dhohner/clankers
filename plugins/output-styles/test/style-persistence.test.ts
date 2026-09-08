@@ -112,6 +112,35 @@ describe("style persistence", () => {
     expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer in one line.`);
   });
 
+  it("skips a persisted legacy replace style and retains its selection on disk", async () => {
+    await writeUserStyles();
+    const path = await writeStyle(
+      join(cwd, CONFIG_DIR_NAME, STYLES_DIR_NAME),
+      "legacy.md",
+      styleFile("Legacy instructions.", "Replace Pi's guidance.", "replace"),
+    );
+    await writeSettings(projectSettingsPath(), { [OUTPUT_STYLE_KEY]: "legacy" });
+    await writeSettings(globalSettingsPath(), { [OUTPUT_STYLE_KEY]: "brief" });
+    const stored = await readFile(projectSettingsPath(), "utf8");
+
+    const harness = createHarness({ trusted: true });
+    await harness.start();
+
+    expect(await harness.turn()).toBe(`${CHAINED_PROMPT}\n\nAnswer briefly.`);
+    expect(harness.notifications).toEqual([
+      {
+        message: `Output style skipped: ${path} (frontmatter "mode: replace" is no longer supported; remove the mode field or use "mode: append" to append these instructions)`,
+        level: "warning",
+      },
+      {
+        message:
+          'Unknown output style "legacy" persisted in project settings. Using "brief". Available: default, brief, terse',
+        level: "warning",
+      },
+    ]);
+    expect(await readFile(projectSettingsPath(), "utf8")).toBe(stored);
+  });
+
   it("ignores the project settings file in an untrusted project", async () => {
     await writeUserStyles();
     await writeSettings(projectSettingsPath(), { [OUTPUT_STYLE_KEY]: "terse" });

@@ -13,9 +13,8 @@ description: Answers in as few words as the question allows.
 # so this file resolves to "terse" with or without this field.
 name: terse
 
-# `mode` is optional and allows "append" and "replace"; the default is "append".
-# "append" adds the body below Pi's system prompt; "replace" substitutes
-# Pi's response guidance with the body. Read the README before using "replace".
+# `mode` is optional and accepts only "append", which is also the default.
+# The body is appended to the chained system prompt without replacing existing instructions.
 mode: append
 ---
 

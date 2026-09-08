@@ -7,7 +7,7 @@ import { DEFAULT_STYLE, type StyleDefinition } from "../lib/types.js";
 const theme: StatusTheme = { fg: (color, text) => `[${color}:${text}]` };
 
 function style(name: string): StyleDefinition {
-  return { name, description: "Short answers.", mode: "append", instructions: "Answer briefly.", source: "user" };
+  return { name, description: "Short answers.", instructions: "Answer briefly.", source: "user" };
 }
 
 describe("formatStatusText", () => {

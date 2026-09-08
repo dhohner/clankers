@@ -53,7 +53,8 @@ The Codex marketplace uses local plugin paths, so install it from a local checko
 
 ### Pi Coding Agent
 
-Pi requires version 0.84.2 or later for the full bundle.
+Pi requires version 0.85.1 or later.
+Both plugins are built and tested against that version, and neither supports an older one.
 Install dependencies in a local checkout before installing `output-styles`.
 
 ```bash

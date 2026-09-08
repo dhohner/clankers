@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { FLAG_NAME, STYLES_DIR_NAME } from "../lib/extension.js";
@@ -8,7 +9,6 @@ import {
   createHarness,
   cwd,
   HARNESS_TOOLS,
-  promptOptions,
   styleFile,
   writeStyle,
 } from "./support/extension-harness.js";
@@ -138,8 +138,8 @@ describe("output styles extension", () => {
     );
   });
 
-  it("rebuilds the prompt for a replace-mode style and keeps the capability material", async () => {
-    await writeStyle(
+  it("rejects a legacy replace-mode style without modifying the prompt or rewriting the file", async () => {
+    const path = await writeStyle(
       join(agentDir, STYLES_DIR_NAME),
       "pirate.md",
       styleFile("Talk like a pirate.", "Answer like a pirate.", "replace"),
@@ -149,36 +149,32 @@ describe("output styles extension", () => {
     await harness.start();
     const prompt = await harness.turn();
 
-    expect(prompt).toContain("Answer like a pirate.");
-    expect(prompt).not.toContain(CHAINED_PROMPT);
-    expect(prompt).toContain("- read: Read file contents");
-    expect(prompt).toContain("- bash: Execute shell commands");
-    expect(prompt).toContain("- Prefer ripgrep over grep");
-    expect(prompt).toContain('<project_instructions path="/work/project/AGENTS.md">');
-    expect(prompt).toContain("Current working directory: /work/project");
+    expect(prompt).toBe(CHAINED_PROMPT);
+    expect(harness.notifications[0]?.message).toBe(
+      `Output style skipped: ${path} (frontmatter "mode: replace" is no longer supported; remove the mode field or use "mode: append" to append these instructions)`,
+    );
+    expect(await readFile(path, "utf8")).toBe(styleFile("Talk like a pirate.", "Answer like a pirate.", "replace"));
   });
 
-  it("changes only the system prompt and leaves the active tool set untouched in replace mode", async () => {
+  it("changes only the system prompt and leaves the active tool set untouched", async () => {
     await writeStyle(
       join(agentDir, STYLES_DIR_NAME),
       "pirate.md",
-      styleFile("Talk like a pirate.", "Answer like a pirate.", "replace"),
+      styleFile("Talk like a pirate.", "Answer like a pirate."),
     );
 
     const harness = createHarness({ flag: "pirate" });
     await harness.start();
     expect(harness.activeTools()).toEqual(HARNESS_TOOLS);
 
-    const options = promptOptions();
-    const result = await harness.turnResult(options);
+    const result = await harness.turnResult();
 
     expect(Object.keys(result ?? {})).toEqual(["systemPrompt"]);
-    expect(options).toEqual(promptOptions());
     expect(harness.activeTools()).toEqual(HARNESS_TOOLS);
   });
 
-  it("skips a replace-mode style file with an empty body like an append-mode one", async () => {
-    const path = await writeStyle(join(agentDir, STYLES_DIR_NAME), "empty.md", styleFile("Empty body.", "", "replace"));
+  it("skips a style file with an empty body", async () => {
+    const path = await writeStyle(join(agentDir, STYLES_DIR_NAME), "empty.md", styleFile("Empty body.", ""));
 
     const harness = createHarness({ flag: "empty" });
     await harness.start();

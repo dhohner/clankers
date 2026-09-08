@@ -12,7 +12,7 @@ import {
 import { DEFAULT_STYLE, type StyleDefinition } from "../lib/types.js";
 
 function style(name: string): StyleDefinition {
-  return { name, description: `${name} style.`, mode: "append", instructions: `${name} text.`, source: "user" };
+  return { name, description: `${name} style.`, instructions: `${name} text.`, source: "user" };
 }
 
 const STYLES = [DEFAULT_STYLE, style("brief"), style("terse")];

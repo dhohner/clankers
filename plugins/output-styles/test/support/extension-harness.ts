@@ -89,7 +89,11 @@ export let bundledDir = "";
 export let agentDir = "";
 export let cwd = "";
 
-export function promptOptions(): BuildSystemPromptOptions {
+/**
+ * The structured options Pi passes alongside the prompt. The extension appends to `systemPrompt`
+ * and never reads these, so they exist only to keep the emitted event the same shape as Pi's.
+ */
+function promptOptions(): BuildSystemPromptOptions {
   return {
     selectedTools: ["read", "bash"],
     toolSnippets: { read: "Read file contents", bash: "Execute shell commands" },
@@ -233,9 +237,9 @@ export function createHarness(options: { flag?: string; trusted?: boolean; hasUI
       )) as { systemPrompt?: string } | undefined;
       return result?.systemPrompt ?? systemPrompt;
     },
-    async turnResult(systemPromptOptions = promptOptions()) {
+    async turnResult() {
       return (await handlers.before_agent_start?.(
-        { systemPrompt: CHAINED_PROMPT, systemPromptOptions } as never,
+        { systemPrompt: CHAINED_PROMPT, systemPromptOptions: promptOptions() } as never,
         ctx,
       )) as Record<string, unknown> | undefined;
     },
