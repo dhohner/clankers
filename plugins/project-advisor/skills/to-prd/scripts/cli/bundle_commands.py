@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 import argparse
-from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
 
 from ..bundle import generate_bundle
-from ..output_validation import BundleValidationError, validate_generated_bundle
+from ..output_validation import BundleValidationError, _analyze_generated_bundle
 from ..spec import BLOCK_SPECS, iter_tree_nodes
 from .support import (
     ENTRYPOINT,
@@ -19,22 +18,6 @@ from .support import (
     summary,
     truncate,
 )
-
-
-class _IndexProbe(HTMLParser):
-    def __init__(self) -> None:
-        super().__init__()
-        self.ids: list[str] = []
-        self.fragment_links: list[str] = []
-
-    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
-        attributes = dict(attrs)
-        if attributes.get("id"):
-            self.ids.append(attributes["id"])
-        for attribute in ("href", "src"):
-            value = attributes.get(attribute)
-            if value and value.startswith("#") and len(value) > 1:
-                self.fragment_links.append(value[1:])
 
 
 def command_status(args: argparse.Namespace) -> dict[str, Any]:
@@ -161,9 +144,7 @@ def command_inspect(args: argparse.Namespace) -> dict[str, Any]:
             }
         )
     try:
-        validate_generated_bundle(bundle)
-        manifest = load_manifest(bundle / "prd.yaml", args.full)
-        html = (bundle / "index.html").read_text(encoding="utf-8")
+        analysis = _analyze_generated_bundle(bundle)
     except BundleValidationError as error:
         messages = [part.strip() for part in str(error).split(";") if part.strip()]
         items, truncated = truncate(
@@ -198,8 +179,7 @@ def command_inspect(args: argparse.Namespace) -> dict[str, Any]:
             }
         ) from error
 
-    probe = _IndexProbe()
-    probe.feed(html)
+    manifest = analysis.manifest
     assets = sorted(
         str(path.relative_to(bundle))
         for path in (bundle / "assets").rglob("*")
@@ -217,8 +197,8 @@ def command_inspect(args: argparse.Namespace) -> dict[str, Any]:
         "ids": _entity_ids(manifest),
         "assets": assets if args.full else assets[:20],
         "anchors": {
-            "count": len(probe.ids),
-            "broken": sorted(set(probe.fragment_links) - set(probe.ids)),
+            "count": len(analysis.ids),
+            "broken": sorted(set(analysis.fragment_links) - set(analysis.ids)),
         },
         "traceability": _traceability_summary(manifest),
         "validation": {"manifest": "ok", "bundle": "ok"},
@@ -234,8 +214,8 @@ def command_inspect(args: argparse.Namespace) -> dict[str, Any]:
             next_command(f"inspect {display_path(bundle)} --full"),
         )
     if args.full:
-        payload["html_ids"] = probe.ids
-        payload["fragment_links"] = probe.fragment_links
+        payload["html_ids"] = analysis.ids
+        payload["fragment_links"] = analysis.fragment_links
         payload["normalized_manifest"] = manifest
     return payload
 

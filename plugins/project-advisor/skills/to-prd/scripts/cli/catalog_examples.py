@@ -11,14 +11,10 @@ from .support import SKILL_DIR, CliFailure, display_path, next_command
 
 
 def command_examples(args: argparse.Namespace) -> dict[str, Any]:
-    examples = [_example_item(path) for path in _example_paths()]
+    paths = _example_paths()
     if args.name:
-        examples = [
-            item
-            for item in examples
-            if args.name in {item["name"], item["path"].split("/")[-1]}
-        ]
-        if not examples:
+        paths = [path for path in paths if args.name in {path.stem, path.name}]
+        if not paths:
             raise CliFailure(
                 {
                     "status": "error",
@@ -30,6 +26,7 @@ def command_examples(args: argparse.Namespace) -> dict[str, Any]:
                     "next": [next_command("examples")],
                 }
             )
+    examples = [_example_item(path) for path in paths]
     next_steps = (
         [
             next_command(f"validate {examples[0]['path']}"),
