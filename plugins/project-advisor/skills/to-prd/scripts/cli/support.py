@@ -119,7 +119,8 @@ def load_manifest(path: Path, full: bool = False) -> dict[str, Any]:
 
 
 def validation_payload(manifest: dict[str, Any], manifest_path: Path) -> dict[str, Any]:
-    german_candidates = _count_german_candidates(manifest)
+    manifest_summary = summary(manifest)
+    german_candidates = manifest_summary["untranslated_german_candidates"]
     warnings = []
     if german_candidates:
         warnings.append(
@@ -133,7 +134,7 @@ def validation_payload(manifest: dict[str, Any], manifest_path: Path) -> dict[st
         "review_surfaces": manifest["review_surfaces"],
         "selected_blocks": list(manifest["blocks"]),
         "missing_traceability": [],
-        "summary": summary(manifest),
+        "summary": manifest_summary,
         "warnings": warnings,
         "next": [
             next_command(f"generate {display_path(manifest_path)}"),

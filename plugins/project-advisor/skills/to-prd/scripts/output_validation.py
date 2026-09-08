@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import Counter
+from dataclasses import dataclass
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
@@ -17,11 +18,19 @@ class BundleValidationError(RuntimeError):
     """Raised when a generated bundle is incomplete or internally inconsistent."""
 
 
+@dataclass(frozen=True)
+class _BundleAnalysis:
+    manifest: NormalizedManifest
+    ids: list[str]
+    fragment_links: list[str]
+
+
 class _DocumentParser(HTMLParser):
     def __init__(self) -> None:
         super().__init__()
         self.ids: list[str] = []
         self.fragment_links: list[str] = []
+        self.raw_fragment_links: list[str] = []
         self.local_paths: list[str] = []
 
     def handle_starttag(
@@ -37,6 +46,8 @@ class _DocumentParser(HTMLParser):
             if not value:
                 continue
             if value.startswith("#") and len(value) > 1:
+                # Inspection reports authored fragments; validation resolves decoded IDs.
+                self.raw_fragment_links.append(value[1:])
                 self.fragment_links.append(unquote(value[1:]))
                 continue
             parsed = urlsplit(value)
@@ -57,13 +68,17 @@ def _resolve_local_path(bundle: Path, value: str) -> Path:
 
 def validate_generated_bundle(bundle: Path) -> None:
     """Validate required files, anchors, local assets, and preserved manifest YAML."""
+    _analyze_generated_bundle(bundle)
 
+
+def _analyze_generated_bundle(bundle: Path) -> _BundleAnalysis:
     index_path = bundle / "index.html"
     manifest_path = bundle / "prd.yaml"
     errors: list[str] = []
     normalized_manifest: NormalizedManifest | None = None
 
-    if not index_path.is_file():
+    index_exists = index_path.is_file()
+    if not index_exists:
         errors.append("missing index.html")
     if not manifest_path.is_file():
         errors.append("missing prd.yaml")
@@ -78,26 +93,27 @@ def validate_generated_bundle(bundle: Path) -> None:
             except ManifestError as error:
                 errors.append(f"prd.yaml does not match the manifest contract: {error}")
 
-    if index_path.is_file():
+    if index_exists:
         parser = _DocumentParser()
         try:
             parser.feed(index_path.read_text(encoding="utf-8"))
         except (OSError, UnicodeError) as error:
             errors.append(f"index.html is not readable UTF-8: {error}")
         else:
-            if "document-title" not in parser.ids:
+            id_counts = Counter(parser.ids)
+            if "document-title" not in id_counts:
                 errors.append("index.html is missing required document-title ID")
             duplicates = sorted(
-                identity for identity, count in Counter(parser.ids).items() if count > 1
+                identity for identity, count in id_counts.items() if count > 1
             )
             if duplicates:
                 errors.append("index.html contains duplicate IDs: " + ", ".join(duplicates))
-            broken = sorted(set(parser.fragment_links) - set(parser.ids))
+            broken = sorted(set(parser.fragment_links) - id_counts.keys())
             if broken:
                 errors.append("index.html contains broken anchors: " + ", ".join(broken))
             if normalized_manifest is not None:
                 missing_blocks = [
-                    name for name in normalized_manifest["blocks"] if name not in parser.ids
+                    name for name in normalized_manifest["blocks"] if name not in id_counts
                 ]
                 if missing_blocks:
                     errors.append(
@@ -111,7 +127,7 @@ def validate_generated_bundle(bundle: Path) -> None:
                     if not spec.id_prefix or spec.kind == "tree":
                         continue
                     missing_entities.extend(
-                        item["id"] for item in items if item["id"] not in parser.ids
+                        item["id"] for item in items if item["id"] not in id_counts
                     )
                 if missing_entities:
                     errors.append(
@@ -129,6 +145,8 @@ def validate_generated_bundle(bundle: Path) -> None:
 
     if errors:
         raise BundleValidationError("; ".join(errors))
+    assert normalized_manifest is not None
+    return _BundleAnalysis(normalized_manifest, parser.ids, parser.raw_fragment_links)
 
 
 __all__ = ["BundleValidationError", "validate_generated_bundle"]
