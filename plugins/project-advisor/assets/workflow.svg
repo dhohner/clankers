@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg viewBox="0 24 1280 476" width="1280" height="476" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pa-workflow-title pa-workflow-desc">
     <title id="pa-workflow-title">Project Advisor workflow</title>
-    <desc id="pa-workflow-desc">The next-thing skill picks one product bet, to-prd turns it into an accepted prd.yaml manifest through a design-tree interview and a revision loop, and once the manifest reaches status Accepted the work forks into to-issues, which writes German Jira slices, and to-agent-tasks, which writes self-contained tasks for autonomous coding agents.</desc>
+    <desc id="pa-workflow-desc">The next-thing skill picks one product bet. to-prd turns it into an accepted prd.yaml manifest through a design-tree interview and a revision loop. Once the manifest reaches status Accepted, the work forks. to-issues writes German or English Jira slices, and to-agent-tasks writes self-contained tasks for autonomous coding agents.</desc>
     <defs>
       <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4e5399"/></marker>
       <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#fd6a23"/></marker>
@@ -60,7 +60,7 @@
     <rect x="788" y="92" width="52" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.28)" stroke-width="0.8"/>
     <text x="814" y="101" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">STEP 3</text>
     <text x="876" y="130" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">to-issues</text>
-    <text x="876" y="146" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">German tracer bullets</text>
+    <text x="876" y="146" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">de or en tracer bullets</text>
 
     <!-- to-agent-tasks -->
     <rect x="776" y="352" width="200" height="80" rx="6" fill="#ffffff" stroke="rgba(0,3,92,0.20)" stroke-width="1"/>

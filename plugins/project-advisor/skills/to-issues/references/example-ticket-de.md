@@ -1,10 +1,13 @@
 # Beispiel-Ticket
 
-Diese Datei dient als Referenz für Ton, Detailgrad und den Unterschied zwischen einem guten Jira-Schnitt und einer Implementierungs-Checkliste.
+Diese Datei gilt für die Ticketsprache `de`.
 
-Domain-Details nicht wörtlich übernehmen, sofern sie nicht zum aktuellen PRD passen. Struktur, ergebnisorientierte Formulierung und Hinweis-Dichte wiederverwenden.
+Sie dient als Referenz für Ton, Detailgrad und den Unterschied zwischen einem guten Jira-Schnitt und einer Implementierungs-Checkliste.
+Sprachregister und Begriffswahl folgen `ticket-writing-checklist.md` und `language-de.md`.
+Dieses Beispiel zeigt beides angewendet.
 
-Sprachregister und Begriffswahl folgen der Ticket-Writing-Checkliste; dieses Beispiel zeigt beides angewendet.
+Domain-Details nicht wörtlich übernehmen, sofern sie nicht zum aktuellen PRD passen.
+Struktur, ergebnisorientierte Formulierung und Hinweis-Dichte wiederverwenden.
 
 ## Beispiel-Ausgabe
 
