@@ -1,7 +1,7 @@
 {
   "name": "task-executor",
   "version": "0.2.0",
-  "description": "Implements coding-agent task files with TDD, requirement verification, and independent review-fix loops.",
+  "description": "Implements task files for coding agents with TDD and independent requirement verification.",
   "author": {
     "name": "dhohner"
   },

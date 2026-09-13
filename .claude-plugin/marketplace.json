@@ -25,7 +25,7 @@
     {
       "name": "task-executor",
       "source": "./plugins/task-executor",
-      "description": "Implements coding-agent task files with TDD, requirement verification, and independent review-fix loops.",
+      "description": "Implements task files for coding agents with TDD and independent requirement verification.",
       "category": "development",
       "tags": ["tdd", "implementation", "verification", "coding-agents"]
     }
