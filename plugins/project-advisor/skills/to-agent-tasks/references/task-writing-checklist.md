@@ -1,56 +1,45 @@
-# Autonomous task quality gate
+# Agent task quality gate
 
-Check every applicable item before saving a task.
+Check every drafted task against each item, and fix every failure before saving the task.
 
-## Structure and coverage
+## Outcome and coverage
 
-- The task follows [agent-task-template.md](agent-task-template.md), keeps every required section, removes unused optional content, and has no placeholders.
-- The title and Outcome define one observable result and its value.
-- Required behavior and Boundary contain only what that result needs.
-- Every assigned ledger item appears in behavior, acceptance, validation, another mapped slice, or a blocker.
-- The union of split tasks preserves every clause and scenario from the source requirement.
+- Follow [agent-task-template.md](agent-task-template.md), keep required sections, remove unused optional content, and replace every placeholder.
+- Define one observable result and its value in the title and Outcome.
+- Map every assigned source item to required behavior, acceptance, validation, another slice, or a scoped blocker.
+- Preserve every source requirement and scenario across the complete task set.
 
 ## Evidence and autonomy
 
-- Every claim comes from the PRD, inspected repository evidence, or a labeled assumption or blocker.
-- The task contains every required product decision and never refers the executor to the PRD, sibling tasks, or task numbers.
-- Repository notes contain only verified entry points, binding contracts, and non-obvious wiring that affects a decision.
-- Dependencies describe required predecessor capabilities and why they are needed, not files or task order.
-- Shared prerequisite contracts agree on fields, meanings, status codes, ordering, and other fixed properties, and a choice left non-binding in one task stays non-binding in every task that mentions it.
-- Architecture and implementation remain open unless evidence fixes them or a suggestion is labeled non-binding.
-
-## Delegation boundary
-
-- Every material decision is fixed by evidence, delegated under Your call, or escalated under Blockers.
-- Every unsupported decision introduced by the task appears under Assumptions.
-- May change and Must survive name the precise change surface and the specific surviving properties - field names, meanings, status codes, ordering, existing values - rather than a blanket "behaves as today" claim; an invariant that the task's own changes violate fails this check.
-- Each blocker names the unresolved decision, needed evidence, and only the behavior that must wait.
-- The task tells the executor to record delegated choices and stop at unsettled decisions instead of widening scope or inventing answers.
+- Support each binding claim with the PRD or inspected repository evidence.
+- Label unsupported claims as assumptions or blockers.
+- Include every product and contract decision needed for execution.
+- Make each task independent of the PRD and sibling tasks.
+- Limit repository notes to verified entry points, binding contracts, and hidden wiring that affects decisions.
+- State prerequisite capabilities and their required contracts inline.
+- Keep shared contracts consistent across tasks.
+- Keep `Must preserve` free of any contract the same task changes.
+- Leave routine, reversible implementation choices to the executor.
+- Name each blocker's missing decision or evidence and affected behavior.
+- Copy the template's executor boundary text into every task unchanged.
 
 ## Acceptance and validation
 
-- Acceptance preserves every assigned source scenario as a technology-neutral check of state, action, and observable result.
-- Starting states match inspected fixtures or the check establishes them.
-- Checks cover applicable success, exact boundaries, failures, permissions, recovery, replay, and concurrency.
-- Added checks follow directly from source-backed behavior.
-- Checks are plain checkable statements, with no Given/When/Then syntax required.
-- Validation names existing local commands or focused manual steps and their expected evidence.
-- Validation distinguishes new-behavior evidence from relevant regression coverage and avoids unauthorized remote effects.
+- State each check's action, result, boundaries, and relevant failure behavior.
+- Match each check's starting state to an inspected fixture, or have the check establish it.
+- Cover permissions, recovery, replay, and concurrency when applicable.
+- Name an existing local command or focused manual check and its expected evidence.
+- Classify validation as new behavior coverage or regression coverage.
+- Keep validation free of remote effects.
 
-## Precision and brevity
+## Focus
 
-- Identifiers, values, units, commands, qualifiers, and scenario details remain exact.
-- Each binding fact appears once in its owning prose section, while Acceptance expresses it as observable evidence.
-- Every sentence supplies product meaning, a contract, a boundary, evidence, or a completion check.
-- The task omits generic engineering advice and repository facts that one search can recover.
-- The task avoids implementation steps, layouts, algorithms, and data structures unless fixed or explicitly non-binding.
-- A task beyond about 100 lines justifies the extra lines with unique, decision-relevant content.
+- Preserve exact identifiers, values, units, commands, and scenario details.
+- State each binding fact once in prose.
+- Repeat it in Acceptance only as observable evidence.
+- Remove generic engineering advice, repository tours, and unsupported implementation steps.
+- Keep only sentences that add product meaning, a contract, a boundary, evidence, or a completion check.
 
-## Contract branch
+## Contract checks
 
-When the contract branch applies, the task passes [contract-precision.md](contract-precision.md).
-
-## Completion criterion
-
-The task passes when every applicable item is directly verifiable.
-Convert evidence gaps into blockers and correct all other failures before saving.
+For a slice with contract risks, check the task against [contract-precision.md](contract-precision.md).

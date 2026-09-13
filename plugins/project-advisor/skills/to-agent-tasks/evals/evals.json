@@ -3,52 +3,50 @@
   "evals": [
     {
       "id": 0,
-      "prompt": "The PRD bundle at inputs/prd.yaml went through review and I accept it. Break it into coding-agent tasks for the repository at outputs/repo. I approve your breakdown in advance - write the task files directly to action-items/agent-tasks/ inside that repository without presenting the breakdown first.",
-      "expected_output": "Dependency-ordered, self-contained Markdown task files under action-items/agent-tasks/ that cover all five PRD requirements, ground repository context in real fixture paths, and define authorization and audit contracts.",
+      "prompt": "The accepted PRD bundle is at inputs/prd.yaml. Break it into coding agent tasks for the repository at outputs/repo.",
+      "expected_output": "Markdown task files appear under action-items/agent-tasks/ in dependency order. Together they cover REQ-01 through REQ-05. Each file stands alone, cites real fixture paths, and defines the authorization and audit contracts it touches.",
       "files": [
-        "evals/inputs/prd-order-history.yaml (copy of the to-issues fixture, status Accepted)",
-        "fixture repo: minimal Express customer portal at ../to-agent-tasks-workspace/fixtures/customer-portal (git repo; auth middleware, in-memory data layer, jest + supertest)"
+        "`evals/inputs/prd-order-history.yaml` copies the `to-issues` fixture and has `status: Accepted`.",
+        "The fixture repository at `../to-agent-tasks-workspace/fixtures/customer-portal` is a minimal Express portal with authentication middleware, a data layer in memory, Jest, and Supertest."
       ],
       "assertions": [
-        "Task files exist under action-items/agent-tasks/ with dependency-ordered numeric prefixes such as 01-.",
-        "Every requirement REQ-01 through REQ-05 is covered by at least one task's scope or acceptance criteria.",
-        "Each task file contains the template's required sections: Outcome, Required behavior, Boundary, Repository notes, Acceptance, Validation.",
-        "Tasks are self-contained: no task instructs the executor to read prd.yaml, the PRD bundle, or sibling task files; prerequisite capabilities are described inline.",
-        "Repository notes cite only paths and symbols that exist in the fixture repo; nothing invented is presented as inspected fact.",
-        "No repository behavior, wiring, or convention is misstated as inspected fact (e.g. claiming a layout mechanism is wired when it is not).",
-        "Acceptance checks that assume a starting state are consistent with the fixture data they reference, or explicitly establish that state.",
-        "REQ-05 produces explicit authorization and audit contract clauses (authenticated actor, ownership scope, audit record content) or named blockers rather than silence.",
-        "REQ-04's invoice-fetch failure behavior (retryable error without losing page state) appears in some task's acceptance criteria.",
-        "Validation sections name commands that exist in the fixture repo (npm test / jest) and stay local.",
-        "Every task directs the executor to stop and report at a decision the task does not settle rather than widen scope or invent one.",
-        "Every task directs the executor to record the choices it makes where the task leaves the decision open.",
-        "Material choices the task leaves to the executing agent are stated as open explicitly, not left implied by omission.",
-        "Tasks that modify shared fixture artifacts (auth middleware, the in-memory data layer, existing routes or their response shapes) state what must survive intact, not only what to add.",
-        "No unresolved product decision is presented as settled fact; unresolved decisions appear as named blockers with the evidence needed to settle them.",
-        "Where a task settles a product or contract decision that neither the PRD nor the repository fixes, the task file itself labels it as an assumption; surfacing it only in the chat summary does not count, because the executor never sees that summary.",
-        "No task dictates an implementation choice the PRD and repository leave open (implementation sequence, module layout, algorithm, data structure, injection style) unless it labels that choice as non-binding.",
-        "Task files contain no generic engineering advice the executor already applies by default, such as 'write tests' or 'follow existing conventions'.",
-        "Repository notes point at entry points and binding contracts instead of touring the codebase; nothing appears that one repository search rediscovers unless it settles a decision.",
-        "Task files are succinct: a typical task stays within roughly 40-120 lines, and longer files earn their length with decision-relevant content rather than restatement.",
-        "Where one task's output is a prerequisite for another, the contract described in both agrees on response shape, field names, error codes, and ordering.",
-        "Boundary material is specific to its task and names the invariants an executor might plausibly break, rather than restating the task's own behavior, contract, or repository sections.",
-        "The invariants each task declares intact are consistent with the changes that same task makes; no task both preserves and modifies the same contract.",
-        "Where an input is missing, the blocker is scoped to the part it actually prevents and the task still delivers the rest of the requirement, rather than deferring a whole requirement wholesale; REQ-03 delivery milestones and REQ-02 filter persistence are the cases to check.",
-        "No task asserts a claim about the source that the PRD does not support, such as inventing a ranking, magnitude, or priority among items the PRD lists without one.",
-        "Where a requirement is split across tasks, the union of those tasks covers every clause of the requirement's description; no clause of a split requirement is silently dropped.",
-        "Numeric filename prefixes are consistent with the dependency order: every capability a task names as a prerequisite is delivered by a lower-numbered task."
+        "The skill writes tasks with numeric prefixes such as `01-` directly to `action-items/agent-tasks/` in dependency order without requesting breakdown approval.",
+        "At least one task covers each requirement from `REQ-01` through `REQ-05` in scope or acceptance.",
+        "Each task contains `Outcome`, `Required behavior`, `Boundary`, `Repository notes`, `Acceptance`, and `Validation` sections.",
+        "Each task stands alone, states prerequisite capabilities inline, and never points the executor to the PRD or sibling tasks.",
+        "Repository notes cite only fixture paths and symbols that exist and present no invention as inspected fact.",
+        "Tasks state repository behavior, wiring, and conventions accurately without claiming that an unwired layout mechanism is wired.",
+        "Acceptance checks match referenced fixture state or establish their required starting state.",
+        "`REQ-05` defines the authenticated actor, ownership scope, and audit record content, or it names blockers.",
+        "Acceptance covers `REQ-04` invoice fetch failures as retryable errors that preserve page state.",
+        "Validation uses existing local commands such as `npm test` or `jest`.",
+        "Every task carries the executor boundary text from `references/agent-task-template.md` without narrowing or widening it.",
+        "Tasks identify material open choices without enumerating every routine implementation choice.",
+        "Tasks that change authentication, data storage, routes, or response shapes name the properties they must preserve.",
+        "Tasks present no unresolved product decision as fact, and each blocker names the evidence needed for resolution.",
+        "Each task labels unsupported product or contract decisions as assumptions in the file itself, since a chat summary does not count.",
+        "Tasks dictate no open implementation choice, including sequence, layout, algorithms, data structures, or injection style, unless they label it nonbinding.",
+        "Tasks omit generic advice such as writing tests or following existing conventions.",
+        "Every repository note identifies an entry point or binding contract and either settles a decision or requires more than one search.",
+        "Tasks describe shared prerequisite contracts consistently, including response shapes, field names, error codes, and ordering.",
+        "Each Boundary names task specific invariants the executor might break without repeating behavior, contracts, or repository notes.",
+        "A task does not claim to preserve a contract that it changes.",
+        "Each blocker defers only the affected behavior while the task delivers the rest, including for `REQ-03` milestones and `REQ-02` filter persistence.",
+        "Tasks attribute source claims accurately without inventing any ranking, magnitude, or priority absent from the PRD.",
+        "When tasks split a requirement, their combined scope covers every clause in its description.",
+        "Numeric prefixes match dependency order, so each prerequisite capability comes from a lower numbered task."
       ]
     },
     {
       "id": 1,
-      "prompt": "Create coding-agent tasks from inputs/prd.yaml for the repository at outputs/repo.",
-      "expected_output": "The skill stops at the acceptance gate because the PRD status is 'In Review' and no acceptance was given in conversation; it asks for confirmation and writes no files.",
+      "prompt": "Create coding agent tasks from inputs/prd.yaml for the repository at outputs/repo.",
+      "expected_output": "The skill stops because the PRD has `status: In Review` and the conversation gives no acceptance. It asks for acceptance and writes no files.",
       "files": [
-        "evals/inputs/prd-order-history-in-review.yaml (same PRD with status 'In Review')"
+        "`evals/inputs/prd-order-history-in-review.yaml` has `status: In Review`."
       ],
       "assertions": [
-        "No files are created or modified in the target repository; in particular no action-items/ directory appears.",
-        "The final response asks for explicit acceptance confirmation of the PRD instead of proceeding with the breakdown."
+        "The skill modifies no target repository file and creates no `action-items/` directory.",
+        "The final response asks for explicit PRD acceptance before presenting a breakdown."
       ]
     }
   ]

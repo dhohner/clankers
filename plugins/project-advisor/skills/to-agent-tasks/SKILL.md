@@ -1,81 +1,54 @@
 ---
 name: to-agent-tasks
-description: Convert an accepted `to-prd` `prd.yaml` bundle into self-contained, dependency-ordered tracer-bullet tasks for autonomous coding agents. Use when the user asks to break an accepted PRD into coding-agent tasks for an autonomous agent such as Claude Code, Codex, or Pi. For Jira or tracker tickets, use `to-issues`.
-argument-hint: "[DO NOT USE - PREVIEW]"
+description: >-                                                                               
+  Turn an accepted `to-prd` `prd.yaml` into standalone Markdown tasks for an autonomous coding agent.
+  For tracker tickets, use `to-issues`.
 ---
 
-# Accepted PRD to Agent Tasks
+# Create agent tasks
 
-Convert one accepted `prd.yaml` into a small set of Markdown tasks for an airgapped coding agent.
-The executor has repository access and one task file, but cannot ask follow-up questions.
-Write to `action-items/agent-tasks/` unless the user chooses another destination.
-Ask only about decisions that change scope, order, contracts, or acceptance.
+Convert one accepted `prd.yaml` into Markdown tasks in dependency order.
+Make each task executable without the PRD or sibling files.
+Read `prd.yaml` as the source of truth, and treat `index.html` as its rendered copy for human review.
+Write to `action-items/agent-tasks/` unless the user selects another destination.
+Run intake, shaping, and writing in one pass, and stop only at the acceptance gate or a requested breakdown review.
 
-## Delegation boundary
+## Accept the source
 
-- Give every material decision one disposition: **Fixed** by evidence, **Delegated** to the executor, or **Escalated** as a named blocker.
-- Label any decision you introduce without PRD or repository support as an assumption inside the task.
-- Scope blockers to the exact behavior they prevent, and keep all other deliverable behavior in the task.
-- Name what may change and the specific contracts or behavior that must survive.
+Require top level `status: Accepted` or acceptance from the user in the conversation.
+Without either, ask for acceptance and write nothing.
 
-## Process
+Map every requirement, scenario, constraint, non goal, decision, risk, question, success measure, dependency, and validation link that affects implementation.
+Take behavior from `blocks.requirements` and its validation context from `blocks.testing_strategy`.
+Classify each item as implementation, validation, blocker, or no work.
 
-### 1. Gate the source and build the ledger
+Intake is complete when every source item has one disposition.
 
-Use `prd.yaml` as the source of truth and `index.html` only as its review surface.
-Require top-level `status: Accepted` or explicit user acceptance.
-If acceptance is unknown, ask for it and stop.
-If the user accepts a draft manifest, point them to `to-prd` so it can publish that state.
+## Shape the tasks
 
-Record every requirement ID, Gherkin scenario, and implementation-relevant constraint, non-goal, decision, risk, question, success measure, dependency, and validation link.
-Use `blocks.requirements` for behavior.
-Include other blocks only when they affect implementation, acceptance, sequence, or validation.
-Classify each ledger item as implementation, validation context, blocker, or no implementation work.
+Create the smallest set of outcome slices that covers the source.
+Express each dependency as a required predecessor capability.
+When a split, merge, or order is unclear, apply [references/slice-design-checklist.md](references/slice-design-checklist.md).
+If the user requests breakdown review, present it before writing.
 
-**Complete when:** every ledger item has one disposition and every material uncertainty is visible.
+Ground each slice in verified entry points, contracts, conventions, and safe local validation from the repository.
+Revise the slices when evidence reveals a coupling or sequence boundary.
 
-### 2. Design tracer bullets
+Resolve decisions from the PRD first, then from repository evidence.
+When a slice touches durable data, state, thresholds, time, retries, concurrency, coupled writes, external effects, authorization, or tenant isolation, resolve it with [references/contract-precision.md](references/contract-precision.md).
+Delegate routine, reversible implementation choices to the executor.
+Add a scoped blocker only when a missing decision would change required behavior, a public or persisted contract, security, external state, or scope.
+Name the exact behavior each blocker prevents and leave the rest of the slice deliverable.
 
-Read and apply [references/slice-design-checklist.md](references/slice-design-checklist.md).
-Map the ledger to the smallest set of outcome slices.
-Express dependencies as required predecessor capabilities.
-Keep `blocks.testing_strategy` with the behavior it validates.
+Shaping is complete when every source item maps to a grounded slice or a disposition, and every applicable contract check passes or has a blocker.
 
-**Complete when:** the reference's completion criterion passes against the ledger.
+## Write the tasks
 
-### 3. Ground each slice
+Follow [references/agent-task-template.md](references/agent-task-template.md) for every task file, including its executor boundary text.
+Name files in dependency order, such as `01-short-task-title.md`.
+Keep existing task files and choose unused names, unless the user asks for a regeneration, which replaces them.
+State prerequisite contracts inline so each task stands alone.
+Audit the task set against the source map and [references/task-writing-checklist.md](references/task-writing-checklist.md), fix every failure, and re-audit until it passes.
 
-Inspect only the code, configuration, tests, migrations, and documentation needed for each slice.
-Identify real entry points, binding contracts, conventions, dependencies, and safe validation commands.
-Revise the breakdown when repository evidence reveals a material coupling or boundary.
-Record evidence gaps as blockers, not facts.
-
-**Complete when:** every slice has inspected integration evidence and safe validation, or a precise blocker.
-
-### 4. Resolve contract-sensitive slices
-
-For durable data, state, thresholds, time, retries, concurrency, coupled writes, external effects, authorization, or tenant isolation, read and apply [references/contract-precision.md](references/contract-precision.md).
-Resolve decisions from the PRD first and established repository behavior second.
-Delegate deliberately open choices and escalate missing product or contract decisions.
-
-**Complete when:** every triggered slice passes the contract reference.
-
-### 5. Approve the breakdown
-
-Treat a request to write now, skip review, or assume approval as approval.
-Otherwise present each task's title, outcome, requirement IDs, prerequisite capabilities, and blockers.
-Wait for approval.
-
-**Complete when:** the user approves the exact breakdown.
-
-### 6. Write, audit, and report
-
-Read [references/agent-task-template.md](references/agent-task-template.md) and [references/task-writing-checklist.md](references/task-writing-checklist.md).
-Inspect the destination and preserve existing files unless the user explicitly authorizes replacement.
-Use non-colliding dependency-ordered names such as `01-short-task-title.md`.
-Write one self-contained file per approved slice and describe prerequisite contracts inline.
-Audit each file against the ledger and every applicable checklist item before saving it.
-
-Report files in execution order, labeled assumptions, and unresolved blockers.
-
-**Complete when:** all approved tasks exist, all ledger items remain covered, every task passes the audit, no existing file was replaced without explicit authorization, and the report accounts for every file and blocker.
+Writing is complete when all files exist, every task passes the audit, shared contracts agree, and each task has safe completion evidence.
+Report the files in execution order with material assumptions and unresolved blockers.
