@@ -15,7 +15,7 @@ Together they support a natural workflow from product bet to approved PRD to imp
 
 ## Workflow
 
-![Project Advisor workflow. next-thing pitches one product bet. to-prd turns it into an accepted prd.yaml through a design-tree interview and a revision loop. Once the manifest reaches status Accepted, the work forks. to-issues writes German or English Jira slices, and to-agent-tasks writes self-contained tasks for autonomous coding agents.](./assets/workflow.svg)
+![Project Advisor workflow. next-thing pitches one product bet. to-prd turns it into an accepted prd.yaml through a design-tree interview and a revision loop. Once the manifest reaches status Accepted, the work forks. to-issues writes German or English Jira slices, and to-agent-tasks writes self-contained tasks for autonomous coding agents. The task-executor plugin optionally implements one of those task files.](./assets/workflow.svg)
 
 ## Usage
 

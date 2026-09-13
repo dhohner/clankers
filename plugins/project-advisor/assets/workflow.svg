@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="0 24 1280 476" width="1280" height="476" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pa-workflow-title pa-workflow-desc">
+<svg viewBox="0 24 1544 476" width="1544" height="476" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pa-workflow-title pa-workflow-desc">
     <title id="pa-workflow-title">Project Advisor workflow</title>
-    <desc id="pa-workflow-desc">The next-thing skill picks one product bet. to-prd turns it into an accepted prd.yaml manifest through a design-tree interview and a revision loop. Once the manifest reaches status Accepted, the work forks. to-issues writes German or English Jira slices, and to-agent-tasks writes self-contained tasks for autonomous coding agents.</desc>
+    <desc id="pa-workflow-desc">The next-thing skill picks one product bet. to-prd turns it into an accepted prd.yaml manifest through a design-tree interview and a revision loop. Once the manifest reaches status Accepted, the work forks. to-issues writes German or English Jira slices, and to-agent-tasks writes self-contained tasks for autonomous coding agents. The task-executor plugin optionally picks up one of those task files and implements it.</desc>
     <defs>
       <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4e5399"/></marker>
       <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#fd6a23"/></marker>
 
     </defs>
 
-    <rect x="0" y="24" width="1280" height="476" fill="#ffffff"/>
+    <rect x="0" y="24" width="1544" height="476" fill="#ffffff"/>
 
     <!-- connectors, drawn before nodes -->
     <line x1="240" y1="256" x2="296" y2="256" stroke="#4e5399" stroke-width="1.2" marker-end="url(#arrow)"/>
@@ -29,6 +29,10 @@
 
     <line x1="976" y1="120" x2="1032" y2="120" stroke="#4e5399" stroke-width="1.2" marker-end="url(#arrow)"/>
     <line x1="976" y1="392" x2="1032" y2="392" stroke="#4e5399" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+    <line x1="1240" y1="392" x2="1296" y2="392" stroke="#4e5399" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <rect x="1244" y="372" width="48" height="12" rx="2" fill="#ffffff"/>
+    <text x="1268" y="381" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">ONE TASK</text>
 
     <path d="M 640,288 V 316 Q 640,324 632,324 H 412 Q 404,324 404,316 V 304" fill="none" stroke="#4e5399" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
     <rect x="498" y="304" width="48" height="12" rx="2" fill="#ffffff"/>
@@ -83,8 +87,15 @@
     <text x="1140" y="402" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">Agent tasks</text>
     <text x="1140" y="418" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">agent-tasks/NN-*.md</text>
 
+    <!-- task-executor:implement -->
+    <rect x="1304" y="352" width="200" height="80" rx="6" fill="#ffffff" stroke="rgba(0,3,92,0.20)" stroke-width="1"/>
+    <rect x="1316" y="364" width="52" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.28)" stroke-width="0.8"/>
+    <text x="1342" y="373" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">OPTIONAL</text>
+    <text x="1404" y="402" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">task-executor:implement</text>
+    <text x="1404" y="418" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">red-green TDD · verified</text>
+
     <!-- legend -->
-    <line x1="40" y1="464" x2="1240" y2="464" stroke="rgba(0,3,92,0.10)" stroke-width="0.8"/>
+    <line x1="40" y1="464" x2="1504" y2="464" stroke="rgba(0,3,92,0.10)" stroke-width="0.8"/>
     <text x="40" y="486" fill="#4e5399" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" letter-spacing="0.14em">LEGEND</text>
 
     <rect x="128" y="476" width="16" height="12" rx="2" fill="#ffffff" stroke="rgba(0,3,92,0.20)" stroke-width="0.8"/>
