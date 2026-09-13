@@ -2,7 +2,7 @@
 name: review-changes
 description: >-
   Review changed code across six scored quality dimensions without editing it.
-  Use when asked to review a diff, commit, staged changes, named files, or merge readiness.
+disable-model-invocation: true
 ---
 
 # Review changed code
