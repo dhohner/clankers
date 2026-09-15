@@ -1,0 +1,18 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc", "import", "promise"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "perf": "error"
+  },
+  "rules": {
+    // The test harnesses poll for a process side effect or for the agent to start streaming, and each
+    // await depends on the previous check, so those loops cannot be batched with `Promise.all`.
+    "no-await-in-loop": "off",
+    // Optional results are modelled as `T | undefined`; the rule's suggested `null` would add a second
+    // absent value.
+    "unicorn/no-useless-undefined": "off"
+  },
+  "ignorePatterns": ["dist/**"]
+}

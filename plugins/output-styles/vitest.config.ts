@@ -2,6 +2,7 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
+    name: { label: "output-styles", color: "cyan" },
     allowOnly: false,
     expect: { requireAssertions: true },
     // Every test works on local files only, and the slowest one stays far below this limit.
@@ -28,7 +29,6 @@ export default defineConfig({
       // match the package directory `output-styles/`. The leading slash anchors each
       // pattern to a whole path segment.
       exclude: ["/test/**", "/dist/**", "/node_modules/**", "/styles/**", "/examples/**", "/index.ts"],
-      all: true,
       // The gate reads the whole suite in one run. `perFile` makes a shortfall name the file that
       // caused it, not only the metric.
       thresholds: { perFile: true, lines: 90, branches: 90 },

@@ -1,3 +1,5 @@
+import { inject } from "vitest";
+
 // The positive-path tests prove that a system executable runs, which depends on the environment the runner
 // inherited: a `BASH_ENV`, a look-alike `rm` earlier in PATH, or a shell setting in the developer's own Pi
 // agent directory would make them fail or pass by accident. Each worker therefore starts from a known state;
@@ -10,3 +12,5 @@ for (const name of Object.keys(process.env)) {
   if (name.startsWith("BASH_FUNC_")) delete process.env[name];
 }
 process.env.PATH = [SYSTEM_PATH, process.env.PATH ?? ""].filter(Boolean).join(":");
+
+process.env.PI_CODING_AGENT_DIR = inject("securityGuardAgentDirectory");

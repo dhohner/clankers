@@ -3,14 +3,12 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    name: { label: "security-guard", color: "green" },
-    // A test that only passes in its declared position hides a dependency on another test, so both
-    // the file order and the order inside a file are randomized on every run.
+    name: { label: "redactor", color: "magenta" },
     sequence: { shuffle: { files: true, tests: true } },
-    // Restores every vi.spyOn after each test, so a spy cannot outlive the test that installed it.
     restoreMocks: true,
     globalSetup: ["./test/support/global-setup.ts"],
     setupFiles: ["./test/support/setup.ts"],
+    isolate: false
   },
   resolve: {
     alias: {

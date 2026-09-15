@@ -1,12 +1,12 @@
 {
-  "name": "security-guard",
-  "version": "0.5.0",
+  "name": "redactor",
+  "version": "0.1.0",
   "private": true,
-  "description": "Pi extension that blocks environment dumps and common local credential access and asks for approval before destructive commands.",
+  "description": "Pi extension that replaces registered credential text with safe references before model submission, persistence, and tool output publication on macOS.",
   "keywords": [
     "credentials",
-    "guardrails",
     "pi-package",
+    "redaction",
     "security"
   ],
   "license": "MIT",
@@ -16,7 +16,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/dhohner/clankers.git",
-    "directory": "plugins/security-guard"
+    "directory": "plugins/redactor"
   },
   "files": [
     "README.md",
@@ -24,8 +24,7 @@
     "src/**",
     "tsconfig.json",
     "tsconfig.build.json",
-    "package.json",
-    "LICENSE"
+    "package.json"
   ],
   "type": "module",
   "scripts": {
@@ -40,6 +39,7 @@
     "check": "pnpm run lint && pnpm run format:check && pnpm test && pnpm run typecheck"
   },
   "devDependencies": {
+    "@earendil-works/pi-ai": "0.85.1",
     "@types/node": "^26.5.1",
     "oxfmt": "^0.68.0",
     "oxlint": "^1.83.0",
@@ -47,9 +47,13 @@
     "vitest": "^5.0.0"
   },
   "peerDependencies": {
+    "@earendil-works/pi-ai": "*",
     "@earendil-works/pi-coding-agent": "*"
   },
   "peerDependenciesMeta": {
+    "@earendil-works/pi-ai": {
+      "optional": true
+    },
     "@earendil-works/pi-coding-agent": {
       "optional": true
     }

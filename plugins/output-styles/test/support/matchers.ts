@@ -54,8 +54,8 @@ expect.extend({
 });
 
 declare module "vitest" {
-  // The type parameter repeats Vitest's own default, which TypeScript requires for the merge.
-  interface Matchers<T = any> {
-    toEqualUnordered(expected: readonly unknown[]): T;
+  // The type parameters repeat Vitest's own defaults, which TypeScript requires for the merge.
+  interface Matchers<R extends void | Promise<void> = void | Promise<void>, T = unknown> {
+    toEqualUnordered(expected: readonly unknown[]): R;
   }
 }
