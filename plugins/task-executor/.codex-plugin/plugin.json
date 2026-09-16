@@ -1,7 +1,7 @@
 {
   "name": "task-executor",
-  "version": "0.3.0",
-  "description": "Implements task files for coding agents with TDD and independent requirement verification.",
+  "version": "0.4.0",
+  "description": "Implements coding-agent task files and standalone changes through TDD, with independent requirement verification.",
   "author": {
     "name": "dhohner",
     "url": "https://github.com/dhohner"
@@ -11,6 +11,7 @@
   "license": "MIT",
   "keywords": [
     "tdd",
+    "testing",
     "implementation",
     "verification",
     "coding-agents"
@@ -18,8 +19,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Task Executor",
-    "shortDescription": "TDD implementation of coding-agent task files.",
-    "longDescription": "Implements one to-agent-tasks task file at a time through red-green TDD. Verifies requirement coverage with fresh subagents before reporting.",
+    "shortDescription": "TDD implementation of task files and standalone changes.",
+    "longDescription": "Implements one to-agent-tasks task file at a time through red-green TDD and verifies requirement coverage with fresh subagents before reporting. The tdd skill runs the same red-green-refactor loop for any feature, bug fix, or untested code and ends with a mutation check.",
     "developerName": "dhohner",
     "category": "Development",
     "capabilities": [
@@ -29,7 +30,8 @@
     "defaultPrompt": [
       "Use the implement skill to implement the next agent task.",
       "Implement action-items/agent-tasks/01-short-task-title.md with the implement skill.",
-      "Implement task 02 with up to 5 verification passes."
+      "Implement task 02 with up to 5 verification passes.",
+      "Use the tdd skill to fix the empty email bug in submitForm."
     ],
     "brandColor": "#B45309"
   }

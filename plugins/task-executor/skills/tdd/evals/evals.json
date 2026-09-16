@@ -1,0 +1,43 @@
+{
+  "skill_name": "tdd",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Fix this bug with TDD: submitForm in src/forms/submit.ts accepts an empty email string and returns no error. It should return { error: 'Email required' } for an empty or whitespace-only email.",
+      "expected_output": "A failing test for the empty email case is written and run before any production change, the minimal validation is added, and the report quotes both the failing and the passing run.",
+      "files": [],
+      "expectations": [
+        "A test asserting the 'Email required' error exists and was run before submit.ts changed.",
+        "The recorded red run fails on the test's own assertion, not on a missing import, syntax error, or fixture problem.",
+        "The production change adds only the empty and whitespace email validation and no other option or branch.",
+        "The affected test suite is rerun after the fix and reported as passing.",
+        "The report classifies the new test as new-behavior coverage."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Use TDD to add a retryOperation(fn) helper to src/util/retry.ts that retries a failing async operation up to three attempts and rethrows the final error.",
+      "expected_output": "The behavior is split into single-behavior checks for success on a later attempt, immediate success, and exhaustion after three failures, each written and watched failing before the code that passes it.",
+      "files": [],
+      "expectations": [
+        "Separate tests cover success on a later attempt, success on the first attempt, and rethrowing after three failures.",
+        "Each test was run and observed failing before the code that made it pass.",
+        "The tests use a real operation function with counted attempts rather than asserting on a mock's call count alone.",
+        "The helper takes no backoff, callback, or retry-count option that the tests do not require.",
+        "The report names at least one test that fails for a mutation such as retrying four times or returning undefined on exhaustion."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Cover the existing parseDuration function in src/time/duration.ts with tests using the tdd skill. It already works and I do not want its behavior changed.",
+      "expected_output": "Each test is proven capable of failing by disabling the behavior it covers for one run, and parseDuration ends the task with its original behavior.",
+      "files": [],
+      "expectations": [
+        "Each new test's red run is recorded by disabling the covered behavior in parseDuration for one run and then restoring it.",
+        "parseDuration has the same behavior after the task as before it.",
+        "Expected values in the tests are hand-written literals rather than values computed by parseDuration or its helpers.",
+        "Tests cover at least one boundary or malformed input case in addition to the success cases."
+      ]
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 {
   "name": "task-executor",
-  "version": "0.3.0",
-  "description": "Implements task files for coding agents with TDD and independent requirement verification.",
+  "version": "0.4.0",
+  "description": "Implements coding-agent task files and standalone changes through TDD, with independent requirement verification.",
   "author": {
     "name": "dhohner"
   },
@@ -9,6 +9,7 @@
   "license": "MIT",
   "keywords": [
     "tdd",
+    "testing",
     "implementation",
     "verification",
     "coding-agents"

@@ -33,20 +33,16 @@ Selection is complete when one task passes the structure gate, with its baseline
 
 ## Implement with TDD
 
-Run this TDD loop for every unblocked `Required behavior` and `Acceptance` item:
-
-1. Add a test that expresses the item.
-2. Run it and confirm it fails because the behavior or planned symbol is absent.
-3. Write the smallest implementation that passes the test.
-4. Refactor while the tests stay green.
-
-Treat missing dependencies and failures in test discovery, syntax, fixtures, or unrelated imports as setup failures.
-Fix setup failures and rerun the test before counting it as red.
+Invoke the `tdd` skill from this plugin (`task-executor:tdd` where plugin skills are namespaced) and follow its loop for every unblocked `Required behavior` and `Acceptance` item.
+Take each check's seam from its `Acceptance` item and the task `Boundary`.
+Split each item into single-behavior checks for its stated success, boundary, and failure cases.
+Map every check back to its item.
+When a check has no runnable harness, record the reason and rely on the item's `Validation` manual check.
 
 Record each material choice and its rationale in the ledger.
 Run every task `Validation` command.
 
-Implementation is complete when every unblocked item has observed red-green evidence, the ledger records every material choice, and every validation command passes.
+Implementation is complete when every check has red-green evidence or a recorded manual result, the ledger holds every material choice, and every validation command passes.
 
 ## Verify requirement coverage
 
@@ -98,3 +94,4 @@ Classify validation as new-behavior coverage, regression coverage, or manual ver
 Name every untested item.
 
 Reporting is complete when the report accounts for every task item, decision, blocker, and unresolved gap.
+Then offer the `review-changes` skill from the `refactor-tools` plugin (`refactor-tools:review-changes` where plugin skills are namespaced) for the changed files when that plugin is installed.
