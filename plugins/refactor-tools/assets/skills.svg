@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 32 968 428" width="968" height="428" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="rt-skills-title rt-skills-desc">
+  <title id="rt-skills-title">Refactor Tools skills</title>
+  <desc id="rt-skills-desc">You invoke one of three skills on staged changes, commits, or paths. simplify applies safe code simplifications as unstaged edits, review-changes scores the change across six dimensions without editing anything, and tighten-prose rewrites prose without changing its meaning.</desc>
+  <defs>
+    <marker id="rt-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4e5399"/></marker>
+    <marker id="rt-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#fd6a23"/></marker>
+  </defs>
+
+  <rect x="0" y="32" width="968" height="428" fill="#ffffff"/>
+
+  <!-- connectors, drawn before nodes -->
+  <path d="M 240,200 H 264 Q 272,200 272,192 V 108 Q 272,100 280,100 H 344" fill="none" stroke="#4e5399" stroke-width="1.2" marker-end="url(#rt-arrow)"/>
+  <rect x="294" y="80" width="36" height="12" rx="2" fill="#ffffff"/>
+  <text x="312" y="89" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">CODE</text>
+
+  <line x1="240" y1="220" x2="344" y2="220" stroke="#4e5399" stroke-width="1.2" marker-end="url(#rt-arrow)"/>
+  <rect x="294" y="200" width="36" height="12" rx="2" fill="#ffffff"/>
+  <text x="312" y="209" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">DIFF</text>
+
+  <path d="M 240,240 H 264 Q 272,240 272,248 V 332 Q 272,340 280,340 H 344" fill="none" stroke="#4e5399" stroke-width="1.2" marker-end="url(#rt-arrow)"/>
+  <rect x="292" y="320" width="40" height="12" rx="2" fill="#ffffff"/>
+  <text x="312" y="329" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">PROSE</text>
+
+  <line x1="584" y1="100" x2="688" y2="100" stroke="#4e5399" stroke-width="1.2" marker-end="url(#rt-arrow)"/>
+  <rect x="612" y="80" width="40" height="12" rx="2" fill="#ffffff"/>
+  <text x="632" y="89" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">APPLY</text>
+
+  <line x1="584" y1="220" x2="688" y2="220" stroke="#fd6a23" stroke-width="1.2" marker-end="url(#rt-arrow-accent)"/>
+  <rect x="612" y="200" width="40" height="12" rx="2" fill="#ffffff"/>
+  <text x="632" y="209" fill="#c8430c" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">SCORE</text>
+
+  <line x1="584" y1="340" x2="688" y2="340" stroke="#4e5399" stroke-width="1.2" marker-end="url(#rt-arrow)"/>
+  <rect x="608" y="320" width="48" height="12" rx="2" fill="#ffffff"/>
+  <text x="632" y="329" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">REWRITE</text>
+
+  <!-- input -->
+  <rect x="40" y="180" width="200" height="80" rx="6" fill="rgba(78,83,153,0.10)" stroke="#676ca8" stroke-width="1"/>
+  <rect x="52" y="192" width="40" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.28)" stroke-width="0.8"/>
+  <text x="72" y="201" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">INPUT</text>
+  <text x="140" y="230" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">Your change</text>
+  <text x="140" y="246" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">staged · commits · paths</text>
+
+  <!-- simplify -->
+  <rect x="344" y="60" width="240" height="80" rx="6" fill="#ffffff" stroke="rgba(0,3,92,0.20)" stroke-width="1"/>
+  <rect x="356" y="72" width="40" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.28)" stroke-width="0.8"/>
+  <text x="376" y="81" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">SKILL</text>
+  <text x="464" y="110" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">simplify</text>
+  <text x="464" y="126" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">3 review passes · safe fixes</text>
+
+  <!-- review-changes -->
+  <rect x="344" y="180" width="240" height="80" rx="6" fill="rgba(253,106,35,0.07)" stroke="#fd6a23" stroke-width="1"/>
+  <rect x="356" y="192" width="60" height="12" rx="2" fill="none" stroke="rgba(253,106,35,0.50)" stroke-width="0.8"/>
+  <text x="386" y="201" fill="#c8430c" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">READ-ONLY</text>
+  <text x="464" y="230" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">review-changes</text>
+  <text x="464" y="246" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">6 dimensions · snapshot checks</text>
+
+  <!-- tighten-prose -->
+  <rect x="344" y="300" width="240" height="80" rx="6" fill="#ffffff" stroke="rgba(0,3,92,0.20)" stroke-width="1"/>
+  <rect x="356" y="312" width="40" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.28)" stroke-width="0.8"/>
+  <text x="376" y="321" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">SKILL</text>
+  <text x="464" y="350" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">tighten-prose</text>
+  <text x="464" y="366" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">prose rules · meaning check</text>
+
+  <!-- simplified code -->
+  <rect x="688" y="60" width="240" height="80" rx="6" fill="rgba(0,3,92,0.05)" stroke="rgba(0,3,92,0.28)" stroke-width="1"/>
+  <rect x="700" y="72" width="40" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.28)" stroke-width="0.8"/>
+  <text x="720" y="81" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">EDITS</text>
+  <text x="808" y="110" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">Simplified code</text>
+  <text x="808" y="126" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">unstaged · validated · report</text>
+
+  <!-- review report -->
+  <rect x="688" y="180" width="240" height="80" rx="6" fill="#ffffff" stroke="rgba(0,3,92,0.20)" stroke-width="1"/>
+  <rect x="700" y="192" width="48" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.28)" stroke-width="0.8"/>
+  <text x="724" y="201" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">REPORT</text>
+  <text x="808" y="230" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">Review report</text>
+  <text x="808" y="246" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">scores · findings · evidence</text>
+
+  <!-- tighter prose -->
+  <rect x="688" y="300" width="240" height="80" rx="6" fill="rgba(0,3,92,0.05)" stroke="rgba(0,3,92,0.28)" stroke-width="1"/>
+  <rect x="700" y="312" width="40" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.28)" stroke-width="0.8"/>
+  <text x="720" y="321" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">EDITS</text>
+  <text x="808" y="350" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">Tighter prose</text>
+  <text x="808" y="366" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">staging kept · line counts</text>
+
+  <!-- legend -->
+  <line x1="40" y1="412" x2="928" y2="412" stroke="rgba(0,3,92,0.10)" stroke-width="0.8"/>
+  <text x="40" y="434" fill="#4e5399" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" letter-spacing="0.14em">LEGEND</text>
+  <rect x="128" y="424" width="16" height="12" rx="2" fill="rgba(78,83,153,0.10)" stroke="#676ca8" stroke-width="0.8"/>
+  <text x="152" y="434" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">Input</text>
+  <rect x="248" y="424" width="16" height="12" rx="2" fill="#ffffff" stroke="rgba(0,3,92,0.20)" stroke-width="0.8"/>
+  <text x="272" y="434" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">Skill or report</text>
+  <rect x="408" y="424" width="16" height="12" rx="2" fill="rgba(253,106,35,0.07)" stroke="#fd6a23" stroke-width="0.8"/>
+  <text x="432" y="434" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">Never edits files</text>
+  <rect x="568" y="424" width="16" height="12" rx="2" fill="rgba(0,3,92,0.05)" stroke="rgba(0,3,92,0.28)" stroke-width="0.8"/>
+  <text x="592" y="434" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">Working-tree edits</text>
+</svg>
