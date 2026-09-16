@@ -55,6 +55,8 @@ export interface BashToolSettings {
   /** Resolve each execution against its directory, and ignore project settings when `projectTrusted` is false. */
   resolveShell: (cwd: string, projectTrusted: boolean) => ShellSettings;
   openOutputFile?: (path: string) => OutputFile;
+  /** Names removed from the child environment; the parent process keeps them. */
+  selectedVariableNames?: () => Iterable<string>;
 }
 
 const UPDATE_THROTTLE_MS = 100;
@@ -228,7 +230,7 @@ async function executeRedacted(
         onData,
         signal: controller.signal,
         timeout: params.timeout,
-        env: sessionEnvironment(ctx),
+        env: sessionEnvironment(ctx, settings.selectedVariableNames?.() ?? []),
       });
       exitCode = result.exitCode;
     } catch (error) {
@@ -309,7 +311,9 @@ function appendStatus(text: string, status: string): string {
 }
 
 // Match the built in environment by adding the agent bin directory and current `PI_*` values.
-function sessionEnvironment(ctx: ExtensionContext): NodeJS.ProcessEnv {
+// Remove selected credential variables from the finished copy only, so a selected `PI_*` name is removed too;
+// shell startup code may still set them.
+function sessionEnvironment(ctx: ExtensionContext, selectedVariableNames: Iterable<string>): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = { ...process.env };
   const pathKey = Object.keys(env).find((key) => key.toLowerCase() === "path") ?? "PATH";
   const binDir = join(getAgentDir(), "bin");
@@ -328,6 +332,7 @@ function sessionEnvironment(ctx: ExtensionContext): NodeJS.ProcessEnv {
     env.PI_MODEL = ctx.model.id;
   }
   if (ctx.thinkingLevel) env.PI_REASONING_LEVEL = ctx.thinkingLevel;
+  for (const name of selectedVariableNames) delete env[name];
   return env;
 }
 

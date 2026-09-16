@@ -2,8 +2,8 @@
 
 Pi extension for macOS that replaces registered credential text with safe references before the text reaches a model request, a session file, or a published tool output.
 
-This capability registers no real credentials and executes none.
-It provides the protection paths and an extension-private registration boundary that later credential sources can use.
+The extension loads credential values only from environment variables the user selected by name, gives the model a service label and a random reference for each, and removes the selected variables from the environment of ordinary agent `bash` commands.
+It executes no credential and installs no private entry path; a reference in a command stays literal text until a later capability provides approved execution.
 
 ## What is protected
 
@@ -45,6 +45,92 @@ Matches split across streamed chunks are still replaced; a longer registered val
 A value registered while a `bash` command is still streaming is redacted from that moment on, including text the stream was still holding back.
 Text already published before the registration is not recalled, so a value whose bytes were already streaming at the moment of registration can remain in full in published updates and the temporary full-output file.
 
+## Credential selection
+
+Selection is explicit and name-based.
+The extension reads a selected variable from the running Pi process only; it never reads or executes `.zshrc` or another shell startup file, and it never scans the environment for likely secrets.
+
+### Configuration
+
+The user configuration is `~/.pi/agent/redactor/credentials.json`, under the Pi agent directory that `PI_CODING_AGENT_DIR` overrides.
+It stores variable names and service labels only:
+
+```json
+{
+  "version": 1,
+  "selections": [{ "name": "GITHUB_TOKEN", "label": "GitHub" }]
+}
+```
+
+A name must be a portable environment variable name of at most 256 characters.
+A label is one printable line of at most 80 characters without control, format, or line separator characters.
+A name may appear once.
+The file is written with mode `0600` through a sibling temporary file and a rename, so a failed write leaves the previous file whole.
+Every change holds the lock directory `credentials.json.lock` next to the file for its read, edit, and write, so two Pi processes cannot lose each other's change.
+The lock records the process that owns it, and it is reclaimed only when that process no longer exists, never because of its age, so a suspended writer keeps its exclusion.
+A lock that stays held for more than two seconds, or a lock path that cannot be taken, fails the change with a fixed message and the code `ELOCKED`.
+If no Pi process is running and changes still fail with `ELOCKED`, removing the lock directory by hand recovers the file.
+A malformed file keeps the last valid selection active, reports a fixed message that names the position of the problem and never its text, and blocks selection changes until the file is repaired or removed.
+A selection that another Pi process removed from the file ends in this process at its next session start; its last value stays redacted until Pi exits.
+A loaded entry is checked against the value it selects as the command is: an entry whose name contains its value is skipped, and an entry whose label contains its value is loaded with its label withheld.
+Both are reported at startup with fixed wording that names the position of the entry and never its text.
+
+A project may propose selections in `.pi/redactor/credentials.json` under the project directory, in the same format.
+Proposals are read only for a trusted project and only in the interactive terminal, and each proposal is offered through a confirmation dialog that shows the name and label.
+The variable is read only after approval: a denied, cancelled, or unoffered proposal causes no credential lookup.
+A proposal whose name or label is invalid or contains a registered value is reported with fixed wording and not offered.
+An approved proposal whose label contains the variable's value is refused with fixed wording and activates nothing.
+An approved proposal whose value is unavailable or refused is reported at warning level with the same availability text as the command.
+Trust alone adds nothing, and RPC, print, and JSON modes add nothing and say so.
+An approved proposal is held in extension memory and stays active until this Pi process exits.
+Pi keeps the loaded extension across a new, forked, switched, or resumed session in the same process, so those sessions keep the approval without another dialog.
+`/redactor remove` ends an approval earlier, even while the user configuration is malformed, and `/redactor add` persists it.
+A proposal whose name is already selected is not offered again.
+A proposal the user declined is not offered again until Pi exits; a cancelled dialog is offered again at the next session start.
+
+### Command
+
+`/redactor` manages the selection and reports names, labels, references, and availability; it never prints a value and never accepts one.
+
+- `/redactor list` shows every selection with its reference and whether it is active, unavailable, or a project approval that lasts until Pi exits.
+- `/redactor add NAME label...` selects a variable and reads its value from this Pi process.
+  Repeating a selection changes nothing; a new label renames the selection and keeps its reference.
+  A name that has no value in this Pi process is selected only after a confirmation dialog, because a pasted credential value can pass as a variable name; outside the interactive terminal such a selection is refused.
+- `/redactor remove NAME` ends the selection.
+  The last value stays redacted until this Pi process exits, and ordinary `bash` commands inherit the variable again.
+
+An invalid name is reported with fixed wording and is never echoed.
+A name or label that contains a registered value, or the value of the variable being selected, is refused before any write and is never echoed either.
+
+A variable with no value, or an empty value, is selected but unavailable: it has no reference and no executable value, and the command explains that Pi must start from a shell that exports it.
+A variable whose value has no safe reference is selected but refused: it stays listed and stripped from ordinary `bash` commands, but it has no reference, is not usable, and is not redacted, and the command and startup report say so.
+A value has no safe reference when no random reference excludes it, or when registering it would move a reference the registry already assigned.
+
+### References
+
+An active selection registers its exact value under a random reference id such as `cred-3fa9c1e207`, so its redaction reference is `[redacted:cred-3fa9c1e207]`.
+References are random, never derived from a value, and stable until this Pi process exits: repeating a selection, renaming it, starting another session, or reloading the extension keeps the reference.
+A value that a generated reference would contain gets another random reference; the numbered and opaque fallback references of the registry are never published for a selection, so a value that every random reference contains, such as `cred-`, is refused.
+A published reference never moves: a later selection whose value would move any assigned reference, including one retained after removal, is refused instead.
+Listings and guidance read the reference from the registry, so they always match redacted text, and they redact names and labels against every registered value, so a label that contains a value registered later shows its reference instead.
+Two selections with equal values keep separate references and labels; redacted text carries the reference of the selection that was bound first.
+Every value is registered for redaction before its reference is published, so a reference never precedes its protection.
+
+### Model guidance
+
+When at least one selection exists, every agent run appends a `Credential references` section to the system prompt.
+It lists each active selection with its reference, label, and variable name, lists each unavailable selection by label alone, and explains that credential use means placing the reference in a `bash` command that the user approves while seeing only references and labels, and states that a missing credential requires private entry by the user rather than a search.
+It also states which capabilities are not installed in this version: no approved execution capability resolves a reference, and no private entry capability exists, so the model is asked to request `/redactor add` instead.
+A selection changed during an agent run reaches the model with the next prompt.
+
+### Ordinary `bash` environment
+
+The wrapped `bash` tool builds the child environment as the host does, with `PATH` and the `PI_*` session variables set, and then removes every selected variable name from it, so a selected `PI_*` name is removed too.
+Every other variable stays in place.
+The parent Pi process keeps its environment.
+This removal is not a sandbox: shell startup code run by the configured shell, a deliberate re-export, or a file that holds the value can still bring the value into a command, and the output paths above then redact it.
+Changing a variable in another shell does not change an already-running Pi process.
+
 ## What is not protected
 
 Read this section before relying on the extension.
@@ -66,6 +152,11 @@ Read this section before relying on the extension.
 
 - If no generated reference can exclude a value, such as a value contained in the fixed reference syntax, the registration is refused and the registry is left unchanged.
   The error names the id and never the value, so nothing is protected by a reference that would disclose it.
+  If registering a value would move any assigned reference, including one retained after removal, the registration is refused and the registry is left unchanged, so every published reference keeps resolving.
+  A selected variable whose value is refused stays in the configuration and the listing as refused, is reported at startup and on selection, and is not redacted.
+- If the credential configuration cannot be written, the command reports a fixed message with the file system error code, and nothing is selected or activated.
+  If a label or name contains a registered value, or the value of the variable being selected, the selection is refused before any write.
+- If a live process holds the credential configuration lock for more than two seconds, or the lock path cannot be taken, the change fails with a fixed message and the code `ELOCKED`, and nothing is selected or activated.
 - If redaction of submitted text fails, the prompt is not sent or saved and a sanitized notice is shown.
 - If redaction of a finalized message or tool result fails, the message is rebuilt from fixed fields instead of being persisted raw.
   Only the role, the stop reason, tool call ids and names, tool result pairing fields, the custom message type, and numeric or boolean fields are kept; provider, model, and every other text field are replaced or dropped.
@@ -119,3 +210,4 @@ pnpm --dir plugins/redactor format:check
 ```
 
 The tests use only synthetic values, a temporary HOME, a temporary Pi agent directory, a deterministic in-process model transport, and loopback addresses that are never contacted.
+Environment tests set uniquely named synthetic variables on the test process and restore them; they never read the developer's environment or shell files.

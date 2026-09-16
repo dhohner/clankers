@@ -37,6 +37,26 @@ interface CredentialValues {
 const MAX_ID_SUFFIX = 9;
 const MAX_OPAQUE_REFERENCES = 999;
 
+export interface RegisterOptions {
+  /** Refuse the registration instead of moving any reference that is already assigned. */
+  preserveReferences?: boolean;
+  /** Refuse the registration instead of assigning the new id a numbered or opaque fallback reference. */
+  exactReference?: boolean;
+}
+
+export type RegistrationRefusalReason = "no-safe-reference" | "moves-reference" | "fallback-reference";
+
+/** A refused registration leaves the registry unchanged; `reason` lets a caller decide whether another id could succeed. */
+export class RegistrationRefusal extends Error {
+  readonly reason: RegistrationRefusalReason;
+
+  constructor(reason: RegistrationRefusalReason, message: string) {
+    super(message);
+    this.name = "RegistrationRefusal";
+    this.reason = reason;
+  }
+}
+
 /**
  * Only `redactionEntries()` exposes credential values, and only to the redaction engine.
  * Other accessors expose state without values.
@@ -56,8 +76,14 @@ export class CredentialRegistry implements RedactionEntrySource {
     return this.#version;
   }
 
-  /** Registration throws after failed reference generation and leaves the registry unchanged. */
-  register(id: string, value: string | undefined | null): CredentialState {
+  /**
+   * Registration throws `RegistrationRefusal` after failed reference generation and leaves the registry unchanged.
+   * With `preserveReferences`, it also throws when the new value would move an existing reference, including a
+   * retained one, so a published reference keeps resolving.
+   * With `exactReference`, it also throws when the new id itself would need a fallback reference, so a caller can
+   * try another generated id instead of publishing a predictable one.
+   */
+  register(id: string, value: string | undefined | null, options: RegisterOptions = {}): CredentialState {
     assertValidId(id);
     if (value === undefined || value === null || value.length === 0) {
       const existing = this.#entries.get(id);
@@ -75,8 +101,21 @@ export class CredentialRegistry implements RedactionEntrySource {
     const credentials = this.#valuesWith(id, value);
     const references = assignReferences(credentials);
     if (!references) {
-      throw new Error(
+      throw new RegistrationRefusal(
+        "no-safe-reference",
         `credential ${JSON.stringify(id)} cannot be registered: no generated reference excludes every registered value`,
+      );
+    }
+    if (options.preserveReferences && this.#movesReference(references, id)) {
+      throw new RegistrationRefusal(
+        "moves-reference",
+        `credential ${JSON.stringify(id)} cannot be registered: its value would move an existing reference`,
+      );
+    }
+    if (options.exactReference && references.get(id) !== id) {
+      throw new RegistrationRefusal(
+        "fallback-reference",
+        `credential ${JSON.stringify(id)} cannot be registered: its id would need a fallback reference`,
       );
     }
     this.#commit(credentials, references, id);
@@ -95,6 +134,11 @@ export class CredentialRegistry implements RedactionEntrySource {
     const existing = this.#entries.get(id);
     if (!existing) return { kind: "unavailable", id };
     return { kind: existing.kind, id };
+  }
+
+  /** The reference id redaction writes for this credential, which differs from `id` only when `id` would expose a value. */
+  referenceOf(id: string): string | undefined {
+    return this.#entries.get(id)?.reference;
   }
 
   redactionEntries(): RedactionEntry[] {
@@ -128,6 +172,13 @@ export class CredentialRegistry implements RedactionEntrySource {
     }
     if (!this.#entries.has(id)) credentials.push({ id, values: [value] });
     return credentials;
+  }
+
+  #movesReference(references: ReadonlyMap<string, string>, newId: string): boolean {
+    for (const [id, entry] of this.#entries) {
+      if (id !== newId && references.get(id) !== entry.reference) return true;
+    }
+    return false;
   }
 
   #commit(credentials: readonly CredentialValues[], references: ReadonlyMap<string, string>, activeId: string): void {

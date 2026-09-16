@@ -55,6 +55,7 @@ export async function createBashHost(
           registry,
           algorithms: options.algorithms,
           bashSettings: options.openOutputFile ? { openOutputFile: options.openOutputFile } : undefined,
+          credentials: { userConfigPath: () => join(agentDirectory, "redactor", "credentials.json") },
         }),
       },
     ],
@@ -152,11 +153,28 @@ export async function createBashHost(
     return runTool("bash", { command }, signal, observe);
   }
 
+  /** Emit the host's startup event, which loads the credential selection. */
+  async function startSession(): Promise<void> {
+    await runner.emit({ type: "session_start", reason: "startup" });
+  }
+
   async function cleanup() {
     await Promise.all([workingDirectory, agentDirectory].map((path) => rm(path, { recursive: true, force: true })));
   }
 
-  return { runBash, runTool, registry, bash, extension, extensionErrors, ui, workingDirectory, cleanup };
+  return {
+    runBash,
+    runTool,
+    registry,
+    bash,
+    extension,
+    extensionErrors,
+    ui,
+    workingDirectory,
+    agentDirectory,
+    startSession,
+    cleanup,
+  };
 }
 
 function textOf(content: ReadonlyArray<{ type: string; text?: string }>): string {

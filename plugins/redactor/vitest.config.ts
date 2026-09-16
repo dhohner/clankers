@@ -8,7 +8,7 @@ export default defineConfig({
     restoreMocks: true,
     globalSetup: ["./test/support/global-setup.ts"],
     setupFiles: ["./test/support/setup.ts"],
-    isolate: false
+    isolate: false,
   },
   resolve: {
     alias: {

@@ -79,7 +79,8 @@ describe("host loading (TEST-01)", () => {
 
     const toolNames = [...loaded.extensions[0]!.tools.keys()];
     expect(toolNames.filter((name) => /regist|credential|secret/i.test(name))).toEqual([]);
-    expect(loaded.extensions[0]!.commands.size).toBe(0);
+    // The one command manages variable names and labels; it registers no value.
+    expect([...loaded.extensions[0]!.commands.keys()]).toEqual(["redactor"]);
   });
 
   it("reports an unsupported platform clearly and activates no protection paths there", async () => {

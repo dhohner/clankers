@@ -13,6 +13,7 @@ import {
   type AgentSessionEvent,
   createAgentSession,
   DefaultResourceLoader,
+  type ExtensionContext,
   type ExtensionError,
   type ExtensionFactory,
   ModelRuntime,
@@ -22,7 +23,7 @@ import {
 import { expect, vi } from "vitest";
 import type { RedactionAlgorithms } from "../../src/application/redaction-engine.ts";
 import { CredentialRegistry } from "../../src/domain/credential-registry.ts";
-import { createRedactorExtension } from "../../src/extension.ts";
+import { type CredentialOptions, createRedactorExtension } from "../../src/extension.ts";
 
 export interface ScriptedToolCall {
   name: string;
@@ -60,6 +61,21 @@ export interface SyntheticHostOptions {
   compaction?: { enabled?: boolean; reserveTokens?: number; keepRecentTokens?: number };
   extraExtensions?: ExtensionFactory[];
   tools?: string[];
+  mode?: ExtensionContext["mode"];
+  projectTrusted?: boolean;
+  credentials?: Partial<CredentialOptions>;
+  /** Reuse a factory from an earlier host, as Pi reuses its cached extension module across sessions of one process. */
+  factory?: ExtensionFactory;
+  /** Configure UI doubles before `session_start`, which may open approval dialogs. */
+  beforeBind?: (ui: SyntheticUI) => void;
+}
+
+export interface SyntheticUI {
+  notify: ReturnType<typeof vi.fn>;
+  setWorkingMessage: ReturnType<typeof vi.fn>;
+  confirm: ReturnType<typeof vi.fn>;
+  select: ReturnType<typeof vi.fn>;
+  input: ReturnType<typeof vi.fn>;
 }
 
 const ZERO_USAGE = {
@@ -120,22 +136,28 @@ export async function createSyntheticHost(options: SyntheticHostOptions = {}) {
     compaction: { enabled: false, ...options.compaction },
     retry: { enabled: false },
   });
+  if (options.projectTrusted !== undefined) settingsManager.setProjectTrusted(options.projectTrusted);
+  const factory =
+    options.factory ??
+    createRedactorExtension({
+      platform: "darwin",
+      registry,
+      algorithms: options.algorithms,
+      bashSettings: { cwd: workspace.cwd, resolveShell: () => ({}) },
+      terminalWidth: () => 80,
+      // Keep configuration under this workspace so parallel tests never share the root agent directory.
+      credentials: {
+        userConfigPath: () => join(workspace.agentDir, "redactor", "credentials.json"),
+        ...options.credentials,
+      },
+    });
   const resourceLoader = new DefaultResourceLoader({
     cwd: workspace.cwd,
     agentDir: workspace.agentDir,
     settingsManager,
     extensionFactories: [
-      {
-        name: "redactor",
-        factory: createRedactorExtension({
-          platform: "darwin",
-          registry,
-          algorithms: options.algorithms,
-          bashSettings: { cwd: workspace.cwd, resolveShell: () => ({}) },
-          terminalWidth: () => 80,
-        }),
-      },
-      ...(options.extraExtensions ?? []).map((factory, index) => ({ name: `third-party-${index}`, factory })),
+      { name: "redactor", factory },
+      ...(options.extraExtensions ?? []).map((extra, index) => ({ name: `third-party-${index}`, factory: extra })),
     ],
     noSkills: true,
     noPromptTemplates: true,
@@ -163,10 +185,17 @@ export async function createSyntheticHost(options: SyntheticHostOptions = {}) {
   session.subscribe((event) => {
     events.push(event);
   });
-  const ui = { notify: vi.fn(), setWorkingMessage: vi.fn(), confirm: vi.fn(), select: vi.fn(), input: vi.fn() };
+  const ui: SyntheticUI = {
+    notify: vi.fn(),
+    setWorkingMessage: vi.fn(),
+    confirm: vi.fn(),
+    select: vi.fn(),
+    input: vi.fn(),
+  };
+  options.beforeBind?.(ui);
   await session.bindExtensions({
     uiContext: ui as never,
-    mode: "tui",
+    mode: options.mode ?? "tui",
     onError: (error) => extensionErrors.push(error),
   });
 
@@ -190,6 +219,7 @@ export async function createSyntheticHost(options: SyntheticHostOptions = {}) {
 
   return {
     session,
+    factory,
     registry,
     workspace,
     requests,

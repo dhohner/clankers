@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CredentialRegistry } from "../../src/domain/credential-registry.ts";
+import { CredentialRegistry, RegistrationRefusal } from "../../src/domain/credential-registry.ts";
 import {
   MAX_REFERENCE_ID_LENGTH,
   redactText,
@@ -162,6 +162,62 @@ describe("credential registry", () => {
 
     expect(first!.id).not.toBe(longId);
     expect(REFERENCE_ID_PATTERN.test(first!.id)).toBe(true);
+  });
+
+  it("refuses a value that would move an existing reference when references must be preserved", () => {
+    const registry = new CredentialRegistry();
+    registry.register("cred-aaaaaaaaaa", "cred-a");
+    registry.register("cred-bbbbbbbbbb", "cred-b");
+    expect(registry.referenceOf("cred-aaaaaaaaaa")).toBe("redacted-1");
+    expect(registry.referenceOf("cred-bbbbbbbbbb")).toBe("redacted-2");
+    const version = registry.version;
+
+    expect(() => registry.register("cred-cccccccccc", "redacted-1", { preserveReferences: true })).toThrow(
+      /cred-cccccccccc.*would move/,
+    );
+
+    expect(registry.referenceOf("cred-aaaaaaaaaa")).toBe("redacted-1");
+    expect(registry.referenceOf("cred-bbbbbbbbbb")).toBe("redacted-2");
+    expect(registry.stateOf("cred-cccccccccc")).toEqual({ kind: "unavailable", id: "cred-cccccccccc" });
+    expect(registry.version).toBe(version);
+    expect(registry.redactionEntries().map((entry) => entry.value)).toEqual(["cred-a", "cred-b"]);
+  });
+
+  it("refuses a registration whose id would get a fallback reference when an exact reference is required", () => {
+    const registry = new CredentialRegistry();
+    registry.register("token", "sk-live-0123");
+    const version = registry.version;
+
+    expect(() => registry.register("cred-aaaaaaaaaa", "cred-a", { exactReference: true })).toThrow(
+      /cred-aaaaaaaaaa.*fallback/,
+    );
+    let refusal: unknown;
+    try {
+      registry.register("cred-aaaaaaaaaa", "cred-a", { exactReference: true });
+    } catch (error) {
+      refusal = error;
+    }
+
+    expect(refusal).toBeInstanceOf(RegistrationRefusal);
+    expect((refusal as RegistrationRefusal).reason).toBe("fallback-reference");
+    expect(registry.stateOf("cred-aaaaaaaaaa")).toEqual({ kind: "unavailable", id: "cred-aaaaaaaaaa" });
+    expect(registry.version).toBe(version);
+    expect(registry.register("cred-bbbbbbbbbb", "cred-a", { exactReference: true })).toEqual({
+      kind: "active",
+      id: "cred-bbbbbbbbbb",
+    });
+    expect(registry.referenceOf("cred-bbbbbbbbbb")).toBe("cred-bbbbbbbbbb");
+  });
+
+  it("moves references for the same value when preservation is not requested", () => {
+    const registry = new CredentialRegistry();
+    registry.register("cred-aaaaaaaaaa", "cred-a");
+    registry.register("cred-bbbbbbbbbb", "cred-b");
+
+    registry.register("cred-cccccccccc", "redacted-1");
+
+    expect(registry.referenceOf("cred-aaaaaaaaaa")).toBe("redacted-2");
+    expect(registry.referenceOf("cred-bbbbbbbbbb")).toBe("redacted-3");
   });
 
   it("refuses a value that every generated reference would contain, without changing the registry", () => {
