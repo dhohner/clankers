@@ -2,7 +2,11 @@
 
 Implements coding-agent task files and standalone changes through TDD, and verifies each task result before reporting completion.
 
-## What it does
+## How it works
+
+![Task Executor workflow. implement selects and checks one agent task file, then builds each required behavior through the tdd red-green-refactor loop. A fresh verifier subagent checks the changes and returns gaps to the tdd loop for up to three passes before the report. implement stops to ask you about an unclear task or a material decision. The tdd skill also runs on its own for any change.](./assets/workflow.svg)
+
+### implement
 
 The `implement` skill executes one task file from `project-advisor:to-agent-tasks`.
 
@@ -17,6 +21,8 @@ The verifier loop runs up to three passes by default.
 Run `refactor-tools:review-changes` on the result when the change warrants a review.
 Neither skill commits.
 Review and commit the result yourself.
+
+### tdd
 
 The `tdd` skill runs the same red-green-refactor loop on its own for any feature, bug fix, or untested code.
 

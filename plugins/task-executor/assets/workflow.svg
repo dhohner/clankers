@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 32 1328 516" width="1328" height="516" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="te-workflow-title te-workflow-desc">
+  <title id="te-workflow-title">Task Executor workflow</title>
+  <desc id="te-workflow-desc">implement selects and checks one agent task file, then builds each required behavior through the tdd red-green-refactor loop. A fresh verifier subagent checks the changes in each pass and returns gaps to the tdd loop for up to three passes before the coverage report. implement stops to ask you about an unclear task or a material decision. The tdd skill also runs on its own for any change.</desc>
+  <defs>
+    <marker id="te-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4e5399"/></marker>
+    <marker id="te-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#fd6a23"/></marker>
+  </defs>
+
+  <rect x="0" y="32" width="1328" height="516" fill="#ffffff"/>
+
+  <!-- implement zone, drawn first -->
+  <rect x="268" y="184" width="1020" height="284" rx="8" fill="rgba(0,3,92,0.02)" stroke="rgba(0,3,92,0.20)" stroke-width="1" stroke-dasharray="4,4"/>
+  <text x="284" y="204" fill="#4e5399" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" letter-spacing="0.14em">IMPLEMENT</text>
+
+  <!-- connectors, drawn before nodes -->
+  <line x1="240" y1="256" x2="296" y2="256" stroke="#4e5399" stroke-width="1.2" marker-end="url(#te-arrow)"/>
+  <rect x="250" y="236" width="36" height="12" rx="2" fill="#ffffff"/>
+  <text x="268" y="245" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">TASK</text>
+
+  <line x1="496" y1="256" x2="552" y2="256" stroke="#4e5399" stroke-width="1.2" marker-end="url(#te-arrow)"/>
+  <rect x="502" y="236" width="44" height="12" rx="2" fill="#ffffff"/>
+  <text x="524" y="245" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">CHECKS</text>
+
+  <line x1="752" y1="256" x2="808" y2="256" stroke="#4e5399" stroke-width="1.2" marker-end="url(#te-arrow)"/>
+  <rect x="756" y="236" width="48" height="12" rx="2" fill="#ffffff"/>
+  <text x="780" y="245" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">CHANGES</text>
+
+  <line x1="1008" y1="256" x2="1064" y2="256" stroke="#4e5399" stroke-width="1.2" marker-end="url(#te-arrow)"/>
+  <rect x="1018" y="236" width="36" height="12" rx="2" fill="#ffffff"/>
+  <text x="1036" y="245" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">DONE</text>
+
+  <line x1="652" y1="144" x2="652" y2="216" stroke="#4e5399" stroke-width="1.2" marker-end="url(#te-arrow)"/>
+  <rect x="660" y="156" width="64" height="12" rx="2" fill="#ffffff"/>
+  <text x="692" y="165" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">STANDALONE</text>
+
+  <path d="M 872,296 V 328 Q 872,336 864,336 H 660 Q 652,336 652,328 V 296" fill="none" stroke="#fd6a23" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#te-arrow-accent)"/>
+  <rect x="736" y="316" width="52" height="12" rx="2" fill="#ffffff"/>
+  <text x="762" y="325" fill="#c8430c" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">GAP · FIX</text>
+
+  <line x1="396" y1="296" x2="396" y2="368" stroke="#4e5399" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#te-arrow)"/>
+  <rect x="404" y="326" width="48" height="12" rx="2" fill="#ffffff"/>
+  <text x="428" y="335" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">UNCLEAR</text>
+
+  <path d="M 944,296 V 400 Q 944,408 936,408 H 496" fill="none" stroke="#4e5399" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#te-arrow)"/>
+  <rect x="694" y="388" width="52" height="12" rx="2" fill="#ffffff"/>
+  <text x="720" y="397" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">DECISION</text>
+
+  <!-- task file -->
+  <rect x="40" y="216" width="200" height="80" rx="6" fill="rgba(78,83,153,0.10)" stroke="#676ca8" stroke-width="1"/>
+  <rect x="52" y="228" width="40" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.28)" stroke-width="0.8"/>
+  <text x="72" y="237" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">INPUT</text>
+  <text x="140" y="266" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">Agent task file</text>
+  <text x="140" y="282" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">agent-tasks/NN-*.md</text>
+
+  <!-- standalone change -->
+  <rect x="552" y="64" width="200" height="80" rx="6" fill="rgba(78,83,153,0.10)" stroke="#676ca8" stroke-width="1"/>
+  <rect x="564" y="76" width="40" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.28)" stroke-width="0.8"/>
+  <text x="584" y="85" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">INPUT</text>
+  <text x="652" y="114" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">Any change</text>
+  <text x="652" y="130" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">feature · bug fix · untested code</text>
+
+  <!-- select and gate -->
+  <rect x="296" y="216" width="200" height="80" rx="6" fill="#ffffff" stroke="rgba(0,3,92,0.20)" stroke-width="1"/>
+  <rect x="308" y="228" width="52" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.28)" stroke-width="0.8"/>
+  <text x="334" y="237" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">STEP 1</text>
+  <text x="396" y="266" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">Select and gate</text>
+  <text x="396" y="282" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">sections · blockers · ledger</text>
+
+  <!-- tdd (focal) -->
+  <rect x="552" y="216" width="200" height="80" rx="6" fill="rgba(253,106,35,0.07)" stroke="#fd6a23" stroke-width="1.2"/>
+  <rect x="564" y="228" width="52" height="12" rx="2" fill="rgba(253,106,35,0.16)" stroke="rgba(253,106,35,0.50)" stroke-width="0.8"/>
+  <text x="590" y="237" fill="#c8430c" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">STEP 2</text>
+  <text x="652" y="266" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">tdd</text>
+  <text x="652" y="282" fill="#c8430c" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">red · green · refactor · mutate</text>
+
+  <!-- verifier -->
+  <rect x="808" y="216" width="200" height="80" rx="6" fill="#ffffff" stroke="rgba(0,3,92,0.20)" stroke-width="1"/>
+  <rect x="820" y="228" width="52" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.28)" stroke-width="0.8"/>
+  <text x="846" y="237" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">STEP 3</text>
+  <text x="908" y="266" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">Verifier subagent</text>
+  <text x="908" y="282" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">fresh per pass · max 3</text>
+
+  <!-- report -->
+  <rect x="1064" y="216" width="200" height="80" rx="6" fill="rgba(0,3,92,0.05)" stroke="rgba(0,3,92,0.28)" stroke-width="1"/>
+  <rect x="1076" y="228" width="52" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.28)" stroke-width="0.8"/>
+  <text x="1102" y="237" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">STEP 4</text>
+  <text x="1164" y="266" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">Report</text>
+  <text x="1164" y="282" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">coverage · ledger · gaps</text>
+
+  <!-- stop -->
+  <rect x="296" y="368" width="200" height="80" rx="6" fill="#ffffff" stroke="rgba(0,3,92,0.28)" stroke-width="1" stroke-dasharray="4,3"/>
+  <rect x="308" y="380" width="40" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.28)" stroke-width="0.8"/>
+  <text x="328" y="389" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">STOP</text>
+  <text x="396" y="418" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">Ask you</text>
+  <text x="396" y="434" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">task choice · material decision</text>
+
+  <!-- legend -->
+  <line x1="40" y1="500" x2="1288" y2="500" stroke="rgba(0,3,92,0.10)" stroke-width="0.8"/>
+  <text x="40" y="522" fill="#4e5399" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" letter-spacing="0.14em">LEGEND</text>
+
+  <rect x="128" y="512" width="16" height="12" rx="2" fill="rgba(78,83,153,0.10)" stroke="#676ca8" stroke-width="0.8"/>
+  <text x="152" y="522" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">Input</text>
+
+  <rect x="224" y="512" width="16" height="12" rx="2" fill="#ffffff" stroke="rgba(0,3,92,0.20)" stroke-width="0.8"/>
+  <text x="248" y="522" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">Step</text>
+
+  <rect x="316" y="512" width="16" height="12" rx="2" fill="rgba(253,106,35,0.07)" stroke="#fd6a23" stroke-width="0.8"/>
+  <text x="340" y="522" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">tdd skill</text>
+
+  <rect x="436" y="512" width="16" height="12" rx="2" fill="rgba(0,3,92,0.05)" stroke="rgba(0,3,92,0.28)" stroke-width="0.8"/>
+  <text x="460" y="522" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">Result</text>
+
+  <rect x="540" y="512" width="16" height="12" rx="2" fill="#ffffff" stroke="rgba(0,3,92,0.28)" stroke-width="0.8" stroke-dasharray="3,2"/>
+  <text x="564" y="522" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">Pause for you</text>
+
+  <line x1="688" y1="518" x2="724" y2="518" stroke="#4e5399" stroke-width="1.2" marker-end="url(#te-arrow)"/>
+  <text x="736" y="522" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">Handoff</text>
+
+  <line x1="816" y1="518" x2="852" y2="518" stroke="#fd6a23" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#te-arrow-accent)"/>
+  <text x="864" y="522" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">Verification loop</text>
+
+  <rect x="992" y="512" width="16" height="12" rx="2" fill="rgba(0,3,92,0.02)" stroke="rgba(0,3,92,0.20)" stroke-width="0.8" stroke-dasharray="3,2"/>
+  <text x="1016" y="522" fill="#676ca8" font-size="8" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace">implement skill</text>
+</svg>
