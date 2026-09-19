@@ -15,7 +15,6 @@ The plugins support Claude Code, Codex App, and Pi Coding Agent.
 | [`refactor-tools`](./plugins/refactor-tools) | Simplifies code, tightens AI-generated prose without changing meaning, and reviews changes for quality, security, and maintainability. | Yes | Yes | No |
 | [`security-guard`](./plugins/security-guard) | Blocks environment dumps and common credential reads, and asks Pi users to approve destructive commands. | No | No | Yes |
 | [`output-styles`](./plugins/output-styles) | Selects a Pi response style at startup or during a session. | No | No | Yes |
-| [`redactor`](./plugins/redactor) | Replaces registered credential text with safe references before model requests, session files, and tool output on macOS. | No | No | Yes |
 
 Each plugin directory documents its commands, behavior, requirements, and limits.
 
@@ -55,8 +54,8 @@ The Codex marketplace uses local plugin paths, so install it from a local checko
 ### Pi Coding Agent
 
 Pi requires version 0.85.1 or later.
-The three Pi plugins are built and tested against that version, and none supports an older one.
-Install dependencies in a local checkout before installing `output-styles` or `redactor`.
+The two Pi plugins are built and tested against that version, and none supports an older one.
+Install dependencies in a local checkout before installing the Pi plugins.
 
 ```bash
 pnpm install
@@ -69,12 +68,10 @@ pi install ./
 ```
 
 Install one Pi plugin instead.
-`redactor` is not part of the bundle and is installed on its own.
 
 ```bash
 pi install ./plugins/output-styles
 pi install ./plugins/security-guard
-pi install ./plugins/redactor
 ```
 
 Add `-l` to any Pi install command to write a project-local entry to `.pi/settings.json`.
