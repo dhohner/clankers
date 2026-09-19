@@ -9,6 +9,13 @@
   },
   "plugins": [
     {
+      "name": "insomniac",
+      "source": "./plugins/insomniac",
+      "description": "Claude Code status line with the model, effort level, context window usage, and whether caffeinate keeps the Mac awake.",
+      "category": "productivity",
+      "tags": ["statusline", "macos", "caffeinate", "sleep"]
+    },
+    {
       "name": "project-advisor",
       "source": "./plugins/project-advisor",
       "description": "Project planning skills for recommending what to build next, writing PRDs, and turning approved PRDs into Jira-ready work items or coding-agent task files.",

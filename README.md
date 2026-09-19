@@ -1,6 +1,6 @@
 # Clankers
 
-Clankers publishes coding-agent plugins for product planning, task implementation, code refactoring, command safety, and Pi response styles.
+Clankers publishes coding-agent plugins for product planning, task implementation, code refactoring, command safety, sleep status, and Pi response styles.
 The plugins support Claude Code, Codex App, and Pi Coding Agent.
 
 > Review each plugin before installation.
@@ -13,6 +13,7 @@ The plugins support Claude Code, Codex App, and Pi Coding Agent.
 | [`project-advisor`](./plugins/project-advisor) | Recommends product work, writes PRDs, and converts accepted PRDs into Jira issues or coding-agent tasks. | Yes | Yes | No |
 | [`task-executor`](./plugins/task-executor) | Implements coding-agent task files and standalone changes through TDD, with independent requirement verification. | Yes | Yes | No |
 | [`refactor-tools`](./plugins/refactor-tools) | Simplifies code, tightens AI-generated prose without changing meaning, and reviews changes for quality, security, and maintainability. | Yes | Yes | No |
+| [`insomniac`](./plugins/insomniac) | Claude Code status line with the model, effort level, context window usage, and whether caffeinate keeps the Mac awake. | Yes | No | No |
 | [`security-guard`](./plugins/security-guard) | Blocks environment dumps and common credential reads, and asks Pi users to approve destructive commands. | No | No | Yes |
 | [`output-styles`](./plugins/output-styles) | Selects a Pi response style at startup or during a session. | No | No | Yes |
 
@@ -31,9 +32,10 @@ Add the marketplace.
 Install a plugin by name.
 
 ```text
-/plugin install project-advisor@dhohner-clankers
-/plugin install task-executor@dhohner-clankers
-/plugin install refactor-tools@dhohner-clankers
+/plugin install project-advisor@clankers
+/plugin install task-executor@clankers
+/plugin install refactor-tools@clankers
+/plugin install insomniac@clankers
 ```
 
 Run the following command to browse the marketplace instead.
