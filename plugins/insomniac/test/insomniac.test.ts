@@ -7,9 +7,9 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from
 
 const SCRIPT = join(dirname(fileURLToPath(import.meta.url)), "../scripts/statusline.sh");
 
-// Stands in for caffeinate so the tests hold no real power assertion. It is a compiled binary
-// named caffeinate, because the status line matches the executable name.
-// It logs its PID, then waits until it is killed.
+// This compiled binary stands in for caffeinate, so tests hold no real power assertion.
+// It uses the name caffeinate because the status line matches the executable name.
+// It logs its PID, then waits to be killed.
 const STUB_CAFFEINATE_SOURCE = `#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -22,15 +22,17 @@ int main(void) {
 }
 `;
 
-// Plays the Claude Code process. The test runner itself descends from the Claude Code session
-// that runs it, whose real caffeinate would leak into every result, so the harness first waits
-// until launchd adopts it. Its only ancestors are then itself and launchd.
+// Simulates the Claude Code process. The test runner descends from the Claude Code session
+// that runs it, so that session's real caffeinate would affect every result. The harness waits
+// until launchd adopts it, leaving only the harness and launchd as ancestors.
 //   $1  child to start before the status line runs:
 //       caffeinate  a caffeinate child, as Claude Code starts during a busy turn
 //       decoy       a process that is not caffeinate but mentions it in its arguments
 //       detached    a caffeinate adopted by launchd, as a detached `caffeinate &` ends up
 //       none        no child
-//   $2  direct runs the status line as the harness's child, nested runs it through sh -c
+//   $2  how to run the status line:
+//       direct  as the harness's child
+//       nested  through sh -c
 const HARNESS_SOURCE = `#!/bin/sh
 while [ "$(ps -o ppid= -p $$ | tr -d ' ')" != 1 ]; do sleep 0.01; done
 case $1 in
@@ -40,7 +42,7 @@ case $1 in
 esac
 case $1 in
   caffeinate | detached) until [ -s "$STUB_LOG" ]; do sleep 0.01; done ;;
-  # The decoy's sh needs a moment to show its own name instead of the harness's.
+  # The decoy shell needs time to show its own name instead of the harness's.
   decoy) sleep 0.2 ;;
 esac
 case $2 in
@@ -52,12 +54,12 @@ echo "exit $?" >>"$OUT.tmp"
 mv "$OUT.tmp" "$OUT"
 `;
 
-// Claude Code sends more fields than these, and the status line ignores the rest.
+// Claude Code sends more fields; the status line ignores them.
 function session(fields: object = {}): string {
   return JSON.stringify({ session_id: "session-a", ...fields });
 }
 
-// Claude Code computes used_percentage from the input tokens and the window size.
+// Claude Code computes used_percentage from input tokens and the window size.
 function contextUsed(percentage: number | null, windowSize = 200000): object {
   const inputTokens = percentage === null ? 0 : (windowSize * percentage) / 100;
   return { context_window: { context_window_size: windowSize, total_input_tokens: inputTokens, used_percentage: percentage } };
@@ -94,10 +96,9 @@ async function waitFor(condition: () => boolean): Promise<void> {
 
 type RunOptions = { via?: "direct" | "nested"; env?: Record<string, string> };
 
-// Returns the output with its ANSI colors removed as text, and unchanged as raw.
 async function runStatusLine(child: "caffeinate" | "decoy" | "detached" | "none", payload = session(), { via = "direct", env = {} }: RunOptions = {}) {
   const out = join(root, "out");
-  // The outer sh exits at once, which leaves the harness to launchd.
+  // The outer shell exits immediately, leaving the harness to launchd.
   spawn("sh", ["-c", '"$HARNESS" "$1" "$2" </dev/null >/dev/null 2>&1 &', "sh", child, via], {
     stdio: "ignore",
     env: {
@@ -147,7 +148,7 @@ afterEach(() => {
   rmSync(root, { recursive: true, force: true });
 });
 
-it("shows that the Mac stays awake while the Claude Code process runs caffeinate", async () => {
+it("shows the Mac staying awake while Claude Code runs caffeinate", async () => {
   const result = await runStatusLine("caffeinate");
 
   expect(result).toMatchObject({ text: "☕ awake", status: 0 });
@@ -159,19 +160,19 @@ it("finds caffeinate when Claude Code runs the status line through a shell", asy
   expect(result).toMatchObject({ text: "☕ awake", status: 0 });
 });
 
-it("shows that the Mac can sleep when no caffeinate runs", async () => {
+it("shows that the Mac can sleep without caffeinate", async () => {
   const result = await runStatusLine("none");
 
   expect(result).toMatchObject({ text: "💤 can sleep", status: 0 });
 });
 
-it("ignores a process that is not caffeinate even when its arguments mention caffeinate", async () => {
+it("ignores a non-caffeinate process whose arguments mention caffeinate", async () => {
   const result = await runStatusLine("decoy");
 
   expect(result).toMatchObject({ text: "💤 can sleep", status: 0 });
 });
 
-// launchd adopts every detached process, so its caffeinate children belong to other programs.
+// Launchd adopts every detached process, so detached caffeinate children belong to other programs.
 it("ignores a detached caffeinate that belongs to another program", async () => {
   const result = await runStatusLine("detached");
 
@@ -179,7 +180,7 @@ it("ignores a detached caffeinate that belongs to another program", async () => 
   expect(result).toMatchObject({ text: "💤 can sleep", status: 0 });
 });
 
-it("shows the model, effort level, context usage, and sleep state", async () => {
+it("shows the model, effort, context usage, and sleep state", async () => {
   const result = await runStatusLine(
     "caffeinate",
     session({ model: { id: "claude-opus-5", display_name: "Opus 5" }, effort: { level: "high" }, ...contextUsed(38) }),
@@ -188,7 +189,7 @@ it("shows the model, effort level, context usage, and sleep state", async () => 
   expect(result).toMatchObject({ text: "Opus 5 · high · ━━━━━━━╸──────────── 38% 76k/200k · ☕ awake", status: 0 });
 });
 
-// Each of the 20 cells stands for 5% of the context window, and a half cell for at least 2.5% more.
+// Each of the 20 cells represents 5% of the context window. A half cell represents at least 2.5% more.
 it.each([
   [0, "──────────────────── 0% 0/200k"],
   [2, "──────────────────── 2% 4k/200k"],
@@ -207,7 +208,7 @@ it.each([
   [152999, 200000, "152k/200k"],
   [150000, 1000000, "150k/1M"],
   [1500000, 2000000, "1.5M/2M"],
-  // Rounding would overstate usage, so the count is cut off at one decimal.
+  // Rounding would overstate usage, so the script truncates the count to one decimal.
   [1990000, 2000000, "1.9M/2M"],
 ])("abbreviates %i of %i tokens as %s", async (inputTokens, windowSize, tokens) => {
   const payload = session({ context_window: { context_window_size: windowSize, total_input_tokens: inputTokens, used_percentage: 20 } });
@@ -223,7 +224,7 @@ it("shows an empty bar without numbers before the first response reports usage",
   expect(result.text).toBe("──────────────────── -- · 💤 can sleep");
 });
 
-// The token count next to the bar already shows the window size.
+// The token count next to the bar shows the window size.
 it("drops the context size note from the model name", async () => {
   const result = await runStatusLine("none", session({ model: { id: "claude-opus-5[1m]", display_name: "Opus 5 (1M context)" }, ...contextUsed(15, 1000000) }));
 
@@ -278,7 +279,7 @@ it("dims the sleep state while the Mac can sleep", async () => {
   expect(result.raw).toBe(`💤 ${painted("2", "can sleep")}`);
 });
 
-// The bar turns yellow at half the context window and red when compaction draws near.
+// The bar turns yellow at 50% and red at 80%.
 it.each([
   [49, "32"],
   [50, "33"],
@@ -298,7 +299,7 @@ it("prints no colors when NO_COLOR is set", async () => {
   expect(result.raw).toBe("Opus 5 · ━━━━━━━╸──────────── 38% 76k/200k · ☕ awake");
 });
 
-// Terminals draw these emoji two columns wide.
+// Each emoji occupies two terminal columns.
 function columns(text: string): number {
   return [...text].length + (text.match(/[☕💤]/gu)?.length ?? 0);
 }
@@ -307,7 +308,7 @@ describe("with the terminal width in COLUMNS", () => {
   const payload = session({ model: { id: "claude-opus-5", display_name: "Opus 5" }, effort: { level: "high" }, ...contextUsed(38) });
   const details = "Opus 5 · high · ━━━━━━━╸──────────── 38% 76k/200k";
 
-  // Claude Code indents the status line, so the line stops 4 columns short of the terminal width.
+  // Claude Code indents the status line by 4 columns, so it ends 4 columns before terminal width.
   it("moves the sleep state to the right edge", async () => {
     const result = await runStatusLine("caffeinate", payload, { env: { COLUMNS: "100" } });
 
@@ -321,7 +322,7 @@ describe("with the terminal width in COLUMNS", () => {
     expect(result.text).toBe(`${" ".repeat(24)}💤 can sleep`);
   });
 
-  // The line needs the details, a gap as wide as the separator, the sleep state, and the margin.
+  // The line needs the details, a separator-width gap, the sleep state, and the margin.
   it("keeps the separator when the gap would be narrower than the separator", async () => {
     const result = await runStatusLine("caffeinate", payload, { env: { COLUMNS: String(columns(details) + 2 + 8 + 4) } });
 

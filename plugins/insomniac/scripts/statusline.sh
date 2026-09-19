@@ -1,23 +1,25 @@
 #!/bin/sh
-# Claude Code status line that shows the model, effort level, context window usage, and
+# Claude Code status line showing the model, effort level, context window usage, and
 # whether caffeinate keeps the Mac awake, for example:
 #   Opus 5 · high · ━━━━━━━╸──────────── 38% 76k/200k                 ☕ awake
-# Usage: set as statusLine.command, which receives the session as JSON on stdin.
-# Colors use the terminal theme's standard ANSI colors. Set NO_COLOR to turn them off.
-# The sleep state sits at the right edge when COLUMNS gives the terminal width, which
-# Claude Code sets for the status line, and after a separator otherwise.
+# Set this script as statusLine.command. Claude Code sends the session as JSON on stdin.
+# Colors follow the terminal theme's standard ANSI colors. Set NO_COLOR to turn them off.
+# The script puts the sleep state at the right edge when COLUMNS holds the terminal width.
+# Otherwise, it places the sleep state after a separator. Claude Code sets COLUMNS for the
+# status line.
 #
-# On macOS, Claude Code runs `caffeinate -i` as its own child while a turn is busy and
-# kills it about 30 seconds after the turn ends. The script therefore looks for a
-# caffeinate child of any of its ancestors. It skips launchd (PID 1), which adopts every
-# detached caffeinate, so another program's assertion never counts.
+# On macOS, Claude Code runs `caffeinate -i` as a child while a turn is busy. It kills the
+# process about 30 seconds after the turn ends. The script finds a caffeinate child of any
+# ancestor. It skips launchd, PID 1. Launchd adopts every detached `caffeinate` process,
+# so assertions from other programs do not count.
 
-# Claude Code sends effort only for models that support it, and a null used_percentage
-# until the first response reports token usage. A missing field drops its segment.
-# The model name loses a trailing note such as "(1M context)", because the token count
+# Claude Code sends effort only for models that support it. It sends null used_percentage
+# until the first response reports token usage. The script drops a segment for a missing
+# field.
+# The script removes a trailing model note such as "(1M context)" because the token count
 # next to the bar shows the window size.
-# Each of the 20 bar cells stands for 5% of the context window, and a half cell for at
-# least 2.5% more. The bar turns yellow at 50% and red at 80%.
+# Each of the 20 bar cells represents 5% of the context window. A half cell represents at
+# least 2.5% more.
 SESSION_DETAILS='
 def paint($code):
   if . == "" or ($ENV.NO_COLOR // "") != "" then . else "\u001b[\($code)m\(.)\u001b[0m" end;
@@ -45,9 +47,9 @@ def context_usage:
 ] | join(" · " | paint("2"))
 | "\(gsub("\u001b\\[[0-9;]*m"; "") | length)\t\(.)"'
 
-# Claude Code indents the status line, which leaves it this many columns short of COLUMNS.
+# Claude Code indents the status line by 4 columns.
 LINE_MARGIN=4
-# Right alignment needs at least as much room as the separator it replaces.
+# The replacement gap must be at least the separator's width.
 MIN_GAP=3
 
 sleep_state=$(ps -Ao pid=,ppid=,comm= | awk -v self="$$" '
@@ -58,7 +60,7 @@ sleep_state=$(ps -Ao pid=,ppid=,comm= | awk -v self="$$" '
     if (name == "caffeinate") keeps_awake[$2] = 1
   }
   END {
-    # The depth limit guards against a process table that changed while ps read it.
+    # Limit traversal to 64 levels to guard against a changing process table.
     for (pid = parent[self]; pid > 1 && depth < 64; pid = parent[pid]) {
       if (pid in keeps_awake) {
         print "awake"
@@ -77,15 +79,15 @@ else
   dim="$esc[2m" yellow="$esc[33m" reset="$esc[0m"
 fi
 
-# The emoji take two columns each.
+# Each emoji occupies two terminal columns.
 if [ "$sleep_state" = awake ]; then
   sleep_segment="☕ $yellow$sleep_state$reset" sleep_width=8
 else
   sleep_segment="💤 $dim$sleep_state$reset" sleep_width=12
 fi
 
-# The details arrive as their visible width, a tab, and the colored text.
-# Without jq or with invalid JSON the line shows only the sleep state.
+# The query returns the visible width, a tab, and the colored text.
+# Without jq or with invalid JSON, the line shows only the sleep state.
 rendered=$(jq -r "$SESSION_DETAILS" 2>/dev/null)
 details=${rendered#*	}
 details_width=${rendered%%	*}
@@ -94,7 +96,7 @@ details_width=${rendered%%	*}
 gap=0
 case ${COLUMNS:-} in
   '' | *[!0-9]*) ;;
-  # The length check keeps an absurd width from overflowing shell arithmetic.
+  # Skip arithmetic for COLUMNS values longer than five digits to prevent shell overflow.
   *) [ "${#COLUMNS}" -le 5 ] && gap=$((COLUMNS - LINE_MARGIN - details_width - sleep_width)) ;;
 esac
 
