@@ -38,7 +38,7 @@ function makeApprovalContext({
     signal,
     ui: { confirm: vi.fn().mockResolvedValue(approve), setWorkingMessage: vi.fn() },
     modelRegistry: {
-      find: vi.fn().mockReturnValue({ provider: "openai", id: "gpt-5.6-luna" }),
+      find: vi.fn().mockReturnValue({ provider: "openai", id: "gpt-6-luna" }),
       hasConfiguredAuth: vi.fn().mockReturnValue(true),
       complete: vi.fn().mockResolvedValue(makeAssessmentReply(verdict)),
     },
@@ -225,7 +225,7 @@ describe("extension entrypoint", () => {
 
     await expect(handler({ toolName: "bash", input: { command: "rm old.txt" } }, ctx)).resolves.toBeUndefined();
 
-    expect(ctx.modelRegistry.find).toHaveBeenCalledExactlyOnceWith("openai", "gpt-5.6-luna");
+    expect(ctx.modelRegistry.find).toHaveBeenCalledExactlyOnceWith("openai", "gpt-6-luna");
     expect(ctx.modelRegistry.complete).toHaveBeenCalledOnce();
     const [, context, options] = ctx.modelRegistry.complete.mock.calls[0];
     expect(context.messages[0].content).toContain("rm old.txt");

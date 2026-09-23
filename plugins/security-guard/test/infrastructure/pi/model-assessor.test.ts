@@ -59,7 +59,7 @@ describe("evaluateCommandSafety", () => {
       ok: true,
       assessment: { verdict: "unsafe", intent: "Deletes a file", reason: "The removal is not recoverable" },
     });
-    expect(registry.find).toHaveBeenCalledExactlyOnceWith("openai", "gpt-5.6-luna");
+    expect(registry.find).toHaveBeenCalledExactlyOnceWith("openai", "gpt-6-luna");
     expect(registry.complete).toHaveBeenCalledOnce();
 
     const [model, context, options] = registry.complete.mock.calls[0];
@@ -135,8 +135,8 @@ describe("evaluateCommandSafety", () => {
 
     expect(evaluation).toMatchObject({ ok: true });
     expect(registry.find.mock.calls).toEqual([
-      ["openai", "gpt-5.6-luna"],
-      ["openai-codex", "gpt-5.6-luna"],
+      ["openai", "gpt-6-luna"],
+      ["openai-codex", "gpt-6-luna"],
     ]);
     expect(registry.complete.mock.calls[0]?.[0]).toMatchObject({ provider: "openai-codex" });
   });
@@ -185,15 +185,15 @@ describe("evaluateCommandSafety", () => {
     expect(evaluation.ok).toBe(false);
     if (!evaluation.ok) {
       expect(evaluation.reason).toContain(SAFETY_EVALUATION_BLOCK_PREFIX);
-      expect(evaluation.reason).toContain("gpt-5.6-luna");
+      expect(evaluation.reason).toContain("gpt-6-luna");
       expect(evaluation.reason).toContain("openai");
       expect(evaluation.reason).toContain("openai-codex");
       expect(evaluation.reason).toContain("github-copilot");
     }
     expect(registry.find.mock.calls).toEqual([
-      ["openai", "gpt-5.6-luna"],
-      ["openai-codex", "gpt-5.6-luna"],
-      ["github-copilot", "gpt-5.6-luna"],
+      ["openai", "gpt-6-luna"],
+      ["openai-codex", "gpt-6-luna"],
+      ["github-copilot", "gpt-6-luna"],
     ]);
     expect(registry.complete).not.toHaveBeenCalled();
   });

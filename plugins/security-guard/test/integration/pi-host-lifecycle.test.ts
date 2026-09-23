@@ -40,7 +40,7 @@ async function createHost({ approve = true } = {}) {
   expect(loaded.extensions).toHaveLength(1);
 
   const modelRegistry = {
-    find: vi.fn().mockReturnValue({ provider: "openai", id: "gpt-5.6-luna" }),
+    find: vi.fn().mockReturnValue({ provider: "openai", id: "gpt-6-luna" }),
     hasConfiguredAuth: vi.fn().mockReturnValue(true),
     complete: vi.fn().mockResolvedValue({
       role: "assistant",

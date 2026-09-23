@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg viewBox="0 0 1280 520" width="1280" height="520" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="sg-decision-title sg-decision-desc">
   <title id="sg-decision-title">Security Guard decision flow</title>
-  <desc id="sg-decision-desc">Every agent bash call, agent read path, and user shell command in the Pi extension passes credential rules, and only agent bash commands continue through command analysis, host verification of temporary, build-output, and path-presence questions, and an advisory gpt-5.6-luna assessment that allows a safe verdict outright and otherwise opens a human approval dialog; clean read paths, clean user shell commands, harmless commands, proven cleanups, safe verdicts, and approvals run, while matched secrets, a missing approval interface, assessment errors, and denials are blocked.</desc>
+  <desc id="sg-decision-desc">Every agent bash call, agent read path, and user shell command in the Pi extension passes credential rules, and only agent bash commands continue through command analysis, host verification of temporary, build-output, and path-presence questions, and an advisory gpt-6-luna assessment that allows a safe verdict outright and otherwise opens a human approval dialog; clean read paths, clean user shell commands, harmless commands, proven cleanups, safe verdicts, and approvals run, while matched secrets, a missing approval interface, assessment errors, and denials are blocked.</desc>
   <defs>
     <marker id="sg-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4e5399"/></marker>
     <marker id="sg-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#fd6a23"/></marker>
@@ -107,7 +107,7 @@
   <rect x="876" y="244" width="52" height="12" rx="2" fill="none" stroke="rgba(0,3,92,0.28)" stroke-width="0.8"/>
   <text x="902" y="253" fill="#4e5399" font-size="7" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">STAGE 4</text>
   <text x="936" y="276" fill="#00035c" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">Safety assessment</text>
-  <text x="936" y="292" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">gpt-5.6-luna · advisory</text>
+  <text x="936" y="292" fill="#4e5399" font-size="9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">gpt-6-luna · advisory</text>
 
   <!-- Approval dialog (focal) -->
   <rect x="1064" y="232" width="144" height="72" rx="6" fill="#ffffff"/>

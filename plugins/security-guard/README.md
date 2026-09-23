@@ -65,7 +65,7 @@ Each command's classifier sits beside that table in [`src/policy/command-analysi
 
 ### Safety assessment in Pi
 
-Before showing an approval dialog, Pi asks `gpt-5.6-luna` at `high` reasoning effort for an advisory verdict, intent, and reason.
+Before showing an approval dialog, Pi asks `gpt-6-luna` at `high` reasoning effort for an advisory verdict, intent, and reason.
 The user still decides whether the command runs.
 
 The request contains only a fixed system instruction, the exact command, and the working directory.
