@@ -11,6 +11,7 @@ from support import (
     dump_yaml,
     load_example_manifest,
     load_yaml,
+    present,
     run_generator,
     sample_block,
 )
@@ -42,13 +43,56 @@ class PrdBundleRenderingTests(unittest.TestCase):
 
     def test_representative_initiatives_render_only_selected_review_blocks(self) -> None:
         fixtures = {
-            "ui-heavy": (["document", "ui"], ["problem", "personas", "requirements", "wireframes", "annotated_screens", "testing_strategy"]),
-            "workflow-heavy": (["document", "workflow"], ["problem", "personas", "journeys", "workflow_diagram", "state_transition_matrix", "failure_paths"]),
-            "api-heavy": (["document", "api"], ["problem", "requirements", "api_contract", "dependencies", "testing_strategy"]),
-            "data-heavy": (["document", "data"], ["problem", "requirements", "data_flow_diagram", "data_model", "security_privacy"]),
-            "architecture-heavy": (["document", "architecture"], ["problem", "architecture_diagram", "system_context", "decisions", "risks"]),
-            "mixed": (["document", "ui", "api", "data"], ["problem", "user_stories", "requirements", "ui_flow", "api_contract", "data_model", "rollout"]),
-            "small-feature": (["document"], ["problem", "goals", "requirements", "scope", "testing_strategy"]),
+            "ui-heavy": (
+                ["document", "ui"],
+                [
+                    "problem",
+                    "personas",
+                    "requirements",
+                    "wireframes",
+                    "annotated_screens",
+                    "testing_strategy",
+                ],
+            ),
+            "workflow-heavy": (
+                ["document", "workflow"],
+                [
+                    "problem",
+                    "personas",
+                    "journeys",
+                    "workflow_diagram",
+                    "state_transition_matrix",
+                    "failure_paths",
+                ],
+            ),
+            "api-heavy": (
+                ["document", "api"],
+                ["problem", "requirements", "api_contract", "dependencies", "testing_strategy"],
+            ),
+            "data-heavy": (
+                ["document", "data"],
+                ["problem", "requirements", "data_flow_diagram", "data_model", "security_privacy"],
+            ),
+            "architecture-heavy": (
+                ["document", "architecture"],
+                ["problem", "architecture_diagram", "system_context", "decisions", "risks"],
+            ),
+            "mixed": (
+                ["document", "ui", "api", "data"],
+                [
+                    "problem",
+                    "user_stories",
+                    "requirements",
+                    "ui_flow",
+                    "api_contract",
+                    "data_model",
+                    "rollout",
+                ],
+            ),
+            "small-feature": (
+                ["document"],
+                ["problem", "goals", "requirements", "scope", "testing_strategy"],
+            ),
         }
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
@@ -75,7 +119,7 @@ class PrdBundleRenderingTests(unittest.TestCase):
                     catalog_positions = [
                         position
                         for name, position in sorted(
-                            zip(selected, positions),
+                            zip(selected, positions, strict=True),
                             key=lambda pair: list(BUNDLE.BLOCK_SPECS).index(pair[0]),
                         )
                     ]
@@ -167,7 +211,7 @@ class PrdBundleRenderingTests(unittest.TestCase):
 
         self.assertEqual(
             "flowchart TB\n  A[Actor] --> B[Result]",
-            normalized["blocks"]["workflow_diagram"]["source"],
+            present(normalized["blocks"].get("workflow_diagram"))["source"],
         )
         self.assertIn("flowchart TB", document)
         self.assertNotIn("flowchart LR", document)
@@ -201,9 +245,9 @@ class PrdBundleRenderingTests(unittest.TestCase):
             '  n3["Service"]\n'
             "  n1 -->|HTTPS| n2\n"
             "  n2 -->|Route| n3",
-            normalized["blocks"]["architecture_diagram"]["source"],
+            present(normalized["blocks"].get("architecture_diagram"))["source"],
         )
-        self.assertIsNone(normalized["blocks"]["architecture_diagram"]["native"])
+        self.assertIsNone(present(normalized["blocks"].get("architecture_diagram"))["native"])
         self.assertIn('class="diagram-surface mermaid-diagram"', document)
         self.assertIn("&lt;Client&gt;", document)
         self.assertNotIn("<Client>", document)
@@ -251,14 +295,12 @@ class PrdBundleRenderingTests(unittest.TestCase):
                     ],
                 }
             ],
-            "open_questions": [
-                {"id": "QUESTION-01", "question": "How deep may a tree grow?"}
-            ],
+            "open_questions": [{"id": "QUESTION-01", "question": "How deep may a tree grow?"}],
         }
 
         normalized = BUNDLE.validate_manifest(manifest)
         document = BUNDLE.render_document(normalized)
-        source = BUNDLE.tree_mermaid_source(normalized["blocks"]["design_tree"])
+        source = BUNDLE.tree_mermaid_source(present(normalized["blocks"].get("design_tree")))
 
         self.assertIn(
             '<section id="design_tree" class="cue" data-block="design_tree"',
@@ -372,7 +414,7 @@ class PrdBundleRenderingTests(unittest.TestCase):
                 {
                     "id": "NODE-01",
                     "label": 'The "quoted" <label>',
-                    "question": 'Does a | pipe or a <script> tag survive?',
+                    "question": "Does a | pipe or a <script> tag survive?",
                     "status": "settled",
                     "answer": "Yes.",
                     "source": "user",
@@ -383,11 +425,14 @@ class PrdBundleRenderingTests(unittest.TestCase):
 
         normalized = BUNDLE.validate_manifest(manifest)
         document = BUNDLE.render_document(normalized)
-        source = BUNDLE.tree_mermaid_source(normalized["blocks"]["design_tree"])
+        source = BUNDLE.tree_mermaid_source(present(normalized["blocks"].get("design_tree")))
 
-        self.assertEqual("flowchart TB\n  n1[\"NODE-01 The 'quoted' <label> (Settled)\"]\n"
-                         "  classDef settled fill:#101a33,stroke:#8497ff,stroke-width:1.4px,"
-                         "color:#e7e9f2\n  class n1 settled", source)
+        self.assertEqual(
+            "flowchart TB\n  n1[\"NODE-01 The 'quoted' <label> (Settled)\"]\n"
+            "  classDef settled fill:#101a33,stroke:#8497ff,stroke-width:1.4px,"
+            "color:#e7e9f2\n  class n1 settled",
+            source,
+        )
         self.assertIn("&lt;label&gt;", document)
         self.assertNotIn("<label>", document)
         self.assertNotIn("script&gt; tag survive", document)
@@ -429,9 +474,9 @@ class PrdBundleRenderingTests(unittest.TestCase):
             manifest_path.write_text(dump_yaml(manifest), encoding="utf-8")
 
             result = run_generator(manifest_path, root / "action-items")
-            document = (
-                root / "action-items" / "PRD-no-tree" / "index.html"
-            ).read_text(encoding="utf-8")
+            document = (root / "action-items" / "PRD-no-tree" / "index.html").read_text(
+                encoding="utf-8"
+            )
 
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertNotIn('data-block="design_tree"', document)
@@ -474,8 +519,8 @@ class PrdBundleRenderingTests(unittest.TestCase):
 
         normalized = BUNDLE.validate_manifest(manifest)
 
-        self.assertEqual([], normalized["blocks"]["wireframes"][0]["regions"])
+        self.assertEqual([], present(normalized["blocks"].get("wireframes"))[0]["regions"])
         self.assertEqual(
-            "flowchart TB\n  n1[\"Service\"]",
-            normalized["blocks"]["architecture_diagram"]["source"],
+            'flowchart TB\n  n1["Service"]',
+            present(normalized["blocks"].get("architecture_diagram"))["source"],
         )

@@ -62,7 +62,7 @@ def render_navigation(entries: list[tuple[str, str, str, int]]) -> str:
         f'<span class="cue-group-level">{level:02d}</span>'
         f"<span>{escape_html(label)}</span>"
         '<span class="cue-group-swatch" aria-hidden="true"></span></p>'
-        f'<ol>{"".join(items)}</ol></div>'
+        f"<ol>{''.join(items)}</ol></div>"
         for level, label, items in groups
     )
 
@@ -75,9 +75,9 @@ def render_board(report: CoverageReport, headline: str, reading: str) -> str:
         f"<strong>{escape_html(headline)}</strong></p>"
         f'<p class="board-reading">{escape_html(reading)}</p>'
         '<dl class="board-counts">'
-        f'<div><dt>Up</dt><dd>{report["up"]}</dd></div>'
-        f'<div><dt>Held</dt><dd>{report["held"]}</dd></div>'
-        f'<div><dt>Coverage</dt><dd>{report["percent"]}<span>%</span></dd></div>'
+        f"<div><dt>Up</dt><dd>{report['up']}</dd></div>"
+        f"<div><dt>Held</dt><dd>{report['held']}</dd></div>"
+        f"<div><dt>Coverage</dt><dd>{report['percent']}<span>%</span></dd></div>"
         "</dl></div>"
     )
 

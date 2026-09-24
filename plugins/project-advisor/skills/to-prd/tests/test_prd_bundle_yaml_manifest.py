@@ -5,6 +5,8 @@ import unittest
 
 from support import dump_yaml, load_yaml
 
+from scripts.yaml_manifest import YamlError
+
 
 class PrdBundleYamlManifestTests(unittest.TestCase):
     def test_round_trips_quoted_keys_and_single_quoted_scalars(self) -> None:
@@ -50,7 +52,7 @@ class PrdBundleYamlManifestTests(unittest.TestCase):
             {"items": [{"Owner": "Test"}]},
         )
 
-        with self.assertRaises(ValueError) as raised:
+        with self.assertRaises(YamlError) as raised:
             load_yaml('title: ok\nsummary: "unterminated\n')
 
         self.assertEqual(raised.exception.line, 2)

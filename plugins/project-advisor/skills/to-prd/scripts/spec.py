@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Iterator
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
+from typing import cast
+
+from .manifest_types import DesignTreeBlock, DesignTreeNode, NormalizedBlocks, TraceableEntity
 
 SLUG_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 TEMPLATE_MARKER_PATTERN = re.compile(r"\{\{[A-Z0-9_]+\}\}")
@@ -90,44 +93,299 @@ class BlockSpec:
 
 
 BLOCK_SPECS: dict[str, BlockSpec] = {
-    "executive_summary": BlockSpec("Executive summary", "The proposed product change at a glance.", "framing", "all", "summary"),
-    "problem": BlockSpec("Problem and evidence", "Why this outcome matters now.", "framing", "all", "problem"),
-    "goals": BlockSpec("Goals and success measures", "Observable outcomes for the initiative.", "framing", "validation", "cards", ("goal", "success_signal")),
-    "non_goals": BlockSpec("Non-goals", "Outcomes this initiative intentionally does not pursue.", "framing", "decisions", "list"),
-    "personas": BlockSpec("Personas and actors", "Who participates and what changes for them.", "people-workflow", "all", "cards", ("actor", "need", "outcome")),
-    "user_stories": BlockSpec("User stories", "User-centered behavior the product must enable.", "people-workflow", "validation", "cards", ("story", "acceptance")),
-    "journeys": BlockSpec("Current and future journey", "How the experience changes from today to the target state.", "people-workflow", "all", "cards", ("current", "future")),
-    "workflow_diagram": BlockSpec("Workflow diagram", "The sequence reviewers need to align on.", "people-workflow", "all", "diagram"),
-    "state_transition_matrix": BlockSpec("State-transition matrix", "Allowed states, triggers, and resulting behavior.", "people-workflow", "validation", "table"),
-    "failure_paths": BlockSpec("Failure and fallback paths", "Expected behavior when the happy path cannot complete.", "people-workflow", "validation", "cards", ("scenario", "fallback")),
-    "requirements": BlockSpec("Requirements", "Behavior the delivered product must support.", "product-definition", "validation decisions", "cards", ("title", "description"), "req", "REQ"),
-    "capability_map": BlockSpec("Capability map", "Product capabilities and the outcomes they enable.", "product-definition", "all", "cards", ("capability", "outcome")),
-    "scope": BlockSpec("Scope boundaries", "Explicit limits for implementation planning.", "product-definition", "decisions", "scope"),
-    "business_rules": BlockSpec("Business rules", "Durable rules that constrain product behavior.", "product-definition", "validation decisions", "cards", ("rule", "rationale")),
-    "decisions": BlockSpec("Decision log", "Settled choices that shape delivery.", "product-definition", "decisions", "cards", ("decision", "rationale"), "dec", "DEC"),
-    "design_tree": BlockSpec("Design tree", "The interview branches behind the settled decisions.", "product-definition", "decisions", "tree", id_prefix="node", label_prefix="NODE"),
-    "alternatives": BlockSpec("Alternatives and tradeoffs", "Options considered and why they were not selected.", "product-definition", "decisions", "cards", ("option", "tradeoff")),
-    "wireframes": BlockSpec("Wireframes", "Screen concepts used to review layout and hierarchy.", "visual-experience", "all", "frames", ("screen", "intent")),
-    "before_after": BlockSpec("Before and after", "The visible change from the current experience.", "visual-experience", "all", "cards", ("before", "after")),
-    "annotated_screens": BlockSpec("Annotated screen states", "Important states and the behavior each communicates.", "visual-experience", "validation", "frames", ("state", "annotation")),
-    "ui_flow": BlockSpec("UI flow", "How reviewers move between interface states.", "visual-experience", "all", "diagram"),
-    "design_direction": BlockSpec("Design direction", "Principles guiding the proposed visual experience.", "visual-experience", "decisions", "cards", ("principle", "application")),
-    "architecture_diagram": BlockSpec("Architecture diagram", "System boundaries and responsibilities relevant to the initiative.", "technical-contracts", "decisions", "diagram"),
-    "data_flow_diagram": BlockSpec("Data-flow diagram", "How information moves through the proposed system.", "technical-contracts", "all", "diagram"),
-    "system_context": BlockSpec("System context", "External actors, systems, and boundaries.", "technical-contracts", "all", "diagram"),
-    "api_contract": BlockSpec("API contract", "Interfaces and observable behavior consumers depend on.", "technical-contracts", "validation decisions", "cards", ("contract", "behavior")),
-    "data_model": BlockSpec("Data model", "Entities and relationships introduced or changed.", "technical-contracts", "validation decisions", "cards", ("entity", "definition")),
-    "event_lifecycle": BlockSpec("Event or state lifecycle", "Lifecycle transitions that implementations must preserve.", "technical-contracts", "validation", "diagram"),
-    "file_symbol_map": BlockSpec("File and symbol map", "Repository locations expected to participate in delivery.", "technical-contracts", "all", "cards", ("reference", "role")),
-    "annotated_code": BlockSpec("Annotated code or diff", "Code evidence that clarifies a contract or constraint.", "technical-contracts", "all", "code"),
-    "dependencies": BlockSpec("Dependencies", "External work or capabilities required for delivery.", "delivery-assurance", "decisions", "cards", ("dependency", "impact")),
-    "risks": BlockSpec("Risks and mitigations", "Known failure modes and responses.", "delivery-assurance", "decisions validation", "cards", ("risk", "mitigation"), "risk", "RISK"),
-    "security_privacy": BlockSpec("Security and privacy", "Sensitive data, access, and abuse considerations.", "delivery-assurance", "validation decisions", "cards", ("concern", "response")),
-    "rollout": BlockSpec("Rollout and migration", "How the outcome reaches users safely.", "delivery-assurance", "validation", "cards", ("phase", "outcome")),
-    "testing_strategy": BlockSpec("Testing strategy", "Observable proof that the requirements work.", "delivery-assurance", "validation", "cards", ("target", "expected_outcome"), "test", "TEST"),
-    "traceability_matrix": BlockSpec("Traceability matrix", "Relationships between product intent and verification.", "delivery-assurance", "validation decisions", "table"),
-    "open_questions": BlockSpec("Open questions", "Decisions that still need explicit confirmation.", "delivery-assurance", "decisions", "questions", id_prefix="question", label_prefix="QUESTION"),
-    "repository_grounding": BlockSpec("Repository grounding", "Evidence that informed the product shape.", "delivery-assurance", "all", "cards", ("reference", "observation", "implication")),
+    "executive_summary": BlockSpec(
+        "Executive summary", "The proposed product change at a glance.", "framing", "all", "summary"
+    ),
+    "problem": BlockSpec(
+        "Problem and evidence", "Why this outcome matters now.", "framing", "all", "problem"
+    ),
+    "goals": BlockSpec(
+        "Goals and success measures",
+        "Observable outcomes for the initiative.",
+        "framing",
+        "validation",
+        "cards",
+        ("goal", "success_signal"),
+    ),
+    "non_goals": BlockSpec(
+        "Non-goals",
+        "Outcomes this initiative intentionally does not pursue.",
+        "framing",
+        "decisions",
+        "list",
+    ),
+    "personas": BlockSpec(
+        "Personas and actors",
+        "Who participates and what changes for them.",
+        "people-workflow",
+        "all",
+        "cards",
+        ("actor", "need", "outcome"),
+    ),
+    "user_stories": BlockSpec(
+        "User stories",
+        "User-centered behavior the product must enable.",
+        "people-workflow",
+        "validation",
+        "cards",
+        ("story", "acceptance"),
+    ),
+    "journeys": BlockSpec(
+        "Current and future journey",
+        "How the experience changes from today to the target state.",
+        "people-workflow",
+        "all",
+        "cards",
+        ("current", "future"),
+    ),
+    "workflow_diagram": BlockSpec(
+        "Workflow diagram",
+        "The sequence reviewers need to align on.",
+        "people-workflow",
+        "all",
+        "diagram",
+    ),
+    "state_transition_matrix": BlockSpec(
+        "State-transition matrix",
+        "Allowed states, triggers, and resulting behavior.",
+        "people-workflow",
+        "validation",
+        "table",
+    ),
+    "failure_paths": BlockSpec(
+        "Failure and fallback paths",
+        "Expected behavior when the happy path cannot complete.",
+        "people-workflow",
+        "validation",
+        "cards",
+        ("scenario", "fallback"),
+    ),
+    "requirements": BlockSpec(
+        "Requirements",
+        "Behavior the delivered product must support.",
+        "product-definition",
+        "validation decisions",
+        "cards",
+        ("title", "description"),
+        "req",
+        "REQ",
+    ),
+    "capability_map": BlockSpec(
+        "Capability map",
+        "Product capabilities and the outcomes they enable.",
+        "product-definition",
+        "all",
+        "cards",
+        ("capability", "outcome"),
+    ),
+    "scope": BlockSpec(
+        "Scope boundaries",
+        "Explicit limits for implementation planning.",
+        "product-definition",
+        "decisions",
+        "scope",
+    ),
+    "business_rules": BlockSpec(
+        "Business rules",
+        "Durable rules that constrain product behavior.",
+        "product-definition",
+        "validation decisions",
+        "cards",
+        ("rule", "rationale"),
+    ),
+    "decisions": BlockSpec(
+        "Decision log",
+        "Settled choices that shape delivery.",
+        "product-definition",
+        "decisions",
+        "cards",
+        ("decision", "rationale"),
+        "dec",
+        "DEC",
+    ),
+    "design_tree": BlockSpec(
+        "Design tree",
+        "The interview branches behind the settled decisions.",
+        "product-definition",
+        "decisions",
+        "tree",
+        id_prefix="node",
+        label_prefix="NODE",
+    ),
+    "alternatives": BlockSpec(
+        "Alternatives and tradeoffs",
+        "Options considered and why they were not selected.",
+        "product-definition",
+        "decisions",
+        "cards",
+        ("option", "tradeoff"),
+    ),
+    "wireframes": BlockSpec(
+        "Wireframes",
+        "Screen concepts used to review layout and hierarchy.",
+        "visual-experience",
+        "all",
+        "frames",
+        ("screen", "intent"),
+    ),
+    "before_after": BlockSpec(
+        "Before and after",
+        "The visible change from the current experience.",
+        "visual-experience",
+        "all",
+        "cards",
+        ("before", "after"),
+    ),
+    "annotated_screens": BlockSpec(
+        "Annotated screen states",
+        "Important states and the behavior each communicates.",
+        "visual-experience",
+        "validation",
+        "frames",
+        ("state", "annotation"),
+    ),
+    "ui_flow": BlockSpec(
+        "UI flow",
+        "How reviewers move between interface states.",
+        "visual-experience",
+        "all",
+        "diagram",
+    ),
+    "design_direction": BlockSpec(
+        "Design direction",
+        "Principles guiding the proposed visual experience.",
+        "visual-experience",
+        "decisions",
+        "cards",
+        ("principle", "application"),
+    ),
+    "architecture_diagram": BlockSpec(
+        "Architecture diagram",
+        "System boundaries and responsibilities relevant to the initiative.",
+        "technical-contracts",
+        "decisions",
+        "diagram",
+    ),
+    "data_flow_diagram": BlockSpec(
+        "Data-flow diagram",
+        "How information moves through the proposed system.",
+        "technical-contracts",
+        "all",
+        "diagram",
+    ),
+    "system_context": BlockSpec(
+        "System context",
+        "External actors, systems, and boundaries.",
+        "technical-contracts",
+        "all",
+        "diagram",
+    ),
+    "api_contract": BlockSpec(
+        "API contract",
+        "Interfaces and observable behavior consumers depend on.",
+        "technical-contracts",
+        "validation decisions",
+        "cards",
+        ("contract", "behavior"),
+    ),
+    "data_model": BlockSpec(
+        "Data model",
+        "Entities and relationships introduced or changed.",
+        "technical-contracts",
+        "validation decisions",
+        "cards",
+        ("entity", "definition"),
+    ),
+    "event_lifecycle": BlockSpec(
+        "Event or state lifecycle",
+        "Lifecycle transitions that implementations must preserve.",
+        "technical-contracts",
+        "validation",
+        "diagram",
+    ),
+    "file_symbol_map": BlockSpec(
+        "File and symbol map",
+        "Repository locations expected to participate in delivery.",
+        "technical-contracts",
+        "all",
+        "cards",
+        ("reference", "role"),
+    ),
+    "annotated_code": BlockSpec(
+        "Annotated code or diff",
+        "Code evidence that clarifies a contract or constraint.",
+        "technical-contracts",
+        "all",
+        "code",
+    ),
+    "dependencies": BlockSpec(
+        "Dependencies",
+        "External work or capabilities required for delivery.",
+        "delivery-assurance",
+        "decisions",
+        "cards",
+        ("dependency", "impact"),
+    ),
+    "risks": BlockSpec(
+        "Risks and mitigations",
+        "Known failure modes and responses.",
+        "delivery-assurance",
+        "decisions validation",
+        "cards",
+        ("risk", "mitigation"),
+        "risk",
+        "RISK",
+    ),
+    "security_privacy": BlockSpec(
+        "Security and privacy",
+        "Sensitive data, access, and abuse considerations.",
+        "delivery-assurance",
+        "validation decisions",
+        "cards",
+        ("concern", "response"),
+    ),
+    "rollout": BlockSpec(
+        "Rollout and migration",
+        "How the outcome reaches users safely.",
+        "delivery-assurance",
+        "validation",
+        "cards",
+        ("phase", "outcome"),
+    ),
+    "testing_strategy": BlockSpec(
+        "Testing strategy",
+        "Observable proof that the requirements work.",
+        "delivery-assurance",
+        "validation",
+        "cards",
+        ("target", "expected_outcome"),
+        "test",
+        "TEST",
+    ),
+    "traceability_matrix": BlockSpec(
+        "Traceability matrix",
+        "Relationships between product intent and verification.",
+        "delivery-assurance",
+        "validation decisions",
+        "table",
+    ),
+    "open_questions": BlockSpec(
+        "Open questions",
+        "Decisions that still need explicit confirmation.",
+        "delivery-assurance",
+        "decisions",
+        "questions",
+        id_prefix="question",
+        label_prefix="QUESTION",
+    ),
+    "repository_grounding": BlockSpec(
+        "Repository grounding",
+        "Evidence that informed the product shape.",
+        "delivery-assurance",
+        "all",
+        "cards",
+        ("reference", "observation", "implication"),
+    ),
 }
 
 ENTITY_OPTIONAL_FIELDS_BY_BLOCK = {
@@ -165,7 +423,30 @@ def entity_anchor(entity_id: str) -> str:
     return _TREE_BLOCK_BY_ID_PREFIX.get(prefix, entity_id)
 
 
-def iter_tree_nodes(nodes: list[dict]) -> Iterator[dict]:
+def entity_blocks(
+    blocks: NormalizedBlocks,
+) -> Iterator[tuple[str, BlockSpec, list[TraceableEntity]]]:
+    """Yield each selected block whose items are traceable entities, in catalog order.
+
+    Design tree nodes carry ids too, but they come from ``tree_blocks`` because
+    they record interview history rather than tracked claims.
+    """
+    for name, items in blocks.items():
+        spec = BLOCK_SPECS[name]
+        if spec.id_prefix and spec.kind != "tree":
+            # Every item type of an id-prefixed block extends TraceableEntity.
+            yield name, spec, cast("list[TraceableEntity]", items)
+
+
+def tree_blocks(blocks: NormalizedBlocks) -> Iterator[tuple[str, BlockSpec, DesignTreeBlock]]:
+    """Yield each selected design tree block."""
+    for name, items in blocks.items():
+        spec = BLOCK_SPECS[name]
+        if spec.kind == "tree":
+            yield name, spec, cast("DesignTreeBlock", items)
+
+
+def iter_tree_nodes(nodes: Sequence[DesignTreeNode]) -> Iterator[DesignTreeNode]:
     """Yield every design tree node in document order, parents before children.
 
     The walk is iterative because tree depth comes from author input, and a
@@ -201,7 +482,9 @@ __all__ = [
     "TEMPLATE_MARKER_PATTERN",
     "BlockSpec",
     "entity_anchor",
+    "entity_blocks",
     "entity_label",
     "iter_tree_nodes",
     "normalize_entity_id",
+    "tree_blocks",
 ]

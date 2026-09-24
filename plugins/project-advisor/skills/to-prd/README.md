@@ -59,7 +59,7 @@ Options:
 - `--format yaml|text` selects the output format, and non-template commands default to YAML.
 - `--full` expands large `validate` and `inspect` output.
 
-The CLI needs Python 3 only, without a virtual environment, package installation, Node.js, or browser.
+The CLI needs Python 3.14 or newer, without a virtual environment, package installation, Node.js, or browser.
 
 ## References
 
@@ -77,3 +77,13 @@ The CLI needs Python 3 only, without a virtual environment, package installation
 cd plugins/project-advisor/skills/to-prd
 python3 -m unittest discover tests 'test_prd_bundle_*.py'
 ```
+
+Lint and format the CLI with [ruff](https://docs.astral.sh/ruff/), configured in `ruff.toml`:
+
+```sh
+cd plugins/project-advisor/skills/to-prd
+uvx ruff check .
+uvx ruff format --check .
+```
+
+Ruff is a development tool only, so the CLI still runs with a bare `python3`.

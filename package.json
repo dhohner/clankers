@@ -7,7 +7,8 @@
     "pi-package"
   ],
   "scripts": {
-    "test": "vitest run"
+    "test": "vitest run",
+    "lint:py": "cd plugins/project-advisor/skills/to-prd && uvx ruff check . && uvx ruff format --check ."
   },
   "devDependencies": {
     "vitest": "^5.0.0"

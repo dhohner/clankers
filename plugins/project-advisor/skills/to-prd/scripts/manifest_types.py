@@ -8,7 +8,7 @@ stable place to evolve without forcing every module boundary back to
 
 from __future__ import annotations
 
-from typing import TypeAlias, TypedDict
+from typing import Required, TypedDict
 
 
 class MetricItem(TypedDict):
@@ -73,7 +73,6 @@ class AnnotatedScreenItem(FrameItem):
     annotation: str
 
 
-
 class CodeSample(TypedDict):
     reference: str
     language: str
@@ -82,16 +81,18 @@ class CodeSample(TypedDict):
 
 
 class TraceableEntity(TypedDict, total=False):
-    id: str
-    label: str
-    relates_to: list[str]
-    evidence: list[str]
+    """An item that validation assigns a stable id, label, and reference lists."""
+
+    id: Required[str]
+    label: Required[str]
+    relates_to: Required[list[str]]
+    evidence: Required[list[str]]
 
 
 class RequirementItem(TraceableEntity, total=False):
     title: str
     description: str
-    validation: list[str]
+    validation: Required[list[str]]
     exception: str
 
 
@@ -123,10 +124,10 @@ class DesignTreeNode(TypedDict, total=False):
     ``deferred`` names an open question through ``relates_to``.
     """
 
-    id: str
-    label: str
-    question: str
-    status: str
+    id: Required[str]
+    label: Required[str]
+    question: Required[str]
+    status: Required[str]
     answer: str
     source: str
     rationale: str
@@ -134,23 +135,23 @@ class DesignTreeNode(TypedDict, total=False):
     reason: str
     relates_to: list[str]
     evidence: list[str]
-    children: list["DesignTreeNode"]
+    children: list[DesignTreeNode]
 
 
-CardItem: TypeAlias = dict[str, str]
-CardBlock: TypeAlias = list[CardItem]
-StringBlock: TypeAlias = list[str]
-WireframesBlock: TypeAlias = list[WireframeItem]
-AnnotatedScreensBlock: TypeAlias = list[AnnotatedScreenItem]
-RequirementsBlock: TypeAlias = list[RequirementItem]
-DecisionsBlock: TypeAlias = list[DecisionItem]
-RisksBlock: TypeAlias = list[RiskItem]
-TestingStrategyBlock: TypeAlias = list[TestingStrategyItem]
-OpenQuestionsBlock: TypeAlias = list[OpenQuestionItem]
-DesignTreeBlock: TypeAlias = list[DesignTreeNode]
-AnnotatedCodeBlock: TypeAlias = list[CodeSample]
+type CardItem = dict[str, str]
+type CardBlock = list[CardItem]
+type StringBlock = list[str]
+type WireframesBlock = list[WireframeItem]
+type AnnotatedScreensBlock = list[AnnotatedScreenItem]
+type RequirementsBlock = list[RequirementItem]
+type DecisionsBlock = list[DecisionItem]
+type RisksBlock = list[RiskItem]
+type TestingStrategyBlock = list[TestingStrategyItem]
+type OpenQuestionsBlock = list[OpenQuestionItem]
+type DesignTreeBlock = list[DesignTreeNode]
+type AnnotatedCodeBlock = list[CodeSample]
 
-NormalizedBlock: TypeAlias = (
+type NormalizedBlock = (
     SummaryBlock
     | ProblemBlock
     | ScopeBlock

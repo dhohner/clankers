@@ -28,17 +28,12 @@ def command_template(args: argparse.Namespace) -> dict[str, Any]:
                 ],
                 "next": [
                     next_command("schema"),
-                    next_command(
-                        "template --blocks goals requirements testing_strategy"
-                    ),
+                    next_command("template --blocks goals requirements testing_strategy"),
                 ],
             }
         )
 
-    blocks = {
-        block: template_block(block)
-        for block in _with_required_blocks(block_names)
-    }
+    blocks = {block: template_block(block) for block in _with_required_blocks(block_names)}
     _link_template_traceability(blocks)
     manifest = {
         "schema_version": CURRENT_SCHEMA_VERSION,
@@ -58,10 +53,7 @@ def command_template(args: argparse.Namespace) -> dict[str, Any]:
             {
                 "status": "error",
                 "code": "template_invalid",
-                "errors": [
-                    {"path": "template", "message": message}
-                    for message in error.errors
-                ],
+                "errors": [{"path": "template", "message": message} for message in error.errors],
                 "next": [next_command("schema")],
             }
         ) from error

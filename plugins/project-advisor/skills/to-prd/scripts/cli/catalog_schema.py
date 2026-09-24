@@ -61,7 +61,10 @@ def command_schema(args: argparse.Namespace) -> dict[str, Any]:
             for name, surfaces in sorted(REQUIRED_SURFACES_BY_INITIATIVE.items())
         },
         "constraints": [
-            f"A new manifest declares schema_version {CURRENT_SCHEMA_VERSION}, which requires the design_tree block.",
+            (
+                f"A new manifest declares schema_version {CURRENT_SCHEMA_VERSION}, "
+                "which requires the design_tree block."
+            ),
             "schema_version 1 stays valid for an existing manifest and keeps design_tree optional.",
             "Every initiative requires document in review_surfaces.",
             "Each *-heavy initiative also requires its matching review surface.",
@@ -142,16 +145,16 @@ def _block_schema(block: str, compact: bool = False) -> dict[str, Any]:
 
 
 def _ordered_surfaces(surfaces: set[str]) -> list[str]:
-    return (["document"] if "document" in surfaces else []) + sorted(
-        surfaces - {"document"}
-    )
+    return (["document"] if "document" in surfaces else []) + sorted(surfaces - {"document"})
 
 
 def _field_shapes(block: str) -> dict[str, str]:
     spec = BLOCK_SPECS[block]
     if spec.kind == "summary":
         return {
-            "metrics": "non-empty array of objects with label, value, and description as non-empty strings",
+            "metrics": (
+                "non-empty array of objects with label, value, and description as non-empty strings"
+            ),
             "recommendation": "non-empty string",
         }
     if spec.kind == "cards":
@@ -213,7 +216,9 @@ def _field_shapes(block: str) -> dict[str, str]:
             "rationale": "non-empty string, required for a settled node",
             "superseded_answer": "optional non-empty string on a settled node",
             "reason": "non-empty string, required for a pruned node",
-            "relates_to": "array of non-empty entity ids; a deferred node must name an open question id",
+            "relates_to": (
+                "array of non-empty entity ids; a deferred node must name an open question id"
+            ),
             "evidence": "array of non-empty strings; required when source is research",
             "children": "optional non-empty array of design tree nodes",
         }

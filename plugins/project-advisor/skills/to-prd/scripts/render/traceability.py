@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any, TypedDict
 
 from ..manifest_types import NormalizedBlocks
-from ..spec import BLOCK_SPECS, entity_label
+from ..spec import BLOCK_SPECS, entity_blocks
 from .helpers import escape_html
 
 RELATIONSHIP_FIELDS = ("relates_to", "validation", "validates")
@@ -38,19 +38,14 @@ class CoverageReport(TypedDict):
 def iter_entities(blocks: NormalizedBlocks) -> list[dict[str, Any]]:
     """Return every entity that carries a stable ID, in catalog order."""
     entities: list[dict[str, Any]] = []
-    for block_name, items in blocks.items():
-        spec = BLOCK_SPECS[block_name]
-        # Design tree nodes carry ids for linking but record interview history
-        # rather than tracked claims, so they stay off the coverage board.
-        if not spec.id_prefix or spec.kind == "tree":
-            continue
+    for block_name, spec, items in entity_blocks(blocks):
         title_field = "question" if spec.kind == "questions" else spec.fields[0]
         for item in items:
             entities.append(
                 {
                     "block": block_name,
                     "id": item["id"],
-                    "label": item.get("label", entity_label(item["id"])),
+                    "label": item["label"],
                     "statement": item.get(title_field, ""),
                     "item": item,
                 }
@@ -158,7 +153,7 @@ def render_coverage_rows(gaps: list[tuple[dict[str, Any], tuple[str, str]]]) -> 
         rows.append(
             "<tr>"
             f'<td><a class="cue-code" href="#{escape_html(entity["id"])}">'
-            f'{escape_html(entity["label"])}</a></td>'
+            f"{escape_html(entity['label'])}</a></td>"
             f"<td>{escape_html(BLOCK_SPECS[entity['block']].title)}</td>"
             f"<td>{escape_html(entity['statement'])}</td>"
             f'<td><strong class="coverage-gap">{escape_html(title)}</strong>'

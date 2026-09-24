@@ -26,9 +26,7 @@ class PrdBundleCliTests(unittest.TestCase):
             self.assertNotIn("RuntimeWarning", result.stderr)
             bundle = root / "action-items" / "PRD-example-review-bundle"
             document = (bundle / "index.html").read_text(encoding="utf-8")
-            preserved_manifest = load_yaml(
-                (bundle / "prd.yaml").read_text(encoding="utf-8")
-            )
+            preserved_manifest = load_yaml((bundle / "prd.yaml").read_text(encoding="utf-8"))
 
             self.assertIn(
                 '<h1 id="document-title">Rich Interactive HTML Output for to-prd</h1>',
@@ -45,7 +43,7 @@ class PrdBundleCliTests(unittest.TestCase):
             )
             self.assertNotIn("{{", document)
             self.assertIn("default-src 'none'", document)
-            self.assertIn('script-src \'self\' https://cdn.jsdelivr.net', document)
+            self.assertIn("script-src 'self' https://cdn.jsdelivr.net", document)
             self.assertIn("style-src-elem 'self' 'unsafe-inline'", document)
             self.assertIn("style-src-attr 'unsafe-inline'", document)
             self.assertIn('name="referrer" content="no-referrer"', document)
@@ -65,7 +63,7 @@ class PrdBundleCliTests(unittest.TestCase):
             self.assertIn('href="#req-01"', document)
             self.assertIn('id="dec-01"', document)
             self.assertIn('id="risk-01"', document)
-            self.assertNotIn('plate-grid--3', document)
+            self.assertNotIn("plate-grid--3", document)
             self.assertIn('id="question-01"', document)
             self.assertIn('id="test-01"', document)
             self.assertIn('class="readout-grid"', document)
@@ -358,12 +356,9 @@ class PrdBundleCliTests(unittest.TestCase):
 
             result = run_generator(manifest_path, root / "action-items")
             preserved_manifest = load_yaml(
-                (
-                    root
-                    / "action-items"
-                    / "PRD-example-review-bundle"
-                    / "prd.yaml"
-                ).read_text(encoding="utf-8")
+                (root / "action-items" / "PRD-example-review-bundle" / "prd.yaml").read_text(
+                    encoding="utf-8"
+                )
             )
 
             self.assertEqual(result.returncode, 0, result.stderr)
@@ -489,12 +484,9 @@ class PrdBundleCliTests(unittest.TestCase):
             result = run_generator(manifest_path, root / "action-items")
             payload = load_yaml(result.stdout)
             preserved_manifest = load_yaml(
-                (
-                    root
-                    / "action-items"
-                    / "PRD-example-review-bundle"
-                    / "prd.yaml"
-                ).read_text(encoding="utf-8")
+                (root / "action-items" / "PRD-example-review-bundle" / "prd.yaml").read_text(
+                    encoding="utf-8"
+                )
             )
 
             self.assertEqual(result.returncode, 0, result.stderr)
@@ -534,9 +526,7 @@ class PrdBundleCliTests(unittest.TestCase):
 
                     result = run_cli("validate", str(manifest_path))
                     payload = load_yaml(result.stdout)
-                    messages = "\n".join(
-                        error["message"] for error in payload["errors"]
-                    )
+                    messages = "\n".join(error["message"] for error in payload["errors"])
 
                     self.assertEqual(result.returncode, 2)
                     self.assertEqual(payload["code"], "manifest_invalid")
@@ -597,9 +587,7 @@ class PrdBundleCliTests(unittest.TestCase):
             replaced = run_generator(EXAMPLE, output_root, "--force")
             self.assertEqual(replaced.returncode, 0, replaced.stderr)
             self.assertFalse(sentinel.exists())
-            self.assertTrue(
-                (output_root / "PRD-example-review-bundle" / "index.html").exists()
-            )
+            self.assertTrue((output_root / "PRD-example-review-bundle" / "index.html").exists())
 
     def test_custom_output_root_is_reflected_in_document_metadata(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:

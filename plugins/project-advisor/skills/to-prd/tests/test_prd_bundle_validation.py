@@ -3,10 +3,9 @@ from __future__ import annotations
 import sys
 import unittest
 
-from support import BUNDLE, EVIDENCE_REFERENCE, base_manifest
+from support import BUNDLE, EVIDENCE_REFERENCE, base_manifest, present
 
 from scripts.render.traceability import coverage_report
-
 
 DESIGN_TREE_ROOT = {
     "id": "NODE-01",
@@ -86,8 +85,8 @@ class PrdBundleValidationTests(unittest.TestCase):
 
         normalized = BUNDLE.validate_manifest(manifest)
 
-        requirement = normalized["blocks"]["requirements"][0]
-        test_case = normalized["blocks"]["testing_strategy"][0]
+        requirement = present(normalized["blocks"].get("requirements"))[0]
+        test_case = present(normalized["blocks"].get("testing_strategy"))[0]
         self.assertEqual("req-portability", requirement["id"])
         self.assertEqual("REQ-PORTABILITY", requirement["label"])
         self.assertEqual(["test-assets"], requirement["validation"])
@@ -175,8 +174,9 @@ class PrdBundleValidationTests(unittest.TestCase):
 
         normalized = BUNDLE.validate_manifest(manifest)
 
-        self.assertEqual([], normalized["blocks"]["requirements"][0]["evidence"])
-        self.assertEqual("REQ-01", normalized["blocks"]["requirements"][0]["label"])
+        requirement = present(normalized["blocks"].get("requirements"))[0]
+        self.assertEqual([], requirement["evidence"])
+        self.assertEqual("REQ-01", requirement["label"])
 
     def test_traceability_relationships_and_repository_evidence_render(self) -> None:
         manifest = base_manifest()
@@ -219,7 +219,9 @@ class PrdBundleValidationTests(unittest.TestCase):
                 {
                     "reference": EVIDENCE_REFERENCE,
                     "observation": "Bundle publication is centralized.",
-                    "implication": "The product statement is supported by an exact symbol reference.",
+                    "implication": (
+                        "The product statement is supported by an exact symbol reference."
+                    ),
                 }
             ],
         }
@@ -283,7 +285,7 @@ class PrdBundleValidationTests(unittest.TestCase):
         section = document.split('<section id="traceability"', 1)[1]
 
         self.assertIn("2 of 5 tracked entities", section)
-        self.assertIn('<th>Coverage gap</th>', section)
+        self.assertIn("<th>Coverage gap</th>", section)
         self.assertIn('href="#req-deferred"', section)
         self.assertIn("Validation deferred", section)
         self.assertIn("Validation design is pending the rollout decision.", section)
@@ -382,7 +384,9 @@ class PrdBundleValidationTests(unittest.TestCase):
 
     def test_unknown_manifest_fields_and_reserved_metadata_are_rejected(self) -> None:
         manifest = base_manifest()
-        manifest["blocks"] = {"problem": {"statement": "A clear problem.", "evidence": ["Observed evidence."]}}
+        manifest["blocks"] = {
+            "problem": {"statement": "A clear problem.", "evidence": ["Observed evidence."]}
+        }
         manifest["block"] = manifest["blocks"]
         manifest["metadata"] = {
             "Initiative": "Misleading override",
@@ -441,13 +445,13 @@ class PrdBundleValidationTests(unittest.TestCase):
 
         normalized = BUNDLE.validate_manifest(manifest)
 
-        root = normalized["blocks"]["design_tree"][0]
-        deferred = root["children"][1]
+        root = present(normalized["blocks"].get("design_tree"))[0]
+        children = present(root.get("children"))
         self.assertEqual("node-01", root["id"])
         self.assertEqual("Output surface", root["label"])
-        self.assertEqual("In a separate file.", root["superseded_answer"])
-        self.assertEqual("node-03", root["children"][0]["children"][0]["id"])
-        self.assertEqual(["question-01"], deferred["relates_to"])
+        self.assertEqual("In a separate file.", root.get("superseded_answer"))
+        self.assertEqual("node-03", present(children[0].get("children"))[0]["id"])
+        self.assertEqual(["question-01"], children[1].get("relates_to"))
 
     def test_design_tree_requires_the_common_node_fields_at_every_depth(self) -> None:
         message = design_tree_errors(
@@ -499,7 +503,9 @@ class PrdBundleValidationTests(unittest.TestCase):
                 }
             ]
         )
-        self.assertIn("blocks.design_tree[0].reason must be a non-empty string", pruned_without_reason)
+        self.assertIn(
+            "blocks.design_tree[0].reason must be a non-empty string", pruned_without_reason
+        )
 
         unknown_status = design_tree_errors([{**DESIGN_TREE_ROOT, "status": "open"}])
         self.assertIn(
@@ -514,9 +520,7 @@ class PrdBundleValidationTests(unittest.TestCase):
             unknown_source,
         )
 
-        research_without_evidence = design_tree_errors(
-            [{**DESIGN_TREE_ROOT, "source": "research"}]
-        )
+        research_without_evidence = design_tree_errors([{**DESIGN_TREE_ROOT, "source": "research"}])
         self.assertIn(
             "blocks.design_tree[0].evidence must name at least one finding for a research answer",
             research_without_evidence,
@@ -552,9 +556,7 @@ class PrdBundleValidationTests(unittest.TestCase):
             wrong_prefix,
         )
 
-        duplicate = design_tree_errors(
-            [{**DESIGN_TREE_ROOT, "children": [dict(DESIGN_TREE_ROOT)]}]
-        )
+        duplicate = design_tree_errors([{**DESIGN_TREE_ROOT, "children": [dict(DESIGN_TREE_ROOT)]}])
         self.assertIn("duplicate entity id: node-01", duplicate)
 
         empty_block = design_tree_errors([])
@@ -570,9 +572,7 @@ class PrdBundleValidationTests(unittest.TestCase):
         )
 
     def test_design_tree_rejects_every_field_a_status_does_not_own(self) -> None:
-        settled_with_reason = design_tree_errors(
-            [{**DESIGN_TREE_ROOT, "reason": "Out of scope."}]
-        )
+        settled_with_reason = design_tree_errors([{**DESIGN_TREE_ROOT, "reason": "Out of scope."}])
         self.assertIn(
             "blocks.design_tree[0].reason is not supported for a settled node",
             settled_with_reason,
@@ -602,9 +602,7 @@ class PrdBundleValidationTests(unittest.TestCase):
             ("reason", "Out of scope."),
         ):
             with self.subTest(field=field):
-                message = design_tree_errors(
-                    [{**deferred, field: value}], open_questions=questions
-                )
+                message = design_tree_errors([{**deferred, field: value}], open_questions=questions)
                 self.assertIn(
                     f"blocks.design_tree[0].{field} is not supported for a deferred node",
                     message,

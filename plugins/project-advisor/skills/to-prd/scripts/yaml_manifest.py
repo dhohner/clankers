@@ -80,7 +80,11 @@ def _expand_block_scalars(text: str) -> str:
         stripped = raw.lstrip(" ")
         indent = len(raw) - len(stripped)
         leading = raw[: len(raw) - len(raw.lstrip(" \t"))]
-        header = None if "\t" in leading or stripped.startswith("#") else _block_scalar_header(raw.strip())
+        header = (
+            None
+            if "\t" in leading or stripped.startswith("#")
+            else _block_scalar_header(raw.strip())
+        )
         if header is None:
             output.append(raw)
             index += 1
@@ -126,9 +130,7 @@ def _block_scalar_marker(value: str) -> tuple[str, str] | None:
     return None
 
 
-def _collect_block_scalar(
-    raw_lines: list[str], index: int, indent: int
-) -> tuple[list[str], int]:
+def _collect_block_scalar(raw_lines: list[str], index: int, indent: int) -> tuple[list[str], int]:
     block: list[str] = []
     content_indent: int | None = None
     while index < len(raw_lines):
@@ -187,7 +189,9 @@ def _parse_block(lines: list[tuple[int, int, str]], index: int, indent: int) -> 
     return _parse_mapping(lines, index, indent)
 
 
-def _parse_mapping(lines: list[tuple[int, int, str]], index: int, indent: int) -> tuple[dict[str, Any], int]:
+def _parse_mapping(
+    lines: list[tuple[int, int, str]], index: int, indent: int
+) -> tuple[dict[str, Any], int]:
     pairs: list[tuple[str, Any]] = []
     while index < len(lines):
         line_number, current_indent, content = lines[index]
@@ -208,7 +212,9 @@ def _parse_mapping(lines: list[tuple[int, int, str]], index: int, indent: int) -
     return _yaml_object(pairs), index
 
 
-def _parse_sequence(lines: list[tuple[int, int, str]], index: int, indent: int) -> tuple[list[Any], int]:
+def _parse_sequence(
+    lines: list[tuple[int, int, str]], index: int, indent: int
+) -> tuple[list[Any], int]:
     result: list[Any] = []
     while index < len(lines):
         line_number, current_indent, content = lines[index]
@@ -227,9 +233,7 @@ def _parse_sequence(lines: list[tuple[int, int, str]], index: int, indent: int) 
             value = _parse_scalar(item, line_number=line_number)
         elif _has_mapping_separator(item):
             key, value_text = _split_key_value(item, line_number)
-            parsed_value = (
-                None if value_text == "" else _parse_scalar(value_text, key, line_number)
-            )
+            parsed_value = None if value_text == "" else _parse_scalar(value_text, key, line_number)
             value = _yaml_object([(key, parsed_value)])
             if value_text == "" and index < len(lines) and lines[index][1] > indent:
                 value[key], index = _parse_block(lines, index, lines[index][1])
@@ -244,9 +248,7 @@ def _parse_sequence(lines: list[tuple[int, int, str]], index: int, indent: int) 
 
 def _has_mapping_separator(content: str) -> bool:
     separator = _find_key_separator(content)
-    return separator != -1 and (
-        separator == len(content) - 1 or content[separator + 1].isspace()
-    )
+    return separator != -1 and (separator == len(content) - 1 or content[separator + 1].isspace())
 
 
 def _find_key_separator(content: str) -> int:
@@ -344,9 +346,7 @@ def _parse_flow_collection(value: str, line_number: int) -> Any:
         pairs: list[tuple[str, Any]] = []
         for item in _split_flow_items(inner, line_number):
             key, value_text = _split_key_value(item, line_number)
-            parsed_value = (
-                None if value_text == "" else _parse_scalar(value_text, key, line_number)
-            )
+            parsed_value = None if value_text == "" else _parse_scalar(value_text, key, line_number)
             pairs.append((key, parsed_value))
         return _yaml_object(pairs)
     raise YamlError(json_message, line_number)
@@ -455,7 +455,9 @@ def _dump(value: Any, indent: int) -> str:
                             lines.append(f"{space}  {formatted_key}:")
                             lines.append(_dump(rest, indent + 4))
                     elif _is_block_scalar(rest):
-                        lines.append(f"{space}  {formatted_key}: {_format_block_scalar_marker(rest)}")
+                        lines.append(
+                            f"{space}  {formatted_key}: {_format_block_scalar_marker(rest)}"
+                        )
                         lines.extend(_format_block_scalar_lines(rest, indent + 4))
                     else:
                         lines.append(f"{space}  {formatted_key}: {_format_scalar(rest)}")
@@ -521,7 +523,7 @@ def _needs_quotes(text: str) -> bool:
         "\n" in text
         or text == ""
         or text.strip() != text
-        or any(c in text for c in ':#{}[]&,*?|-<>=!%@`\"')
+        or any(c in text for c in ':#{}[]&,*?|-<>=!%@`"')
     )
 
 

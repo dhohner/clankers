@@ -1,0 +1,24 @@
+target-version = "py314"
+line-length = 100
+src = [".", "tests"]
+
+[lint]
+extend-select = ["E", "W", "B"]
+
+[lint.per-file-ignores]
+# support.py puts the skill directory on sys.path before importing the scripts package.
+"tests/support.py" = ["E402"]
+
+[lint.isort]
+section-order = [
+  "future",
+  "standard-library",
+  "third-party",
+  "test-support",
+  "first-party",
+  "local-folder",
+]
+
+[lint.isort.sections]
+# support puts the skill directory on sys.path, so tests must import it before scripts.
+"test-support" = ["support"]

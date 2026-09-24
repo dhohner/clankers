@@ -31,8 +31,8 @@ def render_requirements(items: list[dict[str, Any]], spec: BlockSpec, aspects: d
             f'aria-label="Link to {escape_html(label)}">{escape_html(label)}</a>'
             f"{render_aspect(aspect)}</div>"
             '<div class="plate-body">'
-            f'<h3>{escape_html(item["title"])}</h3>'
-            f'<p>{escape_html(item["description"])}</p>'
+            f"<h3>{escape_html(item['title'])}</h3>"
+            f"<p>{escape_html(item['description'])}</p>"
             f"{render_plate_rows(item)}</div></article>"
         )
     return '<div class="requirement-list">' + "".join(plates) + "</div>"
@@ -57,13 +57,17 @@ def render_cards(name: str, items: list[dict[str, Any]], spec: BlockSpec, aspect
             f"</tr></thead><tbody>{rows}</tbody></table></div>"
         )
     if name == "rollout":
-        return '<ol class="sequence">' + "".join(
-            f'<li><span class="sequence-index" aria-hidden="true">{index:02d}</span>'
-            '<div class="sequence-content">'
-            f'<h3>{escape_html(item["phase"])}</h3>'
-            f"<p>{escape_html(item['outcome'])}</p></div></li>"
-            for index, item in enumerate(items, start=1)
-        ) + "</ol>"
+        return (
+            '<ol class="sequence">'
+            + "".join(
+                f'<li><span class="sequence-index" aria-hidden="true">{index:02d}</span>'
+                '<div class="sequence-content">'
+                f"<h3>{escape_html(item['phase'])}</h3>"
+                f"<p>{escape_html(item['outcome'])}</p></div></li>"
+                for index, item in enumerate(items, start=1)
+            )
+            + "</ol>"
+        )
     if name == "repository_grounding":
         rows = "".join(
             "<tr>"
@@ -102,14 +106,10 @@ def render_cards(name: str, items: list[dict[str, Any]], spec: BlockSpec, aspect
             render_row(field_label(field), escape_html(item[field])) for field in secondary
         )
         relationships = render_plate_rows(item)
-        body_rows = (
-            f'<dl class="plate-rows">{rows}</dl>{relationships}'
-            if rows
-            else relationships
-        )
+        body_rows = f'<dl class="plate-rows">{rows}</dl>{relationships}' if rows else relationships
         aspect_attribute = f' data-aspect="{escape_html(aspect["state"])}"' if aspect else ""
         plates.append(
-            f"<article{anchor} class=\"plate{' entity-plate' if anchor else ''}\""
+            f'<article{anchor} class="plate{" entity-plate" if anchor else ""}"'
             f"{aspect_attribute}>{head}"
             '<div class="plate-body">'
             f"<h3>{escape_html(item[primary])}</h3>{body_rows}</div></article>"
@@ -142,8 +142,8 @@ def render_block_content(
     if spec.kind == "summary":
         metrics = "".join(
             '<article class="readout">'
-            f"<span class=\"readout-label\">{escape_html(item['label'])}</span>"
-            f"<strong class=\"readout-value\">{escape_html(item['value'])}</strong>"
+            f'<span class="readout-label">{escape_html(item["label"])}</span>'
+            f'<strong class="readout-value">{escape_html(item["value"])}</strong>'
             f"<p>{escape_html(item['description'])}</p></article>"
             for item in value["metrics"]
         )
@@ -206,8 +206,8 @@ def render_block_content(
         snippets = "".join(
             '<article class="code-sample">'
             '<div class="plate-head">'
-            f"<span class=\"cue-code\">{escape_html(item['reference'])}</span>"
-            f"<span class=\"code-language\">{escape_html(item['language'])}</span></div>"
+            f'<span class="cue-code">{escape_html(item["reference"])}</span>'
+            f'<span class="code-language">{escape_html(item["language"])}</span></div>'
             f"<p>{escape_html(item['annotation'])}</p>"
             f'<pre><code data-language="{escape_html(item["language"])}">'
             f"{escape_html(item['code'])}</code></pre></article>"

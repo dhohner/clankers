@@ -7,8 +7,9 @@ from pathlib import Path
 from typing import Any
 
 from ..bundle import generate_bundle
+from ..manifest_types import NormalizedManifest
 from ..output_validation import BundleValidationError, _analyze_generated_bundle
-from ..spec import BLOCK_SPECS, iter_tree_nodes
+from ..spec import entity_blocks, iter_tree_nodes, tree_blocks
 from .support import (
     ENTRYPOINT,
     CliFailure,
@@ -83,9 +84,7 @@ def command_generate(args: argparse.Namespace) -> dict[str, Any]:
                 "status": "error",
                 "code": "bundle_exists",
                 "errors": [{"path": "bundle", "message": str(error)}],
-                "next": [
-                    next_command(f"generate {display_path(args.manifest)} --force")
-                ],
+                "next": [next_command(f"generate {display_path(args.manifest)} --force")],
             }
         ) from error
     except RuntimeError as error:
@@ -157,9 +156,7 @@ def command_inspect(args: argparse.Namespace) -> dict[str, Any]:
             "bundle": display_path(bundle),
             "total_errors": len(messages),
             "errors": items,
-            "next": [
-                next_command(f"generate {display_path(bundle / 'prd.yaml')} --force")
-            ],
+            "next": [next_command(f"generate {display_path(bundle / 'prd.yaml')} --force")],
         }
         if truncated:
             payload["truncated"] = True
@@ -181,11 +178,9 @@ def command_inspect(args: argparse.Namespace) -> dict[str, Any]:
 
     manifest = analysis.manifest
     assets = sorted(
-        str(path.relative_to(bundle))
-        for path in (bundle / "assets").rglob("*")
-        if path.is_file()
+        str(path.relative_to(bundle)) for path in (bundle / "assets").rglob("*") if path.is_file()
     )
-    payload: dict[str, Any] = {
+    payload = {
         "status": "ok",
         "bundle": display_path(bundle),
         "manifest_version": manifest["schema_version"],
@@ -227,28 +222,24 @@ def _safe_mtime(path: Path) -> float:
         return 0.0
 
 
-def _entity_ids(manifest: dict[str, Any]) -> list[str]:
-    ids: list[str] = []
-    for block, items in manifest["blocks"].items():
-        spec = BLOCK_SPECS[block]
-        if not spec.id_prefix:
-            continue
-        entries = iter_tree_nodes(items) if spec.kind == "tree" else items
-        ids.extend(item["id"] for item in entries)
-    return ids
+def _entity_ids(manifest: NormalizedManifest) -> list[str]:
+    blocks = manifest["blocks"]
+    ids_by_block = {
+        name: [item["id"] for item in items] for name, _, items in entity_blocks(blocks)
+    }
+    for name, _, nodes in tree_blocks(blocks):
+        ids_by_block[name] = [node["id"] for node in iter_tree_nodes(nodes)]
+    # The design tree sits between entity blocks in catalog order.
+    return [entity_id for name in blocks for entity_id in ids_by_block.get(name, [])]
 
 
-def _traceability_summary(manifest: dict[str, Any]) -> dict[str, int]:
+def _traceability_summary(manifest: NormalizedManifest) -> dict[str, int]:
     blocks = manifest["blocks"]
     requirements = blocks.get("requirements", [])
     return {
         "requirements": len(requirements),
-        "requirements_with_validation": sum(
-            bool(item.get("validation")) for item in requirements
-        ),
-        "requirements_with_exception": sum(
-            bool(item.get("exception")) for item in requirements
-        ),
+        "requirements_with_validation": sum(bool(item.get("validation")) for item in requirements),
+        "requirements_with_exception": sum(bool(item.get("exception")) for item in requirements),
         "validation_links": sum(len(item.get("validation", [])) for item in requirements),
     }
 

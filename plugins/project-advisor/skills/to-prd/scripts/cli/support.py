@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from ..manifest_types import NormalizedManifest
 from ..spec import CURRENT_SCHEMA_VERSION
 from ..validation import ManifestError, validate_manifest
 from ..yaml_manifest import YamlError, loads
@@ -29,7 +30,7 @@ class CliFailure(Exception):
 def display_path(path: Path) -> str:
     try:
         return str(path.resolve().relative_to(Path.cwd().resolve()))
-    except (OSError, ValueError):
+    except OSError, ValueError:
         return str(path)
 
 
@@ -44,7 +45,7 @@ def _cli_name() -> str:
     return shlex.quote(display_path(entrypoint))
 
 
-def load_manifest(path: Path, full: bool = False) -> dict[str, Any]:
+def load_manifest(path: Path, full: bool = False) -> NormalizedManifest:
     try:
         raw = loads(path.read_text(encoding="utf-8"))
     except YamlError as error:
@@ -118,14 +119,12 @@ def load_manifest(path: Path, full: bool = False) -> dict[str, Any]:
         raise CliFailure(payload) from error
 
 
-def validation_payload(manifest: dict[str, Any], manifest_path: Path) -> dict[str, Any]:
+def validation_payload(manifest: NormalizedManifest, manifest_path: Path) -> dict[str, Any]:
     manifest_summary = summary(manifest)
     german_candidates = manifest_summary["untranslated_german_candidates"]
     warnings = []
     if german_candidates:
-        warnings.append(
-            f"review {german_candidates} possible untranslated German string(s)"
-        )
+        warnings.append(f"review {german_candidates} possible untranslated German string(s)")
     return {
         "status": "ok",
         "manifest": display_path(manifest_path),
@@ -143,7 +142,7 @@ def validation_payload(manifest: dict[str, Any], manifest_path: Path) -> dict[st
     }
 
 
-def summary(manifest: dict[str, Any]) -> dict[str, int]:
+def summary(manifest: NormalizedManifest) -> dict[str, int]:
     blocks = manifest["blocks"]
     return {
         "blocks": len(blocks),

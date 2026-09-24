@@ -9,7 +9,7 @@ from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
 from .manifest_types import NormalizedManifest
-from .spec import BLOCK_SPECS
+from .spec import entity_blocks
 from .validation import ManifestError, validate_manifest
 from .yaml_manifest import YamlError, loads
 
@@ -39,8 +39,9 @@ class _DocumentParser(HTMLParser):
         attrs: list[tuple[str, str | None]],
     ) -> None:
         attributes = dict(attrs)
-        if attributes.get("id"):
-            self.ids.append(attributes["id"])
+        identity = attributes.get("id")
+        if identity:
+            self.ids.append(identity)
         for attribute in ("href", "src"):
             value = attributes.get(attribute)
             if not value:
@@ -93,8 +94,8 @@ def _analyze_generated_bundle(bundle: Path) -> _BundleAnalysis:
             except ManifestError as error:
                 errors.append(f"prd.yaml does not match the manifest contract: {error}")
 
+    parser = _DocumentParser()
     if index_exists:
-        parser = _DocumentParser()
         try:
             parser.feed(index_path.read_text(encoding="utf-8"))
         except (OSError, UnicodeError) as error:
@@ -103,9 +104,7 @@ def _analyze_generated_bundle(bundle: Path) -> _BundleAnalysis:
             id_counts = Counter(parser.ids)
             if "document-title" not in id_counts:
                 errors.append("index.html is missing required document-title ID")
-            duplicates = sorted(
-                identity for identity, count in id_counts.items() if count > 1
-            )
+            duplicates = sorted(identity for identity, count in id_counts.items() if count > 1)
             if duplicates:
                 errors.append("index.html contains duplicate IDs: " + ", ".join(duplicates))
             broken = sorted(set(parser.fragment_links) - id_counts.keys())
@@ -121,11 +120,8 @@ def _analyze_generated_bundle(bundle: Path) -> _BundleAnalysis:
                         + ", ".join(missing_blocks)
                     )
                 missing_entities: list[str] = []
-                for block_name, items in normalized_manifest["blocks"].items():
-                    spec = BLOCK_SPECS[block_name]
-                    # A tree block renders as one graph, so its nodes carry no anchor.
-                    if not spec.id_prefix or spec.kind == "tree":
-                        continue
+                # A tree block renders as one graph, so its nodes carry no anchor.
+                for _, _, items in entity_blocks(normalized_manifest["blocks"]):
                     missing_entities.extend(
                         item["id"] for item in items if item["id"] not in id_counts
                     )

@@ -33,9 +33,11 @@ def escape_html(value: str) -> str:
 
 
 def render_list(items: list[str]) -> str:
-    return '<ul class="content-list">' + "".join(
-        f"<li>{escape_html(item)}</li>" for item in items
-    ) + "</ul>"
+    return (
+        '<ul class="content-list">'
+        + "".join(f"<li>{escape_html(item)}</li>" for item in items)
+        + "</ul>"
+    )
 
 
 def field_label(field: str) -> str:

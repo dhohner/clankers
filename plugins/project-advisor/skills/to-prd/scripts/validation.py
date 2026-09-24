@@ -2,21 +2,20 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from .manifest_types import NormalizedBlocks, NormalizedManifest
 from .mermaid import mermaid_label
 from .spec import (
     BLOCK_SPECS,
-    CURRENT_SCHEMA_VERSION,
     DESIGN_TREE_EXTRA_FIELDS_BY_STATUS,
     DESIGN_TREE_NODE_FIELDS,
     DESIGN_TREE_NODE_OPTIONAL_FIELDS,
     DESIGN_TREE_REQUIRED_FIELDS_BY_STATUS,
     DESIGN_TREE_REQUIRED_FROM_VERSION,
     DESIGN_TREE_SOURCES,
-    DESIGN_TREE_STATUSES,
     DESIGN_TREE_STATUS_FIELDS,
+    DESIGN_TREE_STATUSES,
     ENTITY_ID_PATTERN,
     ENTITY_OPTIONAL_FIELDS_BY_BLOCK,
     GENERATED_METADATA_LABELS,
@@ -36,27 +35,19 @@ def _readable_mermaid_source(source: str) -> str:
     if not lines:
         return ""
     head = lines[0].strip().split()
-    if (
-        len(head) >= 2
-        and head[0] in {"flowchart", "graph"}
-        and head[1] in {"LR", "RL"}
-    ):
+    if len(head) >= 2 and head[0] in {"flowchart", "graph"} and head[1] in {"LR", "RL"}:
         lines[0] = lines[0].replace(head[1], "TB", 1)
     return "\n".join(lines)
 
 
 def _native_diagram_to_mermaid(native: dict[str, Any]) -> str:
-    node_ids = {
-        node["id"]: f"n{index}"
-        for index, node in enumerate(native["nodes"], start=1)
-    }
+    node_ids = {node["id"]: f"n{index}" for index, node in enumerate(native["nodes"], start=1)}
     lines = ["flowchart TB"]
     lines.extend(
-        f'  {node_ids[node["id"]]}["{mermaid_label(node["label"])}"]'
-        for node in native["nodes"]
+        f'  {node_ids[node["id"]]}["{mermaid_label(node["label"])}"]' for node in native["nodes"]
     )
     lines.extend(
-        f'  {node_ids[edge["from"]]} -->|{mermaid_label(edge["label"])}| {node_ids[edge["to"]]}'
+        f"  {node_ids[edge['from']]} -->|{mermaid_label(edge['label'])}| {node_ids[edge['to']]}"
         for edge in native["edges"]
         if edge["from"] in node_ids and edge["to"] in node_ids
     )
@@ -68,11 +59,7 @@ class ManifestError(ValueError):
 
     def __init__(self, errors: list[str] | str) -> None:
         if isinstance(errors, str):
-            self.errors = [
-                line.removeprefix("- ")
-                for line in errors.splitlines()
-                if line.strip()
-            ]
+            self.errors = [line.removeprefix("- ") for line in errors.splitlines() if line.strip()]
             super().__init__(errors)
         else:
             self.errors = errors
@@ -126,7 +113,9 @@ def _object_list(
             errors.append(f"{item_path} must be an object")
             continue
         allowed_labels = {"label"} if "id" in optional_fields else set()
-        _reject_unknown_fields(item, set(fields) | optional_fields | allowed_labels, item_path, errors)
+        _reject_unknown_fields(
+            item, set(fields) | optional_fields | allowed_labels, item_path, errors
+        )
         normalized: dict[str, Any] = {
             field: _non_empty_string(item.get(field), f"{item_path}.{field}", errors)
             for field in fields
@@ -136,10 +125,14 @@ def _object_list(
         for list_field in ("relates_to", "validates", "validation", "evidence"):
             if list_field in optional_fields and list_field in item:
                 value = item.get(list_field)
-                normalized[list_field] = [] if value == [] else _string_list(
-                    value,
-                    f"{item_path}.{list_field}",
-                    errors,
+                normalized[list_field] = (
+                    []
+                    if value == []
+                    else _string_list(
+                        value,
+                        f"{item_path}.{list_field}",
+                        errors,
+                    )
                 )
         if "exception" in optional_fields and "exception" in item:
             normalized["exception"] = _non_empty_string(
@@ -178,7 +171,7 @@ def _validate_frames(
             errors.append(f"{item_path} must be an object")
             continue
         _reject_unknown_fields(item, set(fields) | {"regions"}, item_path, errors)
-        normalized = {
+        normalized: dict[str, Any] = {
             field: _non_empty_string(item.get(field), f"{item_path}.{field}", errors)
             for field in fields
         }
@@ -207,7 +200,9 @@ def _validate_native_diagram(
     node_ids = [node["id"] for node in nodes]
     if len(node_ids) != len(set(node_ids)):
         errors.append(f"{path}.nodes must use unique ids")
-    edges = _optional_object_list(value.get("edges"), f"{path}.edges", ("from", "to", "label"), errors)
+    edges = _optional_object_list(
+        value.get("edges"), f"{path}.edges", ("from", "to", "label"), errors
+    )
     known_ids = set(node_ids)
     for index, edge in enumerate(edges):
         for endpoint in ("from", "to"):
@@ -275,10 +270,14 @@ def _validate_tree_node(item: Any, path: str, errors: list[str]) -> dict[str, An
     for list_field in ("relates_to", "evidence"):
         if list_field in item:
             raw = item.get(list_field)
-            node[list_field] = [] if raw == [] else _string_list(
-                raw,
-                f"{path}.{list_field}",
-                errors,
+            node[list_field] = (
+                []
+                if raw == []
+                else _string_list(
+                    raw,
+                    f"{path}.{list_field}",
+                    errors,
+                )
             )
     if node.get("source") == "research" and not node.get("evidence"):
         errors.append(f"{path}.evidence must name at least one finding for a research answer")
@@ -373,7 +372,9 @@ def _validate_block(name: str, value: Any, errors: list[str]) -> Any:
             if not isinstance(item, dict):
                 errors.append(f"{item_path} must be a string or object")
                 continue
-            _reject_unknown_fields(item, {"id", "label", "question", "relates_to", "evidence"}, item_path, errors)
+            _reject_unknown_fields(
+                item, {"id", "label", "question", "relates_to", "evidence"}, item_path, errors
+            )
             normalized: dict[str, Any] = {
                 "question": _non_empty_string(item.get("question"), f"{item_path}.question", errors)
             }
@@ -382,10 +383,14 @@ def _validate_block(name: str, value: Any, errors: list[str]) -> Any:
             for list_field in ("relates_to", "evidence"):
                 if list_field in item:
                     value = item.get(list_field)
-                    normalized[list_field] = [] if value == [] else _string_list(
-                        value,
-                        f"{item_path}.{list_field}",
-                        errors,
+                    normalized[list_field] = (
+                        []
+                        if value == []
+                        else _string_list(
+                            value,
+                            f"{item_path}.{list_field}",
+                            errors,
+                        )
                     )
             questions.append(normalized)
         return questions
@@ -426,7 +431,9 @@ def _validate_block(name: str, value: Any, errors: list[str]) -> Any:
         elif not source.strip():
             errors.append(f"{path}.source must be a non-empty Mermaid string")
         return {
-            "description": _non_empty_string(value.get("description"), f"{path}.description", errors),
+            "description": _non_empty_string(
+                value.get("description"), f"{path}.description", errors
+            ),
             "source": _readable_mermaid_source(source),
             "native": None,
         }
@@ -447,7 +454,9 @@ def _validate_block(name: str, value: Any, errors: list[str]) -> Any:
                     errors.append(f"{row_path} must be an array")
                     continue
                 if len(row) != len(columns):
-                    errors.append(f"{row_path} must contain {len(columns)} values to match {path}.columns")
+                    errors.append(
+                        f"{row_path} must contain {len(columns)} values to match {path}.columns"
+                    )
                 normalized_rows.append(
                     [
                         _non_empty_string(cell, f"{row_path}[{cell_index}]", errors)
@@ -462,7 +471,7 @@ def _validate_block(name: str, value: Any, errors: list[str]) -> Any:
     raise RuntimeError(f"unsupported renderer kind: {spec.kind}")
 
 
-def _assign_and_validate_traceability(blocks: NormalizedBlocks, errors: list[str]) -> None:
+def _assign_and_validate_traceability(blocks: dict[str, Any], errors: list[str]) -> None:
     entity_ids: dict[str, str] = {}
     validation_links: dict[str, set[str]] = {}
     requirements: list[dict[str, Any]] = []
@@ -471,15 +480,17 @@ def _assign_and_validate_traceability(blocks: NormalizedBlocks, errors: list[str
         spec = BLOCK_SPECS[block_name]
         if not spec.id_prefix or not spec.label_prefix or spec.kind == "tree":
             continue
-        text_field = "question" if block_name == "open_questions" else spec.fields[0]
         for index, item in enumerate(items, start=1):
             default_id = f"{spec.id_prefix}-{index:02d}"
             entity_id = normalize_entity_id(item.get("id", default_id))
             item["id"] = entity_id
             item["label"] = entity_label(entity_id)
-            if not ENTITY_ID_PATTERN.fullmatch(entity_id) or not entity_id.startswith(f"{spec.id_prefix}-"):
+            if not ENTITY_ID_PATTERN.fullmatch(entity_id) or not entity_id.startswith(
+                f"{spec.id_prefix}-"
+            ):
                 errors.append(
-                    f"blocks.{block_name}[{index - 1}].id must look like {spec.label_prefix}-01 and use the {spec.id_prefix} prefix"
+                    f"blocks.{block_name}[{index - 1}].id must look like "
+                    f"{spec.label_prefix}-01 and use the {spec.id_prefix} prefix"
                 )
             if entity_id in entity_ids:
                 errors.append(f"duplicate entity id: {entity_id}")
@@ -493,7 +504,6 @@ def _assign_and_validate_traceability(blocks: NormalizedBlocks, errors: list[str
                 for requirement_id in item.get("validates", []):
                     normalized_requirement_id = normalize_entity_id(requirement_id)
                     validation_links.setdefault(normalized_requirement_id, set()).add(entity_id)
-            item.get(text_field)
 
     tree_nodes: list[tuple[str, dict[str, Any]]] = []
     for block_name, items in blocks.items():
@@ -505,9 +515,12 @@ def _assign_and_validate_traceability(blocks: NormalizedBlocks, errors: list[str
             if not node_id:
                 continue
             node["id"] = node_id
-            if not ENTITY_ID_PATTERN.fullmatch(node_id) or not node_id.startswith(f"{spec.id_prefix}-"):
+            if not ENTITY_ID_PATTERN.fullmatch(node_id) or not node_id.startswith(
+                f"{spec.id_prefix}-"
+            ):
                 errors.append(
-                    f"{node_path}.id must look like {spec.label_prefix}-01 and use the {spec.id_prefix} prefix"
+                    f"{node_path}.id must look like {spec.label_prefix}-01 "
+                    f"and use the {spec.id_prefix} prefix"
                 )
             if node_id in entity_ids:
                 errors.append(f"duplicate entity id: {node_id}")
@@ -527,11 +540,25 @@ def _assign_and_validate_traceability(blocks: NormalizedBlocks, errors: list[str
                     reference_id = normalize_entity_id(reference)
                     normalized_refs.append(reference_id)
                     if reference_id not in entity_ids:
-                        errors.append(f"{item_path}.{field} references missing entity id: {reference}")
-                    if block_name == "requirements" and field == "validation" and not reference_id.startswith("test-"):
-                        errors.append(f"{item_path}.validation must reference a TEST entity id: {reference}")
-                    if block_name == "testing_strategy" and field == "validates" and not reference_id.startswith("req-"):
-                        errors.append(f"{item_path}.validates must reference a REQ entity id: {reference}")
+                        errors.append(
+                            f"{item_path}.{field} references missing entity id: {reference}"
+                        )
+                    if (
+                        block_name == "requirements"
+                        and field == "validation"
+                        and not reference_id.startswith("test-")
+                    ):
+                        errors.append(
+                            f"{item_path}.validation must reference a TEST entity id: {reference}"
+                        )
+                    if (
+                        block_name == "testing_strategy"
+                        and field == "validates"
+                        and not reference_id.startswith("req-")
+                    ):
+                        errors.append(
+                            f"{item_path}.validates must reference a REQ entity id: {reference}"
+                        )
                 if field in item:
                     item[field] = normalized_refs
 
@@ -555,13 +582,13 @@ def _assign_and_validate_traceability(blocks: NormalizedBlocks, errors: list[str
     for requirement in requirements:
         requirement_id = requirement["id"]
         linked_tests = {
-            normalize_entity_id(reference)
-            for reference in requirement.get("validation", [])
+            normalize_entity_id(reference) for reference in requirement.get("validation", [])
         } | validation_links.get(requirement_id, set())
         requirement["validation"] = sorted(linked_tests)
         if not linked_tests and not requirement.get("exception"):
             errors.append(
-                f"{entity_ids.get(requirement_id, requirement_id)} must connect to a validation outcome or include an exception"
+                f"{entity_ids.get(requirement_id, requirement_id)} must connect to "
+                "a validation outcome or include an exception"
             )
 
 
@@ -571,11 +598,7 @@ def _manifest_version(value: Any, errors: list[str]) -> int | None:
     An unusable version yields None so the version-specific block rules stay
     silent, and the manifest reports the version error on its own.
     """
-    if (
-        not isinstance(value, int)
-        or isinstance(value, bool)
-        or value not in SCHEMA_VERSIONS
-    ):
+    if not isinstance(value, int) or isinstance(value, bool) or value not in SCHEMA_VERSIONS:
         errors.append(
             "schema_version must be "
             + " or ".join(f"the number {version}" for version in SCHEMA_VERSIONS)
@@ -605,7 +628,9 @@ def validate_manifest(raw: Any) -> NormalizedManifest:
     surfaces = _string_list(raw.get("review_surfaces"), "review_surfaces", errors)
     for index, surface in enumerate(surfaces):
         if surface not in REVIEW_SURFACES:
-            errors.append(f"review_surfaces[{index}] must be one of: " + ", ".join(sorted(REVIEW_SURFACES)))
+            errors.append(
+                f"review_surfaces[{index}] must be one of: " + ", ".join(sorted(REVIEW_SURFACES))
+            )
     surface_set = set(surfaces)
     if len(surfaces) != len(surface_set):
         errors.append("review_surfaces must not contain duplicates")
@@ -619,24 +644,15 @@ def validate_manifest(raw: Any) -> NormalizedManifest:
     if initiative_type == "mixed" and len(surface_set - {"document"}) < 2:
         errors.append("initiative_type mixed requires at least two non-document review surfaces")
 
-    normalized: NormalizedManifest = {
-        # An unusable version already recorded an error, so the fallback only
-        # keeps the normalized shape intact until this function raises.
-        "schema_version": CURRENT_SCHEMA_VERSION if schema_version is None else schema_version,
-        "slug": slug,
-        "title": _non_empty_string(raw.get("title"), "title", errors),
-        "summary": _non_empty_string(raw.get("summary"), "summary", errors),
-        "status": _non_empty_string(raw.get("status"), "status", errors),
-        "initiative_type": initiative_type,
-        "review_surfaces": surfaces,
-    }
+    title = _non_empty_string(raw.get("title"), "title", errors)
+    summary = _non_empty_string(raw.get("summary"), "summary", errors)
+    status = _non_empty_string(raw.get("status"), "status", errors)
 
     metadata = raw.get("metadata")
+    normalized_metadata: dict[str, str] = {}
     if not isinstance(metadata, dict) or not metadata:
         errors.append("metadata must be a non-empty object of string values")
-        normalized["metadata"] = {}
     else:
-        normalized_metadata: dict[str, str] = {}
         normalized_labels: set[str] = set()
         for key, value in metadata.items():
             if not isinstance(key, str) or not key.strip():
@@ -654,7 +670,6 @@ def validate_manifest(raw: Any) -> NormalizedManifest:
             if text:
                 normalized_metadata[label] = text
                 normalized_labels.add(normalized_label)
-        normalized["metadata"] = normalized_metadata
 
     blocks = raw.get("blocks")
     if not isinstance(blocks, dict) or not blocks:
@@ -668,24 +683,35 @@ def validate_manifest(raw: Any) -> NormalizedManifest:
             + "; supported names are: "
             + ", ".join(BLOCK_SPECS)
         )
-    normalized["blocks"] = {
-        name: _validate_block(name, blocks[name], errors)
-        for name in BLOCK_SPECS
-        if name in blocks
+    validated_blocks = {
+        name: _validate_block(name, blocks[name], errors) for name in BLOCK_SPECS if name in blocks
     }
-    _assign_and_validate_traceability(normalized["blocks"], errors)
+    _assign_and_validate_traceability(validated_blocks, errors)
+    # Each block validator returns the shape its spec kind declares, and
+    # traceability has now assigned every entity id, label, and reference list.
+    normalized_blocks = cast(NormalizedBlocks, validated_blocks)
     if (
         schema_version is not None
         and schema_version >= DESIGN_TREE_REQUIRED_FROM_VERSION
-        and "design_tree" not in normalized["blocks"]
+        and "design_tree" not in normalized_blocks
     ):
-        errors.append(
-            f"blocks.design_tree is required by schema_version {schema_version}"
-        )
+        errors.append(f"blocks.design_tree is required by schema_version {schema_version}")
 
     if errors:
         raise ManifestError(errors)
-    return normalized
+    # _manifest_version records an error for every unusable version.
+    assert schema_version is not None
+    return {
+        "schema_version": schema_version,
+        "slug": slug,
+        "title": title,
+        "summary": summary,
+        "status": status,
+        "initiative_type": initiative_type,
+        "review_surfaces": surfaces,
+        "metadata": normalized_metadata,
+        "blocks": normalized_blocks,
+    }
 
 
 __all__ = ["ManifestError", "validate_manifest"]

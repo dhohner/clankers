@@ -57,9 +57,7 @@ def _catalog_block(block: str, template: bool) -> Any:
         }
     if spec.kind == "scope":
         return {
-            "in": [
-                text("Behavior included in this PRD.", "Replace with included scope.")
-            ],
+            "in": [text("Behavior included in this PRD.", "Replace with included scope.")],
             "out": [
                 text(
                     "Adjacent behavior intentionally excluded.",
@@ -148,9 +146,7 @@ def _catalog_block(block: str, template: bool) -> Any:
             }
         ]
     if spec.kind == "list":
-        return [
-            text("Outcome intentionally excluded from this PRD.", "Replace with item.")
-        ]
+        return [text("Outcome intentionally excluded from this PRD.", "Replace with item.")]
     if spec.kind == "code":
         return [
             {
