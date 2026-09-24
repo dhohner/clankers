@@ -94,4 +94,3 @@ Classify validation as new-behavior coverage, regression coverage, or manual ver
 Name every untested item.
 
 Reporting is complete when the report accounts for every task item, decision, blocker, and unresolved gap.
-Then offer the `review-changes` skill from the `refactor-tools` plugin (`refactor-tools:review-changes` where plugin skills are namespaced) for the changed files when that plugin is installed.

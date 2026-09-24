@@ -18,7 +18,7 @@ The `implement` skill executes one task file from `project-advisor:to-agent-task
 - Reports coverage, blocked behavior, the decision ledger, and unresolved gaps.
 
 The verifier loop runs up to three passes by default.
-Run `refactor-tools:review-changes` on the result when the change warrants a review.
+Run `/refactor-tools:review-changes` on the result when the change warrants a review.
 Neither skill commits.
 Review and commit the result yourself.
 

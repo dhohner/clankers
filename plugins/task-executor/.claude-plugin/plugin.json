@@ -1,6 +1,6 @@
 {
   "name": "task-executor",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Implements coding-agent task files and standalone changes through TDD, with independent requirement verification.",
   "author": {
     "name": "dhohner"
