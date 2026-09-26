@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from ..yaml_manifest import dumps
+from . import interview
 from .commands import COMMANDS
 from .support import CliFailure
 
@@ -16,6 +17,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="to-prd",
         description="Validate, generate, inspect, and template YAML PRD review bundles.",
+        epilog="Run browser interview rounds with `interview`, which prints TOON; see interview --help.",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -142,7 +144,12 @@ def _text(value: Any, indent: int = 0) -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
-    args = parse_args(argv)
+    raw = list(sys.argv[1:] if argv is None else argv)
+    remaining, output_format = _extract_format(raw)
+    if remaining[:1] == ["interview"]:
+        # The interview commands take no --format, so it reaches their parser as an unknown flag.
+        return interview.main([*remaining[1:], *output_format])
+    args = parse_args(raw)
     try:
         payload = _run(args)
         exit_code = 0
