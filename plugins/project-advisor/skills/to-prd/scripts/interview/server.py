@@ -39,6 +39,8 @@ from .session import (
 )
 
 HOST = "127.0.0.1"
+# A request must name the server by one of these, so a DNS rebinding page gets nothing.
+LOOPBACK_NAMES = ("127.0.0.1", "localhost")
 TOKEN_HEADER = "X-Interview-Token"
 PAGE_DIR = Path(__file__).resolve().parent / "page"
 STATIC_FILES = {
@@ -46,6 +48,9 @@ STATIC_FILES = {
     "/page.js": ("page.js", "text/javascript; charset=utf-8"),
 }
 RESULT_ROUTE = re.compile(r"/api/rounds/(ROUND-[0-9]+)/result")
+# Holds a full round of answers with long notes; a larger declared body gets 413 unread.
+MAX_BODY_BYTES = 1024 * 1024
+CONTENT_LENGTH = re.compile(r"[0-9]+")
 PAGE_POLICY = "default-src 'self'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'"
 DRAIN_SECONDS = 5.0
 # serve_forever sees a shutdown request only at its next poll, so this bounds how long
@@ -202,6 +207,8 @@ class InterviewHandler(BaseHTTPRequestHandler):
         """Keep request logs out of the output, because the server has no log file."""
 
     def do_GET(self) -> None:
+        if not self._host_allowed():
+            return
         path = urlsplit(self.path).path
         if path in STATIC_FILES:
             self._send_static(*STATIC_FILES[path])
@@ -227,12 +234,15 @@ class InterviewHandler(BaseHTTPRequestHandler):
         self._send_json(HTTPStatus.NOT_FOUND, {"error": "not_found"})
 
     def do_POST(self) -> None:
-        path = urlsplit(self.path).path
-        if not self._authorized():
+        if not (self._host_allowed() and self._origin_allowed() and self._authorized()):
             return
+        length = self._declared_length()
+        if length is None:
+            return
+        path = urlsplit(self.path).path
         if path == "/api/answers":
             try:
-                body = self._read_json()
+                body = self._read_json(length)
             except ValueError:
                 self._send_json(*_invalid("submit", "is not JSON", "Send the submit as JSON."))
                 return
@@ -264,14 +274,54 @@ class InterviewHandler(BaseHTTPRequestHandler):
             while self.rfile.read(1):
                 pass
 
+    def _host_allowed(self) -> bool:
+        """Accept only a single Host header that names the loopback server."""
+        hosts = self.headers.get_all("Host") or []
+        port = self.server.server_address[1]
+        allowed = {form for name in LOOPBACK_NAMES for form in (name, f"{name}:{port}")}
+        if len(hosts) == 1 and hosts[0].lower() in allowed:
+            return True
+        return self._forbid()
+
+    def _origin_allowed(self) -> bool:
+        """Accept a write without Origin, which the CLI sends, or from the server's own page."""
+        origins = self.headers.get_all("Origin")
+        if origins is None:
+            return True
+        port = self.server.server_address[1]
+        allowed = {f"http://{name}:{port}" for name in LOOPBACK_NAMES}
+        if len(origins) == 1 and origins[0] in allowed:
+            return True
+        return self._forbid()
+
+    def _declared_length(self) -> int | None:
+        """Return the declared body length, or reject the request before its body is read."""
+        lengths = self.headers.get_all("Content-Length") or []
+        if not lengths or "Transfer-Encoding" in self.headers:
+            self._send_json(HTTPStatus.LENGTH_REQUIRED, {"error": "length_required"})
+            return None
+        if len(lengths) != 1 or not CONTENT_LENGTH.fullmatch(lengths[0]):
+            self._send_json(HTTPStatus.BAD_REQUEST, {"error": "bad_length"})
+            return None
+        # Python refuses to convert more than 4300 digits, so a long length is measured by
+        # its digit count before conversion.
+        digits = lengths[0].lstrip("0") or "0"
+        if len(digits) > len(str(MAX_BODY_BYTES)) or int(digits) > MAX_BODY_BYTES:
+            self._send_json(HTTPStatus.REQUEST_ENTITY_TOO_LARGE, {"error": "body_too_large"})
+            return None
+        return int(digits)
+
     def _authorized(self) -> bool:
         if self.server.token_matches(self.headers.get(TOKEN_HEADER, "")):
             return True
+        return self._forbid()
+
+    def _forbid(self) -> bool:
+        """Reject the request with a body that holds no session data and no token."""
         self._send_json(HTTPStatus.FORBIDDEN, {"error": "forbidden"})
         return False
 
-    def _read_json(self) -> Any:
-        length = int(self.headers.get("Content-Length") or 0)
+    def _read_json(self, length: int) -> Any:
         return json.loads(self.rfile.read(length).decode("utf-8"))
 
     def _send_static(self, name: str, content_type: str) -> None:
