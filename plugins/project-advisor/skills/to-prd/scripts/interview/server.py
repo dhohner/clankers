@@ -15,6 +15,7 @@ import re
 import secrets
 import sys
 import threading
+import time
 from collections.abc import Iterator
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -50,6 +51,12 @@ DRAIN_SECONDS = 5.0
 # serve_forever sees a shutdown request only at its next poll, so this bounds how long
 # `interview end` waits for the port to close.
 SHUTDOWN_POLL_SECONDS = 0.02
+# A waiting round returns `browser_disconnected` once no page was connected for this long.
+# It covers a browser that starts slowly and a page that reloads.
+DEFAULT_GRACE_SECONDS = 15.0
+# Tests set this to a shorter grace period in seconds.
+GRACE_ENV = "TO_PRD_INTERVIEW_GRACE_SECONDS"
+BROWSER_DISCONNECTED = "browser_disconnected"
 
 
 class ServerRunning(Exception):
@@ -59,7 +66,9 @@ class ServerRunning(Exception):
 class InterviewServer(ThreadingHTTPServer):
     daemon_threads = True
 
-    def __init__(self, files: SessionFiles, token: str) -> None:
+    def __init__(
+        self, files: SessionFiles, token: str, grace_seconds: float = DEFAULT_GRACE_SECONDS
+    ) -> None:
         ownership = acquire_server_lock(files)
         if ownership is None:
             raise ServerRunning(f"an interview server already runs for {files.session}")
@@ -75,8 +84,11 @@ class InterviewServer(ThreadingHTTPServer):
         self.ownership = ownership
         self.files = files
         self.token = token
+        self.grace_seconds = grace_seconds
         self.ended = False
         self.waiters = 0
+        self.pages = 0
+        self.page_left_at = float("-inf")
         self.condition = threading.Condition()
 
     def server_close(self) -> None:
@@ -102,6 +114,20 @@ class InterviewServer(ThreadingHTTPServer):
                 self.waiters -= 1
                 self.condition.notify_all()
 
+    @contextlib.contextmanager
+    def page_connection(self) -> Iterator[None]:
+        """Count a connected page until its connection ends."""
+        with self.condition:
+            self.pages += 1
+            self.condition.notify_all()
+        try:
+            yield
+        finally:
+            with self.condition:
+                self.pages -= 1
+                self.page_left_at = time.monotonic()
+                self.condition.notify_all()
+
     def current_round(self) -> dict[str, Any]:
         """Return the open round for the page, or a waiting state while the agent works."""
         with self.condition:
@@ -111,7 +137,12 @@ class InterviewServer(ThreadingHTTPServer):
             return {"state": "open", "round": stored_round(self.files, open_ids[0])}
 
     def round_result(self, round_id: str) -> dict[str, Any] | None:
-        """Block until the round has answers or the session ends; None for an unknown round."""
+        """Block until the round has answers, the session ends, or no page is connected.
+
+        Return None for an unknown round. The grace period starts with this call or when the
+        last page connection ends, whichever is later.
+        """
+        waiting_since = time.monotonic()
         with self.condition:
             if stored_round(self.files, round_id) is None:
                 return None
@@ -121,7 +152,14 @@ class InterviewServer(ThreadingHTTPServer):
                 answers = stored_answers(self.files, round_id)
                 if answers is not None:
                     return {"state": "answered", "answers": answers}
-                self.condition.wait()
+                if self.pages:
+                    self.condition.wait()
+                    continue
+                quiet_since = max(waiting_since, self.page_left_at)
+                remaining = quiet_since + self.grace_seconds - time.monotonic()
+                if remaining <= 0:
+                    return {"state": BROWSER_DISCONNECTED}
+                self.condition.wait(remaining)
 
     def submit(self, body: Any) -> tuple[HTTPStatus, dict[str, Any]]:
         """Validate and store one submit; the condition lock makes submits run one at a time."""
@@ -176,6 +214,9 @@ class InterviewHandler(BaseHTTPRequestHandler):
         if path == "/api/round":
             self._send_json(HTTPStatus.OK, self.server.current_round())
             return
+        if path == "/api/presence":
+            self._hold_page_connection()
+            return
         result = RESULT_ROUTE.fullmatch(path)
         if result:
             with self.server.waiter():
@@ -207,6 +248,21 @@ class InterviewHandler(BaseHTTPRequestHandler):
                 threading.Thread(target=self.server.shutdown, daemon=True).start()
             return
         self._send_json(HTTPStatus.NOT_FOUND, {"error": "not_found"})
+
+    def _hold_page_connection(self) -> None:
+        """Keep the response open until the page closes its connection.
+
+        The page sends nothing after its request, so a read returns only at the close.
+        """
+        with self.server.page_connection(), contextlib.suppress(OSError):
+            self.send_response(HTTPStatus.OK)
+            self.send_header("Content-Type", "text/event-stream")
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(b": connected\n\n")
+            self.wfile.flush()
+            while self.rfile.read(1):
+                pass
 
     def _authorized(self) -> bool:
         if self.server.token_matches(self.headers.get(TOKEN_HEADER, "")):
@@ -243,11 +299,13 @@ def _invalid(path: str, message: str, fix: str) -> tuple[HTTPStatus, dict[str, A
     return HTTPStatus.BAD_REQUEST, {"error": "invalid_submit", "faults": [fault]}
 
 
-def create_server(files: SessionFiles) -> InterviewServer:
+def create_server(
+    files: SessionFiles, grace_seconds: float = DEFAULT_GRACE_SECONDS
+) -> InterviewServer:
     """Bind the server and record its address and token in the state file."""
     previous = read_state(files)
     token = (previous or {}).get("token") or secrets.token_urlsafe(32)
-    server = InterviewServer(files, token)
+    server = InterviewServer(files, token, grace_seconds)
     host, port = server.server_address[:2]
     write_state(
         files,
@@ -257,12 +315,22 @@ def create_server(files: SessionFiles) -> InterviewServer:
 
 
 def main(argv: list[str]) -> int:
-    server = create_server(SessionFiles(Path(argv[0])))
+    server = create_server(SessionFiles(Path(argv[0])), _grace_seconds())
     _signal_ready()
     server.serve_forever(poll_interval=SHUTDOWN_POLL_SECONDS)
     server.drain_waiters()
     server.server_close()
     return 0
+
+
+def _grace_seconds() -> float:
+    raw = os.environ.get(GRACE_ENV)
+    if raw is None:
+        return DEFAULT_GRACE_SECONDS
+    seconds = float(raw)
+    if not 0 < seconds < float("inf"):
+        raise ValueError(f"{GRACE_ENV} must be positive and finite, got {raw!r}")
+    return seconds
 
 
 def _signal_ready() -> None:
@@ -277,4 +345,11 @@ if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))
 
 
-__all__ = ["TOKEN_HEADER", "InterviewServer", "ServerRunning", "create_server", "main"]
+__all__ = [
+    "BROWSER_DISCONNECTED",
+    "TOKEN_HEADER",
+    "InterviewServer",
+    "ServerRunning",
+    "create_server",
+    "main",
+]

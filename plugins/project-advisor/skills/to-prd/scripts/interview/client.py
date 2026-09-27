@@ -89,7 +89,10 @@ def end_server(files: SessionFiles, state: SessionState) -> None:
 
 
 def wait_for_result(state: SessionState, round_id: str) -> dict[str, Any]:
-    """Block without a time bound until the server reports a result for the round."""
+    """Block without a time bound until the server reports a result for the round.
+
+    The server reports `browser_disconnected` once no page was connected for its grace period.
+    """
     status, body = request(state, "GET", f"/api/rounds/{round_id}/result", timeout=None)
     if status != 200:
         raise ServerUnavailable(f"interview server answered {status} for round {round_id}")

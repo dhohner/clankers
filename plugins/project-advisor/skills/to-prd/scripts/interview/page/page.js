@@ -12,3 +12,18 @@ fetch("/api/round", { headers: { "X-Interview-Token": token } })
   .catch((error) => {
     status.textContent = `The server did not return the round (${error}).`;
   });
+
+// The server counts the page as connected while this request stays open, and tells the
+// agent after a grace period once no page holds it. A dropped request reconnects.
+function holdConnection() {
+  fetch("/api/presence", { headers: { "X-Interview-Token": token } })
+    .then(async (response) => {
+      if (!response.ok) return;
+      const reader = response.body.getReader();
+      while (!(await reader.read()).done);
+      setTimeout(holdConnection, 1000);
+    })
+    .catch(() => setTimeout(holdConnection, 1000));
+}
+
+holdConnection();

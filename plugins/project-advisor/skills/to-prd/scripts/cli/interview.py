@@ -21,6 +21,7 @@ from ..interview.client import (
     wait_for_result,
 )
 from ..interview.record import answered_fields
+from ..interview.server import BROWSER_DISCONNECTED
 from ..interview.session import (
     ENDED,
     RoundAnswers,
@@ -156,6 +157,8 @@ def command_ask(args: argparse.Namespace) -> dict[str, Any]:
     session = resolve_session(args.session_dir, f"ask <session-dir> {_quoted(args.round_file)}")
     round_ = load_round(args.round_file, session)
     files = SessionFiles(session)
+    # The link goes to the user only when the browser did not open it.
+    link = None
     with session_lock(files):
         state = read_state(files)
         if _is_ended(state):
@@ -174,8 +177,14 @@ def command_ask(args: argparse.Namespace) -> dict[str, Any]:
                     session=display_path(session),
                     round=round_["id"],
                 )
-            state = _start_server(files, args.round_file)
-            open_page(page_url(state))
+            state = _start_server(
+                files,
+                "Run the same interview ask again. The session keeps the round.",
+                _ask_again(session, args.round_file),
+            )
+            url = page_url(state)
+            if not open_page(url):
+                link = url
     print(
         f"interview ask: waiting for {round_['id']} at {base_url(state)}/ "
         f"(session {display_path(session)})",
@@ -199,11 +208,39 @@ def command_ask(args: argparse.Namespace) -> dict[str, Any]:
         ) from error
     if result["state"] == ENDED:
         return _ended_payload(session, round=round_["id"])
+    if result["state"] == BROWSER_DISCONNECTED:
+        return _disconnected_payload(session, round_, args.round_file, link)
     return _answered_payload(session, round_, result["answers"])
 
 
 def command_open(args: argparse.Namespace) -> dict[str, Any]:
-    raise _not_available("open", resolve_session(args.session_dir, "open <session-dir>"))
+    session = resolve_session(args.session_dir, "open <session-dir>")
+    files = SessionFiles(session)
+    if not files.state.exists():
+        raise _no_session(session)
+    with session_lock(files):
+        state = read_state(files)
+        if state is None:
+            raise _no_session(session)
+        if _is_ended(state):
+            return _ended_payload(session)
+        if not server_responds(files, state):
+            if server_running(files):
+                raise _failure(
+                    "server_unresponsive",
+                    "server",
+                    f"the interview server of {display_path(session)} runs but does not answer",
+                    "Wait, then run interview open again.",
+                    [_interview_command(f"open {_quoted(session)}"), *_ask_next(files)[1:]],
+                    session=display_path(session),
+                )
+            state = _start_server(
+                files,
+                "Run interview open again. The session keeps its rounds.",
+                [_interview_command(f"open {_quoted(session)}"), *_ask_next(files)[1:]],
+            )
+        url = page_url(state)
+        return _opened_payload(files, None if open_page(url) else url)
 
 
 def command_status(args: argparse.Namespace) -> dict[str, Any]:
@@ -381,7 +418,7 @@ def _open_or_replay(files: SessionFiles, round_: Round, round_file: Path) -> Rou
     return stored_answers(files, round_["id"])
 
 
-def _start_server(files: SessionFiles, round_file: Path) -> SessionState:
+def _start_server(files: SessionFiles, fix: str, retry: list[str]) -> SessionState:
     try:
         return start_server(files)
     except ServerUnavailable as error:
@@ -389,8 +426,8 @@ def _start_server(files: SessionFiles, round_file: Path) -> SessionState:
             "server_start_failed",
             "server",
             str(error),
-            "Run the same interview ask again. The session keeps the round.",
-            _ask_again(files.session, round_file),
+            fix,
+            retry,
             session=display_path(files.session),
         ) from error
 
@@ -404,6 +441,56 @@ def _answered_payload(session: Path, round_: Round, answers: RoundAnswers) -> di
         "next": [
             _interview_command(f"ask {_quoted(session)} <next-round-file>"),
             _interview_command(f"end {_quoted(session)}"),
+        ],
+    }
+
+
+def _opened_payload(files: SessionFiles, link: str | None) -> dict[str, Any]:
+    """Report the opened page, or the link for the user when the browser did not open."""
+    if link is None:
+        status = "opened"
+        message = "The interview page is open in the browser."
+    else:
+        status = "browser_failed"
+        message = "The browser did not open. Give the user the link to the interview page."
+    return {
+        "status": status,
+        "session": display_path(files.session),
+        "message": message,
+        **({"link": link} if link is not None else {}),
+        "next": _ask_next(files),
+    }
+
+
+def _ask_next(files: SessionFiles) -> list[str]:
+    """Return the ask for the open round, or for the next round when none is open, and end."""
+    open_ids = open_round_ids(files)
+    if open_ids:
+        return _ask_again(files.session, files.round_path(open_ids[0]))
+    return [
+        _interview_command(f"ask {_quoted(files.session)} <next-round-file>"),
+        _interview_command(f"end {_quoted(files.session)}"),
+    ]
+
+
+def _disconnected_payload(
+    session: Path, round_: Round, round_file: Path, link: str | None
+) -> dict[str, Any]:
+    message = (
+        "No interview page is connected, and the round stays open. Ask the round in the "
+        "chat, or open the page again and run the same interview ask."
+    )
+    if link is not None:
+        message = f"The browser did not open. Give the user the link. {message}"
+    return {
+        "status": BROWSER_DISCONNECTED,
+        "session": display_path(session),
+        "round": round_["id"],
+        "message": message,
+        **({"link": link} if link is not None else {}),
+        "next": [
+            _interview_command(f"open {_quoted(session)}"),
+            *_ask_again(session, round_file),
         ],
     }
 
