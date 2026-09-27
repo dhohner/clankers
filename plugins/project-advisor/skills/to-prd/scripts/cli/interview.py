@@ -4,11 +4,37 @@ from __future__ import annotations
 
 import argparse
 import shlex
+import sys
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any, NoReturn
 
 from ..interview import Round, RoundError, validate_round
+from ..interview.client import (
+    ServerUnavailable,
+    base_url,
+    end_server,
+    open_page,
+    page_url,
+    server_responds,
+    start_server,
+    wait_for_result,
+)
+from ..interview.record import answered_fields
+from ..interview.session import (
+    ENDED,
+    RoundAnswers,
+    SessionFiles,
+    SessionState,
+    open_round_ids,
+    read_state,
+    server_running,
+    session_lock,
+    store_round,
+    stored_answers,
+    stored_round,
+    write_state,
+)
 from ..toon import dumps
 from ..yaml_manifest import YamlError, loads
 from .support import display_path, next_command
@@ -127,16 +153,53 @@ def _emit(payload: dict[str, Any], exit_code: int) -> int:
 
 
 def command_ask(args: argparse.Namespace) -> dict[str, Any]:
-    session = resolve_session(
-        args.session_dir, f"ask <session-dir> {_quoted(args.round_file)}"
-    )
+    session = resolve_session(args.session_dir, f"ask <session-dir> {_quoted(args.round_file)}")
     round_ = load_round(args.round_file, session)
-    raise _not_available(
-        "ask",
-        session,
-        round=round_["id"],
-        questions=len(round_["questions"]),
+    files = SessionFiles(session)
+    with session_lock(files):
+        state = read_state(files)
+        if _is_ended(state):
+            return _ended_payload(session, round=round_["id"])
+        answers = _open_or_replay(files, round_, args.round_file)
+        if answers is not None:
+            return _answered_payload(session, round_, answers)
+        if not server_responds(files, state):
+            if server_running(files):
+                raise _failure(
+                    "server_unresponsive",
+                    "server",
+                    f"the interview server of {display_path(session)} runs but does not answer",
+                    "Wait, then run the same interview ask again. The session keeps the round.",
+                    _ask_again(session, args.round_file),
+                    session=display_path(session),
+                    round=round_["id"],
+                )
+            state = _start_server(files, args.round_file)
+            open_page(page_url(state))
+    print(
+        f"interview ask: waiting for {round_['id']} at {base_url(state)}/ "
+        f"(session {display_path(session)})",
+        file=sys.stderr,
+        flush=True,
     )
+    try:
+        result = wait_for_result(state, round_["id"])
+    except ServerUnavailable as error:
+        state = read_state(files)
+        if _is_ended(state):
+            return _ended_payload(session, round=round_["id"])
+        raise _failure(
+            "server_stopped",
+            "server",
+            str(error),
+            "Run the same interview ask again. The session keeps the round.",
+            _ask_again(session, args.round_file),
+            session=display_path(session),
+            round=round_["id"],
+        ) from error
+    if result["state"] == ENDED:
+        return _ended_payload(session, round=round_["id"])
+    return _answered_payload(session, round_, result["answers"])
 
 
 def command_open(args: argparse.Namespace) -> dict[str, Any]:
@@ -148,7 +211,28 @@ def command_status(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def command_end(args: argparse.Namespace) -> dict[str, Any]:
-    raise _not_available("end", resolve_session(args.session_dir, "end <session-dir>"))
+    session = resolve_session(args.session_dir, "end <session-dir>")
+    files = SessionFiles(session)
+    if not files.state.exists():
+        raise _no_session(session)
+    with session_lock(files):
+        state = read_state(files)
+        if state is None:
+            raise _no_session(session)
+        try:
+            end_server(files, state)
+        except ServerUnavailable as error:
+            raise _failure(
+                "server_not_stopped",
+                "server",
+                str(error),
+                "Run interview end again. The end is complete once the server stops.",
+                [_interview_command(f"end {_quoted(session)}")],
+                session=display_path(session),
+            ) from error
+        if state["state"] != ENDED:
+            write_state(files, {"state": ENDED})
+    return _ended_payload(session)
 
 
 HANDLERS: dict[str, Callable[[argparse.Namespace], dict[str, Any]]] = {
@@ -253,6 +337,103 @@ def load_round(path: Path, session: Path) -> Round:
                 total_errors=len(error.faults),
             )
         ) from error
+
+
+def _is_ended(state: SessionState | None) -> bool:
+    return state is not None and state["state"] == ENDED
+
+
+def _open_or_replay(files: SessionFiles, round_: Round, round_file: Path) -> RoundAnswers | None:
+    """Store a new round, or return the stored answers of the same round.
+
+    A changed round under a stored round id, or a new round while another round is open,
+    fails, so the user's draft of the open round stays intact.
+    """
+    session = files.session
+    stored = stored_round(files, round_["id"])
+    if stored is None:
+        open_ids = open_round_ids(files)
+        if open_ids:
+            open_file = files.round_path(open_ids[0])
+            raise _failure(
+                "round_open",
+                "round",
+                f"{open_ids[0]} is open, so {round_['id']} cannot open",
+                f"Wait for the answers of {open_ids[0]} with its round file, or end the session.",
+                _ask_again(session, open_file),
+                session=display_path(session),
+                round=round_["id"],
+                open_round=open_ids[0],
+            )
+        store_round(files, round_)
+        return None
+    if stored != round_:
+        raise _failure(
+            "round_changed",
+            "round",
+            f"{round_['id']} differs from the round stored under the same id",
+            "Give the changed round a new round id, or ask the stored round again.",
+            _ask_again(session, files.round_path(round_["id"])),
+            session=display_path(session),
+            round=round_["id"],
+            round_file=display_path(round_file),
+        )
+    return stored_answers(files, round_["id"])
+
+
+def _start_server(files: SessionFiles, round_file: Path) -> SessionState:
+    try:
+        return start_server(files)
+    except ServerUnavailable as error:
+        raise _failure(
+            "server_start_failed",
+            "server",
+            str(error),
+            "Run the same interview ask again. The session keeps the round.",
+            _ask_again(files.session, round_file),
+            session=display_path(files.session),
+        ) from error
+
+
+def _answered_payload(session: Path, round_: Round, answers: RoundAnswers) -> dict[str, Any]:
+    return {
+        "status": "answered",
+        "session": display_path(session),
+        "round": round_["id"],
+        **answered_fields(round_, answers),
+        "next": [
+            _interview_command(f"ask {_quoted(session)} <next-round-file>"),
+            _interview_command(f"end {_quoted(session)}"),
+        ],
+    }
+
+
+def _ended_payload(session: Path, **fields: Any) -> dict[str, Any]:
+    return {
+        "status": ENDED,
+        "session": display_path(session),
+        **fields,
+        "message": "The interview session has ended. Start a new session in a new directory.",
+        "next": [_interview_command("ask <new-session-dir> <round-file>")],
+    }
+
+
+def _no_session(session: Path) -> InterviewFailure:
+    return _failure(
+        "no_session",
+        "session_dir",
+        f"{display_path(session)} has no interview session",
+        "Start the session with interview ask and a round file.",
+        [_interview_command(f"ask {_quoted(session)} <round-file>")],
+        session=display_path(session),
+    )
+
+
+def _ask_again(session: Path, round_file: Path) -> list[str]:
+    return [
+        _interview_command(f"ask {_quoted(session)} {_quoted(round_file)}"),
+        _interview_command(f"end {_quoted(session)}"),
+    ]
 
 
 def _not_available(command: str, session: Path, **fields: Any) -> InterviewFailure:

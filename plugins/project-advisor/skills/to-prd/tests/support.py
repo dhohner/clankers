@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 from html.parser import HTMLParser
@@ -11,6 +12,9 @@ SCRIPT_DIR = SKILL_DIR / "scripts"
 EXAMPLE = SKILL_DIR / "examples" / "basic-prd.yaml"
 SOURCE_ASSETS = SKILL_DIR / "bundle" / "assets"
 EVIDENCE_REFERENCE = "plugins/project-advisor/skills/to-prd/scripts/bundle.py::generate_bundle"
+# The interview opener appends page URLs to this file instead of opening a browser, so no
+# CLI test opens a real browser.
+NO_BROWSER_ENV = {**os.environ, "TO_PRD_INTERVIEW_BROWSER_LOG": os.devnull}
 
 if str(SKILL_DIR) not in sys.path:
     sys.path.insert(0, str(SKILL_DIR))
@@ -25,6 +29,7 @@ def run_cli(*args: str) -> subprocess.CompletedProcess[str]:
         capture_output=True,
         text=True,
         cwd=SKILL_DIR,
+        env=NO_BROWSER_ENV,
     )
 
 

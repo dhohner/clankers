@@ -13,8 +13,9 @@ import unittest
 from pathlib import Path
 from typing import Any
 
-from support import SKILL_DIR, run_cli
+from support import NO_BROWSER_ENV, SKILL_DIR, run_cli
 
+from interview_support import InterviewHarness, TimeLimitedTestCase
 from scripts.cli import parse_args
 from toon_reader import top_level_array, top_level_field, top_level_table
 
@@ -85,8 +86,12 @@ def valid_round() -> dict[str, Any]:
     }
 
 
-class InterviewCliTestCase(unittest.TestCase):
+class InterviewCliTestCase(TimeLimitedTestCase):
+    # Each command here is its own CLI process, and one table test runs 21 of them.
+    time_limit_seconds = 3.0
+
     def setUp(self) -> None:
+        super().setUp()
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name).resolve()
@@ -123,6 +128,15 @@ class InterviewCliTestCase(unittest.TestCase):
         self.assert_ends_with_next_commands(result.stdout)
         return faults
 
+    def ended_session(self) -> Path:
+        """Return a session that asked one round and ended, so ask returns without waiting."""
+        session = self.root / "ended-session"
+        session.mkdir()
+        harness = InterviewHarness(self, self.root, session)
+        harness.start_ask(self.write_round(VALID_ROUND_YAML, "ended-round.yaml")).wait_started()
+        harness.end()
+        return session
+
     def assert_ends_with_next_commands(self, output: str) -> None:
         self.assertTrue(output.rstrip("\n").splitlines()[-1].startswith("next["), output)
         commands = top_level_array(output, "next")
@@ -133,11 +147,14 @@ class InterviewCliTestCase(unittest.TestCase):
 
 class InterviewRoundValidationTests(InterviewCliTestCase):
     def test_valid_round_passes_validation(self) -> None:
-        result = self.interview("ask", self.session, str(self.write_round(VALID_ROUND_YAML)))
+        harness = InterviewHarness(self, self.root, self.session)
 
-        self.assert_toon_error(result, "not_available")
-        self.assertEqual(top_level_field(result.stdout, "round"), "ROUND-01")
-        self.assertEqual(top_level_field(result.stdout, "questions"), "2")
+        ask = harness.start_ask(self.write_round(VALID_ROUND_YAML))
+
+        self.assertIn("ROUND-01", ask.wait_started())
+        self.assertEqual(
+            json.loads(harness.rounds_dir.joinpath("ROUND-01.json").read_text())["id"], "ROUND-01"
+        )
 
     def test_each_invalid_round_reports_fault_path(self) -> None:
         def without_id(round_: dict[str, Any]) -> None:
@@ -346,18 +363,28 @@ class InterviewSessionDirectoryTests(InterviewCliTestCase):
 
     def test_session_error_next_command_runs_once_session_is_filled_in(self) -> None:
         round_file = self.write_round(VALID_ROUND_YAML, "round with space.yaml")
+        session = self.ended_session()
         for command in COMMANDS:
             with self.subTest(command):
                 extra = (str(round_file),) if command == "ask" else ()
                 failed = self.interview(command, self.root / "missing", *extra)
                 retry = top_level_array(failed.stdout, "next")[0]
-                argv = shlex.split(retry.replace("<session-dir>", shlex.quote(str(self.session))))
+                argv = shlex.split(retry.replace("<session-dir>", shlex.quote(str(session))))
 
                 result = subprocess.run(
-                    argv, check=False, capture_output=True, text=True, cwd=SKILL_DIR
+                    argv,
+                    check=False,
+                    capture_output=True,
+                    text=True,
+                    cwd=SKILL_DIR,
+                    env=NO_BROWSER_ENV,
                 )
 
-                self.assert_toon_error(result, "not_available")
+                if command in ("ask", "end"):
+                    self.assertEqual(result.returncode, 0, result.stdout)
+                    self.assertEqual(top_level_field(result.stdout, "status"), "ended")
+                else:
+                    self.assert_toon_error(result, "not_available")
 
     def test_session_path_that_is_a_file_is_rejected(self) -> None:
         path = self.root / "session.txt"
@@ -375,7 +402,7 @@ class InterviewSessionDirectoryTests(InterviewCliTestCase):
 
 class InterviewCommandSurfaceTests(InterviewCliTestCase):
     def test_commands_without_later_behavior_state_not_available(self) -> None:
-        for command in ("open", "status", "end"):
+        for command in ("open", "status"):
             with self.subTest(command):
                 result = self.interview(command, self.session)
 
@@ -433,11 +460,11 @@ class InterviewCommandSurfaceTests(InterviewCliTestCase):
         help_text = run_cli("interview", "ask", "--help").stdout
         example = help_text.split("The round file is YAML or JSON:\n\n", 1)[1].split("\n\n", 1)[0]
         round_file = self.write_round(textwrap.dedent(example))
+        harness = InterviewHarness(self, self.root, self.session)
 
-        result = self.interview("ask", self.session, str(round_file))
+        ask = harness.start_ask(round_file)
 
-        self.assert_toon_error(result, "not_available")
-        self.assertEqual(top_level_field(result.stdout, "round"), "ROUND-01")
+        self.assertIn("ROUND-01", ask.wait_started())
 
     def test_format_flag_before_interview_is_a_usage_error_in_toon(self) -> None:
         result = run_cli("--format", "yaml", "interview", "status", str(self.session))
@@ -458,14 +485,17 @@ class InterviewCommandSurfaceTests(InterviewCliTestCase):
         self.assertIn("interview", result.stdout)
 
     def test_commands_do_not_read_terminal_input(self) -> None:
+        session = self.ended_session()
+        expected_exit = {"ask": 0, "open": 1, "status": 1, "end": 0}
         for command in COMMANDS:
             with self.subTest(command):
-                args = [sys.executable, "-m", "scripts", "interview", command, str(self.session)]
+                args = [sys.executable, "-m", "scripts", "interview", command, str(session)]
                 if command == "ask":
                     args.append(str(self.write_round(VALID_ROUND_YAML)))
                 process = subprocess.Popen(
                     args,
                     cwd=SKILL_DIR,
+                    env=NO_BROWSER_ENV,
                     stdin=subprocess.PIPE,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
@@ -479,7 +509,7 @@ class InterviewCommandSurfaceTests(InterviewCliTestCase):
                     for stream in (process.stdin, process.stdout, process.stderr):
                         if stream is not None:
                             stream.close()
-                self.assertEqual(exit_code, 1)
+                self.assertEqual(exit_code, expected_exit[command])
 
 
 if __name__ == "__main__":
