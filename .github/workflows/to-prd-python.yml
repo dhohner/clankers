@@ -1,0 +1,40 @@
+name: to-prd Python
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "plugins/project-advisor/skills/to-prd/**"
+      - ".github/workflows/to-prd-python.yml"
+  pull_request:
+    paths:
+      - "plugins/project-advisor/skills/to-prd/**"
+      - ".github/workflows/to-prd-python.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  lint-and-test:
+    # The tests use SIGALRM, SIGSTOP, and SIGKILL, so they need a POSIX runner. macOS matches
+    # the machine the suite is tuned on.
+    runs-on: macos-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: plugins/project-advisor/skills/to-prd
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+      - uses: astral-sh/setup-uv@v7
+      - name: Lint
+        run: uvx ruff check .
+      - name: Check format
+        run: uvx ruff format --check .
+      - name: Test
+        run: python tests/run_parallel.py
+        env:
+          # Shared runners are slower and noisier than a local machine.
+          TO_PRD_TEST_TIME_SCALE: "3"

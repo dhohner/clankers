@@ -12,6 +12,7 @@ from support import (
     load_example_manifest,
     load_yaml,
     run_cli,
+    run_cli_process,
     run_generator,
 )
 
@@ -23,7 +24,6 @@ class PrdBundleCliTests(unittest.TestCase):
             result = run_generator(EXAMPLE, root / "action-items")
 
             self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertNotIn("RuntimeWarning", result.stderr)
             bundle = root / "action-items" / "PRD-example-review-bundle"
             document = (bundle / "index.html").read_text(encoding="utf-8")
             preserved_manifest = load_yaml((bundle / "prd.yaml").read_text(encoding="utf-8"))
@@ -638,3 +638,44 @@ class PrdBundleCliTests(unittest.TestCase):
             self.assertFalse(target.is_symlink())
             self.assertTrue((target / "index.html").exists())
             self.assertEqual(sentinel.read_text(encoding="utf-8"), "keep")
+
+
+class PrdBundleEntrypointTests(unittest.TestCase):
+    """Checks of `python -m scripts`, which the other tests replace with in-process calls."""
+
+    def test_entry_point_validates_generates_and_inspects_bundle(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            output_root = Path(temporary_directory) / "action-items"
+            bundle = output_root / "PRD-example-review-bundle"
+            commands = {
+                "validate": ("validate", str(EXAMPLE)),
+                "generate": ("generate", str(EXAMPLE), "--output-root", str(output_root)),
+                "inspect": ("inspect", str(bundle)),
+            }
+            for name, args in commands.items():
+                with self.subTest(name):
+                    result = run_cli_process(*args)
+
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    # A RuntimeWarning about `scripts.__main__` would show up here.
+                    self.assertEqual(result.stderr, "")
+                    self.assertEqual(load_yaml(result.stdout)["manifest_version"], "2")
+            self.assertTrue((bundle / "index.html").exists())
+
+    def test_in_process_run_matches_entry_point_run(self) -> None:
+        cases = {
+            "success with next commands": ("validate", str(EXAMPLE)),
+            "usage error": ("generate",),
+            "help": ("generate", "--help"),
+            "interview usage error": ("interview", "status"),
+        }
+        for name, args in cases.items():
+            with self.subTest(name):
+                process = run_cli_process(*args)
+
+                result = run_cli(*args)
+
+                self.assertEqual(
+                    (result.returncode, result.stdout, result.stderr),
+                    (process.returncode, process.stdout, process.stderr),
+                )

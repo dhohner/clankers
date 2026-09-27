@@ -14,10 +14,12 @@ from typing import Any
 
 import support  # noqa: F401  # puts the skill directory on sys.path
 
+from interview_support import TIME_SCALE, TIME_SCALE_ENV, read_time_scale
+
 TESTS_DIR = Path(__file__).resolve().parent
 # A hung child run must stop within this time: its start, its time limit, the watchdog
 # grace, and the kill.
-RUN_BOUND_SECONDS = 3.0
+RUN_BOUND_SECONDS = 3.0 * TIME_SCALE
 SERVER_FILE_ENV = "CHILD_SERVER_FILE"
 
 # A server that records the end of its session and then never stops.
@@ -47,7 +49,12 @@ import time
 import unittest
 from pathlib import Path
 
-from interview_support import InterviewHarness, InterviewTestCase, TimeLimitedTestCase
+from interview_support import (
+    TIME_SCALE,
+    InterviewHarness,
+    InterviewTestCase,
+    TimeLimitedTestCase,
+)
 
 
 def block():
@@ -55,8 +62,11 @@ def block():
 
 
 def name_server(session, pid):
+    # The parent may kill this run once the file exists, so the file appears complete.
     server_file = Path(os.environ["CHILD_SERVER_FILE"])
-    server_file.write_text(json.dumps({"session": str(session), "pid": pid}))
+    partial = server_file.with_suffix(".partial")
+    partial.write_text(json.dumps({"session": str(session), "pid": pid}))
+    os.replace(partial, server_file)
 
 
 class Hung(TimeLimitedTestCase):
@@ -83,7 +93,14 @@ class Finished(TimeLimitedTestCase):
 
 class Slow(unittest.TestCase):
     def test_runs_past_the_hard_limit_of_the_finished_test(self):
-        time.sleep(0.3)
+        time.sleep(0.3 * TIME_SCALE)
+
+
+class PastUnscaledLimit(TimeLimitedTestCase):
+    time_limit_seconds = 0.1
+
+    def test_sleeps_past_the_unscaled_limit(self):
+        time.sleep(0.15)
 
 
 class WithServer(InterviewTestCase):
@@ -161,8 +178,10 @@ class HungTestRunTests(unittest.TestCase):
         (self.root / "stalled_server.py").write_text(STALLED_SERVER, encoding="utf-8")
         self.server_file = self.root / "server.json"
 
-    def run_child(self, *tests: str) -> subprocess.CompletedProcess[str]:
-        process = self.start_child(*tests)
+    def run_child(
+        self, *tests: str, env: dict[str, str] | None = None
+    ) -> subprocess.CompletedProcess[str]:
+        process = self.start_child(*tests, env=env)
         try:
             stdout, stderr = process.communicate(timeout=RUN_BOUND_SECONDS)
         except subprocess.TimeoutExpired:
@@ -171,7 +190,7 @@ class HungTestRunTests(unittest.TestCase):
             self.fail(f"{', '.join(tests)} still runs after {RUN_BOUND_SECONDS} s")
         return subprocess.CompletedProcess(process.args, process.returncode, stdout, stderr)
 
-    def start_child(self, *tests: str) -> subprocess.Popen[str]:
+    def start_child(self, *tests: str, env: dict[str, str] | None = None) -> subprocess.Popen[str]:
         return subprocess.Popen(
             [sys.executable, "-m", "unittest", *(f"child_tests.{test}" for test in tests)],
             cwd=self.root,
@@ -179,6 +198,7 @@ class HungTestRunTests(unittest.TestCase):
                 **os.environ,
                 "PYTHONPATH": str(TESTS_DIR),
                 SERVER_FILE_ENV: str(self.server_file),
+                **(env or {}),
             },
             stdin=subprocess.DEVNULL,
             stdout=subprocess.PIPE,
@@ -205,6 +225,15 @@ class HungTestRunTests(unittest.TestCase):
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_time_scale_multiplies_the_time_limit_of_a_child_run(self) -> None:
+        test = "PastUnscaledLimit.test_sleeps_past_the_unscaled_limit"
+
+        unscaled = self.run_child(test, env={TIME_SCALE_ENV: "1"})
+        scaled = self.run_child(test, env={TIME_SCALE_ENV: "10"})
+
+        self.assertIn("test ran longer than 0.1 s", unscaled.stderr)
+        self.assertEqual(scaled.returncode, 0, scaled.stderr)
 
     def test_stopped_run_leaves_no_server_running(self) -> None:
         self.addCleanup(self._kill_child_server)
@@ -251,9 +280,23 @@ class HungTestRunTests(unittest.TestCase):
         shutil.rmtree(Path(server["session"]).parent, ignore_errors=True)
 
 
+class TimeScaleTests(unittest.TestCase):
+    def test_reads_scale_and_defaults_to_one(self) -> None:
+        cases = {"unset": ({}, 1.0), "whole": ({TIME_SCALE_ENV: "3"}, 3.0)}
+        cases["fraction"] = ({TIME_SCALE_ENV: "0.5"}, 0.5)
+        for name, (environ, expected) in cases.items():
+            with self.subTest(name):
+                self.assertEqual(read_time_scale(environ), expected)
+
+    def test_rejects_value_that_is_not_a_positive_finite_number(self) -> None:
+        for raw in ("", "fast", "0", "-1", "nan", "inf"):
+            with self.subTest(raw), self.assertRaisesRegex(ValueError, TIME_SCALE_ENV):
+                read_time_scale({TIME_SCALE_ENV: raw})
+
+
 def _runs_after_wait(pid: int) -> bool:
     """Return whether the process still runs after a short wait for it to exit."""
-    deadline = time.monotonic() + 1.0
+    deadline = time.monotonic() + 1.0 * TIME_SCALE
     while time.monotonic() < deadline:
         try:
             os.kill(pid, 0)

@@ -98,7 +98,8 @@ def _questions(value: Any, faults: list[Fault]) -> list[Question]:
                 faults,
                 path,
                 "must be a mapping",
-                "Write the question as a mapping with node, label, question, multi_select, options.",
+                "Write the question as a mapping with node, label, question, multi_select, "
+                "options.",
             )
             continue
         _unknown_fields(item, QUESTION_FIELDS, f"{path}.", faults)

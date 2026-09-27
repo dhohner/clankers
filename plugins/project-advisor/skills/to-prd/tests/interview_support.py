@@ -10,7 +10,6 @@ from __future__ import annotations
 import atexit
 import functools
 import http.client
-import io
 import json
 import os
 import signal
@@ -21,27 +20,45 @@ import threading
 import time
 import unittest
 import warnings
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 from unittest import mock
 
-from support import SKILL_DIR
+from support import BROWSER_LOG_ENV, SKILL_DIR, ThreadOutput
 
 from scripts.cli import interview as interview_cli
 from scripts.interview.rounds import validate_round
 from scripts.interview.server import InterviewServer, create_server
 from scripts.interview.session import SessionFiles, store_round
 
-BROWSER_LOG_ENV = "TO_PRD_INTERVIEW_BROWSER_LOG"
 TOKEN_HEADER = "X-Interview-Token"
+# A positive factor for every time limit in the tests, such as 3 on a loaded CI runner.
+# Child test runs inherit it from the environment, so their limits scale the same way.
+TIME_SCALE_ENV = "TO_PRD_TEST_TIME_SCALE"
+
+
+def read_time_scale(environ: Mapping[str, str]) -> float:
+    raw = environ.get(TIME_SCALE_ENV, "1")
+    try:
+        scale = float(raw)
+    except ValueError:
+        raise ValueError(f"{TIME_SCALE_ENV} must be a number, got {raw!r}") from None
+    if not 0 < scale < float("inf"):
+        raise ValueError(f"{TIME_SCALE_ENV} must be positive and finite, got {raw!r}")
+    return scale
+
+
+TIME_SCALE = read_time_scale(os.environ)
 # Each test, with its cleanup, must finish within this limit; a test that hangs fails.
+# `TimeLimitedTestCase` scales it, so it stays in seconds at a scale of 1.
 TEST_LIMIT_SECONDS = 1.0
 # The longest a single step, such as a command or a request, may wait.
-STEP_SECONDS = 0.8
+STEP_SECONDS = 0.8 * TIME_SCALE
 # Once the session ends or its server is killed, every command returns within this time.
-CLEANUP_SECONDS = 0.2
+CLEANUP_SECONDS = 0.2 * TIME_SCALE
 # Past its time limit, a test may still stop processes in cleanup; past this grace too,
-# the watchdog stops the test run.
+# the watchdog stops the test run. `TimeLimitedTestCase` scales it as well.
 WATCHDOG_GRACE_SECONDS = 2.0
 WATCHDOG = Path(__file__).resolve().parent / "watchdog.py"
 
@@ -94,21 +111,26 @@ class TimeLimitedTestCase(unittest.TestCase):
     the test instead of stalling the run. A subtest catches that failure, and a cleanup can
     block after it, so the watchdog stops the whole run once the test also outlasts
     `watchdog_grace_seconds`.
+
+    Subclasses set both limits in seconds at a scale of 1, and `setUp` multiplies them by
+    `TIME_SCALE`.
     """
 
     time_limit_seconds = TEST_LIMIT_SECONDS
     watchdog_grace_seconds = WATCHDOG_GRACE_SECONDS
 
     def setUp(self) -> None:
-        watchdog().arm(self.time_limit_seconds + self.watchdog_grace_seconds, self.id())
+        limit = self.time_limit_seconds * TIME_SCALE
+        watchdog().arm(limit + self.watchdog_grace_seconds * TIME_SCALE, self.id())
         self.addCleanup(watchdog().disarm)
         previous = signal.signal(signal.SIGALRM, self._time_limit_exceeded)
-        signal.setitimer(signal.ITIMER_REAL, self.time_limit_seconds)
+        signal.setitimer(signal.ITIMER_REAL, limit)
         self.addCleanup(signal.signal, signal.SIGALRM, previous)
         self.addCleanup(signal.setitimer, signal.ITIMER_REAL, 0)
 
     def _time_limit_exceeded(self, signum: int, frame: Any) -> None:
-        raise TestTimeLimitExceeded(f"test ran longer than {self.time_limit_seconds} s")
+        limit = self.time_limit_seconds * TIME_SCALE
+        raise TestTimeLimitExceeded(f"test ran longer than {limit:g} s")
 
 
 class InterviewTestCase(TimeLimitedTestCase):
@@ -126,44 +148,6 @@ class InterviewTestCase(TimeLimitedTestCase):
         path = self.root / name
         path.write_text(json.dumps(round_), encoding="utf-8")
         return path
-
-
-class ThreadOutput(io.TextIOBase):
-    """Send each capturing thread's writes to its own buffer, and other writes through."""
-
-    def __init__(self, fallback: Any) -> None:
-        self._fallback = fallback
-        self._local = threading.local()
-
-    def capture(self) -> LineBuffer:
-        buffer = LineBuffer()
-        self._local.buffer = buffer
-        return buffer
-
-    def writable(self) -> bool:
-        return True
-
-    def write(self, text: str) -> int:
-        buffer = getattr(self._local, "buffer", None)
-        return (buffer or self._fallback).write(text)
-
-    def flush(self) -> None:
-        buffer = getattr(self._local, "buffer", None)
-        (buffer or self._fallback).flush()
-
-
-class LineBuffer(io.StringIO):
-    """A text buffer that signals when a full line arrives."""
-
-    def __init__(self) -> None:
-        super().__init__()
-        self.line_written = threading.Event()
-
-    def write(self, text: str) -> int:
-        count = super().write(text)
-        if "\n" in text:
-            self.line_written.set()
-        return count
 
 
 class InProcessCommand:

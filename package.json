@@ -7,7 +7,10 @@
     "pi-package"
   ],
   "scripts": {
-    "test": "vitest run",
+    "test": "pnpm test:ts && pnpm test:py:fast",
+    "test:ts": "vitest run",
+    "test:py": "python3 plugins/project-advisor/skills/to-prd/tests/run_parallel.py",
+    "test:py:fast": "python3 plugins/project-advisor/skills/to-prd/tests/run_parallel.py --fast",
     "lint:py": "cd plugins/project-advisor/skills/to-prd && uvx ruff check . && uvx ruff format --check ."
   },
   "devDependencies": {

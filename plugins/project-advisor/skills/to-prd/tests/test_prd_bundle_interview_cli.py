@@ -9,11 +9,13 @@ import subprocess
 import sys
 import tempfile
 import textwrap
+import threading
 import unittest
 from pathlib import Path
 from typing import Any
+from unittest import mock
 
-from support import NO_BROWSER_ENV, SKILL_DIR, run_cli
+from support import NO_BROWSER_ENV, SKILL_DIR, ThreadOutput, run_cli, thread_output
 
 from interview_support import InterviewHarness, TimeLimitedTestCase
 from scripts.cli import parse_args
@@ -87,9 +89,6 @@ def valid_round() -> dict[str, Any]:
 
 
 class InterviewCliTestCase(TimeLimitedTestCase):
-    # Each command here is its own CLI process, and one table test runs 21 of them.
-    time_limit_seconds = 3.0
-
     def setUp(self) -> None:
         super().setUp()
         temporary = tempfile.TemporaryDirectory()
@@ -361,31 +360,6 @@ class InterviewSessionDirectoryTests(InterviewCliTestCase):
 
                 self.assert_toon_error(result, "session_not_found")
 
-    def test_session_error_next_command_runs_once_session_is_filled_in(self) -> None:
-        round_file = self.write_round(VALID_ROUND_YAML, "round with space.yaml")
-        session = self.ended_session()
-        for command in COMMANDS:
-            with self.subTest(command):
-                extra = (str(round_file),) if command == "ask" else ()
-                failed = self.interview(command, self.root / "missing", *extra)
-                retry = top_level_array(failed.stdout, "next")[0]
-                argv = shlex.split(retry.replace("<session-dir>", shlex.quote(str(session))))
-
-                result = subprocess.run(
-                    argv,
-                    check=False,
-                    capture_output=True,
-                    text=True,
-                    cwd=SKILL_DIR,
-                    env=NO_BROWSER_ENV,
-                )
-
-                if command in ("ask", "end"):
-                    self.assertEqual(result.returncode, 0, result.stdout)
-                    self.assertEqual(top_level_field(result.stdout, "status"), "ended")
-                else:
-                    self.assert_toon_error(result, "not_available")
-
     def test_session_path_that_is_a_file_is_rejected(self) -> None:
         path = self.root / "session.txt"
         path.write_text("x", encoding="utf-8")
@@ -484,6 +458,13 @@ class InterviewCommandSurfaceTests(InterviewCliTestCase):
         self.assertEqual(result.returncode, 0)
         self.assertIn("interview", result.stdout)
 
+
+class InterviewCliProcessTests(InterviewCliTestCase):
+    """Checks that need `python -m scripts interview` as its own process."""
+
+    # Each test starts a server and runs every command as its own process.
+    time_limit_seconds = 2.0
+
     def test_commands_do_not_read_terminal_input(self) -> None:
         session = self.ended_session()
         expected_exit = {"ask": 0, "open": 1, "status": 1, "end": 0}
@@ -510,6 +491,65 @@ class InterviewCommandSurfaceTests(InterviewCliTestCase):
                         if stream is not None:
                             stream.close()
                 self.assertEqual(exit_code, expected_exit[command])
+
+    def test_session_error_next_command_runs_once_session_is_filled_in(self) -> None:
+        round_file = self.write_round(VALID_ROUND_YAML, "round with space.yaml")
+        session = self.ended_session()
+        for command in COMMANDS:
+            with self.subTest(command):
+                extra = (str(round_file),) if command == "ask" else ()
+                failed = self.interview(command, self.root / "missing", *extra)
+                retry = top_level_array(failed.stdout, "next")[0]
+                argv = shlex.split(retry.replace("<session-dir>", shlex.quote(str(session))))
+
+                result = subprocess.run(
+                    argv,
+                    check=False,
+                    capture_output=True,
+                    text=True,
+                    cwd=SKILL_DIR,
+                    env=NO_BROWSER_ENV,
+                )
+
+                if command in ("ask", "end"):
+                    self.assertEqual(result.returncode, 0, result.stdout)
+                    self.assertEqual(top_level_field(result.stdout, "status"), "ended")
+                else:
+                    self.assert_toon_error(result, "not_available")
+
+
+class InProcessOutputTests(unittest.TestCase):
+    def test_capture_leaves_output_of_other_capturing_thread_alone(self) -> None:
+        captured, write, other_output = threading.Event(), threading.Event(), io.StringIO()
+
+        def write_on_other_thread() -> None:
+            buffer = sys.stdout.capture()
+            captured.set()
+            write.wait(1.0)
+            print("other thread")
+            other_output.write(buffer.getvalue())
+
+        with mock.patch.object(sys, "stdout", ThreadOutput(sys.stdout)):
+            other = threading.Thread(target=write_on_other_thread)
+            other.start()
+            captured.wait(1.0)
+            with thread_output("stdout") as buffer:
+                print("main thread")
+                write.set()
+                other.join(1.0)
+
+        self.assertEqual(buffer.getvalue(), "main thread\n")
+        self.assertEqual(other_output.getvalue(), "other thread\n")
+
+    def test_capture_restores_stream_it_replaced(self) -> None:
+        stream = io.StringIO()
+        with mock.patch.object(sys, "stdout", stream):
+            with thread_output("stdout") as buffer:
+                print("captured")
+            print("after")
+
+        self.assertEqual(buffer.getvalue(), "captured\n")
+        self.assertEqual(stream.getvalue(), "after\n")
 
 
 if __name__ == "__main__":

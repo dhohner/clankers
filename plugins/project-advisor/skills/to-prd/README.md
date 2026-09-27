@@ -73,9 +73,37 @@ The CLI needs Python 3.14 or newer, without a virtual environment, package insta
 
 ## Test
 
+Run the suite from the repository root.
+`pnpm test:py:fast` skips the harness self-tests of the time limits and the watchdog.
+
+```sh
+pnpm test:py
+pnpm test:py:fast
+```
+
+The runner starts one `unittest` process per module, prints the full output of each failing module, lists each skipped test with its reason, and ends with the ten slowest tests.
+It also runs single modules or tests, each in its own process:
+
 ```sh
 cd plugins/project-advisor/skills/to-prd
-python3 -m unittest discover tests 'test_prd_bundle_*.py'
+python3 tests/run_parallel.py
+python3 tests/run_parallel.py test_prd_bundle_interview_toon
+python3 tests/run_parallel.py test_prd_bundle_interview_toon.ToonWriterTests.test_prints_scalars_as_key_value_lines
+```
+
+The tests import their helpers as top-level modules, so plain `unittest` needs the tests directory on `PYTHONPATH`, or `discover` for the whole suite:
+
+```sh
+cd plugins/project-advisor/skills/to-prd
+PYTHONPATH=tests python3 -m unittest --durations 10 test_prd_bundle_interview_toon
+python3 -m unittest discover --durations 10 tests 'test_prd_bundle_*.py'
+```
+
+The interview tests fail any test that runs longer than about a second.
+On a slow or loaded machine, set `TO_PRD_TEST_TIME_SCALE` to a positive factor for every time limit, such as `3`:
+
+```sh
+TO_PRD_TEST_TIME_SCALE=3 pnpm test:py
 ```
 
 Lint and format the CLI with [ruff](https://docs.astral.sh/ruff/), configured in `ruff.toml`:
