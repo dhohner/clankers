@@ -1,10 +1,10 @@
 # Refactor Tools plugin
 
-Refactor Tools packages safe, behavior-preserving cleanup, review, and prose-tightening workflows for existing code.
+Refactor Tools packages safe cleanup that preserves behavior and review workflows for existing code.
 
 ## How it works
 
-![Refactor Tools skills. You invoke one of three skills on staged changes, commits, or paths. simplify applies safe code simplifications as unstaged edits. review-changes scores the change across six dimensions and never edits files. tighten-prose rewrites prose without changing its meaning and keeps the staging state.](./assets/skills.svg)
+![Refactor Tools skills process staged changes, commits, or paths: simplify makes safe unstaged edits, and review-changes scores changes in six dimensions without editing files.](./assets/skills.svg)
 
 Each skill runs only when you invoke it directly.
 
@@ -31,16 +31,6 @@ Each skill runs only when you invoke it directly.
 - It skips commands whose side effects it cannot bound.
 - It reports executed checks, skipped checks with reasons, the negative control outcome, and remaining risk.
 
-### tighten-prose
-
-`tighten-prose` shortens AI-generated prose without changing its meaning.
-
-- It targets prose in staged changes, named paths, or a commit range.
-- It covers Markdown, source comments, and doc comments.
-- It applies extra rules to skills and agent documents.
-- It keeps staged and unstaged changes in their original index state.
-- It reports added and removed line counts per file, and sentences left verbose to preserve meaning.
-
 ## Usage
 
 ```text
@@ -48,15 +38,12 @@ Each skill runs only when you invoke it directly.
 /refactor-tools:simplify src/components/ focus on duplication
 /refactor-tools:review-changes
 /refactor-tools:review-changes the change implements the attached task description
-/refactor-tools:tighten-prose
-/refactor-tools:tighten-prose docs/ main..HEAD
 ```
 
 ## Learn more
 
 - `simplify` - see [the skill definition](./skills/simplify/SKILL.md)
 - `review-changes` - see [the skill definition](./skills/review-changes/SKILL.md)
-- `tighten-prose` - see [the skill definition](./skills/tighten-prose/SKILL.md)
 
 ## Authors
 
