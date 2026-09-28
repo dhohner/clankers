@@ -103,6 +103,10 @@ jobs:
     if: needs.changes.outputs.python == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      # These scripts need no Node packages. Without this, pnpm installs the whole workspace
+      # before running them.
+      pnpm_config_verify_deps_before_run: "false"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -114,6 +118,8 @@ jobs:
       - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
           enable-cache: true
+          # python-lint and workflows-lint cache different tools, so each needs its own key.
+          cache-suffix: python-lint
           # The lint:py script in package.json pins the ruff version.
           cache-dependency-glob: package.json
       - name: Lint and check format
@@ -126,6 +132,9 @@ jobs:
     # the machine the suite is tuned on.
     runs-on: macos-latest
     timeout-minutes: 10
+    env:
+      # See python-lint.
+      pnpm_config_verify_deps_before_run: "false"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -148,6 +157,9 @@ jobs:
     if: needs.changes.outputs.workflows == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      # See python-lint.
+      pnpm_config_verify_deps_before_run: "false"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -159,6 +171,7 @@ jobs:
       - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
           enable-cache: true
+          cache-suffix: workflows-lint
           # The lint:workflows script in package.json pins the actionlint and zizmor versions.
           cache-dependency-glob: package.json
       - name: Lint workflows
