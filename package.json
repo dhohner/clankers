@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Agent plugin collection.",
+  "license": "MIT",
   "keywords": [
     "pi-package"
   ],
