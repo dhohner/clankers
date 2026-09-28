@@ -1,0 +1,66 @@
+schema_version: 2
+slug: "reading-log-tags"
+title: "Reading Log Tags"
+summary: "Readers record books in the reading-log CLI, tag them, and list the books that carry a tag."
+status: Accepted
+initiative_type: small-feature
+review_surfaces:
+  - document
+metadata:
+  Owner: Reading Log
+  Primary user: Reader who tracks books from the terminal
+  Release: v1
+blocks:
+  problem:
+    statement: "The reading-log CLI only prints its usage, so readers keep their reading lists in loose text files that they cannot group or search."
+    evidence:
+      - "`src/cli.mjs` handles only the `help` command."
+  scope:
+    in:
+      - Adding a book entry
+      - Tagging an existing entry
+      - Listing the entries that carry a tag
+    out:
+      - Editing or deleting entries
+      - Removing tags
+      - Sync between machines
+  requirements:
+    - id: "REQ-01"
+      title: Add a book entry
+      description: "`reading-log add <title>` stores an entry with the next integer id, starting at 1, the title, and the date it was added, in the JSON file that `READING_LOG_FILE` names, and prints the new id. An empty title fails with exit code 2 and leaves the file unchanged."
+      validation:
+        - "TEST-01"
+    - id: "REQ-02"
+      title: Tag an existing entry
+      description: "`reading-log tag <id> <tag>` adds a tag to the entry that REQ-01 stored under that id. Tags are stored in lowercase and each tag appears at most once per entry. An unknown id fails with exit code 1 and leaves the file unchanged."
+      validation:
+        - "TEST-02"
+    - id: "REQ-03"
+      title: List entries by tag
+      description: "`reading-log list --tag <tag>` prints the id and title of every entry that carries the tag that REQ-02 stored, in ascending id order, and matches the tag without regard to case. When no entry carries the tag, it prints `No entries tagged <tag>.` and exits with code 0."
+      validation:
+        - "TEST-03"
+  design_tree:
+    - id: NODE-01
+      label: Tag case
+      question: Should `Fantasy` and `fantasy` count as one tag?
+      status: settled
+      answer: Yes, tags are stored in lowercase and matched without regard to case.
+      source: user
+      rationale: Readers type tags by hand and expect one group per word.
+  testing_strategy:
+    - id: "TEST-01"
+      target: Add a book entry
+      expected_outcome: "Two `add` runs against an empty log file store entries 1 and 2 with their titles and print each id, and an empty title leaves the file unchanged."
+      validates:
+        - "REQ-01"
+    - id: "TEST-02"
+      target: Tag an existing entry
+      expected_outcome: "Tagging entry 1 with `Fantasy` twice stores one `fantasy` tag, and tagging an unknown id exits with code 1 and leaves the file unchanged."
+      validates:
+        - "REQ-02"
+    - id: "TEST-03"
+      target: List entries by tag
+      expected_outcome: "`list --tag FANTASY` prints the tagged entries in id order, and an unused tag prints the empty message with exit code 0."
+      validates:
+        - "REQ-03"

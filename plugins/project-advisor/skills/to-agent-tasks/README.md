@@ -15,6 +15,22 @@ action-items/agent-tasks/
 └── ...
 ```
 
+Each task file starts with YAML frontmatter that lists its predecessor task files and its implementation state:
+
+```markdown
+---
+depends_on:
+  - 01-short-task-title.md
+state: pending
+---
+
+# Next task title
+```
+
+The first task of a chain has `depends_on: []`.
+The skill writes only `state: pending`, and a tool that implements the task sets `state: done`.
+A runner can read the frontmatter to plan parallel work and skip finished tasks.
+
 One request runs source intake, repository inspection, writing, and audit.
 Request breakdown review when you want a planning checkpoint.
 Existing task files stay in place unless you ask for a regeneration.
@@ -25,7 +41,7 @@ Existing task files stay in place unless you ask for a regeneration.
 - Each task states source behavior and acceptance checks.
 - Each Boundary names what may change, what must be preserved, excluded work, open choices, assumptions, blockers, and prerequisites.
 - Repository notes identify verified entry points and contracts that require more than a quick search.
-- Dependencies state prerequisite capability contracts inline.
+- Dependencies state prerequisite capability contracts inline, and `depends_on` names the tasks that provide them.
 - Validation names local checks and expected evidence.
 
 Every task carries the same executor boundary from `references/agent-task-template.md`.

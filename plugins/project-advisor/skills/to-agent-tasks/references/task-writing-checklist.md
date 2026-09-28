@@ -9,6 +9,13 @@ Check every drafted task against each item, and fix every failure before saving 
 - Map every assigned source item to required behavior, acceptance, validation, another slice, or a scoped blocker.
 - Preserve every source requirement and scenario across the complete task set.
 
+## Dependency frontmatter
+
+- Start the file with the template's YAML frontmatter block on line 1, before the title heading.
+- Keep only the keys `depends_on` and `state`, with `state: pending`.
+- List in `depends_on` only bare file names of task files in the destination directory with a lower numeric prefix.
+- Make `depends_on` name exactly the tasks whose capabilities the `Needs first` lines require, or write `depends_on: []` when the task has no `Needs first` line.
+
 ## Evidence and autonomy
 
 - Support each binding claim with the PRD or inspected repository evidence.

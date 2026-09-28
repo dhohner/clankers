@@ -48,6 +48,28 @@
         "The skill modifies no target repository file and creates no `action-items/` directory.",
         "The final response asks for explicit PRD acceptance before presenting a breakdown."
       ]
+    },
+    {
+      "id": 2,
+      "prompt": "The accepted PRD bundle is at inputs/prd.yaml. Break it into coding agent tasks for the repository at outputs/repo.",
+      "expected_output": "Task files for adding, tagging, and listing entries appear under action-items/agent-tasks/ in that order. Each file starts with YAML frontmatter that holds only `depends_on` and `state: pending`, and each `depends_on` list names the same tasks as the file's `Needs first` lines.",
+      "files": [
+        "`evals/inputs/setup-reading-log-eval.sh <workspace>` prepares the workspace before the run. It copies the PRD to `inputs/prd.yaml` and the fixture repository to `outputs/repo`, then commits the fixture in a new Git repository.",
+        "`evals/inputs/prd-reading-log-tags.yaml` has `status: Accepted` and three requirements that form one dependency chain: `REQ-02` tags entries that `REQ-01` stores, and `REQ-03` lists tags that `REQ-02` stores.",
+        "`evals/inputs/reading-log-repo/` is a minimal Node CLI with `run(argv, { stdout, stderr, env })` in `src/cli.mjs`, `logFilePath(env)` in `src/config.mjs`, and `node --test` tests run by `npm test`."
+      ],
+      "assertions": [
+        "The skill writes the tasks for `REQ-01`, `REQ-02`, and `REQ-03` to `action-items/agent-tasks/` with numeric prefixes in that dependency order.",
+        "Each task file has `---` on line 1, then the `depends_on` and `state` keys, then a closing `---` line before the `# <Task title>` heading, with no other content before the heading.",
+        "Each frontmatter block parses as YAML and holds only the keys `depends_on` and `state`.",
+        "Each task file has `state: pending`.",
+        "The first task of the chain, which covers `REQ-01`, has `depends_on: []`.",
+        "Each `depends_on` entry of a later task is a bare file name with the `.md` extension that exists in `action-items/agent-tasks/` and has a lower numeric prefix than the task that lists it.",
+        "Each `depends_on` list names exactly the tasks whose capabilities the file's `Needs first` lines require, so the `REQ-02` task lists the `REQ-01` task and the `REQ-03` task lists the `REQ-02` task.",
+        "Each later task keeps its `Needs first` lines and states each prerequisite capability contract inline.",
+        "Every task carries the executor boundary text from `references/agent-task-template.md` without narrowing or widening it.",
+        "Validation uses the existing local `npm test` command."
+      ]
     }
   ]
 }

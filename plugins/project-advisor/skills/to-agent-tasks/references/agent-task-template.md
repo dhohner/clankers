@@ -1,3 +1,15 @@
+---
+depends_on:
+  - <NN-predecessor-task-title.md>
+state: pending
+---
+
+<Start the file with this block on line 1, and keep it free of other keys.
+List under `depends_on` the file name of each task whose capability a `Needs first` line requires, such as `01-short-task-title.md`, and no other task.
+Name only task files in the destination directory with a lower numeric prefix, whether written in this run or kept from an earlier one.
+Write `depends_on: []` for a task without a `Needs first` line.
+Write `state: pending`, because only the tool that implements the task sets `state: done`.>
+
 # <Task title>
 
 ## Outcome
