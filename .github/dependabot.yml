@@ -1,9 +1,13 @@
 version: 2
 updates:
+  # Every update waits until its release is a week old, so a compromised release has time to be
+  # found and pulled before Dependabot proposes it.
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
     groups:
       github-actions:
         patterns: ["*"]
@@ -12,6 +16,8 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
     groups:
       dev-dependencies:
         dependency-type: development

@@ -25,6 +25,7 @@ jobs:
     outputs:
       typescript: ${{ steps.filter.outputs.typescript }}
       python: ${{ steps.filter.outputs.python }}
+      workflows: ${{ steps.filter.outputs.workflows }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -47,8 +48,12 @@ jobs:
               # The root package.json holds the Python scripts and the ruff version.
               - "package.json"
               - ".github/workflows/ci.yml"
+            workflows:
+              - ".github/**"
+              # The root package.json holds the workflow lint script and the tool versions.
+              - "package.json"
 
-  typescript-lint:
+  typescript-lint-and-coverage:
     needs: changes
     if: needs.changes.outputs.typescript == 'true'
     runs-on: ubuntu-latest
@@ -67,6 +72,10 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Lint, check format, and typecheck
         run: pnpm lint:ts
+      # Only output-styles has a coverage gate. Its tests read local files only, so they run
+      # here instead of in the slower macOS job, and typescript-test skips them.
+      - name: Check coverage
+        run: pnpm coverage:ts
 
   typescript-test:
     needs: changes
@@ -87,9 +96,7 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
       - name: Test
-        run: pnpm test:ts
-      - name: Check coverage
-        run: pnpm coverage:ts
+        run: pnpm test:ts:uncovered
 
   python-lint:
     needs: changes
@@ -136,11 +143,36 @@ jobs:
           # Shared runners are slower and noisier than a local machine.
           TO_PRD_TEST_TIME_SCALE: "3"
 
+  workflows-lint:
+    needs: changes
+    if: needs.changes.outputs.workflows == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          enable-cache: true
+          # The lint:workflows script in package.json pins the actionlint and zizmor versions.
+          cache-dependency-glob: package.json
+      - name: Lint workflows
+        run: pnpm lint:workflows
+        env:
+          # With a token, zizmor also runs its online audits, such as checking that each pinned
+          # SHA belongs to the action's repository.
+          GH_TOKEN: ${{ github.token }}
+
   # Branch protection requires this job alone. Jobs that the path filter skips count as
   # passing, and a failed or cancelled job fails this one.
   ci-ok:
     if: always()
-    needs: [changes, typescript-lint, typescript-test, python-lint, python-test]
+    needs: [changes, typescript-lint-and-coverage, typescript-test, python-lint, python-test, workflows-lint]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
