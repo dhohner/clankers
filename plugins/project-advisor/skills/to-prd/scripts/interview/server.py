@@ -17,6 +17,7 @@ import re
 import secrets
 import select
 import socket
+import socketserver
 import sys
 import threading
 import time
@@ -152,6 +153,16 @@ class InterviewServer(ThreadingHTTPServer):
         # Guards the page streams apart from the condition, so a slow page never holds it.
         self.streams_lock = threading.Lock()
         self.streams: set[Any] = set()
+
+    def server_bind(self) -> None:
+        """Bind without the reverse lookup of `HTTPServer.server_bind`.
+
+        `socket.getfqdn` can block for seconds on a machine whose resolver stalls, such as
+        a macOS CI runner, and the server never uses the name it returns.
+        """
+        socketserver.TCPServer.server_bind(self)
+        self.server_name = HOST
+        self.server_port = self.server_address[1]
 
     def _bind(self, port: int) -> None:
         try:

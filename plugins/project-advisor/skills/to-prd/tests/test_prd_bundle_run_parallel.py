@@ -57,11 +57,35 @@ class Crashing(unittest.TestCase):
         os._exit(3)
 """
 
+# Each test holds a marker file for a moment and fails when another process holds it.
+EXCLUSIVE_MODULE = """\
+import os
+import time
+import unittest
+from pathlib import Path
+
+
+class Exclusive(unittest.TestCase):
+    def hold_marker(self):
+        marker = Path(os.environ["EXCLUSIVE_MARKER"])
+        descriptor = os.open(marker, os.O_CREAT | os.O_EXCL)
+        os.close(descriptor)
+        time.sleep(0.3)
+        marker.unlink()
+
+    def test_first(self):
+        self.hold_marker()
+
+    def test_second(self):
+        self.hold_marker()
+"""
+
 FIXTURES = {
     "runner_passing_fixture": PASSING_MODULE,
     "runner_failing_fixture": FAILING_MODULE,
     "runner_skipping_fixture": SKIPPING_MODULE,
     "runner_crashing_fixture": CRASHING_MODULE,
+    "runner_exclusive_fixture": EXCLUSIVE_MODULE,
     "runner_empty_fixture": "",
 }
 
@@ -71,6 +95,7 @@ class RunnerTests(unittest.TestCase):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         root = Path(temporary.name)
+        self.root = root
         for name, source in FIXTURES.items():
             (root / f"{name}.py").write_text(source, encoding="utf-8")
         python_path = os.pathsep.join(filter(None, [str(root), os.environ.get("PYTHONPATH")]))
@@ -145,6 +170,21 @@ class RunnerTests(unittest.TestCase):
 
         self.assertEqual(exit_code, 1, output)
         self.assertIn("runner_empty_fixture exited with 5", output)
+
+    def test_one_job_runs_one_process_at_a_time(self) -> None:
+        names = (
+            "runner_exclusive_fixture.Exclusive.test_first",
+            "runner_exclusive_fixture.Exclusive.test_second",
+        )
+        with mock.patch.dict(os.environ, {"EXCLUSIVE_MARKER": str(self.root / "marker")}):
+            exit_code, output = self.run_main(*names, "--jobs", "1")
+
+        self.assertEqual(exit_code, 0, output)
+        self.assertIn("\nRan 2 tests in ", output)
+
+    def test_jobs_below_one_is_rejected(self) -> None:
+        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+            self.run_main("runner_passing_fixture", "--jobs", "0")
 
     def test_fast_run_skips_harness_self_tests(self) -> None:
         full = run_parallel.module_names(skip_harness=False)

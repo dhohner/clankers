@@ -34,7 +34,9 @@ jobs:
       - name: Check format
         run: uvx ruff format --check .
       - name: Test
-        run: python tests/run_parallel.py
+        # The runner has 3 vCPUs. With every module at once, the test processes and their
+        # interview servers starve each other past the scaled time limits.
+        run: python tests/run_parallel.py --jobs 2
         env:
           # Shared runners are slower and noisier than a local machine.
           TO_PRD_TEST_TIME_SCALE: "3"

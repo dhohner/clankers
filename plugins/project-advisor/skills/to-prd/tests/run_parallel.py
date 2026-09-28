@@ -89,7 +89,10 @@ def main(argv: list[str]) -> int:
     names = args.names or module_names(skip_harness=args.fast)
     started = time.monotonic()
     runs: list[ModuleRun] = []
-    with tempfile.TemporaryDirectory() as reports, ThreadPoolExecutor(len(names)) as pool:
+    with (
+        tempfile.TemporaryDirectory() as reports,
+        ThreadPoolExecutor(args.jobs or len(names)) as pool,
+    ):
         futures = [
             pool.submit(_run_process, name, Path(reports) / f"{index}.json")
             for index, name in enumerate(names)
@@ -137,9 +140,22 @@ def _parse_args(argv: list[str]) -> argparse.Namespace:
         metavar="N",
         help="show the N slowest tests across all modules, or all with 0 (default: 10)",
     )
+    parser.add_argument(
+        "--jobs",
+        type=_positive_int,
+        metavar="N",
+        help="run at most N processes at a time (default: all at once)",
+    )
     # The parent passes this to each process it starts.
     parser.add_argument("--report", type=Path, help=argparse.SUPPRESS)
     return parser.parse_args(argv)
+
+
+def _positive_int(raw: str) -> int:
+    value = int(raw)
+    if value < 1:
+        raise argparse.ArgumentTypeError(f"must be at least 1, got {value}")
+    return value
 
 
 def module_names(*, skip_harness: bool) -> list[str]:
