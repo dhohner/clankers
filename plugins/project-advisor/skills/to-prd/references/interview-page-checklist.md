@@ -97,8 +97,10 @@ Delay a request in a route handler with the page's `setTimeout`, and remove the 
 
 1. Action: stop the waiting ask for `ROUND-02` with `kill`, then answer and submit `ROUND-02` on the page.
    Expected: the lamp and the tab title show `Round submitted`.
-2. Action: run the same ask for `$S/round-02.yaml` again.
-   Expected: it prints the stored answers at once.
+2. Action: stop the server process named by `pid` in `$S/session/interview/state.json` with `kill`, then run `interview open $S/session`.
+   Expected: the server starts on the same port, the tab connects again without a reload, and the lamp and the tab title show `Round submitted`.
+3. Action: run the same ask for `$S/round-02.yaml` again.
+   Expected: it prints the stored answers at once, and the lamp and the tab title show `Agent works` without a reload.
 
 ## Session end
 

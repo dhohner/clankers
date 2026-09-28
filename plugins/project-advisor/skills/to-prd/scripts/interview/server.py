@@ -36,8 +36,10 @@ from .session import (
     ENDED,
     SessionFiles,
     acquire_server_lock,
+    is_delivered,
     open_round_ids,
     read_state,
+    record_delivery,
     session_lock,
     store_answers,
     stored_answers,
@@ -68,6 +70,8 @@ STATIC_FILES = {
     ),
 }
 RESULT_ROUTE = re.compile(r"/api/rounds/(ROUND-[0-9]+)/result")
+# `interview ask` posts here once it recorded the delivery of stored answers it is about to print.
+DELIVERED_ROUTE = re.compile(r"/api/rounds/(ROUND-[0-9]+)/delivered")
 # Holds a full round of answers with long notes; a larger declared body gets 413 unread.
 MAX_BODY_BYTES = 1024 * 1024
 CONTENT_LENGTH = re.compile(r"[0-9]+")
@@ -144,8 +148,6 @@ class InterviewServer(ThreadingHTTPServer):
         self.waiters = 0
         self.pages = 0
         self.page_left_at = float("-inf")
-        # Rounds whose answers this server stored and no result request returned yet.
-        self.submitted: set[str] = set()
         self.condition = threading.Condition()
         # Guards the page streams apart from the condition, so a slow page never holds it.
         self.streams_lock = threading.Lock()
@@ -285,9 +287,8 @@ class InterviewServer(ThreadingHTTPServer):
                     )
             if open_ids:
                 state = ROUND_OPEN
-            # An earlier round that no ask returned, such as one the CLI replayed from its
-            # files, says nothing about the newest round.
-            elif history and history[0]["round"]["id"] in self.submitted:
+            # Only the newest round counts, so a replay of an earlier round changes nothing.
+            elif history and not is_delivered(self.files, history[0]["round"]["id"]):
                 state = ROUND_SUBMITTED
             else:
                 state = AGENT_WORKS
@@ -335,12 +336,30 @@ class InterviewServer(ThreadingHTTPServer):
                 self.condition.wait(remaining)
 
     def deliver(self, round_id: str) -> None:
-        """Record that a result request returns the answers of the round to an ask."""
+        """Record that a result request returns the answers of the round to an ask.
+
+        A failed write leaves the page at "round submitted" and still returns the answers.
+        """
         with self.condition:
-            if round_id not in self.submitted:
+            try:
+                record_delivery(self.files, round_id)
+            except OSError:
                 return
-            self.submitted.discard(round_id)
         self.tell_pages(CHANGED)
+
+    def notice_delivery(self, round_id: str) -> tuple[HTTPStatus, dict[str, Any]]:
+        """Tell the pages that an ask is about to print the stored answers of the round.
+
+        The delivery record is the only source of the delivered state, so the notice writes
+        nothing.
+        """
+        with self.condition:
+            if stored_round(self.files, round_id) is None:
+                return HTTPStatus.NOT_FOUND, {"error": "not_found"}
+            if stored_answers(self.files, round_id) is None:
+                return HTTPStatus.CONFLICT, {"error": "round_open", "round": round_id}
+        self.tell_pages(CHANGED)
+        return HTTPStatus.OK, {"state": "delivered", "round": round_id}
 
     def submit(self, body: Any) -> tuple[HTTPStatus, dict[str, Any]]:
         """Validate and store one submit; the condition lock makes submits run one at a time."""
@@ -362,7 +381,6 @@ class InterviewServer(ThreadingHTTPServer):
             except SubmitError as error:
                 return HTTPStatus.BAD_REQUEST, {"error": "invalid_submit", "faults": error.faults}
             store_answers(self.files, answers)
-            self.submitted.add(round_id)
             self.condition.notify_all()
         self.tell_pages(CHANGED)
         return HTTPStatus.OK, {"state": "answered", "round": round_id}
@@ -433,6 +451,10 @@ class InterviewHandler(BaseHTTPRequestHandler):
                 self._send_json(*_invalid("submit", "is not JSON", "Send the submit as JSON."))
                 return
             self._send_json(*self.server.submit(body))
+            return
+        delivered = DELIVERED_ROUTE.fullmatch(path)
+        if delivered:
+            self._send_json(*self.server.notice_delivery(delivered.group(1)))
             return
         if path == "/api/end":
             self.server.end_session()

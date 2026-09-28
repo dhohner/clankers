@@ -14,6 +14,7 @@ from ..interview.client import (
     ServerUnavailable,
     base_url,
     end_server,
+    notify_delivery,
     open_page,
     page_url,
     server_responds,
@@ -32,6 +33,7 @@ from ..interview.session import (
     SessionSummary,
     open_round_ids,
     read_state,
+    record_delivery,
     server_running,
     session_lock,
     store_round,
@@ -170,6 +172,7 @@ def command_ask(args: argparse.Namespace) -> dict[str, Any]:
             return _ended_payload(session, round=round_["id"])
         answers = _open_or_replay(files, round_, args.round_file)
         if answers is not None:
+            _record_replay(files, state, round_["id"])
             return _answered_payload(session, round_, answers)
         if not server_responds(files, state):
             if server_running(files):
@@ -432,6 +435,19 @@ def _open_or_replay(files: SessionFiles, round_: Round, round_file: Path) -> Rou
             round_file=display_path(round_file),
         )
     return stored_answers(files, round_["id"])
+
+
+def _record_replay(files: SessionFiles, state: SessionState | None, round_id: str) -> None:
+    """Record that this ask prints the stored answers, and tell the open page.
+
+    Neither step may change the output of the ask, so a failed write leaves the page at
+    "round submitted".
+    """
+    try:
+        record_delivery(files, round_id)
+    except OSError:
+        return
+    notify_delivery(files, state, round_id)
 
 
 def _start_server(files: SessionFiles, fix: str, retry: list[str]) -> SessionState:

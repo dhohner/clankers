@@ -406,6 +406,47 @@ class ServerFixture:
         token = self.token if token == "" else token
         return self.request("POST", "/api/answers", token=token, body=body)
 
+    def raw_request(
+        self,
+        method: str,
+        path: str,
+        headers: dict[str, str],
+        body: bytes | None = None,
+    ) -> tuple[int, Any]:
+        """Send a request with exactly these headers, so a test controls Host and length.
+
+        Returns the status and the decoded JSON body, or the text of another body.
+        """
+        connection = http.client.HTTPConnection("127.0.0.1", self.port, timeout=STEP_SECONDS)
+        try:
+            connection.putrequest(method, path, skip_host=True, skip_accept_encoding=True)
+            for name, value in headers.items():
+                connection.putheader(name, value)
+            connection.endheaders(body)
+            response = connection.getresponse()
+            data = response.read().decode("utf-8")
+            content_type = response.getheader("Content-Type", "")
+        finally:
+            connection.close()
+        if content_type.startswith("application/json"):
+            return response.status, json.loads(data)
+        return response.status, data
+
+    def host(self) -> str:
+        return f"127.0.0.1:{self.port}"
+
+    def origin(self) -> str:
+        return f"http://127.0.0.1:{self.port}"
+
+    def submit_headers(self, body: bytes, **extra: str) -> dict[str, str]:
+        headers = {
+            "Host": self.host(),
+            TOKEN_HEADER: self.token,
+            "Content-Type": "application/json",
+            "Content-Length": str(len(body)),
+        }
+        return {**headers, **extra}
+
     def stored_answers(self) -> list[Path]:
         return sorted(self.files.answers.glob("*")) if self.files.answers.exists() else []
 
@@ -425,6 +466,32 @@ class ServerFixture:
         self.server.shutdown()
         self._thread.join(STEP_SECONDS)
         self.server.server_close()
+
+
+class PageStream:
+    """A page connection that reads the lines the server writes on it."""
+
+    def __init__(self, port: int, token: str) -> None:
+        self._connection = http.client.HTTPConnection("127.0.0.1", port, timeout=STEP_SECONDS)
+        self._connection.request("GET", "/api/presence", headers={TOKEN_HEADER: token})
+        self.response = self._connection.getresponse()
+        self.first_line = self.readline()
+
+    def readline(self) -> str:
+        return self.response.fp.readline().decode("utf-8")
+
+    def next_data(self) -> str:
+        """Return the value of the next `data:` line, skipping comments and blank lines."""
+        while True:
+            line = self.readline()
+            if not line:
+                raise AssertionError("the page stream closed without data")
+            if line.startswith("data: "):
+                return line.removeprefix("data: ").strip()
+
+    def close(self) -> None:
+        self.response.close()
+        self._connection.close()
 
 
 class PortSquatter:

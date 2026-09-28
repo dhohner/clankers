@@ -22,6 +22,9 @@ SKILL_DIR = Path(__file__).resolve().parents[2]
 PING_SECONDS = 2.0
 # `status` checks each registered server this long, so a hung server delays it only briefly.
 LIVENESS_SECONDS = 0.5
+# A replay waits this long for the server to take its delivery notice, so a hung server
+# delays the replay only briefly.
+NOTICE_SECONDS = 0.5
 STOP_SECONDS = 10.0
 STOP_POLL_SECONDS = 0.002
 # Tests set this to a file path, and the opener appends each page URL there instead of
@@ -143,6 +146,20 @@ def wait_for_result(state: SessionState, round_id: str) -> dict[str, Any]:
     return body
 
 
+def notify_delivery(files: SessionFiles, state: SessionState | None, round_id: str) -> None:
+    """Ask the session's server to tell its pages that an ask is about to print the round's answers.
+
+    The notice carries the token, so it goes out only while the session's server holds its
+    lock. A server that does not answer misses the notice.
+    """
+    if state is None or state["state"] != ACTIVE or "port" not in state:
+        return
+    if not server_running(files):
+        return
+    with contextlib.suppress(ServerUnavailable):
+        request(state, "POST", f"/api/rounds/{round_id}/delivered", timeout=NOTICE_SECONDS)
+
+
 def request(
     state: SessionState,
     method: str,
@@ -198,6 +215,7 @@ __all__ = [
     "base_url",
     "end_server",
     "live_sessions",
+    "notify_delivery",
     "open_page",
     "page_url",
     "server_responds",

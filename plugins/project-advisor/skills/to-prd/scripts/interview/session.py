@@ -1,7 +1,7 @@
 """Files of one interview session under `<session-dir>/interview/`.
 
 The CLI and the server share these files, and they are the source of truth for the
-session state, the stored rounds, and the submitted answers.
+session state, the stored rounds, the submitted answers, and the answers an ask returned.
 """
 
 from __future__ import annotations
@@ -82,6 +82,10 @@ class SessionFiles:
         return self.directory / "answers"
 
     @property
+    def delivered(self) -> Path:
+        return self.directory / "delivered"
+
+    @property
     def lock(self) -> Path:
         return self.directory / "lock"
 
@@ -94,6 +98,9 @@ class SessionFiles:
 
     def answers_path(self, round_id: str) -> Path:
         return self.answers / f"{round_id}.json"
+
+    def delivered_path(self, round_id: str) -> Path:
+        return self.delivered / f"{round_id}.json"
 
 
 @contextlib.contextmanager
@@ -155,6 +162,15 @@ def stored_answers(files: SessionFiles, round_id: str) -> RoundAnswers | None:
 
 def store_answers(files: SessionFiles, answers: RoundAnswers) -> None:
     write_json_atomic(files.answers_path(answers["round"]), answers)
+
+
+def record_delivery(files: SessionFiles, round_id: str) -> None:
+    """Record that an ask returned the answers of the round; a repeat leaves the same record."""
+    write_json_atomic(files.delivered_path(round_id), {"round": round_id})
+
+
+def is_delivered(files: SessionFiles, round_id: str) -> bool:
+    return files.delivered_path(round_id).exists()
 
 
 def stored_round_ids(files: SessionFiles) -> list[str]:
@@ -244,8 +260,10 @@ __all__ = [
     "SessionState",
     "SessionSummary",
     "acquire_server_lock",
+    "is_delivered",
     "open_round_ids",
     "read_state",
+    "record_delivery",
     "server_running",
     "session_lock",
     "store_answers",

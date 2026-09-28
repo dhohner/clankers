@@ -9,7 +9,13 @@ from typing import Any
 
 from support import SOURCE_ASSETS
 
-from interview_support import STEP_SECONDS, TOKEN_HEADER, InterviewTestCase, ServerFixture
+from interview_support import (
+    STEP_SECONDS,
+    TOKEN_HEADER,
+    InterviewTestCase,
+    PageStream,
+    ServerFixture,
+)
 from scripts.interview.rounds import validate_round
 from scripts.interview.session import store_answers, store_round
 
@@ -50,32 +56,6 @@ def stored_round_answers(round_id: str) -> dict[str, Any]:
         ],
         "comment": "",
     }
-
-
-class PageStream:
-    """A page connection that reads the lines the server writes on it."""
-
-    def __init__(self, port: int, token: str) -> None:
-        self._connection = http.client.HTTPConnection("127.0.0.1", port, timeout=STEP_SECONDS)
-        self._connection.request("GET", "/api/presence", headers={TOKEN_HEADER: token})
-        self.response = self._connection.getresponse()
-        self.first_line = self.readline()
-
-    def readline(self) -> str:
-        return self.response.fp.readline().decode("utf-8")
-
-    def next_data(self) -> str:
-        """Return the value of the next `data:` line, skipping comments and blank lines."""
-        while True:
-            line = self.readline()
-            if not line:
-                raise AssertionError("the page stream closed without data")
-            if line.startswith("data: "):
-                return line.removeprefix("data: ").strip()
-
-    def close(self) -> None:
-        self.response.close()
-        self._connection.close()
 
 
 class InterviewPageTestCase(InterviewTestCase):
@@ -209,10 +189,10 @@ class InterviewPageStateTests(InterviewPageTestCase):
 
         self.assertEqual(self.page_state()["state"], "agent_works")
 
-    def test_answers_this_server_did_not_take_are_agent_works(self) -> None:
+    def test_answers_without_a_delivery_record_are_round_submitted(self) -> None:
         store_answers(self.server.files, stored_round_answers("ROUND-01"))
 
-        self.assertEqual(self.page_state()["state"], "agent_works")
+        self.assertEqual(self.page_state()["state"], "round_submitted")
 
     def test_history_lists_answered_rounds_newest_first_by_round_number(self) -> None:
         for round_id in ("ROUND-2", "ROUND-10"):
