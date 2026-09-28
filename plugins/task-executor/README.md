@@ -16,8 +16,18 @@ The `implement` skill executes one task file from `project-advisor:to-agent-task
 - Implements every required behavior through red-green TDD.
 - Uses verifier subagents to map every requirement and acceptance item to evidence, then confirm each gap's disposition.
 - Reports coverage, blocked behavior, the decision ledger, and unresolved gaps.
+- Sets `state: done` in the task frontmatter after full coverage or your acceptance of uncovered items, such as remaining gaps or blocked behavior.
+  - A refused task stays `pending` for a later bulk run.
+  - A task file without frontmatter stays unchanged.
 
 The verifier loop runs up to three passes by default.
+
+An orchestrator can run `implement` in delegated mode through a subagent that reads the skill file.
+The subagent prompt contains the lines `Mode: delegated`, `Task file: <path>`, and `Working directory: <path>`.
+In delegated mode, `implement` never asks you, starts no verifier, and leaves the task file unchanged.
+
+It returns a `stop`, `implemented`, or `ended` message and follows the orchestrator's `gaps`, `answer`, and `end` instructions.
+
 Run `/refactor-tools:review-changes` on the result when the change warrants a review.
 Neither skill commits.
 Review and commit the result yourself.

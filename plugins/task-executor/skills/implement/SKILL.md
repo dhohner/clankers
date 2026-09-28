@@ -9,91 +9,16 @@ disable-model-invocation: true
 
 Treat the task file as the contract for its outcome, boundary, and validation.
 
-A material decision changes required behavior, a public or persisted contract, security, external state, or scope.
-Settle every other choice from repository evidence.
+A material decision is an unresolved choice affecting required behavior, a public or persisted contract, security, external state, or scope.
+Implement agreed requirements without further approval, and settle routine choices from repository evidence.
+Escalate only ambiguous task selection, missing required sections, unresolved material decisions, or acceptance of uncovered items after reporting.
 
-Complete all four steps in one pass.
-Stop only for an ambiguous selection, missing section, or unresolved material decision.
+## Choose the mode
 
-## Select and gate the task
+When the invoking prompt contains all three lines below, read and follow [Delegated mode](references/delegated-mode.md):
 
-Select the named task, or the sole task in `action-items/agent-tasks/`.
-If neither identifies one task, list the candidates and ask the user.
+- `Mode: delegated`
+- `Task file: <task file path>`
+- `Working directory: <working directory path>`
 
-Require `Outcome`, `Required behavior`, `Acceptance`, and `Validation` sections.
-Record the `HEAD` commit and every existing change in the working tree.
-Track files changed for the task and limit verifier verdicts to them.
-
-Modify only `May change` content and preserve every `Must preserve` property.
-Exclude only the behavior each `Blockers` item names, and record it as blocked behavior.
-Create a decision ledger with one entry per `Executor choices` item.
-
-Selection is complete when one task passes the structure gate, with its baseline, blocked behavior, and ledger recorded.
-
-## Implement with TDD
-
-Invoke the `tdd` skill from this plugin (`task-executor:tdd` where plugin skills are namespaced) and follow its loop for every unblocked `Required behavior` and `Acceptance` item.
-Take each check's seam from its `Acceptance` item and the task `Boundary`.
-Split each item into single-behavior checks for its stated success, boundary, and failure cases.
-Map every check back to its item.
-When a check has no runnable harness, record the reason and rely on the item's `Validation` manual check.
-
-Record each material choice and its rationale in the ledger.
-Run every task `Validation` command.
-
-Implementation is complete when every check has red-green evidence or a recorded manual result, the ledger holds every material choice, and every validation command passes.
-
-## Verify requirement coverage
-
-Run up to the user's verification limit of verifier passes, or three by default.
-Run each pass in a fresh verifier subagent with this prompt:
-
-```text
-Verify <task file path> against changes in <changed files>.
-Read the task, changed code, tests, and recorded decisions.
-Decision ledger:
-<ledger, or "None">
-Blocked behavior:
-<behavior and its blocker, or "None">
-Prior rejected gaps:
-<gap, boundary evidence, and rationale, or "None">
-Treat ledger entries as binding when Executor choices delegates them or repository evidence supports them as routine and reversible.
-Flag other choices that change required behavior, a public or persisted contract, security, external state, or scope as gaps.
-Reassess every rejected gap independently.
-Classify every Required behavior and Acceptance item as covered, blocked, or a gap.
-Covered requires implementation plus observed test or Validation evidence.
-Run the task's safe Validation commands.
-List states the change creates, such as new inputs, error paths, partial failures, and interactions with existing behavior.
-Probe each state adversarially: assume it hides a security, data integrity, or Must preserve defect until evidence rules one out.
-Exercise a state with safe commands where a harness exists; otherwise, inspect the code.
-Preserve the working tree and make no edits.
-Report each classification with evidence.
-Report each probed state's method and result.
-Report each gap with its location and the missing behavior or observed defect.
-```
-
-Give every gap one disposition before the next pass:
-
-- Fix valid gaps within scope through the TDD loop.
-- Settle gaps in the ledger when `Executor choices` delegates them or repository evidence supports a routine, reversible choice.
-- Reject a gap only with boundary evidence and rationale.
-- Stop at a gap that exposes an unresolved material decision.
-
-Send the fixes, ledger, blocked behavior, and rejected gaps to a fresh verifier.
-Repeat until a verifier reports no gaps or the pass limit is reached.
-Record every gap remaining after the final pass.
-
-Verification is complete when a verifier reports no gaps and a result for every probed state, or every gap left after the final pass has a recorded disposition.
-
-## Report
-
-Map every `Required behavior` and `Acceptance` item to its implementation and observed validation evidence, or its blocker.
-
-Report rejected gaps and unresolved gaps separately.
-Give a rationale for every rejection.
-
-List blocked behavior, assumptions, and the decision ledger.
-Classify validation as new-behavior coverage, regression coverage, or manual verification.
-Name every untested item.
-
-Reporting is complete when the report accounts for every task item, decision, blocker, and unresolved gap.
+Otherwise, read and follow [Normal mode](references/normal-mode.md).

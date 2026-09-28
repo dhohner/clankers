@@ -1,0 +1,157 @@
+{
+  "skill_name": "implement",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/task-executor:implement action-items/agent-tasks/01-slugify-separator.md",
+      "expected_output": "Normal mode asks the user which separator to use without returning a `stop` message. The task file stays unchanged while the question is open.",
+      "files": [
+        "plugins/task-executor/skills/implement/evals/inputs/setup-slug-eval.sh",
+        "plugins/task-executor/skills/implement/evals/inputs/slug-repo/slug.py",
+        "plugins/task-executor/skills/implement/evals/inputs/slug-repo/test_slug.py",
+        "plugins/task-executor/skills/implement/evals/inputs/tasks/separator.md"
+      ],
+      "expectations": [
+        "The run asks the user which separator to use, with at least two options.",
+        "The output contains no `stop` message or `Message: stop` line.",
+        "The run starts no verifier while the question is open.",
+        "The task file keeps `state: pending` and every other byte."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "/task-executor:implement action-items/agent-tasks/01-slugify-spaces.md",
+      "expected_output": "Normal mode implements the task through TDD. A fresh verifier reports full coverage, and the report maps every item to evidence. Only the task file's `state:` line changes from `pending` to `done`.",
+      "files": [
+        "plugins/task-executor/skills/implement/evals/inputs/setup-slug-eval.sh",
+        "plugins/task-executor/skills/implement/evals/inputs/slug-repo/slug.py",
+        "plugins/task-executor/skills/implement/evals/inputs/slug-repo/test_slug.py",
+        "plugins/task-executor/skills/implement/evals/inputs/tasks/spaces.md"
+      ],
+      "expectations": [
+        "The run loads normal-mode.md and shared-rules.md before implementing the task.",
+        "The run proceeds through implementation, verification, reporting, and task state recording without requesting review after the first implementation.",
+        "At least one verifier subagent runs before the report.",
+        "The report maps every `Required behavior` and `Acceptance` item to implementation and observed evidence.",
+        "`git diff` of the task file shows one changed line, from `state: pending` to `state: done`.",
+        "`slugify(\"a  b\")` returns `a-b` and `python3 -m unittest` passes."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "/task-executor:implement action-items/agent-tasks/01-slugify-spaces.md with a verification limit of 1",
+      "expected_output": "The staging check lacks an observed result, preventing full coverage. This applies whether the verifier labels it a gap or a manual item without a result. Normal mode reports the uncovered check, then asks the user to accept it. It sets `state: done` only after acceptance.",
+      "files": [
+        "plugins/task-executor/skills/implement/evals/inputs/setup-slug-eval.sh",
+        "plugins/task-executor/skills/implement/evals/inputs/slug-repo/slug.py",
+        "plugins/task-executor/skills/implement/evals/inputs/slug-repo/test_slug.py",
+        "plugins/task-executor/skills/implement/evals/inputs/tasks/spaces-manual-check.md"
+      ],
+      "expectations": [
+        "The report lists the staging check as uncovered before any question about it. The task file keeps `state: pending` until the user answers.",
+        "After the report, the run asks the user to accept the uncovered staging check.",
+        "After a reply that accepts the staging check, the task file changes only from `state: pending` to `state: done`.",
+        "After a reply that refuses the staging check, the task file keeps `state: pending` and every other byte."
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "/task-executor:implement action-items/agent-tasks/01-slugify-spaces.md",
+      "expected_output": "Normal mode implements a task without frontmatter as before, preserving every byte of the task file.",
+      "files": [
+        "plugins/task-executor/skills/implement/evals/inputs/setup-slug-eval.sh",
+        "plugins/task-executor/skills/implement/evals/inputs/slug-repo/slug.py",
+        "plugins/task-executor/skills/implement/evals/inputs/slug-repo/test_slug.py",
+        "plugins/task-executor/skills/implement/evals/inputs/tasks/spaces-no-frontmatter.md"
+      ],
+      "expectations": [
+        "The run implements and verifies the task and reports as before.",
+        "`git diff` shows no change to the task file, and the run adds no frontmatter to it."
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Read <task-executor plugin directory>/skills/implement/SKILL.md and follow its delegated mode.\nMode: delegated\nTask file: <workspace>/repo/action-items/agent-tasks/01-slugify-separator.md\nWorking directory: <workspace>/worktree",
+      "expected_output": "Delegated mode returns one `stop` message at the separator decision, without asking the user or making further edits. The message includes the task file, affected item, question, at least two options with consequences, and a recommendation line. After the `answer` instruction, it records the hyphen decision in the ledger, implements the task, and returns an `implemented` message.",
+      "files": [
+        "plugins/task-executor/skills/implement/evals/inputs/setup-slug-eval.sh",
+        "plugins/task-executor/skills/implement/evals/inputs/slug-repo/slug.py",
+        "plugins/task-executor/skills/implement/evals/inputs/slug-repo/test_slug.py",
+        "plugins/task-executor/skills/implement/evals/inputs/tasks/separator.md"
+      ],
+      "expectations": [
+        "The run returns a `stop` message.",
+        "The message names the task file, the affected `Required behavior` or `Acceptance` item, and the separator question.",
+        "The message lists at least two options, each with its consequence, and a recommended option or `None`.",
+        "The run asks the user nothing and starts no subagent.",
+        "The task file in `<workspace>/repo` is unchanged, and no file outside the working directory changes.",
+        "After `Instruction: answer` selects a hyphen separator, the next message's decision ledger records that decision.",
+        "After `Instruction: answer` selects a hyphen separator, the run implements that choice through the TDD loop and returns an `implemented` message.",
+        "After the separator decision, the run continues through implementation and validation without seeking approval for that agreed behavior again.",
+        "The task file stays unchanged through both turns."
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Read <task-executor plugin directory>/skills/implement/SKILL.md and follow its delegated mode.\nMode: delegated\nTask file: <workspace>/repo/action-items/agent-tasks/01-slugify-spaces.md\nWorking directory: <workspace>/worktree",
+      "expected_output": "Delegated mode implements the task through TDD in the working directory and runs the `Validation` commands. It starts no verifier and returns one `implemented` message with every listed field. The `gaps` instruction yields a new `implemented` message with one gap disposition. Examples include a fix through a new test or a rejection citing an existing test. The `end` instruction yields an `ended` message without changing the working directory. The task file stays unchanged throughout.",
+      "files": [
+        "plugins/task-executor/skills/implement/evals/inputs/setup-slug-eval.sh",
+        "plugins/task-executor/skills/implement/evals/inputs/slug-repo/slug.py",
+        "plugins/task-executor/skills/implement/evals/inputs/slug-repo/test_slug.py",
+        "plugins/task-executor/skills/implement/evals/inputs/tasks/spaces.md"
+      ],
+      "expectations": [
+        "The run loads delegated-mode.md and shared-rules.md without loading normal-mode.md.",
+        "The run returns an `implemented` message only after completing all unblocked checks and running every validation command.",
+        "The message lists changed files and maps each check to its item with red and green evidence. It includes `Validation` command results, the decision ledger, blocked behavior, and gap dispositions of `None`.",
+        "The run starts no subagent or verifier, asks the user nothing, and makes no commit.",
+        "`slug.py` in the working directory passes `python3 -m unittest`.",
+        "No file outside the working directory is created or changed, including mutation check backups. No scratch files remain in the working directory.",
+        "An `Instruction: gaps` turn reports no test combining lowercasing and a whitespace run, such as `slugify(\"Hello  World\")` returning `hello-world`. It includes `Prior rejected gaps: None`. The run returns an `implemented` message with exactly one gap disposition: fixed through TDD, settled in the ledger, or rejected with evidence and rationale.",
+        "The task file in `<workspace>/repo` keeps `state: pending` and every other byte.",
+        "After `Instruction: end`, the run returns an `ended` message confirming that the task made no further edits.",
+        "After `Instruction: end`, the working directory's `git status --porcelain` and `git diff` output matches their output before that turn.",
+        "The task file stays unchanged through all three turns."
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "/task-executor:implement action-items/agent-tasks/01-slugify-spaces.md",
+      "expected_output": "Normal mode implements unblocked behavior and reports blocked behavior. It then asks the user to accept the blocked behavior and sets `state: done` only after acceptance.",
+      "files": [
+        "plugins/task-executor/skills/implement/evals/inputs/setup-slug-eval.sh",
+        "plugins/task-executor/skills/implement/evals/inputs/slug-repo/slug.py",
+        "plugins/task-executor/skills/implement/evals/inputs/slug-repo/test_slug.py",
+        "plugins/task-executor/skills/implement/evals/inputs/tasks/spaces-blocked.md"
+      ],
+      "expectations": [
+        "The run implements and verifies the whitespace behavior and reports the transliteration behavior as blocked.",
+        "After the report, the run asks the user whether to accept the blocked behavior.",
+        "After a reply that accepts the blocked behavior, the task file changes only from `state: pending` to `state: done`.",
+        "After a reply that refuses the blocked behavior, the task file keeps `state: pending` and every other byte."
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "/task-executor:implement action-items/agent-tasks/01-slugify-spaces.md",
+      "expected_output": "Normal mode implements the agreed public output change without asking the user to approve it again. It continues through verification, reporting, and state recording. Tests and verifier evidence account for mixed spaces, tabs, and newlines.",
+      "files": [
+        "plugins/task-executor/skills/implement/evals/inputs/setup-slug-eval.sh",
+        "plugins/task-executor/skills/implement/evals/inputs/slug-repo/slug.py",
+        "plugins/task-executor/skills/implement/evals/inputs/slug-repo/test_slug.py",
+        "plugins/task-executor/skills/implement/evals/inputs/tasks/spaces-agreed-contract.md"
+      ],
+      "expectations": [
+        "The run treats the public output change as agreed and asks no further approval for implementing it or running local validation.",
+        "The run invokes the TDD skill and records red and green evidence for every unblocked requirement and acceptance item.",
+        "A fresh verifier exercises mixed spaces, tabs, and newlines and reports observed results.",
+        "If a verifier reports a valid gap within scope, the run repairs it through TDD and continues verification within the three-pass limit.",
+        "The run continues after the first implementation through verification, reporting, and state recording without pausing for review.",
+        "`slugify(\"Hello\\t \\nWorld\")` returns `hello-world`, and `python3 -m unittest` passes.",
+        "The report accounts for every requirement, acceptance item, decision, and gap.",
+        "After full coverage, only the task file's `state:` line changes from `pending` to `done`."
+      ]
+    }
+  ]
+}
