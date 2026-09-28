@@ -5,6 +5,7 @@ import io
 import os
 import subprocess
 import sys
+import tempfile
 import threading
 from collections.abc import Iterator
 from html.parser import HTMLParser
@@ -21,6 +22,11 @@ EVIDENCE_REFERENCE = "plugins/project-advisor/skills/to-prd/scripts/bundle.py::g
 # The interview opener appends page URLs to the file this variable names instead of opening
 # a browser, so no CLI test opens a real browser.
 BROWSER_LOG_ENV = "TO_PRD_INTERVIEW_BROWSER_LOG"
+# Every interview server a test starts records itself in the registry this variable names,
+# so the tests and their child processes never touch the user's registry.
+REGISTRY_ENV = "TO_PRD_INTERVIEW_REGISTRY"
+_REGISTRY_DIR = tempfile.TemporaryDirectory(prefix="to-prd-registry-")
+os.environ[REGISTRY_ENV] = str(Path(_REGISTRY_DIR.name) / "interview-sessions.json")
 NO_BROWSER_ENV = {**os.environ, BROWSER_LOG_ENV: os.devnull}
 
 if str(SKILL_DIR) not in sys.path:

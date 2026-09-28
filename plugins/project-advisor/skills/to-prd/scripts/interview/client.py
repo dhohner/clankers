@@ -14,11 +14,14 @@ from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
+from .registry import RegistryEntry, prune
 from .server import TOKEN_HEADER
 from .session import ACTIVE, SessionFiles, SessionState, read_state, server_running
 
 SKILL_DIR = Path(__file__).resolve().parents[2]
 PING_SECONDS = 2.0
+# `status` checks each registered server this long, so a hung server delays it only briefly.
+LIVENESS_SECONDS = 0.5
 STOP_SECONDS = 10.0
 STOP_POLL_SECONDS = 0.002
 # Tests set this to a file path, and the opener appends each page URL there instead of
@@ -38,21 +41,61 @@ def base_url(state: SessionState) -> str:
     return f"http://{state['host']}:{state['port']}"
 
 
-def server_responds(files: SessionFiles, state: SessionState | None) -> bool:
-    """Return whether the server named by the state answers for this session."""
+def server_responds(
+    files: SessionFiles, state: SessionState | None, timeout: float | None = None
+) -> bool:
+    """Return whether the server named by the state answers for this session.
+
+    The token goes out only while the session's server holds its lock, so a process that
+    took the port of a stopped server never receives it. The check waits `PING_SECONDS`
+    unless `timeout` gives a shorter time.
+    """
     if state is None or state["state"] != ACTIVE or "port" not in state:
         return False
+    if not server_running(files):
+        return False
     try:
-        status, body = request(state, "GET", "/api/session", timeout=PING_SECONDS)
+        status, body = request(
+            state, "GET", "/api/session", timeout=PING_SECONDS if timeout is None else timeout
+        )
     except ServerUnavailable:
         return False
     return status == 200 and body.get("session") == str(files.session)
 
 
+def live_sessions(workspace: Path) -> list[SessionFiles]:
+    """Return the sessions of the workspace whose server answers, and drop every registry
+    entry, of any workspace, whose server does not."""
+    live = prune(_entry_responds)
+    return [
+        SessionFiles(Path(entry["session"]))
+        for entry in live
+        if entry["workspace"] == str(workspace.resolve())
+    ]
+
+
+def _entry_responds(entry: RegistryEntry) -> bool:
+    """Ask the server with the token from the session's state file, which the registry lacks."""
+    files = SessionFiles(Path(entry["session"]))
+    try:
+        state = read_state(files)
+        if state is None or state.get("port") != entry["port"]:
+            return False
+        return server_responds(files, state, timeout=LIVENESS_SECONDS)
+    except OSError, ValueError:
+        return False
+
+
 def start_server(files: SessionFiles) -> SessionState:
     """Start the background server and return the state it wrote."""
     process = subprocess.Popen(
-        [sys.executable, "-m", "scripts.interview.server", str(files.session)],
+        [
+            sys.executable,
+            "-m",
+            "scripts.interview.server",
+            str(files.session),
+            str(Path.cwd().resolve()),
+        ],
         cwd=SKILL_DIR,
         stdin=subprocess.DEVNULL,
         stdout=subprocess.PIPE,
@@ -76,9 +119,10 @@ def end_server(files: SessionFiles, state: SessionState) -> None:
 
     Only the released lock confirms the end: a request can fail against a server that
     still runs and still accepts its token, and a server records the ended session before
-    it stops.
+    it stops. The end request carries the token, so it goes out only while the session's
+    server holds its lock.
     """
-    if state["state"] == ACTIVE:
+    if state["state"] == ACTIVE and server_running(files):
         with contextlib.suppress(ServerUnavailable):
             request(state, "POST", "/api/end", timeout=PING_SECONDS)
     deadline = time.monotonic() + STOP_SECONDS
@@ -153,6 +197,7 @@ __all__ = [
     "ServerUnavailable",
     "base_url",
     "end_server",
+    "live_sessions",
     "open_page",
     "page_url",
     "server_responds",

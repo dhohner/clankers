@@ -13,6 +13,7 @@ import http.client
 import json
 import os
 import signal
+import socket
 import subprocess
 import sys
 import tempfile
@@ -424,6 +425,43 @@ class ServerFixture:
         self.server.shutdown()
         self._thread.join(STEP_SECONDS)
         self.server.server_close()
+
+
+class PortSquatter:
+    """Another process's socket on a port, which records every request and answers none."""
+
+    def __init__(self, test: unittest.TestCase, port: int) -> None:
+        self._listener = socket.socket()
+        # A stopped server's connections may leave the port in TIME_WAIT.
+        self._listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self._listener.bind(("127.0.0.1", port))
+        self._listener.listen()
+        self._listener.settimeout(0.01)
+        self._chunks: list[bytes] = []
+        self._stopped = threading.Event()
+        self._thread = threading.Thread(target=self._accept, daemon=True)
+        self._thread.start()
+        test.addCleanup(self.received)
+
+    def _accept(self) -> None:
+        while not self._stopped.is_set():
+            try:
+                connection, _ = self._listener.accept()
+            except TimeoutError:
+                continue
+            with connection:
+                connection.settimeout(CLEANUP_SECONDS)
+                try:
+                    self._chunks.append(connection.recv(65536))
+                except OSError:
+                    pass
+
+    def received(self) -> bytes:
+        """Stop listening and return the bytes of every request received."""
+        self._stopped.set()
+        self._thread.join(STEP_SECONDS)
+        self._listener.close()
+        return b"".join(self._chunks)
 
 
 def request(

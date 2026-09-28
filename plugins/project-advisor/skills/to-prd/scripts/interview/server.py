@@ -1,13 +1,15 @@
 """Background HTTP server for one interview session.
 
-The CLI starts it with `python3 -m scripts.interview.server <session-dir>` from the skill
-directory. It is not a documented command. The server prints one `ready` line on stdout
-once the state file holds its address and token.
+The CLI starts it with `python3 -m scripts.interview.server <session-dir> <workspace>` from
+the skill directory, where the workspace is the CLI's working directory. It is not a
+documented command. The server prints one `ready` line on stdout once the state file holds
+its address and token, and it records itself in the registry of running servers.
 """
 
 from __future__ import annotations
 
 import contextlib
+import errno
 import hmac
 import json
 import os
@@ -24,6 +26,7 @@ from typing import Any
 from urllib.parse import urlsplit
 
 from .answers import SubmitError, validate_submit
+from .registry import register, unregister
 from .rounds import ROUND_ID_PATTERN
 from .session import (
     ACTIVE,
@@ -32,6 +35,7 @@ from .session import (
     acquire_server_lock,
     open_round_ids,
     read_state,
+    session_lock,
     store_answers,
     stored_answers,
     stored_round,
@@ -61,6 +65,12 @@ SHUTDOWN_POLL_SECONDS = 0.02
 DEFAULT_GRACE_SECONDS = 15.0
 # Tests set this to a shorter grace period in seconds.
 GRACE_ENV = "TO_PRD_INTERVIEW_GRACE_SECONDS"
+# The server stops itself once it answered no request for this long, unless a waiting
+# request or a page with an open round keeps it busy. Its state stays in the session
+# directory, so the next command starts it again on the same port with the same token.
+DEFAULT_IDLE_SECONDS = 30 * 60.0
+# Tests set this to a shorter idle period in seconds.
+IDLE_ENV = "TO_PRD_INTERVIEW_IDLE_SECONDS"
 BROWSER_DISCONNECTED = "browser_disconnected"
 
 
@@ -72,8 +82,14 @@ class InterviewServer(ThreadingHTTPServer):
     daemon_threads = True
 
     def __init__(
-        self, files: SessionFiles, token: str, grace_seconds: float = DEFAULT_GRACE_SECONDS
+        self,
+        files: SessionFiles,
+        token: str,
+        grace_seconds: float = DEFAULT_GRACE_SECONDS,
+        idle_seconds: float = DEFAULT_IDLE_SECONDS,
+        port: int = 0,
     ) -> None:
+        """Bind to `port`, or to a free port when `port` is 0 or in use."""
         ownership = acquire_server_lock(files)
         if ownership is None:
             raise ServerRunning(f"an interview server already runs for {files.session}")
@@ -82,7 +98,12 @@ class InterviewServer(ThreadingHTTPServer):
             # the server stops.
             os.ftruncate(ownership, 0)
             os.write(ownership, f"{os.getpid()}\n".encode())
-            super().__init__((HOST, 0), InterviewHandler)
+            super().__init__((HOST, port), InterviewHandler, bind_and_activate=False)
+            try:
+                self._bind(port)
+            except BaseException:
+                self.socket.close()
+                raise
         except BaseException:
             os.close(ownership)
             raise
@@ -90,16 +111,76 @@ class InterviewServer(ThreadingHTTPServer):
         self.files = files
         self.token = token
         self.grace_seconds = grace_seconds
+        self.idle_seconds = idle_seconds
+        self.active_at = time.monotonic()
+        self.closed = threading.Event()
         self.ended = False
         self.waiters = 0
         self.pages = 0
         self.page_left_at = float("-inf")
         self.condition = threading.Condition()
 
+    def _bind(self, port: int) -> None:
+        try:
+            self.server_bind()
+        except OSError as error:
+            if port == 0 or error.errno != errno.EADDRINUSE:
+                raise
+            # A failed bind leaves the socket unbound, so it can bind again.
+            self.server_address = (HOST, 0)
+            self.server_bind()
+        self.server_activate()
+
     def server_close(self) -> None:
         """Close the socket, then release the session to a later server."""
         super().server_close()
         os.close(self.ownership)
+        self.closed.set()
+
+    def run(self) -> None:
+        """Serve until the session ends or the server is idle, then leave the registry."""
+        threading.Thread(target=self._stop_when_idle, daemon=True).start()
+        self.serve_forever(poll_interval=SHUTDOWN_POLL_SECONDS)
+        self.drain_waiters()
+        try:
+            unregister(self.files.session)
+        finally:
+            self.server_close()
+
+    def touch(self) -> None:
+        """Restart the idle period, because a page or the CLI sent a request."""
+        with self.condition:
+            self.active_at = time.monotonic()
+
+    def _stop_when_idle(self) -> None:
+        """Stop the server once it stays idle for the idle period.
+
+        The stop holds the session lock until the server is closed, so a CLI command sees
+        either the running server or a closed port that it may bind again.
+        """
+        while True:
+            with self.condition:
+                if self.ended:
+                    return
+                remaining = self.active_at + self.idle_seconds - time.monotonic()
+                if remaining > 0 or self._busy():
+                    self.condition.wait(remaining if remaining > 0 else self.idle_seconds)
+                    continue
+            with session_lock(self.files):
+                with self.condition:
+                    idle = not (self.ended or self._busy()) and self._idle_elapsed()
+                if not idle:
+                    continue
+                self.shutdown()
+                self.closed.wait()
+                return
+
+    def _busy(self) -> bool:
+        """Return whether a request waits for a result or a page shows an open round."""
+        return self.waiters > 0 or (self.pages > 0 and bool(open_round_ids(self.files)))
+
+    def _idle_elapsed(self) -> bool:
+        return time.monotonic() - self.active_at >= self.idle_seconds
 
     def token_matches(self, candidate: str) -> bool:
         with self.condition:
@@ -117,6 +198,7 @@ class InterviewServer(ThreadingHTTPServer):
         finally:
             with self.condition:
                 self.waiters -= 1
+                self.active_at = time.monotonic()
                 self.condition.notify_all()
 
     @contextlib.contextmanager
@@ -130,7 +212,7 @@ class InterviewServer(ThreadingHTTPServer):
         finally:
             with self.condition:
                 self.pages -= 1
-                self.page_left_at = time.monotonic()
+                self.page_left_at = self.active_at = time.monotonic()
                 self.condition.notify_all()
 
     def current_round(self) -> dict[str, Any]:
@@ -209,6 +291,7 @@ class InterviewHandler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         if not self._host_allowed():
             return
+        self.server.touch()
         path = urlsplit(self.path).path
         if path in STATIC_FILES:
             self._send_static(*STATIC_FILES[path])
@@ -236,6 +319,7 @@ class InterviewHandler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:
         if not (self._host_allowed() and self._origin_allowed() and self._authorized()):
             return
+        self.server.touch()
         length = self._declared_length()
         if length is None:
             return
@@ -350,12 +434,16 @@ def _invalid(path: str, message: str, fix: str) -> tuple[HTTPStatus, dict[str, A
 
 
 def create_server(
-    files: SessionFiles, grace_seconds: float = DEFAULT_GRACE_SECONDS
+    files: SessionFiles,
+    grace_seconds: float = DEFAULT_GRACE_SECONDS,
+    idle_seconds: float = DEFAULT_IDLE_SECONDS,
 ) -> InterviewServer:
     """Bind the server and record its address and token in the state file."""
     previous = read_state(files)
     token = (previous or {}).get("token") or secrets.token_urlsafe(32)
-    server = InterviewServer(files, token, grace_seconds)
+    # The same port lets a page that is still open reach the server again.
+    port = (previous or {}).get("port", 0)
+    server = InterviewServer(files, token, grace_seconds, idle_seconds, port)
     host, port = server.server_address[:2]
     write_state(
         files,
@@ -365,21 +453,25 @@ def create_server(
 
 
 def main(argv: list[str]) -> int:
-    server = create_server(SessionFiles(Path(argv[0])), _grace_seconds())
+    files = SessionFiles(Path(argv[0]))
+    server = create_server(
+        files,
+        _seconds(GRACE_ENV, DEFAULT_GRACE_SECONDS),
+        _seconds(IDLE_ENV, DEFAULT_IDLE_SECONDS),
+    )
+    register(files.session, Path(argv[1]), int(server.server_address[1]))
     _signal_ready()
-    server.serve_forever(poll_interval=SHUTDOWN_POLL_SECONDS)
-    server.drain_waiters()
-    server.server_close()
+    server.run()
     return 0
 
 
-def _grace_seconds() -> float:
-    raw = os.environ.get(GRACE_ENV)
+def _seconds(variable: str, default: float) -> float:
+    raw = os.environ.get(variable)
     if raw is None:
-        return DEFAULT_GRACE_SECONDS
+        return default
     seconds = float(raw)
     if not 0 < seconds < float("inf"):
-        raise ValueError(f"{GRACE_ENV} must be positive and finite, got {raw!r}")
+        raise ValueError(f"{variable} must be positive and finite, got {raw!r}")
     return seconds
 
 

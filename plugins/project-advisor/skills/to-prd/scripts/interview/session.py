@@ -20,6 +20,11 @@ from .rounds import ROUND_ID_PATTERN, Round
 
 ACTIVE = "active"
 ENDED = "ended"
+# Summary states besides ENDED: no state file, a stored round without answers, or answers
+# for every stored round.
+NO_SESSION = "no_session"
+ROUND_OPEN = "round_open"
+ROUND_ANSWERED = "round_answered"
 PRIVATE_DIR_MODE = 0o700
 
 
@@ -45,6 +50,15 @@ class RoundAnswers(TypedDict):
     round: str
     answers: list[QuestionAnswer]
     comment: str
+
+
+@dataclass(frozen=True)
+class SessionSummary:
+    state: Literal["no_session", "round_open", "round_answered", "ended"]
+    rounds_asked: int
+    rounds_answered: int
+    # The answers with the choice `decide_later`, over all answered rounds.
+    questions_deferred: int
 
 
 @dataclass(frozen=True)
@@ -143,15 +157,44 @@ def store_answers(files: SessionFiles, answers: RoundAnswers) -> None:
     write_json_atomic(files.answers_path(answers["round"]), answers)
 
 
-def open_round_ids(files: SessionFiles) -> list[str]:
-    """Return the ids of the stored rounds that have no stored answers."""
+def stored_round_ids(files: SessionFiles) -> list[str]:
     if not files.rounds.is_dir():
         return []
     return sorted(
-        path.stem
-        for path in files.rounds.glob("*.json")
-        if ROUND_ID_PATTERN.fullmatch(path.stem) and not files.answers_path(path.stem).exists()
+        path.stem for path in files.rounds.glob("*.json") if ROUND_ID_PATTERN.fullmatch(path.stem)
     )
+
+
+def open_round_ids(files: SessionFiles) -> list[str]:
+    """Return the ids of the stored rounds that have no stored answers."""
+    return [
+        round_id
+        for round_id in stored_round_ids(files)
+        if not files.answers_path(round_id).exists()
+    ]
+
+
+def summarize(files: SessionFiles) -> SessionSummary:
+    """Return the session state and its round counts; without a state file, all counts are 0."""
+    state = read_state(files)
+    if state is None:
+        return SessionSummary(NO_SESSION, 0, 0, 0)
+    round_ids = stored_round_ids(files)
+    answered = [
+        answers
+        for answers in (stored_answers(files, round_id) for round_id in round_ids)
+        if answers is not None
+    ]
+    deferred = sum(
+        answer["choice"] == "decide_later" for round_ in answered for answer in round_["answers"]
+    )
+    if state["state"] == ENDED:
+        summary_state = ENDED
+    elif len(answered) < len(round_ids):
+        summary_state = ROUND_OPEN
+    else:
+        summary_state = ROUND_ANSWERED
+    return SessionSummary(summary_state, len(round_ids), len(answered), deferred)
 
 
 def write_json_atomic(path: Path, value: Any) -> None:
@@ -192,10 +235,14 @@ def _read_json(path: Path) -> Any:
 __all__ = [
     "ACTIVE",
     "ENDED",
+    "NO_SESSION",
+    "ROUND_ANSWERED",
+    "ROUND_OPEN",
     "QuestionAnswer",
     "RoundAnswers",
     "SessionFiles",
     "SessionState",
+    "SessionSummary",
     "acquire_server_lock",
     "open_round_ids",
     "read_state",
@@ -205,6 +252,8 @@ __all__ = [
     "store_round",
     "stored_answers",
     "stored_round",
+    "stored_round_ids",
+    "summarize",
     "write_json_atomic",
     "write_state",
 ]

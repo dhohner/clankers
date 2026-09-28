@@ -7,6 +7,8 @@ from pathlib import Path
 from typing import Any
 
 from ..bundle import generate_bundle
+from ..interview.client import live_sessions
+from ..interview.session import summarize
 from ..manifest_types import NormalizedManifest
 from ..output_validation import BundleValidationError, _analyze_generated_bundle
 from ..spec import entity_blocks, iter_tree_nodes, tree_blocks
@@ -49,6 +51,10 @@ def command_status(args: argparse.Namespace) -> dict[str, Any]:
         "bundle_count": len(bundles),
         "latest_bundle": None if latest is None else display_path(latest),
         "existing_drafts": [display_path(path) for path in drafts],
+        "interview_sessions": [
+            {"session": display_path(files.session), "state": summarize(files).state}
+            for files in live_sessions(Path.cwd())
+        ],
         "next": next_steps,
     }
 

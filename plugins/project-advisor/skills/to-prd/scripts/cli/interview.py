@@ -21,12 +21,15 @@ from ..interview.client import (
     wait_for_result,
 )
 from ..interview.record import answered_fields
+from ..interview.registry import unregister
 from ..interview.server import BROWSER_DISCONNECTED
 from ..interview.session import (
     ENDED,
+    NO_SESSION,
     RoundAnswers,
     SessionFiles,
     SessionState,
+    SessionSummary,
     open_round_ids,
     read_state,
     server_running,
@@ -34,6 +37,7 @@ from ..interview.session import (
     store_round,
     stored_answers,
     stored_round,
+    summarize,
     write_state,
 )
 from ..toon import dumps
@@ -177,14 +181,17 @@ def command_ask(args: argparse.Namespace) -> dict[str, Any]:
                     session=display_path(session),
                     round=round_["id"],
                 )
+            previous_port = state.get("port") if state is not None else None
             state = _start_server(
                 files,
                 "Run the same interview ask again. The session keeps the round.",
                 _ask_again(session, args.round_file),
             )
-            url = page_url(state)
-            if not open_page(url):
-                link = url
+            # A page that is still open reconnects to a server on its previous port.
+            if state["port"] != previous_port:
+                url = page_url(state)
+                if not open_page(url):
+                    link = url
     print(
         f"interview ask: waiting for {round_['id']} at {base_url(state)}/ "
         f"(session {display_path(session)})",
@@ -244,7 +251,13 @@ def command_open(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def command_status(args: argparse.Namespace) -> dict[str, Any]:
-    raise _not_available("status", resolve_session(args.session_dir, "status <session-dir>"))
+    session = resolve_session(args.session_dir, "status <session-dir>")
+    files = SessionFiles(session)
+    # A directory without a session gets no lock file, so the status leaves it unchanged.
+    if not files.state.exists():
+        return _status_payload(files, summarize(files), running=False)
+    with session_lock(files):
+        return _status_payload(files, summarize(files), running=server_running(files))
 
 
 def command_end(args: argparse.Namespace) -> dict[str, Any]:
@@ -267,6 +280,8 @@ def command_end(args: argparse.Namespace) -> dict[str, Any]:
                 [_interview_command(f"end {_quoted(session)}")],
                 session=display_path(session),
             ) from error
+        # A server that crashed left its registry entry behind.
+        unregister(session)
         if state["state"] != ENDED:
             write_state(files, {"state": ENDED})
     return _ended_payload(session)
@@ -445,6 +460,26 @@ def _answered_payload(session: Path, round_: Round, answers: RoundAnswers) -> di
     }
 
 
+def _status_payload(files: SessionFiles, summary: SessionSummary, running: bool) -> dict[str, Any]:
+    session = files.session
+    if summary.state == NO_SESSION:
+        next_steps = [_interview_command(f"ask {_quoted(session)} <round-file>")]
+    elif summary.state == ENDED:
+        next_steps = [_interview_command("ask <new-session-dir> <round-file>")]
+    else:
+        next_steps = _ask_next(files)
+    return {
+        "status": "ok",
+        "session": display_path(session),
+        "state": summary.state,
+        "server_running": running,
+        "rounds_asked": summary.rounds_asked,
+        "rounds_answered": summary.rounds_answered,
+        "questions_deferred": summary.questions_deferred,
+        "next": next_steps,
+    }
+
+
 def _opened_payload(files: SessionFiles, link: str | None) -> dict[str, Any]:
     """Report the opened page, or the link for the user when the browser did not open."""
     if link is None:
@@ -521,19 +556,6 @@ def _ask_again(session: Path, round_file: Path) -> list[str]:
         _interview_command(f"ask {_quoted(session)} {_quoted(round_file)}"),
         _interview_command(f"end {_quoted(session)}"),
     ]
-
-
-def _not_available(command: str, session: Path, **fields: Any) -> InterviewFailure:
-    return _failure(
-        "not_available",
-        "command",
-        f"interview {command} is not available yet",
-        "Ask the round in the chat until the browser interview is available.",
-        [_interview_command("--help")],
-        command=f"interview {command}",
-        session=display_path(session),
-        **fields,
-    )
 
 
 def _usage_payload(message: str, argv: list[str]) -> dict[str, Any]:

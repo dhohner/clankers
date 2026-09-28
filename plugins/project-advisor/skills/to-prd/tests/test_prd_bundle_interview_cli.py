@@ -351,7 +351,10 @@ class InterviewSessionDirectoryTests(InterviewCliTestCase):
         session = self.root / "action-items-notes"
         session.mkdir()
 
-        self.assert_toon_error(self.interview("status", session), "not_available")
+        result = self.interview("status", session)
+
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertEqual(top_level_field(result.stdout, "state"), "no_session")
 
     def test_missing_session_directory_is_rejected(self) -> None:
         for command in COMMANDS:
@@ -375,14 +378,6 @@ class InterviewSessionDirectoryTests(InterviewCliTestCase):
 
 
 class InterviewCommandSurfaceTests(InterviewCliTestCase):
-    def test_commands_without_later_behavior_state_not_available(self) -> None:
-        for command in ("status",):
-            with self.subTest(command):
-                result = self.interview(command, self.session)
-
-                self.assert_toon_error(result, "not_available")
-                self.assertEqual(top_level_field(result.stdout, "command"), f"interview {command}")
-
     def test_unknown_flag_gives_usage_error_in_toon(self) -> None:
         for command in COMMANDS:
             with self.subTest(command):
@@ -467,7 +462,7 @@ class InterviewCliProcessTests(InterviewCliTestCase):
 
     def test_commands_do_not_read_terminal_input(self) -> None:
         session = self.ended_session()
-        expected_exit = {"ask": 0, "open": 0, "status": 1, "end": 0}
+        expected_exit = {"ask": 0, "open": 0, "status": 0, "end": 0}
         for command in COMMANDS:
             with self.subTest(command):
                 args = [sys.executable, "-m", "scripts", "interview", command, str(session)]
@@ -511,11 +506,11 @@ class InterviewCliProcessTests(InterviewCliTestCase):
                     env=NO_BROWSER_ENV,
                 )
 
-                if command in ("ask", "open", "end"):
-                    self.assertEqual(result.returncode, 0, result.stdout)
-                    self.assertEqual(top_level_field(result.stdout, "status"), "ended")
+                self.assertEqual(result.returncode, 0, result.stdout)
+                if command == "status":
+                    self.assertEqual(top_level_field(result.stdout, "state"), "ended")
                 else:
-                    self.assert_toon_error(result, "not_available")
+                    self.assertEqual(top_level_field(result.stdout, "status"), "ended")
 
 
 class InProcessOutputTests(unittest.TestCase):
