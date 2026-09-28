@@ -4,12 +4,39 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="referrer" content="no-referrer">
-    <title>PRD interview</title>
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#050506">
+    <title>Connecting · PRD interview</title>
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/assets/styles.css">
+    <link rel="stylesheet" href="/page.css">
+    <script src="/page.js" defer></script>
   </head>
   <body>
-    <h1>PRD interview</h1>
-    <p id="status">Loading the round.</p>
-    <pre id="round"></pre>
-    <script src="/page.js"></script>
+    <div class="cyclorama" aria-hidden="true">
+      <span class="cyc-wash"></span>
+    </div>
+    <header class="plot-bar">
+      <span class="brand">
+        <span class="brand-name">Project Advisor</span>
+        <span class="brand-role">PRD interview</span>
+      </span>
+      <p id="status" class="doc-status" data-state="connecting" role="status">
+        <span class="lamp" aria-hidden="true"></span>
+        <span class="sr-only">Interview status:</span>
+        <span id="status-word" class="doc-status-word">Connecting</span>
+      </p>
+    </header>
+    <main id="content" class="interview">
+      <section class="interview-current" aria-labelledby="current-title">
+        <h1 id="current-title">PRD interview</h1>
+        <p id="current-message" class="interview-message">Connecting to the interview server.</p>
+        <div id="round"></div>
+      </section>
+      <section id="history" class="interview-history" aria-labelledby="history-title" hidden>
+        <h2 id="history-title" class="interview-section-title">Earlier rounds</h2>
+        <div id="history-list"></div>
+      </section>
+    </main>
   </body>
 </html>

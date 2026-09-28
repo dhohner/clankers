@@ -15,6 +15,8 @@ import json
 import os
 import re
 import secrets
+import select
+import socket
 import sys
 import threading
 import time
@@ -25,6 +27,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 
+from ..paths import ASSET_DIR
 from .answers import SubmitError, validate_submit
 from .registry import register, unregister
 from .rounds import ROUND_ID_PATTERN
@@ -39,6 +42,7 @@ from .session import (
     store_answers,
     stored_answers,
     stored_round,
+    stored_round_ids,
     write_state,
 )
 
@@ -47,15 +51,30 @@ HOST = "127.0.0.1"
 LOOPBACK_NAMES = ("127.0.0.1", "localhost")
 TOKEN_HEADER = "X-Interview-Token"
 PAGE_DIR = Path(__file__).resolve().parent / "page"
+CSS = "text/css; charset=utf-8"
+WOFF2 = "font/woff2"
+# The page shares the bundle's tokens, fonts, header and lamp styles, which the server reads
+# from the bundle assets, so the page files stay out of every generated bundle.
 STATIC_FILES = {
-    "/": ("index.html", "text/html; charset=utf-8"),
-    "/page.js": ("page.js", "text/javascript; charset=utf-8"),
+    "/": (PAGE_DIR / "index.html", "text/html; charset=utf-8"),
+    "/page.js": (PAGE_DIR / "page.js", "text/javascript; charset=utf-8"),
+    "/page.css": (PAGE_DIR / "page.css", CSS),
+    "/assets/styles.css": (ASSET_DIR / "styles.css", CSS),
+    "/assets/favicon.svg": (ASSET_DIR / "favicon.svg", "image/svg+xml"),
+    "/assets/fonts/archivo-latin.woff2": (ASSET_DIR / "fonts" / "archivo-latin.woff2", WOFF2),
+    "/assets/fonts/martian-mono-latin.woff2": (
+        ASSET_DIR / "fonts" / "martian-mono-latin.woff2",
+        WOFF2,
+    ),
 }
 RESULT_ROUTE = re.compile(r"/api/rounds/(ROUND-[0-9]+)/result")
 # Holds a full round of answers with long notes; a larger declared body gets 413 unread.
 MAX_BODY_BYTES = 1024 * 1024
 CONTENT_LENGTH = re.compile(r"[0-9]+")
-PAGE_POLICY = "default-src 'self'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'"
+PAGE_POLICY = (
+    "default-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; "
+    "form-action 'none'; frame-ancestors 'none'"
+)
 DRAIN_SECONDS = 5.0
 # serve_forever sees a shutdown request only at its next poll, so this bounds how long
 # `interview end` waits for the port to close.
@@ -72,6 +91,13 @@ DEFAULT_IDLE_SECONDS = 30 * 60.0
 # Tests set this to a shorter idle period in seconds.
 IDLE_ENV = "TO_PRD_INTERVIEW_IDLE_SECONDS"
 BROWSER_DISCONNECTED = "browser_disconnected"
+# Page states besides `round_open`; the page shows `ended` from the page stream, because the
+# server stops answering once the session ends.
+ROUND_OPEN = "round_open"
+ROUND_SUBMITTED = "round_submitted"
+AGENT_WORKS = "agent_works"
+# Events on the page stream: the page reads its state again, or shows the ended session.
+CHANGED = "changed"
 
 
 class ServerRunning(Exception):
@@ -118,7 +144,12 @@ class InterviewServer(ThreadingHTTPServer):
         self.waiters = 0
         self.pages = 0
         self.page_left_at = float("-inf")
+        # Rounds whose answers this server stored and no result request returned yet.
+        self.submitted: set[str] = set()
         self.condition = threading.Condition()
+        # Guards the page streams apart from the condition, so a slow page never holds it.
+        self.streams_lock = threading.Lock()
+        self.streams: set[Any] = set()
 
     def _bind(self, port: int) -> None:
         try:
@@ -215,6 +246,58 @@ class InterviewServer(ThreadingHTTPServer):
                 self.page_left_at = self.active_at = time.monotonic()
                 self.condition.notify_all()
 
+    @contextlib.contextmanager
+    def page_stream(self, stream: Any) -> Iterator[None]:
+        """Send page events on the stream until its connection ends.
+
+        The first line tells the page that it is connected, and it goes out before any
+        event, so a page that reads its state after that line misses no change.
+        """
+        with self.streams_lock:
+            stream.write(b": connected\n\n")
+            stream.flush()
+            self.streams.add(stream)
+        try:
+            yield
+        finally:
+            with self.streams_lock:
+                self.streams.discard(stream)
+
+    def tell_pages(self, event: str) -> None:
+        """Send an event to every connected page; a page that left misses it."""
+        message = f"data: {event}\n\n".encode()
+        with self.streams_lock:
+            for stream in self.streams:
+                with contextlib.suppress(OSError):
+                    stream.write(message)
+                    stream.flush()
+
+    def page_state(self) -> dict[str, Any]:
+        """Return the page state with the open round and the answered rounds, newest first."""
+        with self.condition:
+            open_ids = open_round_ids(self.files)
+            history = []
+            for round_id in sorted(stored_round_ids(self.files), key=_round_order, reverse=True):
+                answers = stored_answers(self.files, round_id)
+                if answers is not None:
+                    history.append(
+                        {"round": stored_round(self.files, round_id), "answers": answers}
+                    )
+            if open_ids:
+                state = ROUND_OPEN
+            # An earlier round that no ask returned, such as one the CLI replayed from its
+            # files, says nothing about the newest round.
+            elif history and history[0]["round"]["id"] in self.submitted:
+                state = ROUND_SUBMITTED
+            else:
+                state = AGENT_WORKS
+            return {
+                "state": state,
+                "session": str(self.files.session),
+                "round": stored_round(self.files, open_ids[0]) if open_ids else None,
+                "history": history,
+            }
+
     def current_round(self) -> dict[str, Any]:
         """Return the open round for the page, or a waiting state while the agent works."""
         with self.condition:
@@ -233,6 +316,9 @@ class InterviewServer(ThreadingHTTPServer):
         with self.condition:
             if stored_round(self.files, round_id) is None:
                 return None
+        # A waiting ask follows a new round, so the page reads its state again.
+        self.tell_pages(CHANGED)
+        with self.condition:
             while True:
                 if self.ended:
                     return {"state": ENDED}
@@ -247,6 +333,14 @@ class InterviewServer(ThreadingHTTPServer):
                 if remaining <= 0:
                     return {"state": BROWSER_DISCONNECTED}
                 self.condition.wait(remaining)
+
+    def deliver(self, round_id: str) -> None:
+        """Record that a result request returns the answers of the round to an ask."""
+        with self.condition:
+            if round_id not in self.submitted:
+                return
+            self.submitted.discard(round_id)
+        self.tell_pages(CHANGED)
 
     def submit(self, body: Any) -> tuple[HTTPStatus, dict[str, Any]]:
         """Validate and store one submit; the condition lock makes submits run one at a time."""
@@ -268,7 +362,9 @@ class InterviewServer(ThreadingHTTPServer):
             except SubmitError as error:
                 return HTTPStatus.BAD_REQUEST, {"error": "invalid_submit", "faults": error.faults}
             store_answers(self.files, answers)
+            self.submitted.add(round_id)
             self.condition.notify_all()
+        self.tell_pages(CHANGED)
         return HTTPStatus.OK, {"state": "answered", "round": round_id}
 
     def end_session(self) -> None:
@@ -276,6 +372,7 @@ class InterviewServer(ThreadingHTTPServer):
             self.ended = True
             write_state(self.files, {"state": ENDED})
             self.condition.notify_all()
+        self.tell_pages(ENDED)
 
     def drain_waiters(self) -> None:
         with self.condition:
@@ -304,6 +401,9 @@ class InterviewHandler(BaseHTTPRequestHandler):
         if path == "/api/round":
             self._send_json(HTTPStatus.OK, self.server.current_round())
             return
+        if path == "/api/page":
+            self._send_json(HTTPStatus.OK, self.server.page_state())
+            return
         if path == "/api/presence":
             self._hold_page_connection()
             return
@@ -312,6 +412,8 @@ class InterviewHandler(BaseHTTPRequestHandler):
             with self.server.waiter():
                 outcome = self.server.round_result(result.group(1))
                 if outcome is not None:
+                    if outcome["state"] == "answered" and not self._client_left():
+                        self.server.deliver(result.group(1))
                     self._send_json(HTTPStatus.OK, outcome)
                     return
         self._send_json(HTTPStatus.NOT_FOUND, {"error": "not_found"})
@@ -346,17 +448,32 @@ class InterviewHandler(BaseHTTPRequestHandler):
     def _hold_page_connection(self) -> None:
         """Keep the response open until the page closes its connection.
 
-        The page sends nothing after its request, so a read returns only at the close.
+        The page sends nothing after its request, so a read returns only at the close. The
+        server writes page events on the response meanwhile.
         """
         with self.server.page_connection(), contextlib.suppress(OSError):
             self.send_response(HTTPStatus.OK)
             self.send_header("Content-Type", "text/event-stream")
             self.send_header("Cache-Control", "no-store")
             self.end_headers()
-            self.wfile.write(b": connected\n\n")
-            self.wfile.flush()
-            while self.rfile.read(1):
-                pass
+            with self.server.page_stream(self.wfile):
+                while self.rfile.read(1):
+                    pass
+
+    def _client_left(self) -> bool:
+        """Return whether the client closed its connection while its request waited.
+
+        A waiting ask sends nothing after its request, so a readable socket means a close. A
+        write to the closed connection would still succeed, so only this check tells that the
+        answers reach no ask.
+        """
+        readable, _, _ = select.select([self.connection], [], [], 0)
+        if not readable:
+            return False
+        try:
+            return self.connection.recv(1, socket.MSG_PEEK) == b""
+        except OSError:
+            return True
 
     def _host_allowed(self) -> bool:
         """Accept only a single Host header that names the loopback server."""
@@ -408,8 +525,8 @@ class InterviewHandler(BaseHTTPRequestHandler):
     def _read_json(self, length: int) -> Any:
         return json.loads(self.rfile.read(length).decode("utf-8"))
 
-    def _send_static(self, name: str, content_type: str) -> None:
-        body = (PAGE_DIR / name).read_bytes()
+    def _send_static(self, path: Path, content_type: str) -> None:
+        body = path.read_bytes()
         self.send_response(HTTPStatus.OK)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(body)))
@@ -426,6 +543,11 @@ class InterviewHandler(BaseHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         self.end_headers()
         self.wfile.write(body)
+
+
+def _round_order(round_id: str) -> tuple[int, str]:
+    """Order round ids by their number, so ROUND-10 follows ROUND-9."""
+    return int(round_id.removeprefix("ROUND-")), round_id
 
 
 def _invalid(path: str, message: str, fix: str) -> tuple[HTTPStatus, dict[str, Any]]:
