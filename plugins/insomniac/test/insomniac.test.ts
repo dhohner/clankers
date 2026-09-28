@@ -62,7 +62,9 @@ function session(fields: object = {}): string {
 // Claude Code computes used_percentage from input tokens and the window size.
 function contextUsed(percentage: number | null, windowSize = 200000): object {
   const inputTokens = percentage === null ? 0 : (windowSize * percentage) / 100;
-  return { context_window: { context_window_size: windowSize, total_input_tokens: inputTokens, used_percentage: percentage } };
+  return {
+    context_window: { context_window_size: windowSize, total_input_tokens: inputTokens, used_percentage: percentage },
+  };
 }
 
 const ESC = "\u001b";
@@ -96,7 +98,11 @@ async function waitFor(condition: () => boolean): Promise<void> {
 
 type RunOptions = { via?: "direct" | "nested"; env?: Record<string, string> };
 
-async function runStatusLine(child: "caffeinate" | "decoy" | "detached" | "none", payload = session(), { via = "direct", env = {} }: RunOptions = {}) {
+async function runStatusLine(
+  child: "caffeinate" | "decoy" | "detached" | "none",
+  payload = session(),
+  { via = "direct", env = {} }: RunOptions = {},
+) {
   const out = join(root, "out");
   // The outer shell exits immediately, leaving the harness to launchd.
   spawn("sh", ["-c", '"$HARNESS" "$1" "$2" </dev/null >/dev/null 2>&1 &', "sh", child, via], {
@@ -211,7 +217,9 @@ it.each([
   // Rounding would overstate usage, so the script truncates the count to one decimal.
   [1990000, 2000000, "1.9M/2M"],
 ])("abbreviates %i of %i tokens as %s", async (inputTokens, windowSize, tokens) => {
-  const payload = session({ context_window: { context_window_size: windowSize, total_input_tokens: inputTokens, used_percentage: 20 } });
+  const payload = session({
+    context_window: { context_window_size: windowSize, total_input_tokens: inputTokens, used_percentage: 20 },
+  });
 
   const result = await runStatusLine("none", payload);
 
@@ -226,7 +234,10 @@ it("shows an empty bar without numbers before the first response reports usage",
 
 // The token count next to the bar shows the window size.
 it("drops the context size note from the model name", async () => {
-  const result = await runStatusLine("none", session({ model: { id: "claude-opus-5[1m]", display_name: "Opus 5 (1M context)" }, ...contextUsed(15, 1000000) }));
+  const result = await runStatusLine(
+    "none",
+    session({ model: { id: "claude-opus-5[1m]", display_name: "Opus 5 (1M context)" }, ...contextUsed(15, 1000000) }),
+  );
 
   expect(result.text).toBe("Opus 5 · ━━━───────────────── 15% 150k/1M · 💤 can sleep");
 });
@@ -238,7 +249,10 @@ it("falls back to the model ID when the display name is missing", async () => {
 });
 
 it("leaves out the effort level for a model without effort support", async () => {
-  const result = await runStatusLine("none", session({ model: { id: "claude-haiku-4-5-20251001", display_name: "Haiku 4.5" }, ...contextUsed(12) }));
+  const result = await runStatusLine(
+    "none",
+    session({ model: { id: "claude-haiku-4-5-20251001", display_name: "Haiku 4.5" }, ...contextUsed(12) }),
+  );
 
   expect(result.text).toBe("Haiku 4.5 · ━━────────────────── 12% 24k/200k · 💤 can sleep");
 });
@@ -292,9 +306,13 @@ it.each([
 });
 
 it("prints no colors when NO_COLOR is set", async () => {
-  const result = await runStatusLine("caffeinate", session({ model: { id: "claude-opus-5", display_name: "Opus 5" }, ...contextUsed(38) }), {
-    env: { NO_COLOR: "1" },
-  });
+  const result = await runStatusLine(
+    "caffeinate",
+    session({ model: { id: "claude-opus-5", display_name: "Opus 5" }, ...contextUsed(38) }),
+    {
+      env: { NO_COLOR: "1" },
+    },
+  );
 
   expect(result.raw).toBe("Opus 5 · ━━━━━━━╸──────────── 38% 76k/200k · ☕ awake");
 });
@@ -305,7 +323,11 @@ function columns(text: string): number {
 }
 
 describe("with the terminal width in COLUMNS", () => {
-  const payload = session({ model: { id: "claude-opus-5", display_name: "Opus 5" }, effort: { level: "high" }, ...contextUsed(38) });
+  const payload = session({
+    model: { id: "claude-opus-5", display_name: "Opus 5" },
+    effort: { level: "high" },
+    ...contextUsed(38),
+  });
   const details = "Opus 5 · high · ━━━━━━━╸──────────── 38% 76k/200k";
 
   // Claude Code indents the status line by 4 columns, so it ends 4 columns before terminal width.
@@ -324,13 +346,17 @@ describe("with the terminal width in COLUMNS", () => {
 
   // The line needs the details, a separator-width gap, the sleep state, and the margin.
   it("keeps the separator when the gap would be narrower than the separator", async () => {
-    const result = await runStatusLine("caffeinate", payload, { env: { COLUMNS: String(columns(details) + 2 + 8 + 4) } });
+    const result = await runStatusLine("caffeinate", payload, {
+      env: { COLUMNS: String(columns(details) + 2 + 8 + 4) },
+    });
 
     expect(result.text).toBe(`${details} · ☕ awake`);
   });
 
   it("right-aligns once the gap is as wide as the separator", async () => {
-    const result = await runStatusLine("caffeinate", payload, { env: { COLUMNS: String(columns(details) + 3 + 8 + 4) } });
+    const result = await runStatusLine("caffeinate", payload, {
+      env: { COLUMNS: String(columns(details) + 3 + 8 + 4) },
+    });
 
     expect(result.text).toBe(`${details}   ☕ awake`);
   });

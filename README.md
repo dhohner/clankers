@@ -57,7 +57,7 @@ The Codex marketplace uses local plugin paths, so install it from a local checko
 
 ### Pi Coding Agent
 
-Pi requires version 0.85.1 or later.
+Pi requires version 0.87.1 or later.
 The two Pi plugins are built and tested against that version, and none supports an older one.
 Install dependencies in a local checkout before installing the Pi plugins.
 

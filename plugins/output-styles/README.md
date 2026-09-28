@@ -34,7 +34,7 @@ Switch the style inside a running session:
   An unknown name is reported and leaves the active style unchanged.
 - `Ctrl+Shift+Y` activates the next style in the list and wraps from the last entry to the first.
   The shortcut is a convenience: some terminals do not deliver this key combination, and the command reaches every switch the shortcut can perform.
-  Pi's `~/.pi/agent/keybindings.json` rebinds Pi's own actions by their keybinding id, but an extension shortcut is registered under its literal key and has no id in that file, so this shortcut cannot be rebound there; verified against Pi 0.85.1.
+  Pi's `~/.pi/agent/keybindings.json` rebinds Pi's own actions by their keybinding id, but an extension shortcut is registered under its literal key and has no id in that file, so this shortcut cannot be rebound there; verified against Pi 0.87.1.
   To use a different key, change the `CYCLE_SHORTCUT` constant in the installed copy of `lib/extension.ts` to a combination in Pi's `modifier+key` format, such as `ctrl+shift+x`.
 
 Every `/output-style` invocation, with or without an argument, rescans the three style directories first, so a style file added or edited while the session runs is selectable without a restart.
@@ -210,7 +210,7 @@ All four use `append` mode.
 
 ## Install
 
-This plugin requires Pi 0.85.1 or later, the version it is built and tested against.
+This plugin requires Pi 0.87.1 or later, the version it is built and tested against.
 It declares `@earendil-works/pi-coding-agent` as an optional peer dependency with `*`, so Pi supplies the runtime package.
 The specifier stays `*` rather than a version range.
 Under `autoInstallPeers`, pnpm 12.3.4 resolves a range here as a normal dependency and drops the optional markers from Pi's platform-specific clipboard binaries in `pnpm-lock.yaml`, which would make a Linux or Windows install try to fetch the macOS binary.

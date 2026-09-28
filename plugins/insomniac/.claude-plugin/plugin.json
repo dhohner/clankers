@@ -7,10 +7,5 @@
   },
   "repository": "https://github.com/dhohner/clankers",
   "license": "MIT",
-  "keywords": [
-    "statusline",
-    "macos",
-    "caffeinate",
-    "sleep"
-  ]
+  "keywords": ["statusline", "macos", "caffeinate", "sleep"]
 }

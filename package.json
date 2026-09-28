@@ -7,14 +7,17 @@
     "pi-package"
   ],
   "scripts": {
+    "check": "pnpm lint:ts && pnpm lint:py && pnpm test:ts && pnpm coverage:ts && pnpm test:py",
     "test": "pnpm test:ts && pnpm test:py:fast",
     "test:ts": "vitest run",
+    "coverage:ts": "pnpm --recursive --if-present run coverage",
     "test:py": "python3 plugins/project-advisor/skills/to-prd/tests/run_parallel.py",
     "test:py:fast": "python3 plugins/project-advisor/skills/to-prd/tests/run_parallel.py --fast",
-    "lint:py": "cd plugins/project-advisor/skills/to-prd && uvx ruff check . && uvx ruff format --check ."
+    "lint:ts": "pnpm --recursive run lint && pnpm --recursive run format:check && pnpm --recursive run typecheck",
+    "lint:py": "cd plugins/project-advisor/skills/to-prd && uvx ruff@0.16.9 check . && uvx ruff@0.16.9 format --check ."
   },
   "devDependencies": {
-    "vitest": "^5.0.0"
+    "vitest": "^5.0.2"
   },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*"

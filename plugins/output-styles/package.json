@@ -39,7 +39,8 @@
     "lint:fix": "oxlint --fix",
     "format": "oxfmt .",
     "format:check": "oxfmt --check .",
-    "check": "pnpm run lint && pnpm run format:check && vitest run --coverage && pnpm run typecheck"
+    "coverage": "vitest run --coverage",
+    "check": "pnpm run lint && pnpm run format:check && pnpm run coverage && pnpm run typecheck"
   },
   "dependencies": {
     "proper-lockfile": "^4.1.2",
