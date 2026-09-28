@@ -137,6 +137,13 @@ class InterviewAskWithoutPageTests(InterviewReopenTestCase):
         ):
             self.assertTrue(step.endswith(expected), step)
 
+    def test_browser_disconnected_message_offers_reopen_or_end_without_chat_round(self) -> None:
+        result = self.finish_after_grace(self.harness.start_ask(self.round_file))
+
+        message = top_level_field(result.stdout, "message")
+        self.assertIn("Ask the user whether to open the page again or to end the session.", message)
+        self.assertNotIn("in the chat", message)
+
     def test_ask_with_same_round_after_browser_disconnected_waits_for_submit(self) -> None:
         self.finish_after_grace(self.harness.start_ask(self.round_file))
 

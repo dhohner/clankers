@@ -28,6 +28,7 @@ Diagrams load Mermaid from `cdn.jsdelivr.net` at review time and fall back to th
 ## Workflow
 
 `SKILL.md` holds the loop: ground the decision, author the manifest, publish and inspect, hold the review gate.
+The agent asks each interview round in the local browser with `interview ask`, and holds the review gate in the chat.
 Acceptance sets `status: Accepted` in the published `prd.yaml`, which `to-issues` and `to-agent-tasks` read.
 Review feedback on an existing PRD re-enters the loop as a revision of a scratch copy of `prd.yaml`.
 [references/manifest-contract.md](references/manifest-contract.md) describes the manifest versions and the rules the CLI does not print.
@@ -51,20 +52,69 @@ Commands:
 - `validate <prd.yaml>`: validate without writing.
 - `generate <prd.yaml>`: generate after validation.
 - `inspect <bundle-dir>`: summarize generated structure, assets, anchors, traceability, and validation.
+- `interview <command>`: browser interview rounds, described in [Interview](#interview).
 
 Options:
 
 - `--output-root <directory>` changes the bundle parent for `status` and `generate`.
 - `--force` replaces an existing bundle with the same slug after the new output validates.
 - `--format yaml|text` selects the output format, and non-template commands default to YAML.
+  The `interview` commands take no `--format`.
 - `--full` expands large `validate` and `inspect` output.
 
-The CLI needs Python 3.14 or newer, without a virtual environment, package installation, Node.js, or browser.
+The CLI needs Python 3.14 or newer, without a virtual environment, package installation, or Node.js.
+Only `interview ask` and `interview open` use a browser, and they open the local default browser.
+
+## Interview
+
+The `interview` commands ask the rounds of one session on a local page.
+A session directory is a scratch directory outside `action-items/`.
+It holds the scratch `prd.yaml`, the round files, and the `interview/` directory with the answers and the server state.
+Each PRD and each revision starts a new session.
+
+```sh
+python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py interview ask <session-dir> <round-file>
+python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py interview open <session-dir>
+python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py interview status <session-dir>
+python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py interview end <session-dir>
+```
+
+- `interview ask <session-dir> <round-file>` validates the round file and starts the session server when none runs.
+  - It opens the page when the session gets its first server or a new port, so a closed tab needs `interview open`.
+  - It blocks until the round has a result, and prints `answered`, `browser_disconnected`, or `ended`.
+  - An `answered` result holds each answer with its design tree `record` and the `instructions` to write it.
+  - An ask for an answered round prints the stored answers at once.
+  - `interview ask --help` prints the round file fields and an example.
+- `interview open <session-dir>` opens the page again, and starts the server again when it has stopped.
+- `interview status <session-dir>` prints the session state, whether the server runs, and the counts of asked rounds, answered rounds, and deferred questions.
+- `interview end <session-dir>` ends the session and stops its server.
+  - A second `interview end` on the same session succeeds.
+
+Each `interview` command prints TOON to stdout, for a result and for an error.
+Each result and error holds `next` lines with the commands that can follow.
+
+Exit codes:
+
+- `0`: success, including `browser_disconnected` and `ended`.
+- `1`: error, such as an invalid round file or a session inside `action-items/`.
+- `2`: unknown flag or usage error.
+
+`status` lists the live interview sessions of the current workspace under `interview_sessions`, with the session directory and state of each.
+A live session has a running server that a command started from the current directory.
+
+With `TO_PRD_INTERVIEW_BROWSER_LOG` set to a file path, the commands append the page link to that file and open no browser.
+
+### Page check list
+
+[references/interview-page-checklist.md](references/interview-page-checklist.md) checks the interview page in a browser against a live session.
+Run it with `playwright-cli`.
+The test suite does not need `playwright-cli` or a browser.
 
 ## References
 
 - `references/manifest-contract.md`: manifest versions and rules the CLI schema does not print.
 - `references/review-checklist.md`: full bundle checklist when inspection is insufficient.
+- `references/interview-page-checklist.md`: interview page checks in a browser with `playwright-cli`.
 - `examples/minimal-prd.yaml`: smallest valid manifest.
 - `examples/basic-prd.yaml`: broad mixed-initiative example.
 - `examples/fixtures/*.yaml`: focused examples by initiative type.
@@ -81,7 +131,8 @@ pnpm test:py
 pnpm test:py:fast
 ```
 
-The runner starts one `unittest` process per module, prints the full output of each failing module, lists each skipped test with its reason, and ends with the ten slowest tests.
+The runner starts one `unittest` process for each `tests/test_prd_bundle_*.py` module, including the `interview` modules.
+It prints the full output of each failing module, lists each skipped test with its reason, and ends with the ten slowest tests.
 It also runs single modules or tests, each in its own process:
 
 ```sh

@@ -54,6 +54,7 @@ GROUP_EPILOG = """\
 Each interview command prints TOON to stdout, for a result and for an error.
 Exit codes: 0 success, 1 error, 2 unknown flag or usage error.
 No command reads terminal input.
+The other commands print YAML.
 """
 
 ROUND_FILE_HELP = """\
@@ -512,8 +513,8 @@ def _disconnected_payload(
     session: Path, round_: Round, round_file: Path, link: str | None
 ) -> dict[str, Any]:
     message = (
-        "No interview page is connected, and the round stays open. Ask the round in the "
-        "chat, or open the page again and run the same interview ask."
+        "No interview page is connected, and the round stays open. Ask the user whether "
+        "to open the page again or to end the session."
     )
     if link is not None:
         message = f"The browser did not open. Give the user the link. {message}"

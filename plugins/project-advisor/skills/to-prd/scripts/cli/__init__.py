@@ -19,7 +19,7 @@ def _build_parser() -> argparse.ArgumentParser:
         description="Validate, generate, inspect, and template YAML PRD review bundles.",
         epilog=(
             "Run browser interview rounds with `interview`, which prints TOON; "
-            "see interview --help."
+            "see interview --help. The other commands print YAML."
         ),
     )
     subparsers = parser.add_subparsers(dest="command", required=True)

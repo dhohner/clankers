@@ -419,6 +419,14 @@ class InterviewCommandSurfaceTests(InterviewCliTestCase):
                 self.assertIn("TOON", result.stdout)
                 self.assertIn("usage:", result.stdout)
 
+    def test_help_names_yaml_output_of_other_commands(self) -> None:
+        for args in [("--help",), ("interview", "--help")]:
+            with self.subTest(args):
+                result = run_cli(*args)
+
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertIn("other commands print YAML", " ".join(result.stdout.split()))
+
     def test_ask_help_describes_round_file_fields(self) -> None:
         result = run_cli("interview", "ask", "--help")
 

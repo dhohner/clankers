@@ -32,24 +32,54 @@ Structure the interview as a design tree, with dependent decisions branching fro
 A decision belongs in the tree when a wrong answer changes scope, a requirement, an acceptance criterion, a risk, or a review surface.
 A decision that only changes how, in what order, or with which defaults a requirement is built belongs to implementation, so prune it.
 
-Ask in rounds with the interactive question tool.
-Each round asks the whole frontier, the decisions whose prerequisites are settled, with a recommended answer for every question.
-Find facts yourself, in the repository or through sub-agents, and put only decisions to the user.
-While a fact search runs, ask the rest of the frontier.
+Put only decisions to the user, and find facts yourself in the repository or through sub-agents.
 Put a question in `open_questions` only when it waits on a fact nobody can find today.
 
-Record the tree in a scratch manifest at an unused path outside `action-items/`.
-For a new PRD, start from `template --blocks design_tree` and replace every placeholder node.
-For a revision, copy the published `prd.yaml`.
+### Keep the session
+
+Start a new interview session for a new PRD and for each revision.
+The session directory is one new scratch directory outside `action-items/`, and it holds the scratch `prd.yaml` and the round files.
+For a new PRD, write the scratch `prd.yaml` from `template --blocks design_tree`, and replace every placeholder node.
+For a revision, copy the published `prd.yaml` into the session directory.
+
+### Ask each round in the browser
+
+Ask each round with `interview ask <session-dir> <round-file>`.
+Each round asks the whole frontier, the decisions whose prerequisites are settled.
+Write the round to a new round file in the session directory, such as `round-01.yaml`.
+Give each question the `NODE-*` id of its design tree node and a recommended answer.
+`interview ask --help` prints the round file fields and an example.
+
+Before each `interview ask`, tell the user in one chat line that the round is open in the browser and you wait for the answers.
+Run `interview ask` as a foreground command with the largest timeout your tool allows, or as a tracked background job of your tool.
+When `interview ask` stops before it prints a result, run the same `interview ask` again.
+The session keeps the round, and the page keeps the draft answers.
+
+Start each fact search before the round, so it runs while the user answers: as a background sub-agent beside a foreground `interview ask`, or in the foreground beside a background one.
+Without background work, complete each fact search before the round.
+
+Each result prints a `message` when you must act and `next` lines with the commands that can follow, so follow them.
+After `answered`, record the answers, then ask the next frontier.
+
+Without a local browser, tell the user before the first round, and the user can delegate the answers to you.
+When the user delegates the answers, skip the browser round, and record your recommended answer for each question with `source: user`.
+
+### Record the answers
+
 After each round, write its nodes to `blocks.design_tree` with explicit `NODE-*` ids, verbatim questions, and a `settled`, `pruned`, or `deferred` status.
+Write each answer as the `instructions` line of the `answered` result says.
+Record a decision that a fact search settles as `settled` with `source: research` and its evidence.
+Use the notes and the round comment to write the rationale and to find new decisions.
+Nest dependent decisions under their prerequisite's `children`.
 `schema design_tree` prints the fields each status requires.
-Nest dependent decisions under their prerequisite's `children`, and link a deferred node to its open question through `relates_to`.
 
-Continue interview rounds until the frontier is empty and no decision rests on an assumption.
-Before authoring, present the settled decisions and deferred questions for the user to confirm or correct.
-Resume the interview when corrections reopen decisions.
+### End the interview
 
-Grounding is complete when every visited branch is recorded and the user confirms the presented understanding.
+Continue the rounds until the frontier is empty and no decision rests on an assumption.
+Then run `interview end <session-dir>` and author the manifest.
+The user corrects a decision at the review gate with `Request changes`.
+
+Grounding is complete when every visited branch is recorded, the frontier is empty, and `status` lists no live interview session.
 
 ## Author the manifest
 
