@@ -377,6 +377,13 @@ class InterviewServerOwnershipTests(InterviewTestCase):
 
         self.assertEqual(read_state(files)["port"], later.server_address[1])
 
+    def test_server_starts_without_host_name_lookup(self) -> None:
+        with mock.patch("socket.getfqdn", side_effect=AssertionError("looked up host name")):
+            server = create_server(SessionFiles(self.session))
+        self.addCleanup(server.server_close)
+
+        self.assertEqual(read_state(SessionFiles(self.session))["port"], server.server_address[1])
+
 
 class InterviewSubmitTests(InterviewServerTestCase):
     def round_state(self) -> str:

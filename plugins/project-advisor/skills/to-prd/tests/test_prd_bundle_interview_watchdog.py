@@ -99,8 +99,10 @@ class Slow(unittest.TestCase):
 class PastUnscaledLimit(TimeLimitedTestCase):
     time_limit_seconds = 0.1
 
+    # The sleep ends well past the unscaled limit and well before the limit at a scale of
+    # 10, so a late alarm on a busy machine does not decide either run.
     def test_sleeps_past_the_unscaled_limit(self):
-        time.sleep(0.15)
+        time.sleep(0.5)
 
 
 class WithServer(InterviewTestCase):
