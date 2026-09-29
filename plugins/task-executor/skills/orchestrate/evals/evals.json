@@ -1,0 +1,110 @@
+{
+  "skill_name": "orchestrate",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/task-executor:orchestrate (fixture scenario: no-frontmatter)",
+      "expected_output": "The preflight stops the run because task 02 has no frontmatter. The message names `02-word-count.md` and tells the user to regenerate the tasks with `project-advisor:to-agent-tasks`. The run creates no branch, worktree, or run folder.",
+      "files": [
+        "plugins/task-executor/skills/orchestrate/evals/inputs/setup-orchestrate-eval.sh",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/.gitignore",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/slug.py",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/test_slug.py",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/01-slugify.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/02-word-count.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/03-summarize.md"
+      ],
+      "expectations": [
+        "The run starts no task subagent.",
+        "The message names `02-word-count.md` as the task file without frontmatter and names no other task file.",
+        "The message tells the user to regenerate the tasks with `project-advisor:to-agent-tasks`.",
+        "`git branch` shows only `main`, and `git worktree list` shows only the start working tree.",
+        "No `runs/` folder exists under `action-items/agent-tasks/`.",
+        "`git status --porcelain` and the task files match their state before the run."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "/task-executor:orchestrate for the tasks 02 to 03 (fixture scenario: missing-predecessor)",
+      "expected_output": "Preflight stops because tasks 02 and 03 depend on `01-slugify.md`, outside the range with `state: pending`. The message names both tasks, each with its missing predecessor `01-slugify.md`. The run creates no branch, worktree, or run folder.",
+      "files": [
+        "plugins/task-executor/skills/orchestrate/evals/inputs/setup-orchestrate-eval.sh",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/.gitignore",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/slug.py",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/test_slug.py",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/01-slugify.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/02-word-count.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/03-summarize.md"
+      ],
+      "expectations": [
+        "The run selects `02-word-count.md` and `03-summarize.md` and no other task file.",
+        "The run starts no task subagent.",
+        "The message names `02-word-count.md` together with the missing predecessor `01-slugify.md`.",
+        "The message names `03-summarize.md` with its missing predecessor `01-slugify.md`. It does not name `02-word-count.md` as missing because 02 lies inside the range.",
+        "`git branch` shows only `main`, and `git worktree list` shows only the start working tree.",
+        "No `runs/` folder exists under `action-items/agent-tasks/`."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "/task-executor:orchestrate (fixture scenario: changed-source)",
+      "expected_output": "The preflight finds an uncommitted change to `slug.py`, which task 01 changes. The run lists `slug.py`, asks the user to commit or stash it, and starts no task. The run creates no branch, worktree, or run folder.",
+      "files": [
+        "plugins/task-executor/skills/orchestrate/evals/inputs/setup-orchestrate-eval.sh",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/.gitignore",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/slug.py",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/test_slug.py",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/01-slugify.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/02-word-count.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/03-summarize.md"
+      ],
+      "expectations": [
+        "The run starts no task subagent.",
+        "The message lists `slug.py` as a relevant uncommitted change and asks the user to commit or stash it.",
+        "`git branch` shows only `main`, and `git worktree list` shows only the start working tree.",
+        "No `runs/` folder exists under `action-items/agent-tasks/`.",
+        "`slug.py` keeps its uncommitted change, and the run neither stashes nor commits it."
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "/task-executor:orchestrate for the tasks 01 to 01 (fixture scenario: changed-action-items)",
+      "expected_output": "The untracked file `action-items/notes.md` does not block the run. Preflight passes. The run creates an integration branch and a run folder, then starts task 01.",
+      "files": [
+        "plugins/task-executor/skills/orchestrate/evals/inputs/setup-orchestrate-eval.sh",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/.gitignore",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/slug.py",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/test_slug.py",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/01-slugify.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/02-word-count.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/03-summarize.md"
+      ],
+      "expectations": [
+        "The run does not ask the user to commit or stash `action-items/notes.md`.",
+        "The run creates an integration branch and a run folder under `action-items/agent-tasks/runs/`.",
+        "The run starts a task subagent for task 01 in a worktree outside the start working tree.",
+        "`action-items/notes.md` stays untracked and unchanged, and no task commit contains it."
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "/task-executor:orchestrate (fixture scenario: unsafe-name)",
+      "expected_output": "Preflight stops the run because the stem of `02-word..count.md` is invalid in a branch name. The message names that file. The run creates no branch, worktree, or run folder.",
+      "files": [
+        "plugins/task-executor/skills/orchestrate/evals/inputs/setup-orchestrate-eval.sh",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/.gitignore",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/slug.py",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/test_slug.py",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/01-slugify.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/02-word-count.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/03-summarize.md"
+      ],
+      "expectations": [
+        "The run starts no task subagent.",
+        "The message names `02-word..count.md` as an unsafe file name and names no other task file.",
+        "`git branch` shows only `main`, and `git worktree list` shows only the start working tree.",
+        "No `runs/` folder exists under `action-items/agent-tasks/`."
+      ]
+    }
+  ]
+}

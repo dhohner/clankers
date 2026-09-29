@@ -1,6 +1,7 @@
 # Task executor plugin
 
 Implements coding-agent task files and standalone changes through TDD, and verifies each task result before reporting completion.
+The `orchestrate` skill runs a task set in parallel worktrees and commits each verified result to an integration branch.
 
 ## How it works
 
@@ -29,8 +30,51 @@ In delegated mode, `implement` never asks you, starts no verifier, and leaves th
 It returns a `stop`, `implemented`, or `ended` message and follows the orchestrator's `gaps`, `answer`, and `end` instructions.
 
 Run `/refactor-tools:review-changes` on the result when the change warrants a review.
-Neither skill commits.
-Review and commit the result yourself.
+`implement` and `tdd` never commit.
+Review and commit their results yourself.
+
+### orchestrate
+
+The `orchestrate` skill implements a task set or prefix range with one command.
+
+- Runs each ready task in its own git worktree, with a fresh subagent that follows `implement` in delegated mode.
+  - A task is ready when each task in its `depends_on` list has `state: done`.
+- Starts independent tasks together, up to a concurrency limit of 3 by default.
+- Chooses each task's model and effort from its content, and records the choice and reason.
+- Verifies each result with fresh verifier subagents, up to three passes by default, and sends the gaps back to the task subagent.
+- Commits each fully covered task as one commit on an integration branch and sets `state: done` in its task file.
+  - The run never pushes.
+  - The start branch stays unchanged, so you review the integration branch and merge it yourself.
+- Ends a task without a commit when its subagent stops, gaps remain after the last pass, or its commit conflicts on landing.
+  - The task stays `pending`, keeps its worktree and branch, and its dependents do not start.
+  - Independent tasks continue.
+- Skips done tasks on reruns and continues the latest earlier run's integration branch while it contains commits absent from `HEAD`.
+  - After you merge the integration branch, a rerun starts a new one from `HEAD`.
+  - A squash or rebase merge leaves the branch commits absent from `HEAD`.
+  - Delete the integration branch after such a merge.
+- Writes `run.json` in `<task directory>/runs/<timestamp>/` after each status change.
+
+The preflight starts no branch or worktree in these cases:
+
+- A selected task's file name contains characters outside letters, digits, `.`, `_`, and `-`, or its stem is invalid in a branch name.
+- A selected task file has no frontmatter.
+  - Regenerate the tasks with `project-advisor:to-agent-tasks`.
+- A selected task depends on a missing file or a task outside the range without `state: done`.
+- The selected tasks depend on each other in a cycle.
+- The start working tree holds uncommitted changes that a selected task could read or change.
+  - Commit or stash them.
+  - Changes under `action-items/` never block the run.
+
+Known limits:
+
+- The run does not validate the landed combination of parallel tasks.
+  - Run the task validation on the integration branch during your review.
+- If the session ends after landing but before the `state` write, the task stays `pending` with its commit on the integration branch.
+  - Before rerunning, check the integration branch's history:
+
+    ```sh
+    git log
+    ```
 
 ### tdd
 
@@ -50,12 +94,20 @@ The `tdd` skill runs the same red-green-refactor loop on its own for any feature
 
 ```text
 /task-executor:implement action-items/agent-tasks/01-short-task-title.md
+/task-executor:orchestrate
+/task-executor:orchestrate tasks 03 to 06 with a concurrency limit of 2 and 5 verifier passes
 /task-executor:tdd add a retryOperation helper that retries three times
+```
+
+Codex starts `orchestrate` only from an explicit `$` mention:
+
+```text
+$task-executor:orchestrate tasks 03 to 06
 ```
 
 ## Learn more
 
-The plugin bundles the [`implement`](./skills/implement/SKILL.md) and [`tdd`](./skills/tdd/SKILL.md) skills.
+The plugin bundles the [`implement`](./skills/implement/SKILL.md), [`orchestrate`](./skills/orchestrate/SKILL.md), and [`tdd`](./skills/tdd/SKILL.md) skills.
 
 ## Authors
 
