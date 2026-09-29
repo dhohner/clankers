@@ -9,8 +9,9 @@ Each skill runs only when invoked.
 `commit-message` writes a Conventional Commit message that explains the reasons for staged changes.
 
 - It targets all staged changes or only those under named paths.
-- It reads recent commit subjects, the diffstat, and the staged patch without lockfiles or minified files.
+- It reads recent commit messages for style, the full diffstat, and relevant staged changes, including generated files when needed.
 - It uses named files, such as a handoff, for context and limits claims to patch evidence.
+- It uses a compact plain text view when logic, flow, or ownership is clearer than prose.
 - It limits the subject and body lines to 72 characters.
 - It prints the message without committing.
 
