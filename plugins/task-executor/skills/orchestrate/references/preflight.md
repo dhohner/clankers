@@ -6,6 +6,15 @@ Stop the run before starting a task if any task file problem remains.
 
 For a rerun, first follow [Interrupted runs](#interrupted-runs).
 
+## Agent capabilities
+
+Read [Platform mechanisms](prompts.md#platform-mechanisms) and select the interface exposed by the current host.
+Check dispatch, continuation with retained context, working directory selection, fresh verifiers, and scheduling during user questions.
+
+If the interface is absent or documents a missing capability, stop before creating the run folder, branches, or worktrees.
+Report the required setup.
+Loading the skill alone does not establish these capabilities.
+
 ## Select the tasks
 
 1. Take the `.md` files directly in the task directory whose names start with a numeric prefix.
@@ -62,6 +71,16 @@ Resolve every pending preflight question before continuing.
 When every selected task is skipped, follow [Prepare the run](run-workflow.md#prepare-the-run) to record the run without branches or worktrees.
 
 ## Interrupted runs
+
+If the session ends during a wait, its `run.json` retains `waiting` and the question or gaps.
+Its task file stays `pending`.
+Preserve its old worktree and branch for inspection.
+
+On a rerun, select the pending task.
+Start a fresh subagent in a new worktree from the integration branch tip.
+Do not reuse the old waiting agent.
+
+Skip `done` tasks and continue the earlier integration branch when it qualifies under [Prepare the run](run-workflow.md#prepare-the-run).
 
 If the session ends after landing but before the `state` write, the task stays `pending` with its commit on the integration branch.
 A rerun implements that task again on top of its earlier commit.

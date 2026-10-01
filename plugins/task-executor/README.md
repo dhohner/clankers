@@ -36,23 +36,40 @@ Review and commit their results yourself.
 ### orchestrate
 
 The `orchestrate` skill implements a task set or prefix range with one command.
+It checks the current host's agent interface before creating branches or worktrees.
+Pi requires a configured integration that supports persistent task agents, fresh verifiers, and concurrent scheduling.
+Its built-in tools and bundled subagent example alone lack required capabilities.
+For host setup, see [Platform mechanisms](./skills/orchestrate/references/prompts.md#platform-mechanisms).
 
 - Runs each ready task in its own git worktree, with a fresh subagent that follows `implement` in delegated mode.
   - A task is ready when each task in its `depends_on` list has `state: done`.
 - Starts independent tasks together, up to a concurrency limit of 3 by default.
 - Chooses each task's model and effort from its content, and records the choice and reason.
 - Verifies each result with fresh verifier subagents, up to three passes by default, and sends the gaps back to the task subagent.
-- Commits each fully covered task as one commit on an integration branch and sets `state: done` in its task file.
+- Creates one integration branch commit per fully covered task or result whose remaining gaps you explicitly accept.
+  - Sets `state: done` in the task file after landing.
   - The run never pushes.
   - The start branch stays unchanged, so you review the integration branch and merge it yourself.
-- Ends a task without a commit when its subagent stops, gaps remain after the last pass, or its commit conflicts on landing.
-  - The task stays `pending`, keeps its worktree and branch, and its dependents do not start.
-  - Independent tasks continue.
+- Asks you when a subagent stops for a decision or gaps remain after the last pass.
+  - A stop question names the task, affected item, options, consequences, and recommendation.
+  - For final gaps, choose acceptance, continuation with an instruction, or ending the task.
+  - Sends continuations to the same subagent with its context.
+  - Continuing final gaps restarts verification with the full pass limit.
+  - A waiting task frees its concurrency slot while independent tasks keep starting and committing.
+  - Direct and transitive dependents wait.
+  - Ending the task leaves them `not_started`.
+  - Accepted gaps stay recorded in `run.json` with your decision.
+- Ends a task without a commit when you choose end, a listed blocker prevents coverage, or landing conflicts.
+  - The task stays `pending` and retains its worktree and branch.
+  - The summary names both.
 - Skips done tasks on reruns and continues the latest earlier run's integration branch while it contains commits absent from `HEAD`.
   - After you merge the integration branch, a rerun starts a new one from `HEAD`.
   - A squash or rebase merge leaves the branch commits absent from `HEAD`.
   - Delete the integration branch after such a merge.
 - Writes `run.json` in `<task directory>/runs/<timestamp>/` after each status change.
+  - During a wait, it records `waiting` and the question or gaps.
+  - If the session ends during the wait, the task stays `pending`.
+  - A rerun starts it in a new worktree.
 
 The preflight starts no branch or worktree in these cases:
 
@@ -67,6 +84,11 @@ The preflight starts no branch or worktree in these cases:
 
 Known limits:
 
+- Continuation requires the platform to deliver later instructions to the original subagent with its context.
+  - Scheduling must continue before the user answers.
+  - If either capability fails, the run records and reports the observed limit in `run.json` under `platform_limits`.
+  - A task whose context cannot be resumed stays `waiting` and `pending` for a rerun.
+  - Check these capabilities on the current host with the [waiting fixture](./skills/orchestrate/references/waiting-fixture.md).
 - The run does not validate the landed combination of parallel tasks.
   - Run the task validation on the integration branch during your review.
 - If the session ends after landing but before the `state` write, the task stays `pending` with its commit on the integration branch.
@@ -92,6 +114,11 @@ The `tdd` skill runs the same red-green-refactor loop on its own for any feature
 
 ## Usage
 
+Use the current host's skill invocation syntax.
+The selected model provider does not change that syntax or supply another host's tools.
+
+### Claude Code
+
 ```text
 /task-executor:implement action-items/agent-tasks/01-short-task-title.md
 /task-executor:orchestrate
@@ -99,11 +126,29 @@ The `tdd` skill runs the same red-green-refactor loop on its own for any feature
 /task-executor:tdd add a retryOperation helper that retries three times
 ```
 
-Codex starts `orchestrate` only from an explicit `$` mention:
+### Codex
+
+Use an explicit `$` mention with the plugin installed:
 
 ```text
 $task-executor:orchestrate tasks 03 to 06
 ```
+
+### Pi coding agent
+
+Load the skill directories for this session:
+
+```sh
+pi --skill <repository>/plugins/task-executor/skills
+```
+
+Configure the persistent agent integration through its documented setup, then invoke:
+
+```text
+/skill:orchestrate tasks 03 to 06
+```
+
+Pi also uses `/skill:implement` and `/skill:tdd` for the other skills.
 
 ## Learn more
 

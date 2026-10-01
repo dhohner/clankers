@@ -2,8 +2,124 @@
   "skill_name": "orchestrate",
   "evals": [
     {
+      "id": 10,
+      "prompt": "Use the basic fixture on a host without subagent tools. Invoke orchestrate with concurrency limit 1 through that host's skill command. Repeat with pi's bundled subagent example. It launches children with --no-session and exposes no continuation interface. Observe preflight before any repository mutation.",
+      "expected_output": "Preflight reports the missing dispatch or continuation capability and the required agent integration. It creates no run folder, branch, or worktree.",
+      "files": [
+        "plugins/task-executor/skills/orchestrate/evals/inputs/setup-orchestrate-eval.sh",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/.gitignore",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/slug.py",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/test_slug.py",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/01-slugify.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/02-word-count.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/03-summarize.md"
+      ],
+      "expectations": [
+        "The orchestrator checks the current host's exposed tools and does not infer tools from the model provider.",
+        "Without agent tools, the message names missing task and verifier dispatch. With the bundled pi example, it names missing continuation with retained context.",
+        "No Claude Code tool is called on a host that does not expose it.",
+        "No run folder, branch, worktree, task state write, or commit is created.",
+        "The orchestrator does not install an extension, substitute sequential execution, or silently restart a stopped task in a new agent."
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Use the stop fixture for TEST-05. Invoke orchestrate with concurrency limit 1 through the current host's skill command. Withhold task 01's answer until task 02 lands. Inspect run.json during the wait, then answer end. For TEST-06, rerun orchestrate, choose hyphen for task 01, and inspect both runs. Repeat TEST-05 on each host being validated and report observed context or scheduling limits.",
+      "expected_output": "Task 01 waits with its question while task 02 commits. Ending task 01 retains pending state, its worktree, and its branch. Task 03 is not_started. The rerun skips task 02 and commits tasks 01 and 03 on the same integration branch.",
+      "files": [
+        "plugins/task-executor/skills/orchestrate/evals/inputs/setup-orchestrate-eval.sh",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/.gitignore",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/slug.py",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/test_slug.py",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/01-slugify.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/02-word-count.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/03-summarize.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/stop/01-slugify.md",
+        "plugins/task-executor/skills/orchestrate/references/waiting-fixture.md"
+      ],
+      "expectations": [
+        "The question names task 01, its affected item, every option and consequence, and the recommendation. It also permits ending the task.",
+        "Before an answer, run.json records task 01 as waiting with its question, original agent identifier, worktree, and branch.",
+        "With concurrency 1, task 02 starts and lands before the answer. Task 03 never starts during the wait.",
+        "An end instruction reaches the original task 01 subagent. It returns ended without edits or a task commit.",
+        "Task 01 remains pending, task 02 is done, and task 03 is pending with not_started status. The summary names task 01's retained worktree and branch.",
+        "The second run skips task 02 and uses new task worktrees. After the hyphen decision, it appends exactly two commits to the first integration branch.",
+        "The start branch ref remains unchanged and no remote exists.",
+        "Dispatch and continuation use the current host's exposed tools and supported parameters. An Anthropic model does not select Claude Code tools on Codex or pi.",
+        "For pi, the report names the configured agent integration and agent_id holds its persistent identifier.",
+        "On the host being validated, later instructions reach the original agent with context. If continuation fails, run.json records the observed failure under platform_limits. The skill's documented limit applies. No replacement agent silently resumes the task."
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "Use the stop fixture. Invoke orchestrate with concurrency limit 1 through the current host's skill command. Wait until task 02 commits, then choose hyphen for task 01. In a fresh fixture, terminate the session while task 01 waits and rerun.",
+      "expected_output": "The answer resumes the original task subagent and task 01 lands after verification. An interrupted waiting task stays pending and restarts in a new worktree on rerun.",
+      "files": [
+        "plugins/task-executor/skills/orchestrate/evals/inputs/setup-orchestrate-eval.sh",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/.gitignore",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/slug.py",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/test_slug.py",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/01-slugify.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/02-word-count.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/03-summarize.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/stop/01-slugify.md",
+        "plugins/task-executor/skills/orchestrate/references/waiting-fixture.md"
+      ],
+      "expectations": [
+        "Instruction: answer carries the user's decision to the recorded original agent. No fresh implementer starts for the continuation.",
+        "Task 01 changes waiting to running, completes fresh verification, lands as one commit, and becomes done. Task 03 starts only after its predecessors are done.",
+        "During an interrupted wait, run.json still says waiting with the question and task 01 still says pending.",
+        "The rerun skips done tasks and starts pending tasks in new worktrees. It never treats a prior waiting status as done.",
+        "The orchestrator clarifies an ambiguous answer, naming the task. The answer causes no resume, commit, or end."
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "Use the basic fixture. Invoke orchestrate through the current host's skill command for tasks 01 to 01 with pass limit 1. At the verifier seam, supply a controlled report with one gap for slugify's boundary for trailing whitespace. Mark all other items covered. Preserve the canonical verifier prompt. Accept the displayed gap when asked.",
+      "expected_output": "The task waits with the exact verifier gap. It offers acceptance, continuation with an instruction, or ending. It commits only after explicit acceptance. run.json retains the gap with its accepted disposition and the user's answer.",
+      "files": [
+        "plugins/task-executor/skills/orchestrate/evals/inputs/setup-orchestrate-eval.sh",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/.gitignore",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/slug.py",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/test_slug.py",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/01-slugify.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/02-word-count.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/03-summarize.md"
+      ],
+      "expectations": [
+        "The final gap changes running to waiting and is persisted before the user question.",
+        "The question names the task and affected item. It offers acceptance, continuation with instructions, and ending, with each option's consequences.",
+        "No commit or done state is written before explicit acceptance of the listed gap.",
+        "The answer reaches the same task agent as Instruction: answer. The resulting implemented message supplies the changes to commit.",
+        "run.json records the accepted gap, its evidence, and the user's decision without claiming full coverage. Only after landing does the status become done and the task state change.",
+        "The orchestrator requests a new answer for a new stop or changed uncovered items. Previous acceptance does not authorize them."
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "Use the basic fixture. Invoke orchestrate through the current host's skill command for tasks 01 to 01 with pass limit 1. At the verifier seam, supply a controlled report with one remaining gap for trailing whitespace. Answer continue with an instruction to fix it. Let the next verifier report the gap again, then answer end. Inspect scheduling when two independent agents return stop together.",
+      "expected_output": "Continuing delivers answer to the same agent and restarts verification with the full pass limit. The orchestrator asks again on the new final gap. Ending leaves pending state and no task commit. Simultaneous questions retain independent task identities.",
+      "files": [
+        "plugins/task-executor/skills/orchestrate/evals/inputs/setup-orchestrate-eval.sh",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/.gitignore",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/slug.py",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/test_slug.py",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/01-slugify.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/02-word-count.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/03-summarize.md"
+      ],
+      "expectations": [
+        "The continuation is Instruction: answer to the original agent, and run.json records waiting to running.",
+        "Verification uses a fresh verifier and resets the pass counter to zero. The configured pass limit remains 1.",
+        "A gap on the new last pass produces a new waiting question. The old pass count does not cause an automatic end.",
+        "Instruction: end reaches that same agent. The task stays pending with ended run status, retained worktree and branch, and no commit.",
+        "Two waiting tasks free both concurrency slots. The orchestrator orders questions by arrival, using task prefix order for ties, and routes answers by task identity.",
+        "Tasks depending directly or transitively on a waiting task remain queued. Ending it propagates not_started through the dependency chain."
+      ]
+    },
+    {
       "id": 1,
-      "prompt": "/task-executor:orchestrate (fixture scenario: no-frontmatter)",
+      "prompt": "Use the no-frontmatter fixture scenario. Invoke orchestrate through the current host's skill command.",
       "expected_output": "The preflight stops the run because task 02 has no frontmatter. The message names `02-word-count.md` and tells the user to regenerate the tasks with `project-advisor:to-agent-tasks`. The run creates no branch, worktree, or run folder.",
       "files": [
         "plugins/task-executor/skills/orchestrate/evals/inputs/setup-orchestrate-eval.sh",
@@ -25,7 +141,7 @@
     },
     {
       "id": 2,
-      "prompt": "/task-executor:orchestrate for the tasks 02 to 03 (fixture scenario: missing-predecessor)",
+      "prompt": "Use the missing-predecessor fixture scenario. Invoke orchestrate through the current host's skill command for tasks 02 to 03.",
       "expected_output": "Preflight stops because tasks 02 and 03 depend on `01-slugify.md`, outside the range with `state: pending`. The message names both tasks, each with its missing predecessor `01-slugify.md`. The run creates no branch, worktree, or run folder.",
       "files": [
         "plugins/task-executor/skills/orchestrate/evals/inputs/setup-orchestrate-eval.sh",
@@ -47,7 +163,7 @@
     },
     {
       "id": 3,
-      "prompt": "/task-executor:orchestrate (fixture scenario: changed-source)",
+      "prompt": "Use the changed-source fixture scenario. Invoke orchestrate through the current host's skill command.",
       "expected_output": "The preflight finds an uncommitted change to `slug.py`, which task 01 changes. The run lists `slug.py`, asks the user to commit or stash it, and starts no task. The run creates no branch, worktree, or run folder.",
       "files": [
         "plugins/task-executor/skills/orchestrate/evals/inputs/setup-orchestrate-eval.sh",
@@ -68,7 +184,7 @@
     },
     {
       "id": 4,
-      "prompt": "/task-executor:orchestrate for the tasks 01 to 01 (fixture scenario: changed-action-items)",
+      "prompt": "Use the changed-action-items fixture scenario. Invoke orchestrate through the current host's skill command for tasks 01 to 01.",
       "expected_output": "The untracked file `action-items/notes.md` does not block the run. Preflight passes. The run creates an integration branch and a run folder, then starts task 01.",
       "files": [
         "plugins/task-executor/skills/orchestrate/evals/inputs/setup-orchestrate-eval.sh",
@@ -88,7 +204,7 @@
     },
     {
       "id": 5,
-      "prompt": "/task-executor:orchestrate (fixture scenario: unsafe-name)",
+      "prompt": "Use the unsafe-name fixture scenario. Invoke orchestrate through the current host's skill command.",
       "expected_output": "Preflight stops the run because the stem of `02-word..count.md` is invalid in a branch name. The message names that file. The run creates no branch, worktree, or run folder.",
       "files": [
         "plugins/task-executor/skills/orchestrate/evals/inputs/setup-orchestrate-eval.sh",

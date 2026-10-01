@@ -54,7 +54,16 @@ Repeat until each selected task has a final run status:
    - Apply the rule again to tasks that depend on the changed tasks.
 2. Start each `queued` ready task in prefix order while fewer tasks than the concurrency limit are in progress.
    - Run started tasks at the same time.
-3. Wait for a subagent result, handle it with [Run one task](#run-one-task), and return to step 1.
+3. Handle subagent results with [Run one task](#run-one-task) and user answers with [Handle an answer](#handle-an-answer).
+   - Return to step 1 after each result or answer.
+   - A `waiting` task consumes no concurrency slot.
+   - Start and land every independent ready task while a task waits.
+   - Direct and transitive dependents of a waiting task remain `queued` until their predecessors reach `done` or end.
+   - Keep this loop running during user questions.
+   - Do not wait for an answer to land independent results.
+   - If only waiting tasks and their dependents remain, keep the run open for answers.
+   - If the session ends during a wait, retain the question or gaps and `waiting` status.
+   - In that case, keep its task file `pending`, send no `end`, and skip normal finish cleanup for that task.
 
 Land one task at a time on the integration branch.
 
@@ -71,14 +80,16 @@ Land one task at a time on the integration branch.
 2. Follow [Model and effort](prompts.md#model-and-effort) to choose the model and effort, then record the choice and reason.
 3. Set the run status to `running`, record the worktree and the branch, and update `run.json`.
 4. Start a fresh subagent with the [task subagent prompt](prompts.md#task-subagent-prompt).
-   - On Claude Code, follow [Claude Code mechanisms](prompts.md#claude-code) for dispatch and later instructions.
-   - On Codex, follow [Codex mechanisms](prompts.md#codex) for dispatch and later instructions.
+   - Record its platform identifier in `agent_id` and retain it for every later instruction.
+   - Initialize `verification_round` to 1 and `passes_used` to 0.
+   - Use the host interface selected during [Agent capabilities](preflight.md#agent-capabilities).
+   - Follow [Platform mechanisms](prompts.md#platform-mechanisms) for dispatch and later instructions.
 
 ### Handle the reply of the task subagent
 
 Read the `Message:` line of the reply.
 
-- For `stop`, record `Question`, `Item`, and `Options` in `run.json`, then [end the task](#end-a-task).
+- For `stop`, record the task file, `Question`, `Item`, `Options`, and `Recommended`, then [wait for an answer](#wait-for-an-answer).
 - For `implemented`, start [verification](#verify).
 - For any other reply, record it and [end the task](#end-a-task).
 
@@ -96,7 +107,71 @@ A `blocked` item is uncovered and names a blocker that further passes cannot rem
 | Full coverage | Record the coverage map, decision ledger, gap dispositions, and blocked behavior, then [commit and land](#commit-and-land). |
 | Any blocked item | Record the blocked behavior and gaps, then [end the task](#end-a-task) with reason `blocked`. |
 | Gaps, no blocked item, passes remain | Send the [gaps instruction](prompts.md#instructions) to the same task subagent and handle its reply above. |
-| Gaps, no blocked item, last pass | Record the gaps, then [end the task](#end-a-task) with reason `gaps`. |
+| Gaps, no blocked item, last pass | Record the coverage, ledger, gap dispositions, and gaps, then [wait for an answer](#wait-for-an-answer). |
+
+Increment `passes_used` for every verifier pass and persist it in `run.json`.
+A continuation after final gaps resets `passes_used` to 0 and increments `verification_round`.
+The configured pass limit applies in full again.
+
+### Wait for an answer
+
+1. Preserve the latest `implemented` reply and verifier report, when present.
+2. Set status to `waiting` and persist `waiting` in `run.json` before asking.
+   - For a stop, it holds the task file, affected item, question, options with consequences, and recommendation.
+   - For final gaps, it holds the task file and every gap.
+   - Each gap includes its affected item, location, missing behavior or defect, and evidence.
+3. Ask using [User questions](prompts.md#user-questions).
+   - Name the task file and affected items.
+   - For a stop, repeat the question, options, consequences, and recommendation, and offer ending without a commit.
+   - For final gaps, display every gap.
+   - For final gaps, offer accepting and committing, continuing with instructions, or ending without a commit.
+   - Explain that continuing final gaps starts a new round with the full verification limit.
+4. Return to scheduling without waiting synchronously for the answer.
+
+### Handle an answer
+
+Identify the task from its question before acting.
+Clarify answers that are ambiguous, lack a required decision or continuation instruction, or identify no single waiting task.
+Keep the task `waiting` during clarification.
+
+Never infer acceptance of gaps from silence or a generic request to continue.
+
+Record the user's answer and question in `answers` before dispatch.
+Always persist a new stop or final gap before asking again.
+An accepted gap does not authorize a later gap that differs from it.
+
+#### Continue a stop
+
+- Clear `waiting`, set `running`, and persist.
+- Send [answer](prompts.md#instructions) to the recorded `agent_id` with the decision and affected item.
+- Handle the next reply through [Handle the reply](#handle-the-reply-of-the-task-subagent), verifying an `implemented` result as before.
+
+#### Continue final gaps
+
+- Clear `waiting`, set `running`, reset `passes_used` to 0, increment `verification_round`, and persist.
+- Send `answer` to the same agent with the user's instruction and full gap report.
+- Handle its reply and verify with the full pass limit.
+
+#### Accept final gaps
+
+- Record every explicitly accepted gap with disposition `accepted` in the ledger and `accepted_gaps`.
+  - Include its evidence and the user's decision.
+- Send `answer` to the same agent with the acceptance.
+  - Ask it to record the decision and return `implemented` without further changes.
+- Keep the task `waiting` until that reply arrives.
+  - This acknowledgment creates no new implementation work.
+- For `implemented` with unchanged implementation and uncovered items, [commit and land](#commit-and-land).
+  - Use that reply and the accepted coverage map.
+- For a new `stop`, ask about that stop.
+- If implementation or uncovered items change, clear the pending acceptance and set `running`.
+  - Verify in a new full round before committing.
+- Preserve accepted gaps in `run.json`, never relabeling them as covered.
+
+#### End either wait
+
+- Send `end` to the same agent through [End a task](#end-a-task).
+- Clear `waiting` only after its `ended` reply and persist `ended`.
+- Propagate `not_started` to queued dependents through the scheduler.
 
 ### Commit and land
 

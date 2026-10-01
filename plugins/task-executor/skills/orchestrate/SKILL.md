@@ -10,13 +10,17 @@ disable-model-invocation: true
 ## Workflow
 
 1. Resolve the [inputs](#inputs) from the user's request, using the defaults for omitted values.
-2. Run every [preflight check](references/preflight.md), resolving required input or reporting why the run stops.
+2. Run every [preflight check](references/preflight.md), including the current host's agent capabilities.
+   - Resolve required input or report why the run stops.
 3. [Prepare the run](references/run-workflow.md#prepare-the-run) and record every selected task in the initial `run.json`.
 4. [Schedule the tasks](references/run-workflow.md#schedule-the-tasks) until every selected task has a final run status.
+   - Handle user answers while independent tasks continue.
    - For each started task, follow [Run one task](references/run-workflow.md#run-one-task).
 5. [Finish the run](references/run-workflow.md#finish-the-run) until cleanup and the chat summary are complete.
 
-After preflight passes, continue implementation, verification, gap repair, and local integration through the final summary without review pauses.
+After preflight passes, continue implementation, verification, gap repair, and local integration through the final summary.
+For task stops and final gaps, follow [Wait for an answer](references/run-workflow.md#wait-for-an-answer).
+Keep scheduling independent tasks during the wait.
 A task with status `ended` blocks its dependents; continue independent tasks.
 The user reviews the integration branch and merges it.
 
@@ -26,6 +30,7 @@ The user reviews the integration branch and merges it.
 - Range: two numeric task prefixes, such as `03 to 06`, or none.
 - Concurrency limit: the largest number of tasks in progress at once, 3 by default.
   - A task is in progress while its subagent or verifier works.
+  - A task waiting for a user answer frees its slot.
 - Pass limit: the number of verifier passes per task, 3 by default.
 
 ## Constraints
@@ -34,5 +39,9 @@ The user reviews the integration branch and merges it.
   - Never push, merge into the start branch, or run commands that change remote state.
 - Preserve the start branch ref, index, and working tree, except task `state` writes and files in the run folder.
 - Start subagents and write `run.json` and task `state` only from the orchestrator.
-- Ask the user only during preflight, about invalid ranges or relevant changes in the start working tree.
-  - Handle task stops, remaining gaps, and landing conflicts through [End a task](references/run-workflow.md#end-a-task).
+- During preflight, ask about invalid ranges or relevant changes in the start working tree.
+  - During the run, ask about task stops and remaining gaps.
+  - Route each answer to the original task subagent and preserve its context.
+  - Handle landing conflicts through [End a task](references/run-workflow.md#end-a-task).
+- If context resumption or scheduling during questions fails, record the observed limit following [Platform limits](references/prompts.md#platform-limits).
+  - Leave an unanswered task `waiting` and its task file `pending` when the session ends.
