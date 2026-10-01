@@ -306,6 +306,9 @@ function buildRound(round) {
   const container = element("div", "round");
   const transcript = element("ol", "conversation");
   transcript.setAttribute("aria-label", "Your conversation");
+  const previousAnswers = element("details", "conversation-history");
+  const previousAnswersSummary = element("summary");
+  previousAnswers.append(previousAnswersSummary, transcript);
   const questions = element("div", "questions");
   for (const [index, question] of round.questions.entries()) {
     const built = buildQuestion(question, index, total);
@@ -337,8 +340,9 @@ function buildRound(round) {
   commentDisclosure.append(element("summary", "", "Add a round comment"), comment.label);
   review.append(commentDisclosure);
   footer.append(progress, submit);
-  container.append(transcript, questions, replyHelp, reply, review, footer, faults);
-  Object.assign(current, { container, transcript, review, reply, replyHelp,
+  container.append(questions, replyHelp, reply, previousAnswers, review, footer, faults);
+  Object.assign(current, { container, transcript, previousAnswers, previousAnswersSummary,
+    review, reply, replyHelp,
     comment: comment.area, progress, submit, faults });
 
   document.getElementById("round-label").textContent = `${round.id} · ${total} ${total === 1 ? "question" : "questions"}`;
@@ -419,6 +423,9 @@ function renderConversation(focus = false) {
     entries.push(entry);
   }
   current.transcript.replaceChildren(...entries);
+  current.previousAnswers.hidden = entries.length === 0;
+  current.previousAnswers.open = current.active === -1;
+  current.previousAnswersSummary.textContent = `Previous answers (${entries.length})`;
   refreshControls();
   if (focus) {
     const target = current.active === -1 ? current.review : current.questions[current.active].fieldset;

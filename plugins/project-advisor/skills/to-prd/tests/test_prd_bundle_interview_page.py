@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import http.client
 import socket
+import struct
+import sys
 import threading
 from typing import Any
 
@@ -187,6 +189,26 @@ class InterviewPageStateTests(InterviewPageTestCase):
         self.server.wait_for_waiters(0)
 
         self.assertEqual(self.page_state()["state"], "round_submitted")
+
+    def test_disconnected_ask_finishes_without_a_server_error(self) -> None:
+        errors = []
+        self.server.server.handle_error = lambda request, address: errors.append(sys.exc_info()[1])
+        ask = socket.create_connection(("127.0.0.1", self.server.port), timeout=STEP_SECONDS)
+        self.addCleanup(ask.close)
+        ask.sendall(
+            f"GET /api/rounds/ROUND-01/result HTTP/1.1\r\nHost: 127.0.0.1:{self.server.port}\r\n"
+            f"{TOKEN_HEADER}: {self.server.token}\r\n\r\n".encode()
+        )
+        self.server.wait_for_waiters(1)
+        # Reset the connection so the response write fails deterministically.
+        ask.setsockopt(socket.SOL_SOCKET, socket.SO_LINGER, struct.pack("ii", 1, 0))
+        ask.close()
+        self.server.submit(ROUND_ONE_SUBMIT)
+        self.server.wait_for_waiters(0)
+        self.assertEqual(self.page_state()["state"], "round_submitted")
+        self.server.stop()
+
+        self.assertEqual(errors, [], "a disconnected client is an expected request ending")
 
     def test_earlier_round_that_no_ask_returned_does_not_hold_later_rounds_submitted(self) -> None:
         self.server.submit(ROUND_ONE_SUBMIT)

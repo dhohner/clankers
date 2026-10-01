@@ -414,6 +414,11 @@ class InterviewServer(ThreadingHTTPServer):
 class InterviewHandler(BaseHTTPRequestHandler):
     server: InterviewServer
 
+    def handle(self) -> None:
+        # Clients can disconnect during any request read or response write.
+        with contextlib.suppress(ConnectionError):
+            super().handle()
+
     def log_message(self, format: str, *args: Any) -> None:
         """Keep request logs out of the output, because the server has no log file."""
 

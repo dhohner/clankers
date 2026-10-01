@@ -33,7 +33,9 @@ It prints the directory containing screenshots for inspection.
    Choosing `Write my own answer` reveals the written reply field.
    `Next question` records the answer in the transcript and opens the next unanswered question.
    When no unanswered questions remain, `Review answers` records the answer and opens the review.
-   Earlier replies have an `Edit reply` button.
+   Earlier replies sit in a collapsed `Previous answers` section below the current question.
+   Expanding it shows each reply with an `Edit reply` button.
+   Advancing or editing collapses the section, and the final review opens it automatically.
 2. Action: read the first question text.
    Expected: the text shows `<b>markup</b>` with the angle brackets, and the question holds no `b` element.
 3. Action: answer `NODE-01`, press `Next question`, and look at `NODE-02`.
@@ -57,7 +59,8 @@ It prints the directory containing screenshots for inspection.
 ## Draft
 
 1. Action: reload the page with a partial draft, such as three answers, a note and a comment.
-   Expected: the reloaded page shows confirmed replies in the transcript, resumes at the first unconfirmed question, and restores choices, texts, notes and the round comment.
+   Expected: the reloaded page keeps confirmed replies collapsed, resumes at the first unconfirmed question, and restores choices, texts, notes and the round comment.
+   Reloading a completed draft opens the replies for review.
 2. Action: list the local storage entries.
    Expected: one entry whose key holds the session directory and `ROUND-01`.
 

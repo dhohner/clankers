@@ -41,6 +41,14 @@ let output = "";
 let errors = "";
 ask.stdout.on("data", (chunk) => { output += chunk; });
 ask.stderr.on("data", (chunk) => { errors += chunk; });
+async function checkResponsiveLayout(page, widths, screenshotPrefix) {
+  for (const width of widths) {
+    await page.setViewportSize({ width, height: 800 });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    await page.screenshot({ path: resolve(scratch, `${screenshotPrefix}-${width}.png`), fullPage: true });
+  }
+}
+
 let browser;
 try {
   browser = await chromium.launch({ executablePath: process.env.TO_PRD_CHROMIUM_EXECUTABLE });
@@ -105,6 +113,10 @@ try {
   await page.getByLabel("Note (optional)", { exact: true }).first().fill("Preserve this note.");
   await page.getByRole("button", { name: "Next question", exact: true }).click();
   assert.equal(await page.locator(".conversation-turn").count(), 1);
+  assert.equal(await page.locator(".conversation-turn:visible").count(), 0,
+    "previous answers are collapsed while answering");
+  await page.locator(".conversation-history summary").click();
+  assert.equal(await page.locator(".conversation-turn:visible").count(), 1);
   assert.equal(await page.locator(".conversation-reply script").count(), 0);
   await page.getByRole("checkbox", { name: /Local/ }).check();
   await page.getByRole("checkbox", { name: /Shared/ }).check();
@@ -113,7 +125,14 @@ try {
   assert.equal(await page.getByRole("checkbox", { name: /Local/ }).isChecked(), true);
   assert.equal(await page.getByRole("checkbox", { name: /Shared/ }).isChecked(), true);
   assert.equal(await page.locator(".conversation-turn").count(), 1);
+  assert.equal(await page.locator(".conversation-turn:visible").count(), 0,
+    "restored replies stay collapsed");
+  await checkResponsiveLayout(page, [375, 1280], "active-question");
   await page.getByRole("button", { name: "Next question", exact: true }).click();
+  assert.equal(await page.locator(".conversation-turn:visible").count(), 0);
+  assert.ok(await page.locator(".question:visible").evaluate((question) =>
+    question.getBoundingClientRect().top < document.querySelector(".conversation-history").getBoundingClientRect().top),
+  "the current question comes before previous answers");
   await page.getByRole("radio", { name: "Decide later", exact: true }).check();
   assert.equal(await page.getByRole("button", { name: "Next question", exact: true }).isDisabled(), true);
   await page.locator(".question:visible").getByLabel(/Why decide later/).fill("Need research.");
@@ -122,14 +141,13 @@ try {
   await page.locator(".question:visible").getByLabel(/Why is it out of scope/).fill("Another release.");
   await page.getByRole("button", { name: "Review answers", exact: true }).click();
   assert.equal(await page.locator(".question:visible").count(), 0);
-  assert.equal(await page.locator(".conversation-turn").count(), 4);
+  assert.equal(await page.locator(".conversation-turn:visible").count(), 4,
+    "review opens all answers");
   assert.equal(posts, 0, "replies remain local before submission");
-  for (const width of [320, 375, 414, 768, 1280]) {
-    await page.setViewportSize({ width, height: 800 });
-    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
-    await page.screenshot({ path: resolve(scratch, `review-${width}.png`), fullPage: true });
-  }
+  await checkResponsiveLayout(page, [320, 375, 414, 768, 1280], "review");
   await page.getByRole("button", { name: "Edit reply: Storage", exact: true }).click();
+  assert.equal(await page.locator(".conversation-turn:visible").count(), 0,
+    "editing focuses on the selected question");
   await page.locator(".question:visible").getByLabel("Written answer").fill("Updated storage.");
   await page.getByRole("button", { name: "Review answers", exact: true }).click();
   await page.locator(".round-comment summary").click();
