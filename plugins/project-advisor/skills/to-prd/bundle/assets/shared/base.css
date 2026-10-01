@@ -1,0 +1,14 @@
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+body { margin: 0; }
+
+.sr-only {
+  position: absolute;
+  overflow: hidden;
+  clip-path: inset(50%);
+  width: 1px;
+  height: 1px;
+  white-space: nowrap;
+}

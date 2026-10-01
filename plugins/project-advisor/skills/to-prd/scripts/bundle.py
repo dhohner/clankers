@@ -35,7 +35,12 @@ def generate_bundle(manifest: NormalizedManifest, output_root: Path, force: bool
             dumps(manifest),
             encoding="utf-8",
         )
-        shutil.copytree(ASSET_DIR, temp_path / "assets", copy_function=shutil.copy2)
+        assets = temp_path / "assets"
+        assets.mkdir()
+        for name in ("styles.css", "app.js", "favicon.svg"):
+            shutil.copy2(ASSET_DIR / name, assets / name)
+        for name in ("fonts", "shared"):
+            shutil.copytree(ASSET_DIR / name, assets / name)
         validate_generated_bundle(temp_path)
         if target.exists() or target.is_symlink():
             backup_root = Path(

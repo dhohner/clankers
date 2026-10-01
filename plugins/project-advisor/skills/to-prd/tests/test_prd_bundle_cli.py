@@ -84,7 +84,7 @@ class PrdBundleCliTests(unittest.TestCase):
             source_assets = sorted(
                 path.relative_to(SOURCE_ASSETS)
                 for path in SOURCE_ASSETS.rglob("*")
-                if path.is_file()
+                if path.is_file() and "interview" not in path.relative_to(SOURCE_ASSETS).parts
             )
             generated_assets = sorted(
                 path.relative_to(bundle / "assets")

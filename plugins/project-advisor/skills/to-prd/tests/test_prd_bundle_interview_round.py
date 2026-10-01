@@ -343,7 +343,7 @@ class InterviewServerRouteTests(InterviewServerTestCase):
                 self.assertNotIn(str(self.session), json.dumps(body))
 
     def test_page_shell_and_script_load_without_token(self) -> None:
-        for path, marker in (("/", "<script"), ("/page.js", "X-Interview-Token")):
+        for path, marker in (("/", "<script"), ("/assets/interview/app.js", "X-Interview-Token")):
             with self.subTest(path):
                 status, body = self.server.request("GET", path)
 

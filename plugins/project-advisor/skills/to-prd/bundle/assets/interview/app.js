@@ -1,7 +1,5 @@
 "use strict";
 
-// The interview page: it shows the open round and the earlier rounds of one session, keeps
-// the draft of the open round in browser storage, and sends the round in one submit.
 // Round data reaches the page as text only, so every write uses DOM text APIs.
 
 const TOKEN_HEADER = "X-Interview-Token";
@@ -43,14 +41,12 @@ const CHOICE_WORDS = {
 const token = new URLSearchParams(location.hash.slice(1)).get("token") ?? "";
 const statusElement = document.getElementById("status");
 const statusWord = document.getElementById("status-word");
-const currentTitle = document.getElementById("current-title");
 const currentMessage = document.getElementById("current-message");
 const roundElement = document.getElementById("round");
 const historySection = document.getElementById("history");
 const historyList = document.getElementById("history-list");
 
 let session = "";
-// The open round with its draft and its controls, or null.
 let current = null;
 let historyKey = "";
 // The fault of a rejected submit whose round closed, shown until a new round opens.
@@ -81,8 +77,6 @@ function showMessage(text) {
   currentMessage.hidden = !text;
 }
 
-// Draft storage: one entry per session and round, in the storage of the page origin.
-
 function draftKey(roundId) {
   return `${DRAFT_PREFIX}:${session}:${roundId}`;
 }
@@ -92,7 +86,7 @@ function emptyDraft(round) {
   for (const question of round.questions) {
     answers[question.node] = { choice: "", selected: [], written: "", reason: "", note: "" };
   }
-  return { answers, comment: "" };
+  return { answers, comment: "", replied: [] };
 }
 
 function text(value) {
@@ -125,6 +119,12 @@ function loadDraft(round) {
     answer.note = text(saved.note);
     if (answer.choice === "option" && !answer.selected.length) answer.choice = "";
   }
+  if (Array.isArray(stored.replied)) {
+    draft.replied = round.questions
+      .filter((question) => stored.replied.includes(question.node)
+        && answerComplete(question, draft.answers[question.node]))
+      .map((question) => question.node);
+  }
   return draft;
 }
 
@@ -140,7 +140,6 @@ function removeDraft(roundId) {
   try {
     localStorage.removeItem(draftKey(roundId));
   } catch {
-    // Nothing is stored without storage.
   }
 }
 
@@ -276,7 +275,9 @@ function buildQuestion(question, index, total) {
     changed();
   }, "field-note");
 
-  fieldset.append(legend, prompt, kind, options, alternatives, note.label);
+  const extra = element("details", "question-extra");
+  extra.append(element("summary", "", "Add a note"), note.label);
+  fieldset.append(legend, prompt, kind, options, alternatives, extra);
 
   function sync() {
     for (const option of optionInputs) {
@@ -289,6 +290,7 @@ function buildQuestion(question, index, total) {
     reason.label.hidden = !needsReason;
     reason.area.required = needsReason;
     reasonWord.textContent = needsReason ? REASON_LABELS[answer.choice] : "";
+    written.label.hidden = answer.choice !== "written";
     written.area.required = answer.choice === "written";
     fieldset.dataset.complete = String(answerComplete(question, answer));
   }
@@ -298,9 +300,12 @@ function buildQuestion(question, index, total) {
 
 function buildRound(round) {
   current = { round, draft: loadDraft(round), questions: [], submitting: false, fault: "" };
+  current.active = round.questions.findIndex((question) => !current.draft.replied.includes(question.node));
   rejection = "";
   const total = round.questions.length;
   const container = element("div", "round");
+  const transcript = element("ol", "conversation");
+  transcript.setAttribute("aria-label", "Your conversation");
   const questions = element("div", "questions");
   for (const [index, question] of round.questions.entries()) {
     const built = buildQuestion(question, index, total);
@@ -320,19 +325,34 @@ function buildRound(round) {
   submit.addEventListener("click", submitRound);
   const faults = element("div", "round-faults");
   faults.setAttribute("role", "alert");
+  const reply = element("button", "reply-send", "Next question");
+  reply.type = "button";
+  reply.addEventListener("click", confirmReply);
+  const replyHelp = element("p", "reply-help", "Choose an answer, or write your own. Replies stay in your draft until you submit the round.");
+  const review = element("div", "conversation-review");
+  review.tabIndex = -1;
+  review.append(element("h2", "", "Ready to share this round?"),
+    element("p", "", "Review your replies above. You can edit any answer before submitting."));
+  const commentDisclosure = element("details", "round-comment");
+  commentDisclosure.append(element("summary", "", "Add a round comment"), comment.label);
+  review.append(commentDisclosure);
   footer.append(progress, submit);
-  container.append(questions, comment.label, footer, faults);
-  Object.assign(current, { container, comment: comment.area, progress, submit, faults });
+  container.append(transcript, questions, replyHelp, reply, review, footer, faults);
+  Object.assign(current, { container, transcript, review, reply, replyHelp,
+    comment: comment.area, progress, submit, faults });
 
-  currentTitle.textContent = `${round.id} · ${total} ${total === 1 ? "question" : "questions"}`;
+  document.getElementById("round-label").textContent = `${round.id} · ${total} ${total === 1 ? "question" : "questions"}`;
   roundElement.replaceChildren(container);
-  refreshControls();
+  renderConversation();
 }
 
 function refreshControls() {
+  const disabled = current.submitting || ended;
   let complete = 0;
   for (const [index, question] of current.round.questions.entries()) {
     current.questions[index].sync();
+    current.questions[index].fieldset.hidden = index !== current.active;
+    current.questions[index].fieldset.disabled = disabled;
     if (answerComplete(question, current.draft.answers[question.node])) complete += 1;
   }
   const total = current.round.questions.length;
@@ -340,7 +360,71 @@ function refreshControls() {
   current.progress.textContent = ready
     ? "Each question has an answer."
     : `${complete} of ${total} ${total === 1 ? "question has" : "questions have"} an answer.`;
-  current.submit.disabled = !ready || current.submitting || ended;
+  const reviewing = current.active === -1;
+  current.review.hidden = !reviewing;
+  current.reply.hidden = reviewing;
+  current.replyHelp.hidden = reviewing;
+  current.submit.hidden = !reviewing;
+  current.submit.disabled = !ready || disabled;
+  current.submit.textContent = current.submitting ? "Submitting…" : "Submit round";
+  current.container.setAttribute("aria-busy", String(current.submitting));
+  const question = current.round.questions[current.active];
+  const hasNextQuestion = current.round.questions.some((item) =>
+    item.node !== question?.node && !current.draft.replied.includes(item.node));
+  current.reply.textContent = hasNextQuestion ? "Next question" : "Review answers";
+  current.reply.disabled = !question || !answerComplete(question, current.draft.answers[question.node])
+    || disabled;
+  current.comment.disabled = disabled;
+  for (const edit of current.transcript.querySelectorAll("button")) {
+    edit.disabled = disabled;
+  }
+}
+
+function confirmReply() {
+  if (!current || current.reply.disabled) return;
+  const node = current.round.questions[current.active].node;
+  if (!current.draft.replied.includes(node)) current.draft.replied.push(node);
+  current.active = current.round.questions.findIndex((question) =>
+    !current.draft.replied.includes(question.node));
+  saveDraft(current);
+  renderConversation(true);
+}
+
+function renderConversation(focus = false) {
+  const entries = [];
+  for (const [index, question] of current.round.questions.entries()) {
+    if (!current.draft.replied.includes(question.node) || index === current.active) continue;
+    const answer = current.draft.answers[question.node];
+    const entry = element("li", "conversation-turn");
+    const prompt = element("div", "conversation-prompt");
+    prompt.append(element("span", "speaker", "Advisor"),
+      element("p", "", question.question));
+    const response = element("div", "conversation-reply");
+    const edit = element("button", "reply-edit", "Edit reply");
+    edit.type = "button";
+    edit.setAttribute("aria-label", `Edit reply: ${question.label}`);
+    edit.addEventListener("click", () => {
+      if (current.submitting || ended) return;
+      current.active = index;
+      renderConversation(true);
+    });
+    response.append(element("span", "speaker", "You"));
+    if (answer.choice === "decide_later" || answer.choice === "out_of_scope") {
+      response.append(element("p", "reply-disposition", CHOICE_WORDS[answer.choice]));
+    }
+    response.append(element("p", "", answerText(answer)));
+    if (answer.note.trim()) response.append(element("p", "reply-note", `Note: ${answer.note}`));
+    response.append(edit);
+    entry.append(prompt, response);
+    entries.push(entry);
+  }
+  current.transcript.replaceChildren(...entries);
+  refreshControls();
+  if (focus) {
+    const target = current.active === -1 ? current.review : current.questions[current.active].fieldset;
+    target.tabIndex = -1;
+    target.focus();
+  }
 }
 
 function changed() {
@@ -420,7 +504,7 @@ async function submitRound() {
 function closeRound() {
   if (current.fault) rejection = `${current.round.id}: ${current.fault}`;
   current = null;
-  currentTitle.textContent = "PRD interview";
+  document.getElementById("round-label").textContent = "PRD interview";
   roundElement.replaceChildren();
 }
 
@@ -534,11 +618,7 @@ function showEnded() {
   ended = true;
   setStatus("ended");
   showMessage(MESSAGES.ended);
-  if (current) {
-    for (const question of current.questions) question.fieldset.disabled = true;
-    current.comment.disabled = true;
-    refreshControls();
-  }
+  if (current) refreshControls();
 }
 
 // The server counts the page as connected while the page stream stays open, and it writes
@@ -573,7 +653,6 @@ async function holdConnection() {
       });
       if (response.ok) await readEvents(response);
     } catch {
-      // The server is not reachable; the loop tries again.
     }
     if (ended) return;
     showUnavailable();

@@ -46,7 +46,7 @@ class InterviewSecurityTestCase(InterviewTestCase):
 
 class HostCheckTests(InterviewSecurityTestCase):
     def test_foreign_host_gets_no_page_and_no_session_data(self) -> None:
-        for path in ("/", "/page.js", "/api/session", "/api/round"):
+        for path in ("/", "/assets/interview/app.js", "/api/session", "/api/round"):
             with self.subTest(path):
                 status, body = self.server.raw_request(
                     "GET", path, {"Host": "evil.example", TOKEN_HEADER: self.server.token}

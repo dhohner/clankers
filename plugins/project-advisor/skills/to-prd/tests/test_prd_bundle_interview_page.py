@@ -87,15 +87,22 @@ class InterviewPageFileRouteTests(InterviewPageTestCase):
     def test_page_shell_links_the_shared_styles_and_page_files(self) -> None:
         shell = self.get("/").body.decode("utf-8")
 
-        for reference in ("/assets/styles.css", "/page.css", "/page.js"):
+        for reference in (
+            "/assets/shared/base.css",
+            "/assets/interview/styles.css",
+            "/assets/interview/app.js",
+        ):
             with self.subTest(reference):
                 self.assertIn(f'"{reference}"', shell)
 
     def test_page_files_load_with_their_types_and_the_page_policy(self) -> None:
         for path, content_type in (
             ("/", "text/html"),
-            ("/page.js", "text/javascript"),
-            ("/page.css", "text/css"),
+            ("/assets/interview/app.js", "text/javascript"),
+            ("/assets/interview/styles.css", "text/css"),
+            ("/assets/interview/tokens.css", "text/css"),
+            ("/assets/interview/fonts/manrope.ttf", "font/ttf"),
+            ("/assets/shared/base.css", "text/css"),
         ):
             with self.subTest(path):
                 response = self.get(path)

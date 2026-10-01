@@ -5,17 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="referrer" content="no-referrer">
     <meta name="color-scheme" content="dark">
-    <meta name="theme-color" content="#050506">
+    <meta name="theme-color" content="oklch(13% 0.014 265)">
     <title>Connecting · PRD interview</title>
     <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="/assets/styles.css">
-    <link rel="stylesheet" href="/page.css">
-    <script src="/page.js" defer></script>
+    <link rel="stylesheet" href="/assets/shared/base.css">
+    <link rel="stylesheet" href="/assets/interview/tokens.css">
+    <link rel="stylesheet" href="/assets/interview/styles.css">
+    <script src="/assets/interview/app.js" defer></script>
   </head>
   <body>
-    <div class="cyclorama" aria-hidden="true">
-      <span class="cyc-wash"></span>
-    </div>
     <header class="plot-bar">
       <span class="brand">
         <span class="brand-name">Project Advisor</span>
@@ -29,7 +27,11 @@
     </header>
     <main id="content" class="interview">
       <section class="interview-current" aria-labelledby="current-title">
-        <h1 id="current-title">PRD interview</h1>
+        <div class="interview-intro">
+          <p id="round-label" class="round-label">PRD interview</p>
+          <h1 id="current-title">Project interview</h1>
+          <p class="interview-lede">Answer each question, then review and submit the round.</p>
+        </div>
         <p id="current-message" class="interview-message">Connecting to the interview server.</p>
         <div id="round"></div>
       </section>

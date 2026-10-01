@@ -18,23 +18,38 @@ Use a scratch directory outside `action-items/`, such as `$TMPDIR/interview-chec
 4. Start `python3 -m scripts interview ask $S/session $S/round-01.yaml` in the background, with stdout in `$S/ask-01.out`.
 5. Run `playwright-cli open "<link from browser.log>"`.
 
-## Round form
+## Automated conversation coverage
+
+Run `node tests/interview_conversation.browser.mjs` from the skill directory with an installed `playwright` package.
+Set `TO_PRD_PLAYWRIGHT_MODULE` to the package path if it is installed elsewhere.
+Set `TO_PRD_CHROMIUM_EXECUTABLE` to a compatible Chromium executable if needed.
+The test starts a local interview in a temporary directory, checks drafts and submission against the server, and closes the session afterwards.
+It prints the directory containing screenshots for inspection.
+
+## Conversation
 
 1. Action: take a snapshot of the page.
-   Expected: each of the six questions shows its options with their descriptions, a `Recommended` mark on each recommended option, a `Write my own answer` choice with a `Written answer` field, `Decide later`, and `Out of scope`.
+   Expected: only the active question shows its options with their descriptions, a `Recommended` mark on each recommended option, `Write my own answer`, `Decide later`, and `Out of scope`.
+   Choosing `Write my own answer` reveals the written reply field.
+   `Next question` records the answer in the transcript and opens the next unanswered question.
+   When no unanswered questions remain, `Review answers` records the answer and opens the review.
+   Earlier replies have an `Edit reply` button.
 2. Action: read the first question text.
    Expected: the text shows `<b>markup</b>` with the angle brackets, and the question holds no `b` element.
-3. Action: look at `NODE-02`.
+3. Action: answer `NODE-01`, press `Next question`, and look at `NODE-02`.
    Expected: its options are check boxes, and two of them can be checked at once.
    The single-select questions use radio buttons.
-4. Action: choose `Decide later` on `NODE-04` and `Out of scope` on `NODE-05`.
+4. Action: advance through the conversation, choosing `Decide later` on `NODE-04` and `Out of scope` on `NODE-05`.
    Expected: each shows a reason field marked `Required`, and the progress line does not count the question until the reason holds text.
 5. Action: look at each question and the end of the round.
-   Expected: each question has a `Note (optional)` field, and the round has one `Comment on the round (optional)` field.
+   Expected: `Add a note` reveals the active question’s optional note field.
+   After adding every reply, `Add a round comment` reveals the optional round comment field.
 6. Action: count the buttons on the page, then press `Enter` and `Control+Enter` in a note field.
-   Expected: the page has one `Submit round` button, and no key press submits the round or changes a choice.
+   Expected: `Next question` is shown while more questions remain, `Review answers` is shown for the final answer, and `Submit round` is shown during the review.
+   No key press in a note field submits the round or changes a choice.
 7. Action: answer five questions, then all six.
-   Expected: `Submit round` is disabled with five answers, and it becomes enabled once each question has an answer and each required reason holds text.
+   Expected: `Next question` or `Review answers` is disabled until the active answer and any required reason are complete.
+   After all six replies have been added, the review shows every reply and an enabled `Submit round` button.
 8. Action: list the network requests after the choices.
    Expected: the page sent no request with the draft; it sent only `GET` requests to `/api/presence` and `/api/page`.
    No request holds the token in its path or query, and the page text does not show the token.
@@ -42,7 +57,7 @@ Use a scratch directory outside `action-items/`, such as `$TMPDIR/interview-chec
 ## Draft
 
 1. Action: reload the page with a partial draft, such as three answers, a note and a comment.
-   Expected: the reloaded page shows the same choices, texts, note and comment.
+   Expected: the reloaded page shows confirmed replies in the transcript, resumes at the first unconfirmed question, and restores choices, texts, notes and the round comment.
 2. Action: list the local storage entries.
    Expected: one entry whose key holds the session directory and `ROUND-01`.
 
@@ -114,7 +129,7 @@ Delay a request in a route handler with the page's `setTimeout`, and remove the 
    Expected: it holds `connect-src 'self'` and no `unsafe-inline`, no `http:` and no `https:` source.
 2. Action: list the console messages.
    Expected: no policy violation and no failed request other than the ones this list caused.
-3. Action: evaluate the computed `font-family` of the page body and read the requests for `/assets/styles.css` and `/assets/fonts/`.
-   Expected: the body uses `Archivo`, and the shared styles and fonts load with status 200.
-4. Action: run `git status --short bundle/` and the static page tests.
-   Expected: `bundle/` has no change, and no page file lives in `bundle/assets/`.
+3. Action: evaluate the computed `font-family` of the page body and read the requests for `/assets/shared/base.css`, `/assets/interview/styles.css`, `/assets/interview/tokens.css`, and `/assets/interview/fonts/manrope.ttf`.
+   Expected: the body uses `Manrope`, and the styles and font load with status 200.
+4. Action: run the static page tests and generate a review bundle in a scratch directory.
+   Expected: interview assets live in `bundle/assets/interview/`, and generated review bundles contain shared and review assets without interview files.

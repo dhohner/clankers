@@ -28,7 +28,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 
-from ..paths import ASSET_DIR
+from ..paths import ASSET_DIR, SOURCE_DIR
 from .answers import SubmitError, validate_submit
 from .registry import register, unregister
 from .rounds import ROUND_ID_PATTERN
@@ -53,15 +53,18 @@ HOST = "127.0.0.1"
 # A request must name the server by one of these, so a DNS rebinding page gets nothing.
 LOOPBACK_NAMES = ("127.0.0.1", "localhost")
 TOKEN_HEADER = "X-Interview-Token"
-PAGE_DIR = Path(__file__).resolve().parent / "page"
+PAGE_DIR = ASSET_DIR / "interview"
 CSS = "text/css; charset=utf-8"
 WOFF2 = "font/woff2"
-# The page shares the bundle's tokens, fonts, header and lamp styles, which the server reads
-# from the bundle assets, so the page files stay out of every generated bundle.
+# Shared bundle assets and interview-specific assets are explicitly allowlisted;
+# interview files stay out of every generated review bundle.
 STATIC_FILES = {
-    "/": (PAGE_DIR / "index.html", "text/html; charset=utf-8"),
-    "/page.js": (PAGE_DIR / "page.js", "text/javascript; charset=utf-8"),
-    "/page.css": (PAGE_DIR / "page.css", CSS),
+    "/": (SOURCE_DIR / "interview.html", "text/html; charset=utf-8"),
+    "/assets/interview/app.js": (PAGE_DIR / "app.js", "text/javascript; charset=utf-8"),
+    "/assets/interview/styles.css": (PAGE_DIR / "styles.css", CSS),
+    "/assets/interview/tokens.css": (PAGE_DIR / "tokens.css", CSS),
+    "/assets/interview/fonts/manrope.ttf": (PAGE_DIR / "fonts" / "manrope.ttf", "font/ttf"),
+    "/assets/shared/base.css": (ASSET_DIR / "shared" / "base.css", CSS),
     "/assets/styles.css": (ASSET_DIR / "styles.css", CSS),
     "/assets/favicon.svg": (ASSET_DIR / "favicon.svg", "image/svg+xml"),
     "/assets/fonts/archivo-latin.woff2": (ASSET_DIR / "fonts" / "archivo-latin.woff2", WOFF2),
