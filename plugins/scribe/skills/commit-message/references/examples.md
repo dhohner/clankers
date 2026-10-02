@@ -23,3 +23,22 @@ A delegated prompt supplies the task and working directory instead:
 In delegated mode, implement leaves the task file unchanged and
 returns control without asking the user or making a commit.
 ```
+
+## Retry state transition
+
+The patch stops automatic retries when a delivery reaches its attempt limit.
+The message shows the changed transitions and the terminal-state boundary.
+
+```text
+fix(delivery): stop retrying after the attempt limit
+
+Failed deliveries stayed eligible for retry after the attempt limit.
+The final failed attempt now marks the delivery as exhausted:
+
+  pending -> sending -> delivered
+                 |
+                 +----> pending    below the attempt limit
+                 +----> exhausted  at the attempt limit
+
+Exhausted deliveries are no longer selected for automatic retry.
+```
