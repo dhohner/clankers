@@ -104,17 +104,23 @@ A live session has a running server that a command started from the current dire
 
 With `TO_PRD_INTERVIEW_BROWSER_LOG` set to a file path, the commands append the page link to that file and open no browser.
 
-### Page check list
+### Page checklist
 
-[references/interview-page-checklist.md](references/interview-page-checklist.md) checks the interview page in a browser against a live session.
-Run it with `playwright-cli`.
+Use `playwright-cli` to check a live interview session in this order:
+
+1. [Conversation and drafts](references/interview-page-checklist.md), including setup.
+2. [Connection and submission](references/interview-submission-checklist.md).
+3. [Lifecycle and policy](references/interview-lifecycle-checklist.md).
+
 The test suite does not need `playwright-cli` or a browser.
 
 ## References
 
 - `references/manifest-contract.md`: manifest versions and rules the CLI schema does not print.
 - `references/review-checklist.md`: full bundle checklist when inspection is insufficient.
-- `references/interview-page-checklist.md`: interview page checks in a browser with `playwright-cli`.
+- `references/interview-page-checklist.md`: browser setup, conversation, and draft checks with `playwright-cli`.
+- `references/interview-submission-checklist.md`: connection, submission, and competing tab checks.
+- `references/interview-lifecycle-checklist.md`: round history, session lifecycle, and page policy checks.
 - `examples/minimal-prd.yaml`: smallest valid manifest.
 - `examples/basic-prd.yaml`: broad mixed-initiative example.
 - `examples/fixtures/*.yaml`: focused examples by initiative type.

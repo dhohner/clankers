@@ -114,6 +114,20 @@ Read [references/review-checklist.md](references/review-checklist.md) when inspe
 
 Publication is complete when validation and inspection pass for the intended manifest, including local assets, links, traceability, and English-only ASD-STE100 prose.
 
+### Check interview behavior when requested
+
+For interview page audits or behavior changes, load the applicable browser checks:
+
+- Before browser checks, read [setup](references/interview-page-checklist.md#setup) and create the session and round files.
+- For answer controls, conversation flow, or draft persistence, read [conversation and draft checks](references/interview-page-checklist.md).
+- For connectivity, submission errors, races, or competing tabs, read [connection and submission checks](references/interview-submission-checklist.md).
+- For round history, session lifecycle, assets, or browser policy, read [lifecycle and policy checks](references/interview-lifecycle-checklist.md).
+
+For full audits, run conversation, submission, then lifecycle checks in the same scratch directory.
+After submitting `ROUND-01`, use the original session for lifecycle checks.
+Use a fresh session for each competing tab check and end it afterwards.
+Run policy checks before ending the session, while the server runs.
+
 ## Hold the review gate
 
 Open `action-items/PRD-<slug>/index.html` when the environment allows it.
