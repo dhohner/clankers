@@ -15,6 +15,7 @@ Escalate only ambiguous task selection, missing required sections, unresolved ma
 
 ## Choose the mode
 
+Read [Shared task rules](references/shared-rules.md) for task selection, implementation, and gap dispositions in either mode.
 When the invoking prompt contains all three lines below, read and follow [Delegated mode](references/delegated-mode.md):
 
 - `Mode: delegated`
@@ -22,3 +23,8 @@ When the invoking prompt contains all three lines below, read and follow [Delega
 - `Working directory: <working directory path>`
 
 Otherwise, read and follow [Normal mode](references/normal-mode.md).
+
+Before implementing any unblocked requirement, invoke this plugin's `tdd` skill.
+Use `task-executor:tdd` where plugin skills are namespaced.
+Without a skill tool, read [the TDD skill](../tdd/SKILL.md) and load its references for the applicable conditions.
+In delegated mode, apply its loop without starting subagents or asking the user.

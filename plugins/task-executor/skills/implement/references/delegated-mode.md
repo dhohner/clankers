@@ -13,11 +13,11 @@ Apply these constraints throughout the steps below:
 ## Select the task
 
 Return a `stop` message for a missing required section.
-Otherwise, follow [Select and gate the task](shared-rules.md#select-and-gate-the-task) for the named task until its completion criterion holds.
+Otherwise, apply the shared selection and gating rules for the named task until their completion criterion holds.
 
 ## Implement the task
 
-Follow [Implement with TDD](shared-rules.md#implement-with-tdd) in the working directory.
+Apply the shared TDD implementation rules in the working directory.
 Continue through all unblocked checks and validation commands before replying, unless a decision gate requires a `stop` message.
 
 Return an `implemented` message once every unblocked check has red-green evidence or a recorded manual result and every `Validation` command has run.
@@ -28,7 +28,7 @@ Wait for the next instruction.
 Handle each orchestrator instruction by its first line:
 
 - `Instruction: gaps` lists verifier gaps and prior rejected gaps with their evidence.
-  - Apply [Gap dispositions](shared-rules.md#gap-dispositions) to every gap, then return a new `implemented` message.
+  - Apply the shared gap disposition rules to every gap, then return a new `implemented` message.
   - Return a `stop` message instead for a gap that exposes an unresolved material decision.
 - `Instruction: answer` contains the user's decision for the open stop.
   - Record the decision in the ledger and resume from the stop.

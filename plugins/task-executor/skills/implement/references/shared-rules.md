@@ -17,9 +17,7 @@ Selection is complete when one task passes the structure gate, with its baseline
 
 ## Implement with TDD
 
-Apply this plugin's `tdd` skill to every unblocked `Required behavior` and `Acceptance` item.
-Use `task-executor:tdd` where plugin skills are namespaced.
-When the skill tool is unavailable, read [the TDD skill](../../tdd/SKILL.md) to run its loop.
+Apply the TDD loop to every unblocked `Required behavior` and `Acceptance` item.
 
 Map every check and its evidence back to its task item.
 When a check has no runnable harness, record the reason and use the item's `Validation` manual check.

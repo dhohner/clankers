@@ -6,8 +6,8 @@ At a decision gate, ask the user directly without returning a `stop` message.
 
 ## Select and implement the task
 
-Follow [Select and gate the task](shared-rules.md#select-and-gate-the-task) through its completion criterion.
-Then follow [Implement with TDD](shared-rules.md#implement-with-tdd) through its completion criterion.
+Apply the shared selection and gating rules through their completion criterion.
+Then apply the shared TDD implementation rules through their completion criterion.
 Continue to verification after implementation.
 
 ## Verify requirement coverage
@@ -39,7 +39,7 @@ Report each probed state's method and result.
 Report each gap with its location and the missing behavior or observed defect.
 ```
 
-Before the next pass, apply [Gap dispositions](shared-rules.md#gap-dispositions) to every gap.
+Before the next pass, apply the shared gap disposition rules to every gap.
 Send the fixes, ledger, blocked behavior, and rejected gaps to a fresh verifier.
 Repeat until a verifier reports no gaps or the pass limit is reached.
 Record every gap remaining after the final pass.
