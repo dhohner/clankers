@@ -49,6 +49,7 @@ Name files in dependency order, such as `01-short-task-title.md`.
 Keep existing task files and choose unused names, unless the user asks for a regeneration, which replaces them.
 State prerequisite contracts inline so each task stands alone.
 Audit the task set against the source map and [references/task-writing-checklist.md](references/task-writing-checklist.md), fix every failure, and re-audit until it passes.
+For tasks with the contract risks listed under shaping, audit against [references/contract-precision.md](references/contract-precision.md) too.
 
 Writing is complete when all files exist, every task passes the audit, shared contracts agree, and each task has safe completion evidence.
 Report the files in execution order with material assumptions and unresolved blockers.

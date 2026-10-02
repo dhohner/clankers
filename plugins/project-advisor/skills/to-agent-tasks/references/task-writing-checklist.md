@@ -4,7 +4,7 @@ Check every drafted task against each item, and fix every failure before saving 
 
 ## Outcome and coverage
 
-- Follow [agent-task-template.md](agent-task-template.md), keep required sections, remove unused optional content, and replace every placeholder.
+- Follow the task template, keep required sections, remove unused optional content, and replace every placeholder.
 - Define one observable result and its value in the title and Outcome.
 - Map every assigned source item to required behavior, acceptance, validation, another slice, or a scoped blocker.
 - Preserve every source requirement and scenario across the complete task set.
@@ -49,4 +49,4 @@ Check every drafted task against each item, and fix every failure before saving 
 
 ## Contract checks
 
-For a slice with contract risks, check the task against [contract-precision.md](contract-precision.md).
+For each slice with contract risks, confirm that every applicable contract check passes or has a scoped blocker.
