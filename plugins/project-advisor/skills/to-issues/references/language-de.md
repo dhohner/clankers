@@ -47,7 +47,7 @@ Name each concept once and reuse that exact name and spelling in every ticket.
 
 ## Fixed wording
 
-Use the German panel headers, Gherkin keywords, and note labels exactly as `jira-issue-template.md` spells them.
+Use the German panel headers, Gherkin keywords, and note labels exactly as the German template spells them.
 
 Scenario steps use `Angenommen`, `Wenn`, `Dann`, and optional `Und`.
 Anchor user-facing steps to the participant with natural first-person phrasing such as `ich befinde mich`, `ich wähle`, `ich öffne`, `ich sehe`, and `ich erhalte`, rather than `der Nutzer` or `ein Kunde`.
@@ -66,8 +66,6 @@ Rewrite any title, scenario, or note that reads like a layer-by-layer task list.
 - Observable scenario: `Wenn die Timing-Normalisierung für eine Geheimfrage durchgeführt wird.`
 - Redundant note: `Technische Hinweise: Die Zugriffsprüfung muss serverseitig beim Laden der Daten erfolgen, nicht erst in der Ansicht.`
 - Decision-relevant note: `Technische Hinweise: Die Rechnungs-PDFs liegen beim externen Abrechnungsdienst; sein Ausfall muss den Bestellverlauf lesbar lassen.`
-
-Consult `example-ticket-de.md` for a fuller comparison.
 
 ## Language gate
 

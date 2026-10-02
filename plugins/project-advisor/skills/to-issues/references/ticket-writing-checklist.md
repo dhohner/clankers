@@ -3,8 +3,8 @@
 Write a concise product specification for a senior engineer, not a build sequence.
 
 This file is the content standard for both ticket languages.
-Read it alongside the reference for the selected ticket language, [`language-de.md`](language-de.md) or [`language-en.md`](language-en.md), which owns register, wording, and the fixed labels.
-Spell every label and Gherkin keyword the way [`jira-issue-template.md`](jira-issue-template.md) spells it for that language.
+Apply the selected ticket language's register, wording, and fixed labels.
+Spell every label and Gherkin keyword exactly as the selected language template spells it.
 This file names each note entry by its role, such as the *what to build* entry.
 The template gives the label to write.
 
@@ -49,13 +49,14 @@ Keep implementation choices with engineering unless the source establishes a pro
 
 Rewrite any title, scenario, or note that reads like a layer-by-layer task list.
 Rewrite any that states a rule an acceptance scenario already proves, or that names an internal identifier where observable behavior belongs.
-The language reference carries worked pairs, and its example ticket carries a fuller comparison.
+Evaluate each draft's phrasing in the selected language.
 
 ## Final gate
 
 Check every complete ticket against every line below and fix each failure:
 
-- The file follows every structural rule in `jira-issue-template.md`, including panel order, classes, styles, one dashed panel per named scenario, and a notes list outside the closed notes panel.
+- The file follows every shared structural rule.
+  - Check panel order, classes, styles, one dashed panel per named scenario, and the notes list outside the closed notes panel.
 - The ticket passes every item in the language gate of the selected language reference.
 - The title, capability, and benefit express an outcome rather than an implementation surface.
 - The scenarios collectively prove the slice's happy path and every important source-backed boundary assigned to it.

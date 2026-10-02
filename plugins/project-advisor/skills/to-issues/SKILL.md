@@ -13,6 +13,7 @@ argument-hint: "[default|brief] [de|en]"
 Convert settled product planning into independently demoable Jira stories for experienced human developers.
 Write local Markdown files to `action-items/jira-issues/` unless the user chooses another location.
 Compose tickets in the selected ticket language, in the register of a product team that speaks it.
+Load references only for the current phase, selected mode, selected language, and unresolved writing question.
 
 ## Process
 
@@ -54,11 +55,12 @@ Before drafting, read:
 
 - [`references/ticket-writing-checklist.md`](references/ticket-writing-checklist.md)
 - the reference for the selected ticket language, [`references/language-de.md`](references/language-de.md) or [`references/language-en.md`](references/language-en.md)
-- [`references/jira-issue-template.md`](references/jira-issue-template.md)
+- the shared structural rules in [`references/jira-issue-template.md`](references/jira-issue-template.md)
+- the raw template for the selected language, [`references/jira-template-de.md`](references/jira-template-de.md) or [`references/jira-template-en.md`](references/jira-template-en.md)
 
-Phrasing, note density, or lean-ticket shape can stay uncertain after the checklist, the language reference, and the template.
-Then consult the worked example for the selected language, [`references/example-ticket-de.md`](references/example-ticket-de.md) or [`references/example-ticket-en.md`](references/example-ticket-en.md).
-Read only the references for the selected language, because the other language's wording and examples pull the drafts toward it.
+Consult [`references/example-ticket-de.md`](references/example-ticket-de.md) or [`references/example-ticket-en.md`](references/example-ticket-en.md) for the selected language only when phrasing, note density, or ticket shape remains uncertain.
+
+Read only the selected language's references to keep drafts in that language.
 Create one file per approved slice in dependency order with predictable names such as `01-short-slice-title.md`.
 The template is the authoritative structure, the writing checklist the content standard, and the language reference the wording standard.
 

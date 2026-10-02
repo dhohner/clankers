@@ -1,5 +1,13 @@
 # English Ticket Language
 
+## Contents
+
+- [Compose sentences, do not carry them over](#compose-sentences-do-not-carry-them-over)
+- [Terms are names](#terms-are-names)
+- [Fixed wording](#fixed-wording)
+- [Rewrite test](#rewrite-test)
+- [Language gate](#language-gate)
+
 Load this reference when the ticket language is `en`.
 
 Write in the register of an English-speaking product team, in plain sentences carrying the vocabulary such a team says out loud in refinement.
@@ -65,7 +73,7 @@ Follow the spelling convention the product and repository already use, and defau
 
 ## Fixed wording
 
-Use the English panel headers, Gherkin keywords, and note labels exactly as `jira-issue-template.md` spells them.
+Use the English panel headers, Gherkin keywords, and note labels exactly as the English template spells them.
 
 Scenario steps use `Given`, `When`, `Then`, and optional `And`.
 Anchor user-facing steps to the participant with natural first-person phrasing such as `I am on`, `I select`, `I open`, `I see`, and `I get`, rather than `the user` or `a customer`.
@@ -84,8 +92,6 @@ Rewrite any title, scenario, or note that reads like a layer-by-layer task list.
 - Observable scenario: `When timing normalization runs for a security question.`
 - Redundant note: `Technical notes: The access check has to happen server-side while the data loads, not in the view.`
 - Decision-relevant note: `Technical notes: Invoice PDFs live with the external billing provider, and an outage there still has to leave the order history readable.`
-
-Consult `example-ticket-en.md` for a fuller comparison.
 
 ## Language gate
 

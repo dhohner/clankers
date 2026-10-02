@@ -63,7 +63,8 @@ A term the team keeps in German, such as `Freigabe`, stays German inside the Eng
 
 ## Bundled References
 
-- `references/jira-issue-template.md` contains the authoritative Jira-compatible HTML template for both languages and the shared formatting rules.
+- `references/jira-issue-template.md` contains the shared formatting rules.
+- `references/jira-template-de.md` and `references/jira-template-en.md` contain each language's authoritative HTML template for Jira.
 - `references/language-de.md` and `references/language-en.md` own register, wording, fixed labels, and the per-language gate.
 - `references/example-ticket-de.md` and `references/example-ticket-en.md` contain fully worked sample tickets that demonstrate the expected phrasing and level of detail.
 - `references/default-source-intake.md` contains source precedence, PRD extraction, HTML fallback, and short-path rules for default mode.
