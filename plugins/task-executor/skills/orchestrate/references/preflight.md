@@ -8,7 +8,7 @@ For a rerun, first follow [Interrupted runs](#interrupted-runs).
 
 ## Agent capabilities
 
-Read [Platform mechanisms](prompts.md#platform-mechanisms) and select the interface exposed by the current host.
+Select the interface exposed by the current host.
 Check dispatch, continuation with retained context, working directory selection, fresh verifiers, and scheduling during user questions.
 
 If the interface is absent or documents a missing capability, stop before creating the run folder, branches, or worktrees.
@@ -68,7 +68,7 @@ A relevant change would give a task a different code base than the user sees.
 
 Preflight is complete when the selection is nonempty, every selected task passes the file checks, and no relevant uncommitted change remains.
 Resolve every pending preflight question before continuing.
-When every selected task is skipped, follow [Prepare the run](run-workflow.md#prepare-the-run) to record the run without branches or worktrees.
+When every selected task is skipped, prepare and record the run without branches or worktrees.
 
 ## Interrupted runs
 
@@ -80,7 +80,7 @@ On a rerun, select the pending task.
 Start a fresh subagent in a new worktree from the integration branch tip.
 Do not reuse the old waiting agent.
 
-Skip `done` tasks and continue the earlier integration branch when it qualifies under [Prepare the run](run-workflow.md#prepare-the-run).
+Skip `done` tasks and continue the earlier integration branch if preparation confirms it qualifies.
 
 If the session ends after landing but before the `state` write, the task stays `pending` with its commit on the integration branch.
 A rerun implements that task again on top of its earlier commit.

@@ -1,5 +1,13 @@
 # Verify waiting tasks
 
+## Contents
+
+- [Choose the host](#choose-the-host)
+- [End while independent work lands](#end-while-independent-work-lands)
+- [Rerun and continue](#rerun-and-continue)
+- [Other boundaries](#other-boundaries)
+- [Host results](#host-results)
+
 This fixture uses a temporary repository with no remote.
 Agents use the current host's local credentials.
 The fixture commands create local commits only in the temporary repository.
@@ -8,7 +16,7 @@ Run the scenarios on the host being checked, using its configured agent interfac
 
 ## Choose the host
 
-Follow [Platform mechanisms](prompts.md#platform-mechanisms) and confirm the required capabilities before starting the fixture run.
+Before starting the fixture, confirm required agent capabilities and select the host interface.
 After preparing the repository below, launch the selected host there:
 
 | Host | Launch | Skill request |
@@ -124,5 +132,5 @@ Observe whether later instructions reach the same agent with context.
 Observe whether independent commits land before the answer.
 If either fails, preserve the tool error or scheduling evidence in `run.json` under `platform_limits`.
 
-Report the limit following [Platform limits](prompts.md#platform-limits).
+Report the observed limit to the user.
 Do not record an unexecuted scenario as a platform failure or a passing result.

@@ -1,5 +1,11 @@
 # Run file and chat summary
 
+## Contents
+
+- [Run statuses](#run-statuses)
+- [`run.json`](#runjson)
+- [Chat summary](#chat-summary)
+
 ## Run statuses
 
 | Status        | Meaning                                                | Final for the run |
@@ -105,7 +111,7 @@ Set `updated_at` on each write, in UTC ISO 8601 form.
 - `platform_limits` records observed failures to retain subagent context or to schedule during a question.
   - Each entry holds `platform`, `task_file`, `agent_id`, `limitation`, and the observed `evidence`.
   - Record only observed failures, never untested capabilities.
-- For `model` and `effort`, record selected and used values following [Model and effort](prompts.md#model-and-effort).
+- For `model` and `effort`, record selected and used values.
 - `ended` for an ended task holds `reason` and one of `question`, `gaps`, `conflicting_files`, or `failure`.
   - `question` holds `item` and `options`.
   - The reasons are `stop`, `gaps`, `blocked`, `conflict`, `commit_failed`, `no_changes`, and `invalid_reply`.

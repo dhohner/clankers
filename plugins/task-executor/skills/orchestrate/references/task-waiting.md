@@ -1,0 +1,64 @@
+# Waiting and answers
+
+Return to scheduling after each result or answer.
+
+## Wait for an answer
+
+1. Preserve the latest `implemented` reply and verifier report, when present.
+2. Set status to `waiting` and persist `waiting` in `run.json` before asking.
+   - For a stop, it holds the task file, affected item, question, options with consequences, and recommendation.
+   - For final gaps, it holds the task file and every gap.
+   - Each gap includes its affected item, location, missing behavior or defect, and evidence.
+3. Ask the user.
+   - Name the task file and affected items.
+   - For a stop, repeat the question, options, consequences, and recommendation, and offer ending without a commit.
+   - For final gaps, display every gap.
+   - For final gaps, offer accepting each gap and committing this result, recording the gaps as accepted, or continuing with instructions to the original task agent.
+   - Offer ending either wait without a commit: keep the task file `pending`, retain its worktree and branch, and leave dependents unstarted.
+   - Explain that continuing final gaps starts a new round with the full verification limit.
+4. Return to scheduling without waiting synchronously for the answer.
+
+## Handle an answer
+
+Identify the task from its question before acting.
+Clarify answers that are ambiguous, lack a required decision or continuation instruction, or identify no single waiting task.
+Keep the task `waiting` during clarification.
+
+Require explicit acceptance of each gap before committing it.
+
+Record the user's answer and question in `answers` before dispatch.
+Persist every new stop or final gap before asking again.
+An accepted gap does not authorize a later gap that differs from it.
+
+### Continue a stop
+
+- Clear `waiting`, set `running`, and persist.
+- Send the answer instruction to the recorded `agent_id` with the decision and affected item.
+- Handle the next reply and verify any `implemented` result.
+
+### Continue final gaps
+
+- Clear `waiting`, set `running`, reset `passes_used` to 0, increment `verification_round`, and persist.
+- Send `answer` to the same agent with the user's instruction and full gap report.
+- Handle its reply and verify with the full pass limit.
+
+### Accept final gaps
+
+- Record every explicitly accepted gap with disposition `accepted` in the ledger and `accepted_gaps`.
+  - Include its evidence and the user's decision.
+- Send `answer` to the same agent with the acceptance.
+  - Ask it to record the decision and return `implemented` without further changes.
+- Keep the task `waiting` until that reply arrives.
+  - This acknowledgment creates no new implementation work.
+- For `implemented` with unchanged implementation and uncovered items, commit and land.
+  - Use that reply and the accepted coverage map.
+- For a new `stop`, ask about that stop.
+- If implementation or uncovered items change, clear the pending acceptance and set `running`.
+  - Verify in a new full round before committing.
+- Keep accepted gaps labelled `accepted` in `run.json`.
+
+### End either wait
+
+- Send `end` to the same agent.
+- Clear `waiting` only after its `ended` reply and persist `ended`.
+- Propagate `not_started` to queued dependents through the scheduler.

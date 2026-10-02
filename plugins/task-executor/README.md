@@ -39,7 +39,7 @@ The `orchestrate` skill implements a task set or prefix range with one command.
 It checks the current host's agent interface before creating branches or worktrees.
 Pi requires a configured integration that supports persistent task agents, fresh verifiers, and concurrent scheduling.
 Its built-in tools and bundled subagent example alone lack required capabilities.
-For host setup, see [Platform mechanisms](./skills/orchestrate/references/prompts.md#platform-mechanisms).
+For host setup, see [Host mechanisms](./skills/orchestrate/references/host-mechanisms.md).
 
 - Runs each ready task in its own git worktree, with a fresh subagent that follows `implement` in delegated mode.
   - A task is ready when each task in its `depends_on` list has `state: done`.
