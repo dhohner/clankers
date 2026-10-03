@@ -59,9 +59,13 @@ For host setup, see [Host mechanisms](./skills/orchestrate/references/host-mecha
   - Direct and transitive dependents wait.
   - Ending the task leaves them `not_started`.
   - Accepted gaps stay recorded in `run.json` with your decision.
-- Ends a task without a commit when you choose end, a listed blocker prevents coverage, or landing conflicts.
+- Resolves task commit conflicts in a separate worktree and validates every affected task before landing.
+  - After failed validation, choose acceptance of displayed failures and the resolution, another resolution and validation, or ending the task.
+  - Independent tasks continue during the question while dependents wait.
+  - See [Resolve a landing conflict](./skills/orchestrate/references/landing-conflicts.md) for validation, retry, and recording rules.
+- Ends without landing when you choose end, a listed blocker prevents coverage, or landing fails without a conflict.
   - The task stays `pending` and retains its worktree and branch.
-  - The summary names both.
+  - The summary names both and any retained resolution worktree.
 - Skips done tasks on reruns and continues the latest earlier run's integration branch while it contains commits absent from `HEAD`.
   - After you merge the integration branch, a rerun starts a new one from `HEAD`.
   - A squash or rebase merge leaves the branch commits absent from `HEAD`.
@@ -89,7 +93,7 @@ Known limits:
   - If either capability fails, the run records and reports the observed limit in `run.json` under `platform_limits`.
   - A task whose context cannot be resumed stays `waiting` and `pending` for a rerun.
   - Check these capabilities on the current host with the [waiting fixture](./skills/orchestrate/references/waiting-fixture.md).
-- The run does not validate the landed combination of parallel tasks.
+- Commits that apply cleanly without a landing conflict receive no additional integration validation.
   - Run the task validation on the integration branch during your review.
 - If the session ends after landing but before the `state` write, the task stays `pending` with its commit on the integration branch.
   - Before rerunning, check the integration branch's history:

@@ -30,21 +30,18 @@ After landing or ending, return to scheduling.
 
    - Keep the subject and body within the limits, amending the commit when needed.
    - End the task with the failure text when the commit fails, for example because of a hook.
-6. Land the commit:
+6. Record the integration tip, then land the commit:
 
    ```sh
    git -C <integration worktree> cherry-pick <task commit>
    ```
 
    - The integration branch gains one commit, and its history stays linear.
-7. On failure, list the conflicting files and abort:
-
-   ```sh
-   git -C <integration worktree> cherry-pick --abort
-   ```
-
-   - Confirm that the integration branch tip is unchanged and that its worktree is clean.
-   - [End the task](#end-a-task) with the conflicting files, or with the git output when no file conflicts.
+7. On failure, list the unmerged files.
+   - For conflicts, keep the task `running` and use the landing conflict procedure through state recording and cleanup.
+   - After conflict resolution, return to scheduling.
+   - Without conflicts, abort any active cherry-pick and confirm the integration tip is unchanged and its worktree is clean.
+   - Without conflicts, [end the task](#end-a-task) with git output after those checks.
 8. After the commit lands, immediately do both writes.
    - Preserve every other byte when replacing the task's state.
    - In the start working tree's task file, replace the frontmatter line `state: pending` with `state: done`.
@@ -64,3 +61,5 @@ Landing is complete when the integration commit is recorded, task `state` is `do
 2. Keep the task `pending` and retain its worktree and branch for inspection.
 3. Record run status `ended`, its reason, and the retained worktree and branch in `run.json`.
    - Include the question, gaps, conflicting files, or failure text.
+   - For landing validation questions, retain the resolution worktree and attempt history.
+   - Name them in the summary.

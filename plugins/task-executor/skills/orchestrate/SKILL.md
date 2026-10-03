@@ -41,7 +41,10 @@ The user reviews the integration branch and merges it.
   - Keep scheduling independent tasks during the wait.
   - Use the same waiting rules for clarification, continuation, acceptance, or ending.
 - When verification reaches full coverage or the user accepts final gaps, read [commit and land](references/task-landing.md#commit-and-land).
-- For invalid replies, blocked coverage, failed landing, or user requests to end, read [end a task](references/task-landing.md#end-a-task).
+- For landing conflicts, read [resolve a landing conflict](references/landing-conflicts.md) and [commit and land](references/task-landing.md#commit-and-land).
+  - When a conflict requires a question, read [waiting and answers](references/task-waiting.md) and [user questions](references/user-questions.md#user-questions) before recording and asking.
+  - Use the conflict procedure for resolution, validation, and accept, instruct, or end actions.
+- For invalid replies, blocked coverage, landing failures without conflicts, or user requests to end, read [end a task](references/task-landing.md#end-a-task).
 - For failed context resumption or scheduling during questions, read [platform limits](references/user-questions.md#platform-limits) before recording and reporting the failure.
   - Leave an unanswered task `waiting` and its task file `pending` when the session ends.
 
@@ -50,7 +53,7 @@ The user reviews the integration branch and merges it.
 - Task directory: the directory the user names, or `action-items/agent-tasks/`.
 - Range: two numeric task prefixes, such as `03 to 06`, or none.
 - Concurrency limit: the largest number of tasks in progress at once, 3 by default.
-  - A task is in progress while its subagent or verifier works.
+  - A task is in progress during implementation, verification, conflict resolution, or validation.
   - A task waiting for a user answer frees its slot.
 - Pass limit: the number of verifier passes per task, 3 by default.
 

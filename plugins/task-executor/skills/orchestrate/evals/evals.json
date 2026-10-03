@@ -2,6 +2,56 @@
   "skill_name": "orchestrate",
   "evals": [
     {
+      "id": 11,
+      "prompt": "Run TEST-07 with sh setup-landing-eval.sh <workspace> compatible in a temporary directory outside this repository. Start claude --plugin-dir <repository>/plugins/task-executor there and invoke /task-executor:orchestrate for tasks 01 to 02 with concurrency 2. At the landing seam, hold both verified task commits until they are based on the same integration tip. Land task 01 first. Inspect the resolution of task 02, git log, start branch, task states, and run.json. Repeat on a continued integration branch whose earlier task 01 commit is recorded in a prior run. Give the start working tree's task 01 Validation section a distinct additional local command after preparing the fixture; confirm that command is used instead of the committed task copy.",
+      "expected_output": "The conflict in settings.py is resolved to retain both features. Both tasks' Validation commands run on the candidate tree. Manual checks are recorded as not run. Task 02 lands as one commit after task 01, both task files read done, and task worktrees and branches are removed. The start branch is unchanged.",
+      "files": [
+        "plugins/task-executor/skills/orchestrate/evals/inputs/setup-landing-eval.sh",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/landing-repo/settings.py",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/landing-repo/independent.txt",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/landing-compatible/01-first.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/landing-compatible/02-second.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/landing-common/03-independent.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/landing-common/04-dependent.md"
+      ],
+      "expectations": [
+        "Task 02 remains running throughout resolution and validation; a landing conflict does not end it.",
+        "The affected tasks include task 02 and every earlier task commit since integration_base that changed settings.py, including commits recorded in earlier runs.",
+        "Validation sections come from task files in the start working tree, including its uncommitted additional command, and every affected task's commands run locally in the resolved tree.",
+        "The manual check for task 01 is recorded as not_run and is never reported as passed.",
+        "The integration branch has exactly two commits above its base with one parent each; the second tree enables both one and two.",
+        "Task 02 becomes done only after landing. Both start task states are done and their task worktrees and branches are removed.",
+        "run.json records settings.py, a resolution summary, affected tasks, the validated tip and tree, and command text, task file, exit code, and result for each validation check.",
+        "The start branch ref, index, and source files stay unchanged. No remote exists and no push occurs."
+      ]
+    },
+    {
+      "id": 12,
+      "prompt": "Run TEST-07 with sh setup-landing-eval.sh <workspace> failure in separate temporary directories for end, accept, and instruct. Start claude --plugin-dir <repository>/plugins/task-executor in each fixture and invoke /task-executor:orchestrate with concurrency 2. Hold both task 01 and 02 commits until they share a base, land 01 first, and hold task 03 until task 02 asks about failed landing validation. Withhold the answer until task 03 lands. Inspect that task 04 waits. In the end run answer end for task 02; in the accept run explicitly accept the displayed failed commands; in the instruct run request VALUE = 1, inspect the new validation failure for task 02, then end. Repeat that instruction in a fresh run and explicitly accept its failed check to exercise a resolution with no remaining diff. Also probe an ambiguous answer, a changed failure after an acceptance, a rename conflict, a missing Validation section, and a Validation entry with a remote side effect or an indirect script that would cause one. Keep the repositories without remotes and use a harmless sentinel for the unsafe command, never configured credentials.",
+      "expected_output": "The conflicting constants cannot satisfy both tasks. Failed validation asks the user while task 02 is waiting, task 03 can land, and task 04 waits. Ending retains pending state and no task 02 integration commit. Acceptance lands only the accepted candidate after validation against the current integration tip. An instruction resolves again and validates again. All attempts and failures remain recorded.",
+      "files": [
+        "plugins/task-executor/skills/orchestrate/evals/inputs/setup-landing-eval.sh",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/landing-repo/settings.py",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/landing-repo/independent.txt",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/landing-failure/01-first.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/landing-failure/02-second.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/landing-common/03-independent.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/landing-common/04-dependent.md"
+      ],
+      "expectations": [
+        "Both value assertions run even when the first fails. The failed command, task file, exit code, and result are recorded before asking.",
+        "Before an answer, the integration branch contains no task 02 commit, task 02 stays pending, and run.json records waiting with the candidate and failures. The question offers accept, instruct, and end with consequences.",
+        "Independent task 03 lands during the question and dependent task 04 remains queued. An end propagates not_started to task 04.",
+        "Ending leaves task 02 pending with ended run status and retained task worktree and branch, named in the summary. No task 02 commit lands.",
+        "Acceptance records the user's answer and each failed command; only the matching candidate can land as one commit, followed by done state and task cleanup. An explicitly accepted resolution with no remaining diff still validates first and contributes one empty commit instead of ending as no_changes.",
+        "Because task 03 advanced the integration tip, task 02 is rebuilt and all affected Validation commands run again. Changed trees or failures require a new explicit acceptance; an earlier acceptance is not reused.",
+        "An instruction sets running, produces a new resolution and validation attempt in a fresh worktree without stale generated caches, and asks again if any command fails. Instructing VALUE = 1 changes the failing assertion from task 01 to task 02 even when the edit happens within one second. Earlier failures remain in run.json.",
+        "Ambiguous answers leave waiting unchanged. Rename matching considers both old and new paths when identifying affected earlier tasks.",
+        "Missing or unreadable task validations and unsafe or unclassified commands block automatic landing. Unsafe commands are recorded as not_run with the reason; acceptance never runs them. A sentinel confirms the unsafe command did not execute.",
+        "No resolved commit whose validation failed lands without explicit acceptance. The start branch stays unchanged, no task directory file enters a commit, and the integration history stays linear."
+      ]
+    },
+    {
       "id": 10,
       "prompt": "Use the basic fixture on a host without subagent tools. Invoke orchestrate with concurrency limit 1 through that host's skill command. Repeat with pi's bundled subagent example. It launches children with --no-session and exposes no continuation interface. Observe preflight before any repository mutation.",
       "expected_output": "Preflight reports the missing dispatch or continuation capability and the required agent integration. It creates no run folder, branch, or worktree.",

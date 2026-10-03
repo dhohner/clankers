@@ -2,7 +2,8 @@
 
 ## Finish the run
 
-1. Preserve directories containing an ended task's worktree, and remove the integration worktree if one was created:
+1. Preserve directories containing ended task worktrees or retained resolution worktrees.
+   Remove the integration worktree if one was created:
 
    ```sh
    git worktree remove <path>

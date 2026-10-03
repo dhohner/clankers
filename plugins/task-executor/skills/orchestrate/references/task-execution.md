@@ -48,7 +48,8 @@ The configured pass limit applies in full again.
 ## Verification limits
 
 Each verifier checks one task in its own worktree.
-The skill does not run the `Validation` commands on the integration branch after a landing.
-Two parallel tasks that apply cleanly and break each other both reach `done`.
+Conflict validation covers every affected task's `Validation` commands against the resolved candidate before landing.
+Commits that apply cleanly without an earlier landing conflict receive no additional integration validation.
+Two parallel tasks that apply cleanly and break each other can both reach `done`.
 
 During integration review, run the task validation on that branch.
