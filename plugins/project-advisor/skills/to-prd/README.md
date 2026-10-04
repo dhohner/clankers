@@ -19,7 +19,7 @@ action-items/PRD-<slug>/
 
 `prd.yaml` is the normalized planning source and records the interview design tree beside the decisions.
 `index.html` is the human review surface.
-The bundle copies its assets, including two OFL-licensed fonts and their license texts.
+The bundle copies its assets, including the OFL-licensed Manrope font and its license text.
 A reviewer therefore needs no plugin and sees identical typography on every machine.
 
 The bundle is a screen artifact and does not support printing.

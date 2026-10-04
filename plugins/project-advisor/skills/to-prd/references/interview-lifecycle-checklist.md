@@ -30,7 +30,8 @@ Keep `$S/round-02.yaml` and `$S/round-03.yaml` available for the next rounds.
 2. Action: list the console messages.
    Expected: no policy violation and no failed request other than the ones this list caused.
 3. Action: evaluate the page body's computed `font-family`.
-   Check requests for `/assets/shared/base.css`, `/assets/interview/styles.css`, `/assets/interview/tokens.css`, and `/assets/interview/fonts/manrope.ttf`.
+   Check requests for `/assets/shared/base.css`, `/assets/interview/styles.css`, and `/assets/interview/tokens.css`.
+   Check requests for `/assets/shared/tokens.css`, `/assets/shared/typography.css`, and `/assets/fonts/manrope.woff2`.
    Expected: the body uses `Manrope`, and the styles and font load with status 200.
 4. Action: run the static page tests and generate a review bundle in a scratch directory.
    Expected: interview assets live in `bundle/assets/interview/`, and generated review bundles contain shared and review assets without interview files.

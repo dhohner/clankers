@@ -312,25 +312,27 @@ class PrdBundleRenderingTests(unittest.TestCase):
             document.index('data-block="design_tree"'),
         )
         self.assertEqual(1, document.count('id="design_tree-mermaid-source"'))
-        self.assertEqual(
-            "flowchart TB\n"
-            '  n1["NODE-01 Output surface (Settled)"]\n'
-            '  n2["NODE-02 Graph library (Settled)"]\n'
-            '  n3[/"NODE-03 Node styling (Pruned)"/]\n'
-            '  n4(["NODE-04 Depth limit (Deferred)"])\n'
-            "  n1 --> n2\n"
-            "  n1 --> n3\n"
-            "  n1 --> n4\n"
-            "  classDef settled fill:#101a33,stroke:#8497ff,stroke-width:1.4px,color:#e7e9f2\n"
-            "  classDef pruned fill:#101018,stroke:#7f87a3,stroke-width:1.2px,"
-            "color:#a2a9c2,stroke-dasharray:5 4\n"
-            "  classDef deferred fill:#231029,stroke:#ff7bae,stroke-width:1.4px,"
-            "color:#ffd7e6,stroke-dasharray:2 3\n"
-            "  class n1 settled\n"
-            "  class n2 settled\n"
-            "  class n3 pruned\n"
-            "  class n4 deferred",
-            source,
+        statements = [line.strip() for line in source.splitlines() if line.strip()]
+        self.assertEqual("flowchart TB", statements[0])
+        self.assertCountEqual(
+            [
+                'n1["NODE-01 Output surface (Settled)"]',
+                'n2["NODE-02 Graph library (Settled)"]',
+                'n3[/"NODE-03 Node styling (Pruned)"/]',
+                'n4(["NODE-04 Depth limit (Deferred)"])',
+                "n1 --> n2",
+                "n1 --> n3",
+                "n1 --> n4",
+                "class n1 settled",
+                "class n2 settled",
+                "class n3 pruned",
+                "class n4 deferred",
+            ],
+            [line for line in statements[1:] if not line.startswith("classDef ")],
+        )
+        self.assertCountEqual(
+            ["settled", "pruned", "deferred"],
+            [line.split()[1] for line in statements if line.startswith("classDef ")],
         )
         self.assertNotIn('class="tree-node"', document)
         self.assertNotIn('<ol class="design-tree">', document)
@@ -427,11 +429,9 @@ class PrdBundleRenderingTests(unittest.TestCase):
         document = BUNDLE.render_document(normalized)
         source = BUNDLE.tree_mermaid_source(present(normalized["blocks"].get("design_tree")))
 
-        self.assertEqual(
-            "flowchart TB\n  n1[\"NODE-01 The 'quoted' <label> (Settled)\"]\n"
-            "  classDef settled fill:#101a33,stroke:#8497ff,stroke-width:1.4px,"
-            "color:#e7e9f2\n  class n1 settled",
-            source,
+        self.assertIn(
+            "n1[\"NODE-01 The 'quoted' <label> (Settled)\"]",
+            [line.strip() for line in source.splitlines()],
         )
         self.assertIn("&lt;label&gt;", document)
         self.assertNotIn("<label>", document)

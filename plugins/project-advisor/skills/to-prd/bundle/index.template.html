@@ -7,7 +7,7 @@
     <meta name="referrer" content="no-referrer" />
     <meta name="description" content="{{SUMMARY}}" />
     <meta name="color-scheme" content="dark" />
-    <meta name="theme-color" content="#050506" />
+    <meta name="theme-color" content="oklch(13% 0.014 265)" />
     <title>PRD · {{TITLE}}</title>
     <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./assets/styles.css?v={{ASSET_VERSION}}" />
@@ -15,9 +15,6 @@
   </head>
   <body>
     <a class="skip-link" href="#content">Skip to the document</a>
-    <div class="cyclorama" aria-hidden="true">
-      <span class="cyc-wash"></span>
-    </div>
     <header class="plot-bar">
       <a class="brand" href="#summary">
         <span class="brand-name">Project Advisor</span>
@@ -30,14 +27,14 @@
       </p>
     </header>
     <div class="stage">
-      <aside class="cue-sheet" aria-label="Cue sheet">
+      <aside class="cue-sheet" aria-label="Contents">
         <button id="nav-toggle" class="nav-toggle" type="button" aria-expanded="false"
           aria-controls="sidebar-panel">
-          <span class="nav-toggle-label">Cue sheet</span>
+          <span class="nav-toggle-label">Contents</span>
           <span class="nav-toggle-count">{{CUE_COUNT}}</span>
         </button>
         <div id="sidebar-panel" class="cue-sheet-panel">
-          <nav aria-label="Document cues">{{NAVIGATION}}</nav>
+          <nav aria-label="Document sections">{{NAVIGATION}}</nav>
           <div class="cue-actions" role="group" aria-label="Review controls">
             {{DETAILS_CONTROL}}
           </div>
@@ -45,14 +42,17 @@
       </aside>
       <main id="content" tabindex="-1">
         <header id="summary" class="horizon" aria-labelledby="document-title">
-          <h1 id="document-title">{{TITLE}}</h1>
-          <p class="lede">{{SUMMARY}}</p>
+          <div class="review-intro">
+            <p class="document-label">PRD review</p>
+            <h1 id="document-title">{{TITLE}}</h1>
+            <p class="lede">{{SUMMARY}}</p>
+          </div>
           {{BOARD}}
           <dl class="plot-sheet" aria-label="Document context">{{METADATA}}</dl>
         </header>
         {{BLOCKS}}
         <footer class="houselights">
-          <a class="houselights-link" href="#summary">Back to the top of the sheet</a>
+          <a class="houselights-link" href="#summary">Back to top</a>
         </footer>
       </main>
     </div>

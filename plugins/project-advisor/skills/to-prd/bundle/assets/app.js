@@ -33,21 +33,7 @@ document.addEventListener("click", (event) => {
 
 mobileQuery.addEventListener("change", () => setNavigationOpen(false));
 
-/* ---------- The light follows the reader ---------- */
-
-// A cue raises its horizon band once it is genuinely in the frame, so the page
-// lights up in reading order rather than all at once.
-const lightObserver = new IntersectionObserver(
-  (entries) => {
-    entries.forEach((entry) => {
-      if (!entry.isIntersecting) return;
-      entry.target.classList.add("is-lit");
-      lightObserver.unobserve(entry.target);
-    });
-  },
-  { rootMargin: "-10% 0px -25% 0px" },
-);
-cues.forEach((cue) => lightObserver.observe(cue));
+/* ---------- Current section ---------- */
 
 const linkById = new Map(
   navLinks.map((link) => [decodeURIComponent(link.hash.slice(1)), link]),
@@ -107,6 +93,7 @@ updateCurrentCue();
 /* ---------- Anchors ---------- */
 
 function positionAnchor(target, behavior = "smooth") {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) behavior = "auto";
   const top = window.scrollY + target.getBoundingClientRect().top - headerOffset();
   window.scrollTo({ top: Math.max(0, top), behavior });
 }
@@ -427,21 +414,21 @@ async function renderMermaidDiagrams() {
         subGraphTitleMargin: { top: 6, bottom: 14 },
       },
       themeVariables: {
-        fontFamily: 'Archivo, ui-sans-serif, system-ui, sans-serif',
+        fontFamily: 'Manrope, sans-serif',
         fontSize: "14px",
-        background: "#010207",
-        primaryColor: "#0e1220",
-        primaryBorderColor: "#6f86ff",
-        primaryTextColor: "#e7e9f2",
-        secondaryColor: "#141a2e",
-        tertiaryColor: "#101828",
-        lineColor: "#8497ff",
-        textColor: "#e7e9f2",
-        edgeLabelBackground: "#05060a",
-        clusterBkg: "#0a0d18",
-        clusterBorder: "#39406b",
-        titleColor: "#ffb3cd",
-        nodeTextColor: "#e7e9f2",
+        background: "#101218",
+        primaryColor: "#191c24",
+        primaryBorderColor: "#fb9b54",
+        primaryTextColor: "#f0f2f6",
+        secondaryColor: "#191c24",
+        tertiaryColor: "#191c24",
+        lineColor: "#a0a6b2",
+        textColor: "#f0f2f6",
+        edgeLabelBackground: "#101218",
+        clusterBkg: "#191c24",
+        clusterBorder: "#454b58",
+        titleColor: "#f0f2f6",
+        nodeTextColor: "#f0f2f6",
       },
     });
   } catch (error) {

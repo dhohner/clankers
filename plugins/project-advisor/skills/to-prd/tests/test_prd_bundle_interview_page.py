@@ -103,7 +103,7 @@ class InterviewPageFileRouteTests(InterviewPageTestCase):
             ("/assets/interview/app.js", "text/javascript"),
             ("/assets/interview/styles.css", "text/css"),
             ("/assets/interview/tokens.css", "text/css"),
-            ("/assets/interview/fonts/manrope.ttf", "font/ttf"),
+            ("/assets/fonts/manrope.woff2", "font/woff2"),
             ("/assets/shared/base.css", "text/css"),
         ):
             with self.subTest(path):
@@ -117,12 +117,9 @@ class InterviewPageFileRouteTests(InterviewPageTestCase):
         for path, source, content_type in (
             ("/assets/styles.css", "styles.css", "text/css"),
             ("/assets/favicon.svg", "favicon.svg", "image/svg+xml"),
-            ("/assets/fonts/archivo-latin.woff2", "fonts/archivo-latin.woff2", "font/woff2"),
-            (
-                "/assets/fonts/martian-mono-latin.woff2",
-                "fonts/martian-mono-latin.woff2",
-                "font/woff2",
-            ),
+            ("/assets/shared/tokens.css", "shared/tokens.css", "text/css"),
+            ("/assets/shared/typography.css", "shared/typography.css", "text/css"),
+            ("/assets/fonts/manrope.woff2", "fonts/manrope.woff2", "font/woff2"),
         ):
             with self.subTest(path):
                 response = self.get(path)
@@ -132,7 +129,7 @@ class InterviewPageFileRouteTests(InterviewPageTestCase):
                 self.assertEqual(response.body, (SOURCE_ASSETS / source).read_bytes())
 
     def test_other_bundle_asset_is_not_served(self) -> None:
-        for path in ("/assets/app.js", "/assets/fonts/OFL-Archivo.txt", "/assets/../server.py"):
+        for path in ("/assets/app.js", "/assets/fonts/OFL-Manrope.txt", "/assets/../server.py"):
             with self.subTest(path):
                 self.assertEqual(self.get(path).status, 403)
 

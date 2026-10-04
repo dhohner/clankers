@@ -48,20 +48,17 @@ def render_navigation(entries: list[tuple[str, str, str, int]]) -> str:
             f'<li><a href="#{anchor}">'
             f'<span class="cue-number">{number:02d}</span>'
             f'<span class="cue-name">{escape_html(title)}</span>'
-            '<span class="cue-lamp" aria-hidden="true"></span></a></li>'
+            "</a></li>"
         )
         if groups and groups[-1][1] == label:
             groups[-1][2].append(item)
             continue
         groups.append((level, label, [item]))
-    # The group label doubles as the ladder legend: the level number and its
-    # swatch key the band colour a reader is currently inside to a category.
     return "".join(
         f'<div class="cue-group" data-level="{level}">'
         '<p class="cue-group-label">'
-        f'<span class="cue-group-level">{level:02d}</span>'
         f"<span>{escape_html(label)}</span>"
-        '<span class="cue-group-swatch" aria-hidden="true"></span></p>'
+        "</p>"
         f"<ol>{''.join(items)}</ol></div>"
         for level, label, items in groups
     )
@@ -123,7 +120,6 @@ def render_document(
             f'data-block-category="{spec.category}" data-review-area="{spec.review_area}" '
             f'data-level="{category_level(spec.category)}" '
             f'aria-labelledby="{heading_id}">'
-            '<div class="cue-band" aria-hidden="true"></div>'
             '<div class="cue-head">'
             f'<p class="cue-meta"><span class="cue-number">{number:02d}</span></p>'
             f'<h2 id="{heading_id}"><a href="#{name}">{escape_html(spec.title)}</a></h2>'
@@ -143,7 +139,6 @@ def render_document(
             'data-review-area="validation decisions" '
             f'data-level="{category_level(TRACEABILITY_CATEGORY)}" '
             'aria-labelledby="traceability-heading">'
-            '<div class="cue-band" aria-hidden="true"></div>'
             '<div class="cue-head">'
             f'<p class="cue-meta"><span class="cue-number">{number:02d}</span></p>'
             '<h2 id="traceability-heading">'

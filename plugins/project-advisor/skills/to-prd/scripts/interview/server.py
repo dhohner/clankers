@@ -55,7 +55,6 @@ LOOPBACK_NAMES = ("127.0.0.1", "localhost")
 TOKEN_HEADER = "X-Interview-Token"
 PAGE_DIR = ASSET_DIR / "interview"
 CSS = "text/css; charset=utf-8"
-WOFF2 = "font/woff2"
 # Shared bundle assets and interview-specific assets are explicitly allowlisted;
 # interview files stay out of every generated review bundle.
 STATIC_FILES = {
@@ -63,15 +62,12 @@ STATIC_FILES = {
     "/assets/interview/app.js": (PAGE_DIR / "app.js", "text/javascript; charset=utf-8"),
     "/assets/interview/styles.css": (PAGE_DIR / "styles.css", CSS),
     "/assets/interview/tokens.css": (PAGE_DIR / "tokens.css", CSS),
-    "/assets/interview/fonts/manrope.ttf": (PAGE_DIR / "fonts" / "manrope.ttf", "font/ttf"),
     "/assets/shared/base.css": (ASSET_DIR / "shared" / "base.css", CSS),
     "/assets/styles.css": (ASSET_DIR / "styles.css", CSS),
     "/assets/favicon.svg": (ASSET_DIR / "favicon.svg", "image/svg+xml"),
-    "/assets/fonts/archivo-latin.woff2": (ASSET_DIR / "fonts" / "archivo-latin.woff2", WOFF2),
-    "/assets/fonts/martian-mono-latin.woff2": (
-        ASSET_DIR / "fonts" / "martian-mono-latin.woff2",
-        WOFF2,
-    ),
+    "/assets/shared/tokens.css": (ASSET_DIR / "shared" / "tokens.css", CSS),
+    "/assets/shared/typography.css": (ASSET_DIR / "shared" / "typography.css", CSS),
+    "/assets/fonts/manrope.woff2": (ASSET_DIR / "fonts" / "manrope.woff2", "font/woff2"),
 }
 RESULT_ROUTE = re.compile(r"/api/rounds/(ROUND-[0-9]+)/result")
 # `interview ask` posts here once it recorded the delivery of stored answers it is about to print.

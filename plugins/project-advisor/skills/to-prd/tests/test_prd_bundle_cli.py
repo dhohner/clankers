@@ -53,7 +53,7 @@ class PrdBundleCliTests(unittest.TestCase):
             self.assertNotIn("<svg", document)
             self.assertIn('<span class="brand-name">Project Advisor</span>', document)
             self.assertNotIn("brand-mark", document)
-            self.assertIn('aria-label="Cue sheet"', document)
+            self.assertIn('aria-label="Contents"', document)
             self.assertIn('id="nav-toggle"', document)
             self.assertIn('id="collapse-all"', document)
             self.assertNotIn('class="eyebrow"', document)
@@ -84,7 +84,8 @@ class PrdBundleCliTests(unittest.TestCase):
             source_assets = sorted(
                 path.relative_to(SOURCE_ASSETS)
                 for path in SOURCE_ASSETS.rglob("*")
-                if path.is_file() and "interview" not in path.relative_to(SOURCE_ASSETS).parts
+                if path.is_file()
+                and not {"interview", "shared"}.intersection(path.relative_to(SOURCE_ASSETS).parts)
             )
             generated_assets = sorted(
                 path.relative_to(bundle / "assets")
@@ -93,6 +94,8 @@ class PrdBundleCliTests(unittest.TestCase):
             )
             self.assertEqual(generated_assets, source_assets)
             for asset in source_assets:
+                if asset == Path("styles.css"):
+                    continue
                 self.assertEqual(
                     (bundle / "assets" / asset).read_bytes(),
                     (SOURCE_ASSETS / asset).read_bytes(),

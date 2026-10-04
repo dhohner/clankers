@@ -28,13 +28,13 @@ STATUS_SHAPES = {
     "deferred": ('(["', '"])'),
 }
 STATUS_CLASS_DEFINITIONS = {
-    "settled": "  classDef settled fill:#101a33,stroke:#8497ff,stroke-width:1.4px,color:#e7e9f2",
+    "settled": "  classDef settled fill:#191c24,stroke:#fb9b54,stroke-width:1.4px,color:#f0f2f6",
     "pruned": (
-        "  classDef pruned fill:#101018,stroke:#7f87a3,stroke-width:1.2px,color:#a2a9c2,"
+        "  classDef pruned fill:#191c24,stroke:#a0a6b2,stroke-width:1.2px,color:#b0b6c2,"
         "stroke-dasharray:5 4"
     ),
     "deferred": (
-        "  classDef deferred fill:#231029,stroke:#ff7bae,stroke-width:1.4px,color:#ffd7e6,"
+        "  classDef deferred fill:#191c24,stroke:#f6a0a8,stroke-width:1.4px,color:#f0f2f6,"
         "stroke-dasharray:2 3"
     ),
 }

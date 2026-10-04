@@ -20,21 +20,37 @@ class BundleAssetExportTests(unittest.TestCase):
             self.assertFalse((bundle / "interview.html").exists())
             self.assertFalse((assets / "interview").exists())
             for name in (
-                "styles.css",
                 "app.js",
                 "favicon.svg",
-                "shared/base.css",
-                "fonts/OFL-Archivo.txt",
-                "fonts/OFL-MartianMono.txt",
+                "fonts/OFL-Manrope.txt",
+                "fonts/manrope.woff2",
             ):
                 with self.subTest(name):
                     self.assertEqual(
                         (assets / name).read_bytes(), (SOURCE_ASSETS / name).read_bytes()
                     )
-            styles = (assets / "styles.css").read_text(encoding="utf-8")
-            for reference in re.findall(r'url\("([^"]+)"\)', styles):
-                with self.subTest(reference):
-                    self.assertTrue((assets / reference).is_file())
+            self.assertEqual(
+                [path.relative_to(assets).as_posix() for path in assets.rglob("*.css")],
+                ["styles.css"],
+            )
+            self.assertFalse((assets / "shared").exists())
+            compiled = (assets / "styles.css").read_text(encoding="utf-8")
+            self.assertNotIn("@import", compiled)
+            self.assertIn("@font-face", compiled)
+            self.assertIn('url("./fonts/manrope.woff2")', compiled)
+            source_size = sum(
+                path.stat().st_size
+                for path in (
+                    SOURCE_ASSETS / "styles.css",
+                    *(SOURCE_ASSETS / "shared").glob("*.css"),
+                )
+            )
+            self.assertLess(len(compiled.encode()), source_size)
+            for stylesheet in assets.rglob("*.css"):
+                styles = stylesheet.read_text(encoding="utf-8")
+                for reference in re.findall(r'url\("([^"]+)"\)', styles):
+                    with self.subTest(stylesheet=stylesheet, reference=reference):
+                        self.assertTrue((stylesheet.parent / reference).is_file())
 
 
 if __name__ == "__main__":

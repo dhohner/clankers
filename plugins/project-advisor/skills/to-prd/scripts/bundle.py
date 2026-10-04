@@ -10,6 +10,7 @@ from .manifest_types import NormalizedManifest
 from .output_validation import validate_generated_bundle
 from .paths import ASSET_DIR
 from .render import render_document
+from .styles import compile_stylesheet
 from .yaml_manifest import dumps
 
 
@@ -37,10 +38,12 @@ def generate_bundle(manifest: NormalizedManifest, output_root: Path, force: bool
         )
         assets = temp_path / "assets"
         assets.mkdir()
-        for name in ("styles.css", "app.js", "favicon.svg"):
+        (assets / "styles.css").write_text(
+            compile_stylesheet(ASSET_DIR / "styles.css", ASSET_DIR), encoding="utf-8"
+        )
+        for name in ("app.js", "favicon.svg"):
             shutil.copy2(ASSET_DIR / name, assets / name)
-        for name in ("fonts", "shared"):
-            shutil.copytree(ASSET_DIR / name, assets / name)
+        shutil.copytree(ASSET_DIR / "fonts", assets / "fonts")
         validate_generated_bundle(temp_path)
         if target.exists() or target.is_symlink():
             backup_root = Path(

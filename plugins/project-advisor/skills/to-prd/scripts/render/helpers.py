@@ -15,9 +15,7 @@ CATEGORY_LABELS = {
     "delivery-assurance": "Delivery and assurance",
 }
 
-# The cyclorama's cue ladder. Each block category holds one level of the dawn
-# sequence, so a document lights up in the order it argues: framing in the dark,
-# delivery and assurance in full day.
+# Stable category order for generated section metadata.
 CATEGORY_LEVELS = {
     "framing": 0,
     "people-workflow": 10,
