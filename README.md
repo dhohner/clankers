@@ -1,14 +1,14 @@
 # Clankers
 
 Clankers publishes coding agent plugins for product planning, task implementation, code refactoring, commit messages, prose editing, command safety, sleep status, and Pi response styles.
-The plugins support Claude Code, Codex App, and Pi Coding Agent.
+The plugins support Claude Code, Codex App and CLI, and Pi Coding Agent.
 
 > Review each plugin before installation.
 > A plugin can add prompts, skills, hooks, extensions, and shell scripts that run on your machine.
 
 ## Plugins
 
-| Plugin | Purpose | Claude Code | Codex App | Pi |
+| Plugin | Purpose | Claude Code | Codex App / CLI | Pi |
 | --- | --- | --- | --- | --- |
 | [`project-advisor`](./plugins/project-advisor) | Recommends product work, writes PRDs, and converts accepted PRDs into Jira issues or coding-agent tasks. | Yes | Yes | No |
 | [`task-executor`](./plugins/task-executor) | Implements coding-agent task files and standalone changes through TDD, with independent requirement verification. | Yes | Yes | No |
@@ -46,14 +46,26 @@ Run the following command to browse the marketplace instead.
 /plugin > Discover
 ```
 
-### Codex App
+### Codex App and CLI
 
-The Codex marketplace uses local plugin paths, so install it from a local checkout.
+You can add this marketplace from its GitHub repository without cloning it yourself.
+Run this in a terminal with Codex CLI installed, following [OpenAI's Git marketplace instructions](https://developers.openai.com/plugins/build/plugins#add-a-marketplace-from-the-cli):
 
-1. Clone this repository and open it in Codex App.
-2. Open the plugin directory.
-3. Select the marketplace named `dhohner/clankers`.
-4. Install `project-advisor`, `task-executor`, `refactor-tools`, or `scribe`.
+```bash
+codex plugin marketplace add https://github.com/dhohner/clankers.git --sparse .agents/plugins --sparse plugins
+```
+
+Both sparse paths are required: `.agents/plugins` contains the marketplace catalog, and `plugins` contains the plugin manifests and skills it references.
+Then open the Plugins Directory in Codex App, select `dhohner/clankers`, and install `project-advisor`, `task-executor`, `refactor-tools`, or `scribe`.
+You can also install a plugin from the CLI:
+
+```bash
+codex plugin add project-advisor@clankers
+```
+
+To refresh the Git-backed marketplace later, run `codex plugin marketplace upgrade clankers`.
+
+You can also use a local checkout: run `codex plugin marketplace add /absolute/path/to/clankers`, then install a plugin from Codex App or the CLI.
 
 ### Pi Coding Agent
 
@@ -87,7 +99,7 @@ pi install -l ./
 ## Marketplace files
 
 - [`.claude-plugin/marketplace.json`](./.claude-plugin/marketplace.json) defines the Claude Code marketplace.
-- [`.agents/plugins/marketplace.json`](./.agents/plugins/marketplace.json) defines the repo-scoped Codex App marketplace.
+- [`.agents/plugins/marketplace.json`](./.agents/plugins/marketplace.json) defines the Codex marketplace. Codex can read it from a local checkout or a Git-backed marketplace source.
 - [`package.json`](./package.json) defines the Pi bundle.
 
 ## License
