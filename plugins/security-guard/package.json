@@ -1,6 +1,6 @@
 {
   "name": "security-guard",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "private": true,
   "description": "Pi extension that blocks environment dumps and common local credential access and asks for approval before destructive commands.",
   "keywords": [
