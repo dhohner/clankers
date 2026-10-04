@@ -27,6 +27,7 @@ Before dispatch, inspect the selected interface's documentation and use only exp
 
 Before preparing a run, confirm the interface can:
 
+- Let task agents discover and load installed `implement` and `tdd` skills in their worktrees.
 - Start independent task agents and fresh verifier agents in specified working directories.
 - Return a stable identifier and deliver later instructions to that same task agent with its context.
 - Run agents concurrently while a user question remains open.

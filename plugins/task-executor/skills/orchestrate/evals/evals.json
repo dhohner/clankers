@@ -271,6 +271,68 @@
         "`git branch` shows only `main`, and `git worktree list` shows only the start working tree.",
         "No `runs/` folder exists under `action-items/agent-tasks/`."
       ]
+    },
+    {
+      "id": 13,
+      "prompt": "Use a disposable host configuration with task-executor installed through the host's supported mechanism, implement and tdd enabled, and all required agent capabilities available. Run sh <setup-orchestrate-eval.sh> <workspace> basic in a temporary directory outside the plugin checkout. Invoke orchestrate through the current host's skill command for tasks 01 to 01 with concurrency limit 1. Inspect skill loading, delegation messages, verifier prompts, and the integration result. Repeat on a host whose catalog names are implement and tdd without a namespace.",
+      "expected_output": "The task agent loads installed implement in delegated mode, then installed tdd. A fresh verifier uses the canonical prompt and the verified task lands.",
+      "files": [
+        "plugins/task-executor/skills/orchestrate/evals/inputs/setup-orchestrate-eval.sh",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/.gitignore",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/slug.py",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/test_slug.py",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/01-slugify.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/02-word-count.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/03-summarize.md"
+      ],
+      "expectations": [
+        "Delegation messages use the host's installed implement catalog name with no unfilled placeholder and include the three delegated-mode lines. They exclude skill installation paths and copied skill bodies.",
+        "The task agent loads implement and tdd through its installed skill catalog or skill tool from a worktree outside the source checkout.",
+        "The orchestrator reads only the Canonical verifier prompt section of installed implement for verifier preparation. The verifier receives that block unchanged except for filled placeholders, with the working directory prefix.",
+        "The task agent preserves delegated-mode constraints: no nested agents, user questions, commits, or task state writes.",
+        "Task 01 lands as one integration commit after observed verifier coverage, its state becomes done, and python3 -m unittest passes on the integration branch.",
+        "The start branch ref, index, and source files match their baseline. No remote command runs."
+      ]
+    },
+    {
+      "id": 14,
+      "prompt": "Use a disposable host configuration with all required agent capabilities available. Keep implement readable by the orchestrator but absent from task agents' installed catalogs. Keep tdd enabled and available. Run sh <setup-orchestrate-eval.sh> <workspace> basic in a temporary directory outside the plugin checkout. Record branch refs, worktrees, git status, and task file contents. Invoke orchestrate through the current host's skill command for tasks 01 to 01 with concurrency limit 1. Compare the repository with its baseline.",
+      "expected_output": "Preflight reports implement unavailable to task agents and the required setup before repository mutation.",
+      "files": [
+        "plugins/task-executor/skills/orchestrate/evals/inputs/setup-orchestrate-eval.sh",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/.gitignore",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/slug.py",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/test_slug.py",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/01-slugify.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/02-word-count.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/03-summarize.md"
+      ],
+      "expectations": [
+        "Preflight checks child skill availability despite implement being readable by the orchestrator.",
+        "The report names implement, its absence from task agents' catalogs, and the setup needed for those agents to load it.",
+        "No task implementation or verifier starts. The orchestrator does not derive sibling paths or copy skill bodies to bypass missing discovery.",
+        "Branch refs, worktrees, git status, and task file contents match the baseline. No run folder is created."
+      ]
+    },
+    {
+      "id": 15,
+      "prompt": "Use a disposable host configuration with all required agent capabilities available and implement installed and enabled. Keep tdd installed but disable its model invocation through the host's supported setting. Run sh <setup-orchestrate-eval.sh> <workspace> basic in a temporary directory outside the plugin checkout. Record branch refs, worktrees, git status, and task file contents. Invoke orchestrate through the current host's skill command for tasks 01 to 01 with concurrency limit 1. Compare the repository with its baseline.",
+      "expected_output": "Preflight reports tdd disabled for model invocation and the required setup before repository mutation.",
+      "files": [
+        "plugins/task-executor/skills/orchestrate/evals/inputs/setup-orchestrate-eval.sh",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/.gitignore",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/slug.py",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/orchestrate-repo/test_slug.py",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/01-slugify.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/02-word-count.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/03-summarize.md"
+      ],
+      "expectations": [
+        "Preflight distinguishes an installed dependency from one enabled for model invocation.",
+        "The report names tdd, its disabled invocation setting, and the setup needed to enable it.",
+        "No task implementation or verifier starts. The orchestrator does not bypass the disabled setting by reading the skill body into an agent prompt.",
+        "Branch refs, worktrees, git status, and task file contents match the baseline. No run folder is created."
+      ]
     }
   ]
 }

@@ -1,8 +1,8 @@
 ---
 name: implement
 description: >-
-  Implement one `to-agent-tasks` task through red-green TDD and independent requirement verification.
-disable-model-invocation: true
+  Implements one `to-agent-tasks` task through red-green TDD and independent requirement verification.
+  Use when executing a named task file or a task delegated by an orchestrator.
 ---
 
 # Implement an agent task
@@ -24,7 +24,36 @@ When the invoking prompt contains all three lines below, read and follow [Delega
 
 Otherwise, read and follow [Normal mode](references/normal-mode.md).
 
-Before implementing any unblocked requirement, invoke this plugin's `tdd` skill.
-Use `task-executor:tdd` where plugin skills are namespaced.
-Without a skill tool, read [the TDD skill](../tdd/SKILL.md) and load its references for the applicable conditions.
-In delegated mode, apply its loop without starting subagents or asking the user.
+Before implementing any unblocked requirement, load the installed `tdd` skill through the host's skill tool or catalog entrypoint.
+Use `task-executor:tdd` for namespaced plugins; otherwise use its catalog name.
+If it is missing or disabled, stop and report the required setup.
+In delegated mode, follow its loop without starting subagents or asking the user.
+
+## Canonical verifier prompt
+
+For verifier preparation, read only this section.
+In normal mode and orchestration, send each fresh verifier the block below unchanged except for filled placeholders.
+
+```text
+Verify <task file path> against changes in <changed files>.
+Read the task, changed code, tests, and recorded decisions.
+Decision ledger:
+<ledger, or "None">
+Blocked behavior:
+<behavior and its blocker, or "None">
+Prior rejected gaps:
+<gap, boundary evidence, and rationale, or "None">
+Treat ledger entries as binding when Executor choices delegates them or repository evidence supports them as routine and reversible.
+Flag choices affecting required behavior, a public or persisted contract, security, external state, or scope unless the task or a binding ledger entry resolves them.
+Reassess every rejected gap independently.
+Classify every Required behavior and Acceptance item as covered, blocked, or a gap.
+Covered requires implementation plus observed test or Validation evidence.
+Run the task's safe Validation commands.
+List states the change creates, such as new inputs, error paths, partial failures, and interactions with existing behavior.
+Probe each state adversarially: assume it hides a security, data integrity, or Must preserve defect until evidence rules one out.
+Exercise a state with safe commands where a harness exists; otherwise, inspect the code.
+Preserve the working tree and make no edits.
+Report each classification with evidence.
+Report each probed state's method and result.
+Report each gap with its location and the missing behavior or observed defect.
+```

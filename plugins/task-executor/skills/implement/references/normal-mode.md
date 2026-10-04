@@ -13,31 +13,8 @@ Continue to verification after implementation.
 ## Verify requirement coverage
 
 Run up to the user's verification limit of verifier passes, or three by default.
-Run each pass in a fresh verifier subagent with this prompt:
-
-```text
-Verify <task file path> against changes in <changed files>.
-Read the task, changed code, tests, and recorded decisions.
-Decision ledger:
-<ledger, or "None">
-Blocked behavior:
-<behavior and its blocker, or "None">
-Prior rejected gaps:
-<gap, boundary evidence, and rationale, or "None">
-Treat ledger entries as binding when Executor choices delegates them or repository evidence supports them as routine and reversible.
-Flag choices affecting required behavior, a public or persisted contract, security, external state, or scope unless the task or a binding ledger entry resolves them.
-Reassess every rejected gap independently.
-Classify every Required behavior and Acceptance item as covered, blocked, or a gap.
-Covered requires implementation plus observed test or Validation evidence.
-Run the task's safe Validation commands.
-List states the change creates, such as new inputs, error paths, partial failures, and interactions with existing behavior.
-Probe each state adversarially: assume it hides a security, data integrity, or Must preserve defect until evidence rules one out.
-Exercise a state with safe commands where a harness exists; otherwise, inspect the code.
-Preserve the working tree and make no edits.
-Report each classification with evidence.
-Report each probed state's method and result.
-Report each gap with its location and the missing behavior or observed defect.
-```
+For each pass, send a fresh verifier subagent the canonical verifier prompt.
+Fill its placeholders from the current task result.
 
 Before the next pass, apply the shared gap disposition rules to every gap.
 Send the fixes, ledger, blocked behavior, and rejected gaps to a fresh verifier.

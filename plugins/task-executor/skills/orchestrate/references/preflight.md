@@ -1,5 +1,14 @@
 # Preflight
 
+## Contents
+
+- [Agent capabilities](#agent-capabilities)
+- [Installed skills](#installed-skills)
+- [Select the tasks](#select-the-tasks)
+- [Task files](#task-files)
+- [Start working tree](#start-working-tree)
+- [Interrupted runs](#interrupted-runs)
+
 Run every check below before creating any branch, worktree, or run folder.
 Report all [task file problems](#task-files) in one message.
 Stop the run before starting a task if any task file problem remains.
@@ -14,6 +23,17 @@ Check dispatch, continuation with retained context, working directory selection,
 If the interface is absent or documents a missing capability, stop before creating the run folder, branches, or worktrees.
 Report the required setup.
 Loading the skill alone does not establish these capabilities.
+
+## Installed skills
+
+Confirm each dependency, `implement` and `tdd`:
+
+- Appears in the host's installed skill catalog and is enabled for model invocation.
+- Is available to task agents in their worktrees through a skill tool or catalog entrypoint.
+
+Confirm the orchestrator can read the Canonical verifier prompt section of the installed `implement` entrypoint.
+Use catalog entrypoints; never derive sibling paths.
+If any check fails, stop before repository mutation and report the dependency, failed check, and required setup.
 
 ## Select the tasks
 

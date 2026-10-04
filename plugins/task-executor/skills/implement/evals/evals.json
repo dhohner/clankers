@@ -29,7 +29,7 @@
         "plugins/task-executor/skills/implement/evals/inputs/tasks/spaces.md"
       ],
       "expectations": [
-        "The run loads normal-mode.md and shared-rules.md before implementing the task.",
+        "The run loads normal-mode.md and shared-rules.md before implementing the task, then loads installed tdd through the host's skill tool or catalog entrypoint.",
         "The run proceeds through implementation, verification, reporting, and task state recording without requesting review after the first implementation.",
         "At least one verifier subagent runs before the report.",
         "The report maps every `Required behavior` and `Acceptance` item to implementation and observed evidence.",
@@ -71,7 +71,7 @@
     },
     {
       "id": 5,
-      "prompt": "Read <task-executor plugin directory>/skills/implement/SKILL.md and follow its delegated mode.\nMode: delegated\nTask file: <workspace>/repo/action-items/agent-tasks/01-slugify-separator.md\nWorking directory: <workspace>/worktree",
+      "prompt": "Use the installed implement skill by its host catalog name and follow its delegated mode.\nMode: delegated\nTask file: <workspace>/repo/action-items/agent-tasks/01-slugify-separator.md\nWorking directory: <workspace>/worktree",
       "expected_output": "Delegated mode returns one `stop` message at the separator decision, without asking the user or making further edits. The message includes the task file, affected item, question, at least two options with consequences, and a recommendation line. After the `answer` instruction, it records the hyphen decision in the ledger, implements the task, and returns an `implemented` message.",
       "files": [
         "plugins/task-executor/skills/implement/evals/inputs/setup-slug-eval.sh",
@@ -86,14 +86,14 @@
         "The run asks the user nothing and starts no subagent.",
         "The task file in `<workspace>/repo` is unchanged, and no file outside the working directory changes.",
         "After `Instruction: answer` selects a hyphen separator, the next message's decision ledger records that decision.",
-        "After `Instruction: answer` selects a hyphen separator, the run implements that choice through the TDD loop and returns an `implemented` message.",
+        "After `Instruction: answer` selects a hyphen separator, the run loads installed tdd through the host's skill tool or catalog entrypoint, implements that choice through its loop, and returns an `implemented` message.",
         "After the separator decision, the run continues through implementation and validation without seeking approval for that agreed behavior again.",
         "The task file stays unchanged through both turns."
       ]
     },
     {
       "id": 6,
-      "prompt": "Read <task-executor plugin directory>/skills/implement/SKILL.md and follow its delegated mode.\nMode: delegated\nTask file: <workspace>/repo/action-items/agent-tasks/01-slugify-spaces.md\nWorking directory: <workspace>/worktree",
+      "prompt": "Use the installed implement skill by its host catalog name and follow its delegated mode.\nMode: delegated\nTask file: <workspace>/repo/action-items/agent-tasks/01-slugify-spaces.md\nWorking directory: <workspace>/worktree",
       "expected_output": "Delegated mode implements the task through TDD in the working directory and runs the `Validation` commands. It starts no verifier and returns one `implemented` message with every listed field. The `gaps` instruction yields a new `implemented` message with one gap disposition. Examples include a fix through a new test or a rejection citing an existing test. The `end` instruction yields an `ended` message without changing the working directory. The task file stays unchanged throughout.",
       "files": [
         "plugins/task-executor/skills/implement/evals/inputs/setup-slug-eval.sh",
@@ -102,7 +102,7 @@
         "plugins/task-executor/skills/implement/evals/inputs/tasks/spaces.md"
       ],
       "expectations": [
-        "The run loads delegated-mode.md and shared-rules.md without loading normal-mode.md.",
+        "The run loads installed implement by the host's catalog name, reads delegated-mode.md and shared-rules.md without loading normal-mode.md, then loads installed tdd through the host's skill tool or catalog entrypoint.",
         "The run returns an `implemented` message only after completing all unblocked checks and running every validation command.",
         "The message lists changed files and maps each check to its item with red and green evidence. It includes `Validation` command results, the decision ledger, blocked behavior, and gap dispositions of `None`.",
         "The run starts no subagent or verifier, asks the user nothing, and makes no commit.",

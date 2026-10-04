@@ -1,8 +1,9 @@
 # Agent prompts and instructions
 
-Resolve absolute paths before you fill a prompt.
-`<implement skill file>` is the absolute path of `../implement/SKILL.md`, resolved from the directory of this skill.
-`implement` has `disable-model-invocation: true`, so a subagent cannot load it through a skill tool and must read that file.
+Resolve task and working directory paths before filling a prompt.
+Fill `<implement skill name>` with `task-executor:implement` for namespaced plugins, or the host's installed catalog name.
+Task agents load the skill through the host's skill tool or catalog entrypoint.
+Exclude installation paths and copied skill bodies from prompts.
 
 ## Task subagent prompt
 
@@ -10,7 +11,7 @@ Send this prompt to a fresh subagent.
 Keep the three mode lines as separate lines, exactly as written.
 
 ```text
-Read <implement skill file> and follow its delegated mode.
+Use the installed <implement skill name> skill in this agent and follow its delegated mode.
 Mode: delegated
 Task file: <absolute path of the task file in the start working tree>
 Working directory: <absolute path of the task worktree>

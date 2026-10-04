@@ -4,6 +4,7 @@ Use the selected host's interface after confirming its required capabilities.
 
 ## Claude Code
 
+- Give task agents the `Skill` tool to load `task-executor:implement` and `task-executor:tdd`.
 - Use the available Claude Code agent interface, reading its schema before dispatch.
   - If it exposes `Agent`, set `model` when supported.
   - Set effort only if the interface accepts it.
@@ -16,6 +17,7 @@ Use the selected host's interface after confirming its required capabilities.
 
 ## Codex
 
+- Give task agents access to the installed skills `$task-executor:implement` and `$task-executor:tdd`
 - Start one subagent per task with the Codex session's subagent tools.
   - Send later `gaps`, `answer`, and `end` instructions to the original agent identifier.
   - Resume it if the tool requires resumption.
@@ -28,7 +30,8 @@ Use the selected host's interface after confirming its required capabilities.
 
 - Pi's built-in tools do not provide subagents.
   - Use an already configured extension or integration only when its documented interface meets the required agent capabilities.
-  - Inspect its tools for dispatch, identifiers, continuation, working directory, and concurrency.
+  - Inspect its tools for dispatch, identifiers, continuation, working directory, concurrency, and child skill discovery.
+  - Configure child sessions to discover installed `implement` and `tdd` skills through the integration's supported setup.
   - Tool names depend on the extension.
 - The bundled subagent example launches each child with `--no-session` and exposes no continuation interface for that child.
   - Report its missing continuation capability during preflight.

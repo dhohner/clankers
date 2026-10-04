@@ -1,7 +1,8 @@
 ---
 name: orchestrate
 description: >-
-  Implement a `to-agent-tasks` task set in parallel worktrees and commit each verified result to an integration branch.
+  Implements a `to-agent-tasks` task set in parallel worktrees and commits verified results to an integration branch.
+  Use when executing a task set or numeric task range with concurrent agents.
 disable-model-invocation: true
 ---
 
@@ -24,9 +25,9 @@ Read only the applicable host section and defer task references until a task sta
    - Schedule the tasks until every selected task has a final run status.
    - If every task is skipped, proceed to cleanup and the summary.
 4. Before starting a ready task, read [model and effort](references/agent-capabilities.md#model-and-effort), [agent prompts and instructions](references/prompts.md), and [task execution](references/task-execution.md).
-   - Resolve `<implement skill file>` to `../implement/SKILL.md` from this skill directory before filling prompts.
-   - Before each verifier pass, read the canonical prompt in [Verify requirement coverage](../implement/references/normal-mode.md#verify-requirement-coverage).
-   - Copy that code block unchanged into the verifier prompt and fill its placeholders.
+   - Dispatch task agents with the task prompt and installed `implement` catalog name.
+   - Before each verifier pass, read only the Canonical verifier prompt section of the installed `implement` entrypoint.
+   - Fill that block's placeholders and add the verifier prefix from the prompts reference.
    - Handle replies and answers using the conditions below, then return to scheduling.
 5. When scheduling completes, read [finish the run](references/run-cleanup.md#finish-the-run) and [chat summary](references/run-file.md#chat-summary).
    - Continue until cleanup and the chat summary are complete.
