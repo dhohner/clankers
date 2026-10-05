@@ -50,8 +50,8 @@
     "@types/node": "^26.5.1",
     "@types/proper-lockfile": "^4.1.4",
     "@vitest/coverage-istanbul": "^5.0.0",
-    "oxfmt": "^0.70.0",
-    "oxlint": "^1.83.0",
+    "oxfmt": "^0.71.0",
+    "oxlint": "^1.86.0",
     "typescript": "^7.0.2",
     "vitest": "^5.0.0"
   },
