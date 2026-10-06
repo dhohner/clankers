@@ -1,7 +1,6 @@
 ---
 name: commit-message
 description: Write a Conventional Commit message for staged changes without committing.
-disable-model-invocation: true
 ---
 
 # Write a commit message
