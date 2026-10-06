@@ -1,6 +1,6 @@
 ---
 name: tighten-prose
-description: Tighten AI-generated prose without changing its meaning.
+description: Tighten AI-generated prose and agent instructions without changing meaning.
 disable-model-invocation: true
 ---
 
@@ -13,17 +13,18 @@ disable-model-invocation: true
 2. Inventory every target file and prose passage.
 3. Read each target file in full, including surrounding conditions and cross-references.
 4. Apply every rule under "Prose rules" to every target passage.
-   - For a skill, `AGENTS.md`, `CLAUDE.md`, or another agent document, also apply every rule in [`references/agent-doc-rules.md`](references/agent-doc-rules.md).
+   - For skills, agent documents, or task prompts, apply the relevant [agent document rules](references/agent-doc-rules.md).
 5. Tighten every target passage.
    - Prose includes Markdown, source comments, and doc comments.
    - Preserve the required form of code, configuration, commands, paths, identifiers, URLs, and quotations.
 6. Compare every rewrite with its original.
-   - Accept a rewrite only if it preserves every instruction, condition, exception, quantity, claim, and reader behavior.
+   - For meaning-preserving edits, retain every instruction, condition, exception, quantity, claim, and reader behavior.
    - Keep longer wording when shortening changes meaning.
+   - Apply only authorized behavioral changes; report other proposals separately.
 7. Preserve the index boundaries.
    - Re-stage only rewritten prose that was staged before editing.
    - Preserve every unrelated staged and unstaged change.
-8. Report each file's added and removed line counts and any sentence left verbose to preserve meaning.
+8. Report each file's added and removed lines, wording kept to preserve meaning, and proposed behavioral changes.
 
 ## Prose rules
 

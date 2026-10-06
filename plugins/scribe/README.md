@@ -21,7 +21,8 @@ Models can invoke `commit-message` when relevant. `tighten-prose` runs only when
 
 - It targets prose in staged changes, named paths, or a commit range.
 - It covers Markdown, source comments, and doc comments.
-- It applies extra rules to skills and agent documents.
+- It applies authoring guidance to skills, agent documents, and task prompts, including completion boundaries for each model.
+- It applies authorized behavioral changes and reports other proposals separately.
 - It keeps staged and unstaged changes in their original index state.
 - For each file, it reports added and removed lines and any sentence kept verbose to preserve meaning.
 
