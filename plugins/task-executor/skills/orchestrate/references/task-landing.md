@@ -17,18 +17,13 @@ After landing or ending, return to scheduling.
    - Record the files staged beyond the list and the files left out.
 2. Unstage every path under the task directory.
 3. End the task with the reason `no_changes` when nothing is staged.
-4. Write the commit message.
-   - The subject is a Conventional Commit `type(scope): summary` of at most 72 characters.
-   - The body explains what changed and why, wrapped at 72 columns.
-   - Take the content from the task outcome and the staged diff.
-   - Write the subject and body as the user's own, with no trailer, agent name, or AI attribution.
+4. Select the message through the entrypoint's Task commit messages procedure.
 5. Commit on the task branch:
 
    ```sh
    git -C <worktree> commit -F -
    ```
 
-   - Keep the subject and body within the limits, amending the commit when needed.
    - End the task with the failure text when the commit fails, for example because of a hook.
 6. Record the integration tip, then land the commit:
 

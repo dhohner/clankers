@@ -47,6 +47,8 @@ For host setup, see [Host mechanisms](./skills/orchestrate/references/host-mecha
 - Chooses each task's model and effort from its content, and records the choice and reason.
 - Verifies each result with fresh verifier subagents, up to three passes by default, and sends the gaps back to the task subagent.
 - Creates one integration branch commit per fully covered task or result whose remaining gaps you explicitly accept.
+  - Uses successful, nonblank `gmsg` stdout verbatim or falls back to bundled message rules.
+  - Records each task's `commit_message_source` as `gmsg` or `bundled_rules` in `run.json`.
   - Sets `state: done` in the task file after landing.
   - The run never pushes.
   - The start branch stays unchanged, so you review the integration branch and merge it yourself.
@@ -115,6 +117,10 @@ The `tdd` skill runs the same red-green-refactor loop on its own for any feature
 ## Requirements
 
 - The `project-advisor` plugin produces the task files.
+- `gmsg` is optional for `orchestrate`.
+  - When available, `gmsg` sends the staged diff to its configured model.
+  - `gmsg` requires Pi and Scribe's `commit-message` skill.
+  - Fallback uses bundled rules and requires neither Pi nor Scribe.
 
 ## Usage
 

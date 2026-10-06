@@ -1,8 +1,7 @@
 ---
 name: orchestrate
 description: >-
-  Implements a `to-agent-tasks` task set in parallel worktrees and commits verified results to an integration branch.
-  Use when executing a task set or numeric task range with concurrent agents.
+  Runs agent tasks in parallel worktrees and commits verified results to an integration branch.
 disable-model-invocation: true
 ---
 
@@ -22,6 +21,7 @@ Read only the applicable host section and defer task references until a task sta
    - For untested exposed capabilities, read [the waiting fixture](references/waiting-fixture.md) and [platform limits](references/user-questions.md#platform-limits) before testing.
 3. After preflight passes, read [names and locations](references/run-cleanup.md#names-and-locations), [run recording](references/run-file.md), and [preparation and scheduling](references/run-workflow.md).
    - Prepare the run and record every selected task in the initial `run.json`.
+   - Initialize every task's `commit_message_source` to `null`, including skipped and not-started tasks.
    - Schedule the tasks until every selected task has a final run status.
    - If every task is skipped, proceed to cleanup and the summary.
 4. Before starting a ready task, read [model and effort](references/agent-capabilities.md#model-and-effort), [agent prompts and instructions](references/prompts.md), and [task execution](references/task-execution.md).
@@ -42,6 +42,7 @@ The user reviews the integration branch and merges it.
   - Keep scheduling independent tasks during the wait.
   - Use the same waiting rules for clarification, continuation, acceptance, or ending.
 - When verification reaches full coverage or the user accepts final gaps, read [commit and land](references/task-landing.md#commit-and-land).
+  - For the message step, follow [task commit messages](#task-commit-messages).
 - For landing conflicts, read [resolve a landing conflict](references/landing-conflicts.md) and [commit and land](references/task-landing.md#commit-and-land).
   - When a conflict requires a question, read [waiting and answers](references/task-waiting.md) and [user questions](references/user-questions.md#user-questions) before recording and asking.
   - Use the conflict procedure for resolution, validation, and accept, instruct, or end actions.
@@ -67,3 +68,10 @@ The user reviews the integration branch and merges it.
 - During preflight, ask about invalid ranges or relevant changes in the start working tree.
   - During the run, ask about task stops and remaining gaps.
   - Route each answer to the original task subagent and preserve its context.
+
+## Task commit messages
+
+For task commits, amendments, and resolved conflict candidates, follow [message selection](references/task-commit-messages.md).
+For staging, landing, failures, and cleanup, follow [commit and land](references/task-landing.md#commit-and-land).
+For resolved conflict candidates, also follow [land the candidate](references/landing-conflicts.md#land-the-candidate).
+When `gmsg` is missing, fails, times out, or returns blank stdout, apply [bundled message rules](references/commit-message-rules.md).

@@ -333,6 +333,118 @@
         "No task implementation or verifier starts. The orchestrator does not bypass the disabled setting by reading the skill body into an agent prompt.",
         "Branch refs, worktrees, git status, and task file contents match the baseline. No run folder is created."
       ]
+    },
+    {
+      "id": 16,
+      "prompt": "Run TEST-08 available in a temporary git repository outside this checkout. Use `setup-orchestrate-eval.sh` with `basic`, tasks `02 to 02`, and concurrency 1. Invoke the checkout `orchestrate` skill through the current host. Before dispatch, configure the orchestrator's inherited shell. Put a `gmsg` executable first on `PATH`. Verify that staged `wordcount.py` exists. Print exactly \"feat(words): count whitespace-separated words\\n\\nCount words separated by whitespace, including empty input.\\n\". Exit 0. Keep the stub local. Never call the real `gmsg` or a remote model. Inspect the integration branch's `git log --format=%B` and the task's `run.json` entry. Confirm the start ref, index, source tree, no remotes, and exactly one task commit. Repeat `available` with `gmsg` exposed only as a zsh alias to the local stub. Repeat `empty` with whitespace-only stdout. Repeat `failing` with a stub sleeping past the documented deadline.",
+      "expected_output": "The task commit uses successful `gmsg` stdout unchanged and records `commit_message_source` as `gmsg`.",
+      "files": [
+        "plugins/task-executor/skills/orchestrate/evals/inputs/setup-orchestrate-eval.sh",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/02-word-count.md"
+      ],
+      "expectations": [
+        "`gmsg` runs before each task commit, with task changes staged and the working directory set to their worktree.",
+        "Only exit 0 with non-whitespace stdout selects `gmsg`. Failed output and stderr never become the message.",
+        "Each task's `commit_message_source` records the selected source, including after conflict resolution or amendments.",
+        "Bundled messages use `type(scope): summary` or `type: summary`. Subjects are at most 72 characters; body lines are at most 72 columns.",
+        "The fallback reference preserves current `gmsg` rules for subjects, bodies, and output, plus good and bad examples. It excludes stdin-section protocols, patch caps, and model calls.",
+        "The integration branch gains exactly one task commit. No task directory file is committed and no push occurs. The start ref, index, and source tree remain unchanged.",
+        "Messages contain no agent name, AI attribution, or co-author trailer.",
+        "The `gmsg` deadline terminates the invocation before fallback. Missing aliases in non-interactive shells trigger fallback."
+      ]
+    },
+    {
+      "id": 17,
+      "prompt": "Run TEST-08 missing in a temporary git repository outside this checkout. Use `setup-orchestrate-eval.sh` with `basic`, tasks `02 to 02`, and concurrency 1. Invoke the checkout `orchestrate` skill through the current host. Before dispatch, configure the orchestrator's inherited shell. Use a `PATH` with `git` and `python3` but no `gmsg`. Ensure no shell alias or function is named `gmsg`. Keep the stub local. Never call the real `gmsg` or a remote model. Inspect the integration branch's `git log --format=%B` and the task's `run.json` entry. Confirm the start ref, index, source tree, no remotes, and exactly one task commit. Repeat `available` with `gmsg` exposed only as a zsh alias to the local stub. Repeat `empty` with whitespace-only stdout. Repeat `failing` with a stub sleeping past the documented deadline.",
+      "expected_output": "The task commit uses bundled rules and records `commit_message_source` as `bundled_rules`.",
+      "files": [
+        "plugins/task-executor/skills/orchestrate/evals/inputs/setup-orchestrate-eval.sh",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/02-word-count.md"
+      ],
+      "expectations": [
+        "`gmsg` runs before each task commit, with task changes staged and the working directory set to their worktree.",
+        "Only exit 0 with non-whitespace stdout selects `gmsg`. Failed output and stderr never become the message.",
+        "Each task's `commit_message_source` records the selected source, including after conflict resolution or amendments.",
+        "Bundled messages use `type(scope): summary` or `type: summary`. Subjects are at most 72 characters; body lines are at most 72 columns.",
+        "The fallback reference preserves current `gmsg` rules for subjects, bodies, and output, plus good and bad examples. It excludes stdin-section protocols, patch caps, and model calls.",
+        "The integration branch gains exactly one task commit. No task directory file is committed and no push occurs. The start ref, index, and source tree remain unchanged.",
+        "Messages contain no agent name, AI attribution, or co-author trailer.",
+        "The `gmsg` deadline terminates the invocation before fallback. Missing aliases in non-interactive shells trigger fallback."
+      ]
+    },
+    {
+      "id": 18,
+      "prompt": "Run TEST-08 failing in a temporary git repository outside this checkout. Use `setup-orchestrate-eval.sh` with `basic`, tasks `02 to 02`, and concurrency 1. Invoke the checkout `orchestrate` skill through the current host. Before dispatch, configure the orchestrator's inherited shell. Put a `gmsg` executable first on `PATH`. Have it print \"discard this failed output\" and exit 1. Keep the stub local. Never call the real `gmsg` or a remote model. Inspect the integration branch's `git log --format=%B` and the task's `run.json` entry. Confirm the start ref, index, source tree, no remotes, and exactly one task commit. Repeat `available` with `gmsg` exposed only as a zsh alias to the local stub. Repeat `empty` with whitespace-only stdout. Repeat `failing` with a stub sleeping past the documented deadline.",
+      "expected_output": "The task commit uses bundled rules and records `commit_message_source` as `bundled_rules`.",
+      "files": [
+        "plugins/task-executor/skills/orchestrate/evals/inputs/setup-orchestrate-eval.sh",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/02-word-count.md"
+      ],
+      "expectations": [
+        "`gmsg` runs before each task commit, with task changes staged and the working directory set to their worktree.",
+        "Only exit 0 with non-whitespace stdout selects `gmsg`. Failed output and stderr never become the message.",
+        "Each task's `commit_message_source` records the selected source, including after conflict resolution or amendments.",
+        "Bundled messages use `type(scope): summary` or `type: summary`. Subjects are at most 72 characters; body lines are at most 72 columns.",
+        "The fallback reference preserves current `gmsg` rules for subjects, bodies, and output, plus good and bad examples. It excludes stdin-section protocols, patch caps, and model calls.",
+        "The integration branch gains exactly one task commit. No task directory file is committed and no push occurs. The start ref, index, and source tree remain unchanged.",
+        "Messages contain no agent name, AI attribution, or co-author trailer.",
+        "The `gmsg` deadline terminates the invocation before fallback. Missing aliases in non-interactive shells trigger fallback."
+      ]
+    },
+    {
+      "id": 19,
+      "prompt": "Run TEST-08 empty in a temporary git repository outside this checkout. Use `setup-orchestrate-eval.sh` with `basic`, tasks `02 to 02`, and concurrency 1. Invoke the checkout `orchestrate` skill through the current host. Before dispatch, configure the orchestrator's inherited shell. Put a `gmsg` executable first on `PATH` that exits 0 without stdout. Keep the stub local. Never call the real `gmsg` or a remote model. Inspect the integration branch's `git log --format=%B` and the task's `run.json` entry. Confirm the start ref, index, source tree, no remotes, and exactly one task commit. Repeat `available` with `gmsg` exposed only as a zsh alias to the local stub. Repeat `empty` with whitespace-only stdout. Repeat `failing` with a stub sleeping past the documented deadline.",
+      "expected_output": "The task commit uses bundled rules and records `commit_message_source` as `bundled_rules`.",
+      "files": [
+        "plugins/task-executor/skills/orchestrate/evals/inputs/setup-orchestrate-eval.sh",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/02-word-count.md"
+      ],
+      "expectations": [
+        "`gmsg` runs before each task commit, with task changes staged and the working directory set to their worktree.",
+        "Only exit 0 with non-whitespace stdout selects `gmsg`. Failed output and stderr never become the message.",
+        "Each task's `commit_message_source` records the selected source, including after conflict resolution or amendments.",
+        "Bundled messages use `type(scope): summary` or `type: summary`. Subjects are at most 72 characters; body lines are at most 72 columns.",
+        "The fallback reference preserves current `gmsg` rules for subjects, bodies, and output, plus good and bad examples. It excludes stdin-section protocols, patch caps, and model calls.",
+        "The integration branch gains exactly one task commit. No task directory file is committed and no push occurs. The start ref, index, and source tree remain unchanged.",
+        "Messages contain no agent name, AI attribution, or co-author trailer.",
+        "The `gmsg` deadline terminates the invocation before fallback. Missing aliases in non-interactive shells trigger fallback."
+      ]
+    },
+    {
+      "id": 20,
+      "prompt": "Run TEST-08 current-rules fallback in a temporary git repository outside this checkout. Ensure no `gmsg` executable, alias, or function exists. Stage a protocol change adding delegated prompt fields and agent reply states, plus its tests. Follow Task commit messages in the checkout `orchestrate` skill. Inspect `git log --format=%B` and `commit_message_source`. Compare the fallback reference with the current Scribe `commit-message` skill and its examples. Local `gmsg` invokes that skill. Do not run the real `gmsg` or any remote model.",
+      "expected_output": "The fallback covers each substantive change using current Scribe rules, allowing a compact indented protocol example when useful. Git receives plain message text without the presentation fence.",
+      "files": [
+        "plugins/task-executor/skills/orchestrate/SKILL.md",
+        "plugins/task-executor/skills/orchestrate/references/commit-message-rules.md",
+        "plugins/scribe/skills/commit-message/SKILL.md",
+        "plugins/scribe/skills/commit-message/references/examples.md"
+      ],
+      "expectations": [
+        "The reference follows Scribe `commit-message`, which `gmsg` invokes, rather than its historical embedded prompt.",
+        "Subject, body, footer, and output rules and both current examples are preserved. No obsolete six-line body cap excludes a useful protocol example.",
+        "The reference includes a bad example identifying unsupported claims and diff narration.",
+        "The fallback checks staged evidence and recent message conventions, covers substantive secondary changes, and records `bundled_rules`.",
+        "The `text` fence formats presentation only. Git receives its contents without fences or notes. No model invocation, stdin-section protocol, or patch cap applies.",
+        "One task commit is produced with subject and body lines at most 72 characters. No agent attribution, co-author trailer, or push occurs."
+      ]
+    },
+    {
+      "id": 21,
+      "prompt": "Run TEST-08 empty resolved candidate in a temporary git repository outside this checkout. Make the integration tree contain the task outcome so the validated conflict resolution removes the entire original task diff. Follow Task commit messages and Land the candidate. Use a local `gmsg` stub that checks the working directory and empty index, then exits 1. Inspect the resulting candidate commit, tree, parent, and `run.json`. Do not call the real `gmsg` or a remote model. Check that an ordinary task with nothing staged still ends as `no_changes`.",
+      "expected_output": "The validated empty resolution lands as exactly one empty task commit. Its bundled message uses the original task diff and resolution evidence. Ordinary tasks with no changes still end without a commit.",
+      "files": [
+        "plugins/task-executor/skills/orchestrate/SKILL.md",
+        "plugins/task-executor/skills/orchestrate/references/commit-message-rules.md",
+        "plugins/task-executor/skills/orchestrate/references/landing-conflicts.md"
+      ],
+      "expectations": [
+        "`gmsg` is attempted in the candidate worktree before message selection, even with an empty index.",
+        "Failed `gmsg` output is discarded and `commit_message_source` records `bundled_rules`.",
+        "The bundled message describes the task outcome and empty resolution without claiming a new candidate diff.",
+        "The eligible empty candidate is committed with `--allow-empty`. It has exactly one parent, the validated integration tip, and preserves the validated tree.",
+        "An ordinary task with no staged changes still ends as `no_changes`. No push or attribution is added."
+      ]
     }
   ]
 }

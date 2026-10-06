@@ -163,7 +163,7 @@ Persist the new attempt and results before returning to the landing gate or aski
 1. Check the integration tip against the attempt's tip immediately before landing.
    - If it advanced, follow [retry a candidate](#retry-a-candidate).
 2. With the tip stable, commit the eligible candidate's staged tree in the detached resolution worktree.
-   - Use the original task commit's subject and body.
+   - Select a new message through the entrypoint's Task commit messages procedure.
    - Allow an empty commit when the eligible candidate removes the task's entire diff.
    - Confirm the candidate has exactly one parent, equal to the validated integration tip.
    - Confirm its tree equals the validated candidate tree.
