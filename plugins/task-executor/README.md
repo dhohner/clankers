@@ -72,9 +72,16 @@ For host setup, see [Host mechanisms](./skills/orchestrate/references/host-mecha
   - After you merge the integration branch, a rerun starts a new one from `HEAD`.
   - A squash or rebase merge leaves the branch commits absent from `HEAD`.
   - Delete the integration branch after such a merge.
-- Writes `run.json` in `<task directory>/runs/<timestamp>/` after each status change.
-  - During a wait, it records `waiting` and the question or gaps.
-  - If the session ends during the wait, the task stays `pending`.
+- Writes `run.json` and a styled `report.html` in `<task directory>/runs/<timestamp>/` after each status change.
+  - The agent writes HTML from the saved run file, embedding CSS and escaping text for offline viewing.
+  - The report shows the run header and every selected task's status.
+  - For each task that ran, it shows the commit, coverage evidence, decisions, gaps, and blocked behavior.
+  - It also shows each task's selected and used model and effort, and the reason for the model choice.
+  - When `diagram-design` is available in the session, each committed task includes one diagram of its changed components and relations.
+  - The chat summary names task statuses, the integration branch, the merge command, and paths for both files.
+  - See [HTML run report](./skills/orchestrate/references/run-report.md) for required sections and recording rules.
+  - During a wait, it records `waiting` and the question or gaps in both files.
+  - If the session ends during the wait, the report remains and the task stays `pending`.
   - A rerun starts it in a new worktree.
 
 The preflight starts no branch or worktree in these cases:
@@ -117,6 +124,9 @@ The `tdd` skill runs the same red-green-refactor loop on its own for any feature
 ## Requirements
 
 - The `project-advisor` plugin produces the task files.
+- `diagram-design` is optional for `orchestrate` reports.
+  - Install and enable it in the session's skill catalog to include a change diagram for each committed task.
+  - Reports omit diagrams and placeholders when it is unavailable.
 - `gmsg` is optional for `orchestrate`.
   - When available, `gmsg` sends the staged diff to its configured model.
   - `gmsg` requires Pi and Scribe's `commit-message` skill.

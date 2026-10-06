@@ -2,6 +2,54 @@
   "skill_name": "orchestrate",
   "evals": [
     {
+      "id": 22,
+      "prompt": "Run TEST-09 with diagram-design absent from the session catalog. Use setup-orchestrate-eval.sh basic in a temporary git repository outside this checkout with no remote and three fixture tasks. Put <script>alert(\"title\")</script> in task 01's title and angle brackets, ampersands, and quotes in controlled decisions, gaps, and commit subjects. Invoke the checkout orchestrate skill through the current host with concurrency 1. Save run.json and report.html together after each task reaches done, before the next task starts, and check them with python3 test_report.py <checkpoint directory> --tasks <start task directory>. Open each page offline and inspect its style, status rows, task sections, and literal hostile text. Interrupt a separate run after its first commit and confirm its report persists. Repeat with a skipped task, all tasks skipped, a waiting task, an ended task, an accepted gap, a rejected gap with rationale, and an unresolved gap. Inspect the final chat summary. When the requested host is codex-cli, use gpt-6-luna with high reasoning effort and persistent sessions; do not substitute Claude Code or ephemeral sessions. A reporting seam replay may use supplied run.json checkpoints, but must be labelled separately from a full orchestration run.",
+      "expected_output": "The agent writes a styled offline report beside run.json initially and at every task status change. All selected tasks appear in the status table; each task that ran has complete evidence and decision sections. No diagrams or diagram placeholders appear. Hostile copied text remains literal. The first done checkpoint persists after interruption. The final summary includes report.html and the existing branch, merge command, statuses, and run file path.",
+      "files": [
+        "plugins/task-executor/skills/orchestrate/SKILL.md",
+        "plugins/task-executor/skills/orchestrate/references/run-file.md",
+        "plugins/task-executor/skills/orchestrate/references/run-report.md",
+        "plugins/task-executor/skills/orchestrate/evals/test_report.py",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/setup-orchestrate-eval.sh",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/01-slugify.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/02-word-count.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/03-summarize.md"
+      ],
+      "expectations": [
+        "Initial and subsequent report.html versions come from the adjacent run.json; JSON contents and earlier recording behavior remain intact. Commit subjects and any displayed titles are recorded additively in JSON before rendering.",
+        "Each done, ended, or waiting transition writes run.json and then report.html before another task or a user question. A completed first-task report survives session interruption.",
+        "The run header shows task directory, selected range, start branch and commit, integration branch, merge command, concurrency and pass limits, and start and update times. Null range, detached HEAD, and absence of an integration branch are represented accurately.",
+        "The status table includes every selected task, including skipped tasks. Only tasks that ran have task sections; each section shows status, commit hash and subject, every Required behavior and Acceptance item with its classification and evidence, decisions, accepted/rejected/unresolved gaps, blocked behavior, selected/used model and effort, and model choice reason. The checker compares coverage to source fixture task sections so an item omitted from both JSON and HTML fails.",
+        "Empty required sections explicitly say None or Not reported as appropriate, unknown used settings are not invented, and accepted gaps retain their gap classification and user acceptance.",
+        "No diagram, diagram heading, placeholder, or optional-skill failure blocks reporting when diagram-design is absent.",
+        "Copied task, agent, and commit text is escaped in text and attributes. It cannot insert markup, handlers, active URLs, CSS, or scripts. The page uses no network requests or JavaScript and opens locally.",
+        "The agent authors the HTML with embedded CSS; no report generator script is added. Styling remains readable for long hashes, paths, and evidence, with visible status words and accessible tables.",
+        "The final chat summary names report.html and preserves task status, integration branch, merge command, and run.json path. No remote state changes occur."
+      ]
+    },
+    {
+      "id": 23,
+      "prompt": "Run TEST-09 as in eval 22, with the real diagram-design skill installed and enabled in the session catalog. Run all three basic fixture tasks with concurrency 1. Save run.json, report.html, and local diagram assets after each commit. Run python3 test_report.py <checkpoint directory> --diagrams --tasks <start task directory> and open each checkpoint offline. Inspect skill loading and each diagram against that task's landed diff. Probe waiting and ended tasks without commits and a diagram skill failure; inspect persistence of task evidence and any recorded diagram failure. Use codex-cli, gpt-6-luna, high reasoning effort, and persistent sessions when requested by the user.",
+      "expected_output": "Every committed task section contains exactly one diagram produced through the installed diagram-design skill, showing only its changed components and their relations. Diagrams load offline and remain visible at each checkpoint. Tasks without commits have no diagrams. Evidence and final summary remain complete.",
+      "files": [
+        "plugins/task-executor/skills/orchestrate/SKILL.md",
+        "plugins/task-executor/skills/orchestrate/references/run-report.md",
+        "plugins/task-executor/skills/orchestrate/evals/test_report.py",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/setup-orchestrate-eval.sh",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/01-slugify.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/02-word-count.md",
+        "plugins/task-executor/skills/orchestrate/evals/inputs/tasks/basic/03-summarize.md"
+      ],
+      "expectations": [
+        "Detection uses the current session's skill catalog, including namespaced diagram-design:diagram-design or unnamespaced diagram-design. Disk presence alone is insufficient.",
+        "The installed diagram-design skill is loaded for each newly committed task's diagram. The diagram shows changed components and their relations from that task's landed diff, never the whole run.",
+        "Each committed task has exactly one local diagram with meaningful alternative text. Existing diagrams remain on later updates; waiting, ended, skipped, and not-started tasks without commits have none.",
+        "Diagram references and failure information are recorded additively in run.json. A generation failure is recorded as unresolved evidence and remains visible without discarding the report or claiming the diagram requirement passed.",
+        "Diagrams use safe local relative paths and contain no active content or network dependencies. Copied labels are escaped and supplied SVG is checked before embedding as an image.",
+        "All report sections, transition checkpoints, text escaping, interruption persistence, and existing chat summary fields from eval 22 remain satisfied."
+      ]
+    },
+    {
       "id": 11,
       "prompt": "Run TEST-07 with sh setup-landing-eval.sh <workspace> compatible in a temporary directory outside this repository. Start claude --plugin-dir <repository>/plugins/task-executor there and invoke /task-executor:orchestrate for tasks 01 to 02 with concurrency 2. At the landing seam, hold both verified task commits until they are based on the same integration tip. Land task 01 first. Inspect the resolution of task 02, git log, start branch, task states, and run.json. Repeat on a continued integration branch whose earlier task 01 commit is recorded in a prior run. Give the start working tree's task 01 Validation section a distinct additional local command after preparing the fixture; confirm that command is used instead of the committed task copy.",
       "expected_output": "The conflict in settings.py is resolved to retain both features. Both tasks' Validation commands run on the candidate tree. Manual checks are recorded as not run. Task 02 lands as one commit after task 01, both task files read done, and task worktrees and branches are removed. The start branch is unchanged.",
