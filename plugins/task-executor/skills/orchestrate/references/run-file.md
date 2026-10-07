@@ -52,6 +52,7 @@ Set `updated_at` on each write, in UTC ISO 8601 form.
   "concurrency_limit": 3,
   "pass_limit": 3,
   "platform_limits": [],
+  "model_permissions": [],
   "started_at": "2026-09-29T10:15:00Z",
   "updated_at": "2026-09-29T10:31:12Z",
   "tasks": [
@@ -115,6 +116,13 @@ Set `updated_at` on each write, in UTC ISO 8601 form.
 - `platform_limits` records observed failures to retain subagent context or to schedule during a question.
   - Each entry holds `platform`, `task_file`, `agent_id`, `limitation`, and the observed `evidence`.
   - Record only observed failures, never untested capabilities.
+- `model_permissions` is an empty list unless the user explicitly permits a model outside the default policy for this run.
+  - Each entry holds `model`, `user_answer`, and `authorized_at`.
+  - Set `model` to the authorized exact provider ID or family.
+  - Set `user_answer` to the user's verbatim permission.
+  - Set `authorized_at` to the authorization time in UTC ISO 8601 form.
+  - Record permission before dispatch and do not copy permissions from earlier runs.
+  - Check selected and inherited models against the model permission policy, including when continuing an interrupted run.
 - For `model` and `effort`, record selected and used values.
 - `ended` for an ended task holds `reason` and one of `question`, `gaps`, `conflicting_files`, or `failure`.
   - For a stop, `question` holds `item` and `options`.

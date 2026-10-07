@@ -493,6 +493,25 @@
         "The eligible empty candidate is committed with `--allow-empty`. It has exactly one parent, the validated integration tip, and preserves the validated tree.",
         "An ordinary task with no staged changes still ends as `no_changes`. No push or attribution is added."
       ]
+    },
+    {
+      "id": 24,
+      "prompt": "Make no paid model calls. Use a disposable local agent interface with a documented model catalog and dispatch logging. Exercise orchestration model selection for a complex task. Make Opus 5.5, GPT 6.1, Claude Fable, and GPT Astra available. Repeat with only restricted models. Repeat with an inherited Astra model, with and without an override parameter. Repeat with an unknown inherited model and aliases resolving to Fable or Astra. Inspect capability probes, task dispatch, verifier dispatch, repair, conflict resolution, and continuation. Grant explicit permission for Astra for one run. Then start a new run and continue an interrupted earlier run without new permission. Inspect the run records and dispatch logs.",
+      "expected_output": "Default dispatch uses models within the Opus 5.5 or GPT 6.1 cap. Restricted or unknown model selection stops for permission unless an allowed override is available. Permission is recorded before use and applies only to the current run.",
+      "files": [
+        "plugins/task-executor/skills/orchestrate/references/agent-capabilities.md",
+        "plugins/task-executor/skills/orchestrate/references/preflight.md",
+        "plugins/task-executor/skills/orchestrate/references/run-file.md"
+      ],
+      "expectations": [
+        "Complexity selects a stronger allowed model with high effort without authorizing Fable or Astra.",
+        "The cap applies to probes, tasks, verifiers, repair, conflict resolution, and continuation.",
+        "Restricted inherited models are overridden with an allowed model or require a permission question before dispatch. Unknown inherited models also stop.",
+        "Aliases resolving to restricted models do not bypass permission. If no allowed model is available, the orchestrator asks the user before escalating.",
+        "Permission identifies a model or family. The orchestrator records explicit permission with the verbatim answer and UTC authorization time before use.",
+        "General orchestration requests and permissions from earlier runs do not authorize restricted models in a new or resumed run.",
+        "The orchestrator stops further work and reports any reported model mismatch that violates the policy."
+      ]
     }
   ]
 }

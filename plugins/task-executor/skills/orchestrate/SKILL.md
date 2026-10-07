@@ -14,6 +14,8 @@ Read only the applicable host section and defer task references until a task sta
 
 1. Resolve the [inputs](#inputs) from the user's request, using the defaults for omitted values.
 2. Before creating a run, read [capability requirements](references/agent-capabilities.md#platform-mechanisms).
+   - Before capability probes or creating run resources, read and apply the [model permission policy](references/agent-capabilities.md#model-permission-policy).
+   - Apply the policy when recording model permissions and checking selected or inherited models, including before every dispatch or continuation.
    - Read [host mechanisms](references/host-mechanisms.md) for the current host, Claude Code, Codex, or Pi.
    - For unclear Pi setup, read [skills](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/skills.md) and the [subagent example](https://github.com/earendil-works/pi/tree/main/packages/coding-agent/examples/extensions/subagent).
    - Run every [preflight check](references/preflight.md), including the current host's agent capabilities.

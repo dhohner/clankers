@@ -19,6 +19,8 @@ For a rerun, first follow [Interrupted runs](#interrupted-runs).
 
 Select the interface exposed by the current host.
 Check dispatch, continuation with retained context, working directory selection, fresh verifiers, and scheduling during user questions.
+Apply the model permission policy before any capability probe.
+Confirm the configured or inherited model is allowed before creating run resources.
 
 If the interface is absent or documents a missing capability, stop before creating the run folder, branches, or worktrees.
 Report the required setup.
