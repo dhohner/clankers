@@ -23,17 +23,22 @@
     "vitest": "^5.0.2"
   },
   "peerDependencies": {
-    "@earendil-works/pi-coding-agent": "*"
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*"
   },
   "peerDependenciesMeta": {
     "@earendil-works/pi-coding-agent": {
+      "optional": true
+    },
+    "@earendil-works/pi-tui": {
       "optional": true
     }
   },
   "pi": {
     "extensions": [
       "./plugins/output-styles/index.ts",
-      "./plugins/security-guard/index.ts"
+      "./plugins/security-guard/index.ts",
+      "./plugins/insomniac/index.ts"
     ]
   },
   "files": [
@@ -51,7 +56,11 @@
     "plugins/security-guard/index.ts",
     "plugins/security-guard/lib/**",
     "plugins/security-guard/package.json",
-    "plugins/security-guard/README.md"
+    "plugins/security-guard/README.md",
+    "plugins/insomniac/index.ts",
+    "plugins/insomniac/src/**",
+    "plugins/insomniac/package.json",
+    "plugins/insomniac/README.md"
   ],
   "packageManager": "pnpm@12.3.4+sha512.961aa41fb077da3a04a441d9f8e15ebc0c96da8ef710b2eb67bf9ee7cb0610eabd48f1fd85f51cffe73846785fa0f87c56a3a872a1d893f8446741b5cce45457",
   "dependencies": {
