@@ -1,7 +1,7 @@
 {
   "name": "insomniac",
   "private": true,
-  "description": "Claude Code status line with the model, effort level, context window usage, and whether caffeinate keeps the Mac awake.",
+  "description": "Pi footer and Claude Code status line with model, thinking, current context usage, and session sleep state.",
   "type": "module",
   "scripts": {
     "typecheck": "tsc --noEmit",
@@ -13,10 +13,29 @@
     "check": "pnpm run lint && pnpm run format:check && pnpm test && pnpm run typecheck"
   },
   "devDependencies": {
+    "@earendil-works/pi-coding-agent": "1.0.4",
+    "@earendil-works/pi-tui": "1.0.4",
     "@types/node": "^26.5.1",
     "oxfmt": "^0.71.0",
     "oxlint": "^1.86.0",
     "typescript": "^7.0.2",
     "vitest": "^5.0.0"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*"
+  },
+  "peerDependenciesMeta": {
+    "@earendil-works/pi-coding-agent": {
+      "optional": true
+    },
+    "@earendil-works/pi-tui": {
+      "optional": true
+    }
+  },
+  "pi": {
+    "extensions": [
+      "./index.ts"
+    ]
   }
 }

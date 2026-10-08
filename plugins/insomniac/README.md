@@ -1,5 +1,49 @@
 # Insomniac plugin
 
+## Pi footer
+
+Supported with Homebrew Pi 1.0.4. Install only this plugin from a repository checkout:
+
+```sh
+pi install /absolute/path/to/clankers/plugins/insomniac
+```
+
+This is a personal installation in `~/.pi/agent/settings.json`, available across working directories.
+Pi loads the local source directly; keep the checkout at that path.
+No Homebrew package files change, and unrelated Pi packages and settings remain in place.
+Install the plugin directory rather than the repository root to avoid installing other plugins.
+Restart Pi, or run `/reload` in an existing TUI session, to load it automatically.
+
+The footer shows the model name (or identifier), thinking level for reasoning models, and current
+context usage from Pi. Its 20 cells use the notation and standard terminal colors described below.
+Usage is estimated current context, not cumulative session tokens; unknown usage shows `──────────────────── --`,
+including immediately after compaction. Model, thinking, responses, compaction, and branch changes refresh it.
+Directory, Git branch, session name, and other extension statuses appear on additional rows as needed.
+Narrow terminals truncate individual segments to terminal column widths. `NO_COLOR=1` disables color escapes.
+Standard ANSI colors follow both light and dark terminal palettes.
+
+Initially `💤 can sleep` means this extension session owns no sleep assertion.
+This footer does not create assertions or inspect other processes, and does not guarantee the absence
+of assertions elsewhere on the system. The session-local `installFooter(pi).setOwnsAssertion(boolean)`
+controller lets later ownership changes update the segment and request a render.
+Print, JSON, and RPC modes do not install the footer or change sleep behavior.
+
+Pi has one custom footer slot. Another extension calling `setFooter` can replace Insomniac, and
+Insomniac can replace another custom footer during startup. Disable the competing footer to choose one.
+Statuses published by other extensions through `setStatus` remain visible.
+
+Remove it with the same absolute path, then `/reload` or restart to restore Pi's normal footer
+(unless another extension supplies a custom footer):
+
+```sh
+pi remove /absolute/path/to/clankers/plugins/insomniac
+```
+
+For isolated checks, set `PI_CODING_AGENT_DIR` to a temporary directory before installation and
+launch Pi from a scratch directory. This leaves your personal settings untouched.
+
+## Claude Code status line
+
 The plugin shows the model, effort level, context window usage, and whether `caffeinate` keeps the Mac awake.
 
 ```text
