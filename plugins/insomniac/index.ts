@@ -1,7 +1,11 @@
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import { SleepAssertion, type SleepDependencies } from "./src/sleep.ts";
 import { renderFooter } from "./src/footer.ts";
 
-export function installFooter(pi: ExtensionAPI): { setOwnsAssertion: (owned: boolean) => void } {
+export function installFooter(
+  pi: ExtensionAPI,
+  onSessionStart?: (ctx: ExtensionContext) => () => void,
+): { setOwnsAssertion: (owned: boolean) => void } {
   let current: ExtensionContext;
   let ownsAssertion = false;
   let requestRender: (() => void) | undefined;
@@ -18,13 +22,19 @@ export function installFooter(pi: ExtensionAPI): { setOwnsAssertion: (owned: boo
   pi.on("session_start", (_event, ctx) => {
     if (ctx.mode !== "tui") return;
     current = ctx;
+    const disposeSession = onSessionStart?.(ctx);
     ctx.ui.setFooter((tui, _theme, footerData) => {
-      requestRender = () => tui.requestRender();
-      const unsubscribe = footerData.onBranchChange(requestRender);
+      const render = () => tui.requestRender();
+      requestRender = render;
+      let disposed = false;
+      const unsubscribe = footerData.onBranchChange(render);
       return {
         dispose() {
+          if (disposed) return;
+          disposed = true;
+          disposeSession?.();
           unsubscribe();
-          requestRender = undefined;
+          if (requestRender === render) requestRender = undefined;
         },
         invalidate() {},
         render: (width) =>
@@ -54,5 +64,22 @@ export function installFooter(pi: ExtensionAPI): { setOwnsAssertion: (owned: boo
 }
 
 export default function insomniac(pi: ExtensionAPI): void {
-  installFooter(pi);
+  installInsomniac(pi);
+}
+
+export function installInsomniac(pi: ExtensionAPI, dependencies: SleepDependencies = {}): void {
+  let runtime: SleepAssertion | undefined;
+  const footer = installFooter(pi, () => {
+    runtime?.dispose();
+    const next = new SleepAssertion((owned) => {
+      if (runtime === next) footer.setOwnsAssertion(owned);
+    }, dependencies);
+    runtime = next;
+    return () => next.dispose();
+  });
+  pi.on("agent_start", (_event, ctx) => {
+    if (ctx.mode === "tui") runtime?.acquire();
+  });
+  pi.on("agent_settled", () => runtime?.release());
+  pi.on("session_shutdown", () => runtime?.dispose());
 }
