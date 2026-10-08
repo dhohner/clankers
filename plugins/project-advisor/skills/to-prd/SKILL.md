@@ -50,10 +50,14 @@ Write the round to a new round file in the session directory, such as `round-01.
 Give each question the `NODE-*` id of its design tree node and a recommended answer.
 `interview ask --help` prints the round file fields and an example.
 
-Before each `interview ask`, tell the user in one chat line that the round is open in the browser and you wait for the answers.
+Before each `interview ask`, send one progress message saying the browser round is open and you await answers.
 Run `interview ask` as a foreground command with the largest timeout your tool allows, or as a tracked background job of your tool.
+Treat `interview ask: waiting for ...` as a progress report only.
+When the execution tool returns a running session identifier, retain it and use the tool to continue waiting.
+After browser setup or recovery, resume waiting for the round result.
 When `interview ask` stops before it prints a result, run the same `interview ask` again.
 The session keeps the round, and the page keeps the draft answers.
+Keep the agent turn active while a connected browser round waits for answers.
 
 Start each fact search before the round, so it runs while the user answers: as a background sub-agent beside a foreground `interview ask`, or in the foreground beside a background one.
 Without background work, complete each fact search before the round.
