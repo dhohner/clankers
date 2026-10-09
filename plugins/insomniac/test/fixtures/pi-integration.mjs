@@ -45,7 +45,7 @@ runner.setUIContext(
       footer?.dispose?.();
       footer = factory?.(
         { requestRender: () => renders++ },
-        {},
+        { getThinkingBorderColor: () => (text) => text },
         {
           getGitBranch: () => "main",
           getExtensionStatuses: () => new Map([["other", "other active"]]),

@@ -1,4 +1,4 @@
-import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import { Theme, type ExtensionAPI, type ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { stripTerminalSequences } from "@earendil-works/pi-tui";
 import { expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
@@ -21,6 +21,10 @@ type FooterFactory = NonNullable<Parameters<ExtensionContext["ui"]["setFooter"]>
 function session(mode: ExtensionContext["mode"] = "tui") {
   const handlers = new Map<string, (event: unknown, ctx: ExtensionContext) => void>();
   const requestRender = vi.fn();
+  const theme = {
+    getThinkingBorderColor: Theme.prototype.getThinkingBorderColor,
+    fg: vi.fn((_token: string, text: string) => `\u001b[38;5;42m${text}\u001b[39m`),
+  };
   let footer: ReturnType<FooterFactory> | undefined;
   let branch = "main";
   let branchChanged: (() => void) | undefined;
@@ -39,7 +43,7 @@ function session(mode: ExtensionContext["mode"] = "tui") {
         footer?.dispose?.();
         footer = factory?.(
           { requestRender } as unknown as Parameters<FooterFactory>[0],
-          {} as Parameters<FooterFactory>[1],
+          theme as unknown as Parameters<FooterFactory>[1],
           {
             getGitBranch: () => branch,
             getExtensionStatuses: () =>
@@ -73,6 +77,8 @@ function session(mode: ExtensionContext["mode"] = "tui") {
     emit,
     render,
     requestRender,
+    theme,
+    raw: (width = 100) => footer?.render(width).join("\n"),
     unsubscribe,
     setUsage: (next: typeof usage) => {
       usage = next;
@@ -134,6 +140,34 @@ it("refreshes model and thinking selections, falls back to ID, and omits unsuppo
   host.ctx.model = undefined;
   host.emit("model_select");
   expect(host.render()).not.toContain("new-model");
+});
+
+it.each([
+  ["off", "thinkingOff"],
+  ["minimal", "thinkingMinimal"],
+  ["low", "thinkingLow"],
+  ["medium", "thinkingMedium"],
+  ["high", "thinkingHigh"],
+  ["xhigh", "thinkingXhigh"],
+  ["max", "thinkingMax"],
+] as const)("uses the editor border theme color for %s", (level, token) => {
+  vi.stubEnv("NO_COLOR", "");
+  try {
+    const host = session();
+    host.emit("session_start");
+    host.ctx.thinkingLevel = level;
+    host.emit("thinking_level_select");
+    expect(host.raw()).toContain(`\u001b[38;5;42m${level}\u001b[39m`);
+    expect(host.theme.fg).toHaveBeenCalledWith(token, level);
+    host.theme.fg.mockImplementation((_token, text) => `\u001b[38;5;99m${text}\u001b[39m`);
+    expect(host.raw()).toContain(`\u001b[38;5;99m${level}\u001b[39m`);
+    vi.stubEnv("NO_COLOR", "1");
+    expect(host.raw()).toBe(host.render());
+    host.ctx.model!.reasoning = false;
+    expect(host.render()).not.toContain(` · ${level}`);
+  } finally {
+    vi.unstubAllEnvs();
+  }
 });
 
 // Failing to preserve footerData hides Git and other extensions; disposal must remove watchers.

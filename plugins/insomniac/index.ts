@@ -23,7 +23,7 @@ export function installFooter(
     if (ctx.mode !== "tui") return;
     current = ctx;
     const disposeSession = onSessionStart?.(ctx);
-    ctx.ui.setFooter((tui, _theme, footerData) => {
+    ctx.ui.setFooter((tui, theme, footerData) => {
       const render = () => tui.requestRender();
       requestRender = render;
       let disposed = false;
@@ -51,6 +51,7 @@ export function installFooter(
             },
             width,
             Boolean(process.env.NO_COLOR),
+            (text) => theme.getThinkingBorderColor(current.thinkingLevel ?? pi.getThinkingLevel())(text),
           ),
       };
     });

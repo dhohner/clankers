@@ -6,6 +6,22 @@ const plain = (rows: string[]) => rows.map(stripTerminalSequences).join("\n");
 const noop = () => {};
 
 describe("Pi footer", () => {
+  it.each([0, 1, 2, 8, 40, 100])("sanitizes themed thinking and fits width %i", (width) => {
+    const thinkingColor = vi.fn((text: string) => `\u001b[38;2;10;20;30m${text}\u001b[39m`);
+    const snapshot = {
+      model: { id: "model", reasoning: true },
+      thinkingLevel: "hi\u001b]52;c;payload\u0007gh",
+    };
+    const rows = renderFooter(snapshot, width, false, thinkingColor);
+    expect(thinkingColor).toHaveBeenCalledWith("high");
+    expect(rows.join("\n")).not.toContain("payload");
+    for (const row of rows) expect(visibleWidth(row)).toBeLessThanOrEqual(width);
+    thinkingColor.mockClear();
+    const unstyled = renderFooter(snapshot, width, true, thinkingColor);
+    expect(thinkingColor).not.toHaveBeenCalled();
+    expect(unstyled.join("\n")).toBe(plain(unstyled));
+  });
+
   it.each([
     "\u001b]52;c;cGF5bG9hZA==\u0007",
     "\u009d52;c;cGF5bG9hZA==\u009c",

@@ -41,7 +41,7 @@ function session(platform: NodeJS.Platform = "darwin", mode: ExtensionContext["m
         footer?.dispose?.();
         footer = factory?.(
           { requestRender } as unknown as Parameters<FooterFactory>[0],
-          {} as Parameters<FooterFactory>[1],
+          { getThinkingBorderColor: () => (text: string) => text } as unknown as Parameters<FooterFactory>[1],
           {
             getGitBranch: () => "main",
             getExtensionStatuses: () => new Map([["guard", "guard active"]]),

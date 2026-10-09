@@ -34,7 +34,12 @@ function withoutTerminalControls(text: string, preserveStyling = false): string 
 }
 /* eslint-enable no-control-regex */
 
-export function renderFooter(snapshot: FooterSnapshot, width: number, noColor = false): string[] {
+export function renderFooter(
+  snapshot: FooterSnapshot,
+  width: number,
+  noColor = false,
+  thinkingColor?: (text: string) => string,
+): string[] {
   width = Math.max(0, Math.floor(width));
   const sanitize = (text: string, preserveStyling = false) =>
     withoutTerminalControls(text.replace(/[\r\n\t]/g, " "), preserveStyling && !noColor);
@@ -44,7 +49,10 @@ export function renderFooter(snapshot: FooterSnapshot, width: number, noColor = 
   };
   const parts: string[] = [];
   if (snapshot.model) parts.push(paint("1", snapshot.model.name || snapshot.model.id));
-  if (snapshot.model?.reasoning && snapshot.thinkingLevel) parts.push(paint("35", snapshot.thinkingLevel));
+  if (snapshot.model?.reasoning && snapshot.thinkingLevel) {
+    const level = sanitize(snapshot.thinkingLevel);
+    parts.push(!noColor && thinkingColor ? thinkingColor(level) : paint("35", level));
+  }
   const usage = snapshot.usage;
   if (
     usage &&
