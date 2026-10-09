@@ -28,11 +28,12 @@ const models = await host.ModelRuntime.create({
   allowModelNetwork: false,
   refreshOnCreate: false,
 });
+const sessionManager = host.SessionManager.inMemory();
 const runner = new host.ExtensionRunner(
   loaded.extensions,
   loaded.runtime,
   process.cwd(),
-  host.SessionManager.inMemory(),
+  sessionManager,
   new host.ModelRegistry(models),
 );
 const errors = [];
@@ -73,6 +74,16 @@ const gone = async (child) => {
 try {
   await runner.emit({ type: "session_start" });
   assert.match(render(), /can sleep/u);
+  assert.match(render(), /~\$0\.000/u);
+  sessionManager.appendUsage("cache_warm", "test", "test", {
+    input: 100,
+    output: 0,
+    cacheRead: 0,
+    cacheWrite: 0,
+    totalTokens: 100,
+    cost: { input: 0.123, output: 0, cacheRead: 0, cacheWrite: 0, total: 0.123 },
+  });
+  assert.match(render(), /~\$0\.123/u);
   await runner.emit({ type: "agent_start" });
   assert.equal(children.length, 1);
   await once(children[0], "spawn");
@@ -98,7 +109,7 @@ try {
   assert.match(render(), /can sleep/u);
   assert.deepEqual(errors, []);
   console.log(
-    "Pi lifecycle integration passed: startup, duplicate/retry, settlement, reload, shutdown, real child termination",
+    "Pi lifecycle integration passed: session cost, startup, duplicate/retry, settlement, reload, shutdown, real child termination",
   );
 } finally {
   for (const child of children) child.kill();

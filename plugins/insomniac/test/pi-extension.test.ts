@@ -1,4 +1,4 @@
-import { Theme, type ExtensionAPI, type ExtensionContext } from "@earendil-works/pi-coding-agent";
+import { SessionManager, Theme, type ExtensionAPI, type ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { stripTerminalSequences } from "@earendil-works/pi-tui";
 import { expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
@@ -30,6 +30,8 @@ function session(mode: ExtensionContext["mode"] = "tui") {
   let branchChanged: (() => void) | undefined;
   const unsubscribe = vi.fn();
   let usage: ReturnType<ExtensionContext["getContextUsage"]> = undefined;
+  const manager = SessionManager.inMemory();
+  manager.appendSessionInfo("Review");
   const ctx = {
     mode,
     hasUI: mode === "tui" || mode === "rpc",
@@ -37,7 +39,7 @@ function session(mode: ExtensionContext["mode"] = "tui") {
     model: { id: "opus", name: "Opus", reasoning: true },
     thinkingLevel: "high",
     getContextUsage: () => usage,
-    sessionManager: { getSessionName: () => "Review" },
+    sessionManager: manager,
     ui: {
       setFooter: (factory: FooterFactory | undefined) => {
         footer?.dispose?.();
@@ -73,6 +75,7 @@ function session(mode: ExtensionContext["mode"] = "tui") {
   const render = (width = 100) => footer?.render(width).map(stripTerminalSequences).join("\n");
   return {
     ctx,
+    manager,
     controller,
     emit,
     render,
@@ -100,6 +103,53 @@ it.each(["tui", "rpc", "json", "print"] as const)(
     else expect(host.render()).toBeUndefined();
   },
 );
+
+it("restores the session estimate and refreshes recorded costs independently of context", () => {
+  const host = session();
+  const addCost = (cost: number) =>
+    host.manager.appendUsage("cache_warm", "p", "m", {
+      input: 0,
+      output: 0,
+      cacheRead: 0,
+      cacheWrite: 0,
+      totalTokens: 0,
+      cost: { input: cost, output: 0, cacheRead: 0, cacheWrite: 0, total: cost },
+    });
+  addCost(0.123);
+  host.emit("session_start");
+  expect(host.render()).toContain("──────────────────── -- · ~$0.123");
+  addCost(0.2);
+  host.emit("message_end");
+  expect(host.render()).toContain("~$0.323");
+  host.emit("session_compact");
+  expect(host.render()).toContain("~$0.323");
+  host.ctx.model = undefined;
+  host.emit("model_select");
+  expect(host.render()).toContain("~$0.323");
+  host.ctx.sessionManager = SessionManager.inMemory();
+  host.emit("session_start");
+  expect(host.render()).toContain("~$0.000");
+});
+
+it("avoids copying session entries on unchanged footer renders and updates after an append", () => {
+  const host = session();
+  const getEntries = vi.spyOn(host.manager, "getEntries");
+  host.emit("session_start");
+  expect(host.render()).toContain("~$0.000");
+  for (let i = 0; i < 200; i++) expect(host.render()).toContain("~$0.000");
+  expect(getEntries).toHaveBeenCalledTimes(1);
+  host.manager.appendUsage("response", "p", "m", {
+    input: 0,
+    output: 0,
+    cacheRead: 0,
+    cacheWrite: 0,
+    totalTokens: 0,
+    cost: { input: 0.123, output: 0, cacheRead: 0, cacheWrite: 0, total: 0.123 },
+  });
+  host.emit("message_end");
+  expect(host.render()).toContain("~$0.123");
+  expect(getEntries).toHaveBeenCalledTimes(2);
+});
 
 // Missing response/compaction refreshes or cached usage leave the bar stale.
 it("refreshes live context across responses, unknown compaction, and the next response", () => {

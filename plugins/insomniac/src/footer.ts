@@ -5,6 +5,7 @@ export interface FooterSnapshot {
   model?: { name?: string; id: string; reasoning: boolean };
   thinkingLevel?: string;
   usage?: ContextUsage;
+  sessionCost?: number | null;
   cwd?: string;
   branch?: string;
   sessionName?: string;
@@ -75,6 +76,11 @@ export function renderFooter(
     );
   } else {
     parts.push(paint("2", "──────────────────── --"));
+  }
+  if (snapshot.sessionCost !== undefined) {
+    const cost = snapshot.sessionCost;
+    const estimate = cost !== null && Number.isFinite(cost) && cost >= 0 ? `~$${cost.toFixed(3)}` : "~$--";
+    parts.push(paint("2", estimate));
   }
   const separator = paint("2", " · ");
   const rows: string[] = [];

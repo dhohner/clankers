@@ -1,11 +1,13 @@
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { SleepAssertion, type SleepDependencies } from "./src/sleep.ts";
 import { renderFooter } from "./src/footer.ts";
+import { createSessionCostReader } from "./src/cost.ts";
 
 export function installFooter(
   pi: ExtensionAPI,
   onSessionStart?: (ctx: ExtensionContext) => () => void,
 ): { setOwnsAssertion: (owned: boolean) => void } {
+  const readSessionCost = createSessionCostReader();
   let current: ExtensionContext;
   let ownsAssertion = false;
   let requestRender: (() => void) | undefined;
@@ -43,6 +45,7 @@ export function installFooter(
               model: current.model,
               thinkingLevel: current.thinkingLevel ?? pi.getThinkingLevel(),
               usage: current.getContextUsage(),
+              sessionCost: readSessionCost(current.sessionManager),
               cwd: current.cwd,
               sessionName: current.sessionManager.getSessionName(),
               branch: footerData.getGitBranch() ?? undefined,

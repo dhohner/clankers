@@ -15,7 +15,15 @@ No Homebrew package files change, and unrelated Pi packages and settings remain 
 Install the plugin directory rather than the repository root to avoid installing other plugins.
 Restart Pi, or run `/reload` in an existing TUI session, to load it automatically.
 
-The footer shows the model name (or identifier), thinking level for reasoning models, and current context usage from Pi.
+The footer shows the model name (or identifier), thinking level for reasoning models, current context usage, and estimated session cost from Pi.
+The dim `~$0.123` segment follows the context meter and uses USD with three decimal places.
+It sums recorded costs across the entire session, including other conversation branches, tool usage, compaction, branch summaries, and cache warming.
+The estimate starts at `~$0.000`, survives compaction and reload, and shows `~$--` if recorded costs are invalid.
+Actual charges depend on provider pricing and subscriptions.
+
+```text
+Opus 5 · high · ━━━━━━━╸──────────── 76k/200k · ~$0.123                 ☕ awake
+```
 Its 20 cells use the notation and standard terminal colors described below.
 Usage is estimated current context, not cumulative session tokens; unknown usage shows `──────────────────── --`, including immediately after compaction.
 Model, thinking, responses, compaction, and branch changes refresh it.

@@ -6,6 +6,36 @@ const plain = (rows: string[]) => rows.map(stripTerminalSequences).join("\n");
 const noop = () => {};
 
 describe("Pi footer", () => {
+  it.each([
+    [0, "~$0.000"],
+    [0.0004, "~$0.000"],
+    [0.0006, "~$0.001"],
+    [1.2346, "~$1.235"],
+    [1234.5, "~$1234.500"],
+    [null, "~$--"],
+    [NaN, "~$--"],
+    [Infinity, "~$--"],
+    [-1, "~$--"],
+  ])("renders session estimate %s as a dim segment %s", (sessionCost, expected) => {
+    const snapshot = { model: { id: "Opus", reasoning: false }, sessionCost };
+    const rows = renderFooter(snapshot, 100);
+    expect(plain(rows)).toContain(`Opus · ──────────────────── -- · ${expected}`);
+    expect(rows.join("\n")).toContain(`\u001b[2m${expected}\u001b[0m`);
+    const unstyled = renderFooter(snapshot, 100, true);
+    expect(unstyled.join("\n")).toBe(plain(unstyled));
+  });
+
+  it.each([0, 1, 2, 8, 20, 40, 60, 100])("fits the price and sleep state at width %i", (width) => {
+    const rows = renderFooter({ model: { id: "Opus", reasoning: false }, sessionCost: 1.234 }, width);
+    expect(rows.every((row) => visibleWidth(row) <= width)).toBe(true);
+    if (width >= 40) {
+      expect(plain(rows)).toContain("~$1.234");
+      expect(
+        rows.some((row) => stripTerminalSequences(row).endsWith("💤 can sleep") && visibleWidth(row) === width),
+      ).toBe(true);
+    }
+  });
+
   it.each([0, 1, 2, 8, 40, 100])("sanitizes themed thinking and fits width %i", (width) => {
     const thinkingColor = vi.fn((text: string) => `\u001b[38;2;10;20;30m${text}\u001b[39m`);
     const snapshot = {

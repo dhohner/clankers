@@ -1,4 +1,4 @@
-import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import { SessionManager, type ExtensionAPI, type ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { stripTerminalSequences, visibleWidth } from "@earendil-works/pi-tui";
 import { EventEmitter } from "node:events";
 import type { ChildProcess, SpawnOptions } from "node:child_process";
@@ -27,6 +27,8 @@ function session(platform: NodeJS.Platform = "darwin", mode: ExtensionContext["m
   const requestRender = vi.fn();
   let footer: ReturnType<FooterFactory> | undefined;
   const abortController = new AbortController();
+  const manager = SessionManager.inMemory();
+  manager.appendSessionInfo("Review");
   const ctx = {
     signal: abortController.signal,
     mode,
@@ -35,7 +37,7 @@ function session(platform: NodeJS.Platform = "darwin", mode: ExtensionContext["m
     model: { id: "opus", name: "Opus", reasoning: true },
     thinkingLevel: "high",
     getContextUsage: () => ({ tokens: 76000, contextWindow: 200000, percent: 38 }),
-    sessionManager: { getSessionName: () => "Review" },
+    sessionManager: manager,
     ui: {
       setFooter: (factory: FooterFactory | undefined) => {
         footer?.dispose?.();
