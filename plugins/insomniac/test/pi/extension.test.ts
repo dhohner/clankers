@@ -1,78 +1,18 @@
-import { SessionManager, type ExtensionAPI, type ExtensionContext } from "@earendil-works/pi-coding-agent";
-import { stripTerminalSequences, visibleWidth } from "@earendil-works/pi-tui";
-import { EventEmitter } from "node:events";
-import type { ChildProcess, SpawnOptions } from "node:child_process";
+import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
+import { visibleWidth } from "@earendil-works/pi-tui";
 import { expect, it, vi } from "vitest";
-import { installInsomniac } from "../index.ts";
-
-type FooterFactory = NonNullable<Parameters<ExtensionContext["ui"]["setFooter"]>[0]>;
-
-// The process boundary emits real Node spawn/error/exit events, without a power assertion.
-class AssertionChild extends EventEmitter {
-  readonly kill = vi.fn(() => true);
-  pid = 123;
-}
+import { installInsomniac } from "../../index.ts";
+import { createPiHost } from "../support/pi-host.ts";
+import { createAssertionProcess } from "../support/assertion-process.ts";
 
 function session(platform: NodeJS.Platform = "darwin", mode: ExtensionContext["mode"] = "tui", denied = false) {
-  const children: AssertionChild[] = [];
-  const launches: { command: string; args: string[]; options: SpawnOptions }[] = [];
-  const spawn = (command: string, args: string[], options: SpawnOptions) => {
-    launches.push({ command, args, options });
-    if (denied) throw new Error("EACCES");
-    const child = new AssertionChild();
-    children.push(child);
-    return child as unknown as ChildProcess;
-  };
-  const handlers = new Map<string, ((event: unknown, ctx: ExtensionContext) => unknown)[]>();
-  const requestRender = vi.fn();
-  let footer: ReturnType<FooterFactory> | undefined;
-  const abortController = new AbortController();
-  const manager = SessionManager.inMemory();
-  manager.appendSessionInfo("Review");
-  const ctx = {
-    signal: abortController.signal,
-    mode,
-    hasUI: mode === "tui" || mode === "rpc",
-    cwd: "/code",
-    model: { id: "opus", name: "Opus", reasoning: true },
-    thinkingLevel: "high",
-    getContextUsage: () => ({ tokens: 76000, contextWindow: 200000, percent: 38 }),
-    sessionManager: manager,
-    ui: {
-      setFooter: (factory: FooterFactory | undefined) => {
-        footer?.dispose?.();
-        footer = factory?.(
-          { requestRender } as unknown as Parameters<FooterFactory>[0],
-          { getThinkingBorderColor: () => (text: string) => text } as unknown as Parameters<FooterFactory>[1],
-          {
-            getGitBranch: () => "main",
-            getExtensionStatuses: () => new Map([["guard", "guard active"]]),
-            getAvailableProviderCount: () => 0,
-            onBranchChange: () => () => {},
-          },
-        );
-      },
-    },
-  } as unknown as ExtensionContext;
-  const pi = {
-    on: (event: string, handler: (event: unknown, ctx: ExtensionContext) => unknown) => {
-      handlers.set(event, [...(handlers.get(event) ?? []), handler]);
-      return () => handlers.delete(event);
-    },
-    getThinkingLevel: () => "medium",
-  } as unknown as ExtensionAPI;
-  installInsomniac(pi, { platform, spawn });
-  return {
-    children,
-    launches,
-    requestRender,
-    emit: (type: string) => handlers.get(type)?.map((handler) => handler({ type }, ctx)),
-    raw: (width = 100) => footer?.render(width).join("\n"),
-    render: (width = 100) => footer?.render(width).map(stripTerminalSequences).join("\n"),
-    abort: () => abortController.abort(),
-    disposeFooter: () => footer?.dispose?.(),
-    captureFooter: () => footer,
-  };
+  const host = createPiHost(mode);
+  const process = createAssertionProcess(denied);
+  host.setUsage({ tokens: 76000, contextWindow: 200000, percent: 38 });
+  host.setStatuses(new Map([["guard", "guard active"]]));
+  installInsomniac(host.pi, { platform, spawn: process.spawn });
+
+  return { ...host, ...process };
 }
 
 // Starting twice or publishing before spawn would over-own or falsely report an assertion.
@@ -103,11 +43,13 @@ it("keeps the same assertion across retries and automatic continuation until fin
   host.emit("session_start");
   host.emit("agent_start");
   host.children[0].emit("spawn");
+
   for (const type of ["agent_end", "session_compact", "agent_before_settle", "agent_start", "agent_end"]) {
     host.emit(type);
     expect(host.render()).toContain("☕ awake");
     expect(host.children[0].kill).not.toHaveBeenCalled();
   }
+
   expect(host.launches).toHaveLength(1);
   host.requestRender.mockClear();
   host.emit("agent_settled");
@@ -152,6 +94,7 @@ it.each(["missing", "denied"])("keeps Pi usable after %s acquisition and retries
   const host = session("darwin", "tui", failure === "denied");
   host.emit("session_start");
   expect(() => host.emit("agent_start")).not.toThrow();
+
   if (failure === "missing") host.children[0].emit("error", new Error("ENOENT"));
   expect(host.render()).toContain("💤 can sleep");
   host.emit("agent_start");
@@ -213,6 +156,7 @@ it.each([
   host.emit("agent_end");
   host.emit("agent_settled");
   expect(host.launches).toHaveLength(0);
+
   if (mode === "tui") expect(host.render()).toContain("💤 can sleep");
   else expect(host.render()).toBeUndefined();
   host.emit("session_shutdown");
@@ -225,6 +169,7 @@ it.each([40, 100, 160])(
     vi.stubEnv("NO_COLOR", "1");
     const first = session();
     const second = session();
+
     try {
       first.emit("session_start");
       second.emit("session_start");
@@ -232,6 +177,7 @@ it.each([40, 100, 160])(
       first.children[0].emit("spawn");
       expect(first.render(width)).toContain("☕ awake");
       expect(second.render(width)).toContain("💤 can sleep");
+
       for (const host of [first, second]) {
         const raw = host.raw(width)!;
         expect(raw).not.toContain("\u001b");
@@ -241,6 +187,7 @@ it.each([40, 100, 160])(
         expect(raw).toContain("/code · main · Review");
         expect(raw).toContain("guard active");
       }
+
       first.emit("agent_settled");
       expect(first.render(width)).toContain("💤 can sleep");
     } finally {

@@ -3,6 +3,9 @@
 ## Pi footer
 
 Supported with Homebrew Pi 1.0.4.
+
+### Install Pi
+
 Install only this plugin from a repository checkout:
 
 ```sh
@@ -14,6 +17,8 @@ Pi loads the local source directly; keep the checkout at that path.
 No Homebrew package files change, and unrelated Pi packages and settings remain in place.
 Install the plugin directory rather than the repository root to avoid installing other plugins.
 Restart Pi, or run `/reload` in an existing TUI session, to load it automatically.
+
+### Footer output
 
 The footer shows the model name (or identifier), thinking level for reasoning models, current context usage, and estimated session cost from Pi.
 The dim `~$0.123` segment follows the context meter and uses USD with three decimal places.
@@ -31,6 +36,8 @@ Directory, Git branch, session name, and other extension statuses appear on addi
 Narrow terminals truncate individual segments to terminal column widths.
 `NO_COLOR=1` disables color escapes.
 Standard ANSI colors follow both light and dark terminal palettes.
+
+### Sleep ownership
 
 In macOS interactive TUI sessions, Insomniac starts one owned `caffeinate -i -w <Pi PID>` process when active work begins.
 `☕ awake` appears after that process starts.
@@ -52,16 +59,22 @@ Changes request a footer render immediately.
 Outside macOS, TUI sessions keep the idle label and start no sleep process.
 Print, JSON, and RPC modes do not install the footer or start sleep processes.
 
+### Footer replacement
+
 Pi has one custom footer slot.
 Another extension calling `setFooter` can replace Insomniac, and Insomniac can replace another custom footer during startup.
 Disable the competing footer to choose one.
 Statuses published by other extensions through `setStatus` remain visible.
+
+### Removal
 
 Remove it with the same absolute path, then `/reload` or restart to release this session's assertion and restore Pi's normal footer (unless another extension supplies a custom footer):
 
 ```sh
 pi remove /absolute/path/to/clankers/plugins/insomniac
 ```
+
+### Isolated checks
 
 For isolated checks, set `PI_CODING_AGENT_DIR` to a temporary directory before installation and launch Pi from a scratch directory.
 This leaves your personal settings untouched.
@@ -74,7 +87,7 @@ The plugin shows the model, effort level, context window usage, and whether `caf
 Opus 5 · high · ━━━━━━━╸──────────── 38% 76k/200k                 ☕ awake
 ```
 
-## Segments
+### Segments
 
 | Segment | Source | Notes |
 | --- | --- | --- |
@@ -92,7 +105,7 @@ The script right-aligns the sleep state to the width in `COLUMNS`.
 It stops 4 columns short to leave room for Claude Code's indent.
 If the terminal is too narrow or `COLUMNS` is missing, the sleep state follows the other segments after a ` · ` separator.
 
-## Sleep state
+### Sleep state
 
 On macOS, Claude Code keeps the Mac awake while working on a prompt.
 It runs `caffeinate -i -t 300` as a child process.
@@ -108,7 +121,7 @@ It also releases the assertion while a permission prompt waits for you.
 
 The script ignores `caffeinate` processes that other programs or other Claude Code sessions started.
 
-## Setup
+### Setup
 
 Claude Code does not let plugins set the status line.
 Point `statusLine` in `~/.claude/settings.json` at the script in the marketplace checkout.
@@ -130,18 +143,51 @@ For a local marketplace, use its directory instead of `~/.claude/plugins/marketp
 Without it, the status line updates only on events such as a new message, so `☕ awake` can remain after the assertion ends.
 Claude Code reruns the script when the model, effort level, or token usage changes, so those segments need no refresh.
 
-## Requirements
+### Requirements
 
 - Run on macOS.
   On other systems, Claude Code runs no `caffeinate`, and the script always shows `💤 can sleep`.
 - Use `jq`, available as `/usr/bin/jq` on macOS 15 and later.
   Without it, the line shows only the sleep state.
 
-## Limits
+### Limits
 
 - `caffeinate -i` prevents idle sleep but does not keep the display on.
   Closing a laptop lid still puts the Mac to sleep unless it runs in clamshell mode with power and an external display.
 - The status line can lag the real state by up to `refreshInterval` seconds because it shows the state from its last run.
+
+## Development
+
+`index.ts` exposes the Pi extension factory and installation functions.
+`src/pi/extension.ts` owns session lifecycle and connects the footer to the sleep assertion.
+`src/pi/footer.ts` installs the component and collects current session data.
+`src/pi/render-footer.ts`, `session-cost.ts`, and `sleep-assertion.ts` handle rendering, cost estimation, and process ownership.
+`scripts/statusline.sh` renders Claude Code status and observes its existing sleep assertion.
+
+Tests follow the host boundaries in `test/pi/` and `test/claude/`.
+`test/integration/` checks real child termination and loading through Pi's extension runner.
+Shared simulated hosts and process fixtures live in `test/support/`.
+Process tests compile fake executables with `cc` and create no power assertions.
+The complete suite requires macOS because Claude Code tests rely on launchd adopting orphaned processes.
+
+From the repository root:
+
+```sh
+pnpm --dir plugins/insomniac check
+```
+
+### Lint rules
+
+Apply spacing fixes before formatting:
+
+```sh
+pnpm --dir plugins/insomniac lint:fix
+pnpm --dir plugins/insomniac format
+pnpm --dir plugins/insomniac check
+```
+
+Prefer concrete types and checked test seams.
+Necessary assertions require a nearby `SAFETY:` comment explaining the invariant that permits them.
 
 ## Authors
 

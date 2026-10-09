@@ -7,7 +7,7 @@
     "perf": "error"
   },
   "rules": {
-    // `waitFor` polls a condition until a deadline, so each check has to wait for the previous one.
+    "oxc/no-accumulating-spread": "error",
     "no-await-in-loop": "off"
   }
 }

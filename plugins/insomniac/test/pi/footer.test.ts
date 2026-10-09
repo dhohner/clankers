@@ -1,12 +1,13 @@
-import { SessionManager, Theme, type ExtensionAPI, type ExtensionContext } from "@earendil-works/pi-coding-agent";
-import { stripTerminalSequences } from "@earendil-works/pi-tui";
+import { SessionManager, type ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
-import { installFooter } from "../index.ts";
+import { installFooter } from "../../index.ts";
+import { createPiHost } from "../support/pi-host.ts";
+import { createFooterController } from "../../src/pi/footer.ts";
 
 // Installing this package must discover just its own footer, not the repository's other plugins.
 it("advertises a standalone local Pi entry point and host-provided peers", () => {
-  const metadata = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+  const metadata = JSON.parse(readFileSync(new URL("../../package.json", import.meta.url), "utf8"));
   expect(metadata.pi).toEqual({ extensions: ["./index.ts"] });
   expect(metadata.peerDependencies).toMatchObject({
     "@earendil-works/pi-coding-agent": "*",
@@ -15,82 +16,53 @@ it("advertises a standalone local Pi entry point and host-provided peers", () =>
   expect(metadata.dependencies).toBeUndefined();
 });
 
-type FooterFactory = NonNullable<Parameters<ExtensionContext["ui"]["setFooter"]>[0]>;
+it("includes the relocated Pi sources in the repository package distribution", () => {
+  const metadata = JSON.parse(readFileSync(new URL("../../../../package.json", import.meta.url), "utf8"));
+  expect(metadata.files).toContain("plugins/insomniac/index.ts");
+  expect(metadata.files).toContain("plugins/insomniac/src/**");
+});
 
-// Pi is the external boundary: no provider or process calls exist in this fixture.
+it("installs through an explicit controller and disposes its session callback once", () => {
+  const host = createPiHost();
+  const footer = createFooterController(host.pi);
+  const disposed = vi.fn();
+  host.emit("session_start");
+  expect(host.render()).toBeUndefined();
+  footer.install(host.ctx, disposed);
+  footer.setOwnsAssertion(true);
+  expect(host.render()).toContain("☕ awake");
+  host.disposeFooter();
+  host.disposeFooter();
+  expect(disposed).toHaveBeenCalledOnce();
+  expect(host.unsubscribe).toHaveBeenCalledOnce();
+  host.requestRender.mockClear();
+  footer.setOwnsAssertion(false);
+  host.changeBranch("next");
+  expect(host.requestRender).not.toHaveBeenCalled();
+});
+
+it.each(["tui", "rpc", "json", "print"] as const)("preserves the installation callback contract in %s", (mode) => {
+  const host = createPiHost(mode);
+  const disposed = vi.fn();
+  const started = vi.fn(() => disposed);
+  installFooter(host.pi, started);
+  host.emit("session_start");
+
+  if (mode === "tui") {
+    expect(started).toHaveBeenCalledWith(host.ctx);
+    host.disposeFooter();
+    expect(disposed).toHaveBeenCalledOnce();
+  } else {
+    expect(started).not.toHaveBeenCalled();
+    expect(host.render()).toBeUndefined();
+  }
+});
+
 function session(mode: ExtensionContext["mode"] = "tui") {
-  const handlers = new Map<string, (event: unknown, ctx: ExtensionContext) => void>();
-  const requestRender = vi.fn();
-  const theme = {
-    getThinkingBorderColor: Theme.prototype.getThinkingBorderColor,
-    fg: vi.fn((_token: string, text: string) => `\u001b[38;5;42m${text}\u001b[39m`),
-  };
-  let footer: ReturnType<FooterFactory> | undefined;
-  let branch = "main";
-  let branchChanged: (() => void) | undefined;
-  const unsubscribe = vi.fn();
-  let usage: ReturnType<ExtensionContext["getContextUsage"]> = undefined;
-  const manager = SessionManager.inMemory();
-  manager.appendSessionInfo("Review");
-  const ctx = {
-    mode,
-    hasUI: mode === "tui" || mode === "rpc",
-    cwd: "/code",
-    model: { id: "opus", name: "Opus", reasoning: true },
-    thinkingLevel: "high",
-    getContextUsage: () => usage,
-    sessionManager: manager,
-    ui: {
-      setFooter: (factory: FooterFactory | undefined) => {
-        footer?.dispose?.();
-        footer = factory?.(
-          { requestRender } as unknown as Parameters<FooterFactory>[0],
-          theme as unknown as Parameters<FooterFactory>[1],
-          {
-            getGitBranch: () => branch,
-            getExtensionStatuses: () =>
-              new Map([
-                ["guard", "guard active"],
-                ["style", "concise"],
-              ]),
-            getAvailableProviderCount: () => 0,
-            onBranchChange: (callback) => {
-              branchChanged = callback;
-              return unsubscribe;
-            },
-          },
-        );
-      },
-    },
-  } as unknown as ExtensionContext;
-  const pi = {
-    on: (event: string, handler: (event: unknown, ctx: ExtensionContext) => void) => {
-      handlers.set(event, handler);
-      return () => handlers.delete(event);
-    },
-    getThinkingLevel: () => "medium",
-  } as unknown as ExtensionAPI;
-  const controller = installFooter(pi);
-  const emit = (type: string) => handlers.get(type)?.({ type }, ctx);
-  const render = (width = 100) => footer?.render(width).map(stripTerminalSequences).join("\n");
-  return {
-    ctx,
-    manager,
-    controller,
-    emit,
-    render,
-    requestRender,
-    theme,
-    raw: (width = 100) => footer?.render(width).join("\n"),
-    unsubscribe,
-    setUsage: (next: typeof usage) => {
-      usage = next;
-    },
-    changeBranch: (next: string) => {
-      branch = next;
-      branchChanged?.();
-    },
-  };
+  const host = createPiHost(mode);
+  const controller = installFooter(host.pi);
+
+  return { ...host, controller };
 }
 
 // Guarding hasUI instead of mode erroneously installs the footer in RPC.
@@ -99,6 +71,7 @@ it.each(["tui", "rpc", "json", "print"] as const)(
   (mode) => {
     const host = session(mode);
     host.emit("session_start");
+
     if (mode === "tui") expect(host.render()).toContain("💤 can sleep");
     else expect(host.render()).toBeUndefined();
   },
@@ -106,6 +79,7 @@ it.each(["tui", "rpc", "json", "print"] as const)(
 
 it("restores the session estimate and refreshes recorded costs independently of context", () => {
   const host = session();
+
   const addCost = (cost: number) =>
     host.manager.appendUsage("cache_warm", "p", "m", {
       input: 0,
@@ -115,6 +89,7 @@ it("restores the session estimate and refreshes recorded costs independently of 
       totalTokens: 0,
       cost: { input: cost, output: 0, cacheRead: 0, cacheWrite: 0, total: cost },
     });
+
   addCost(0.123);
   host.emit("session_start");
   expect(host.render()).toContain("──────────────────── -- · ~$0.123");
@@ -136,6 +111,7 @@ it("avoids copying session entries on unchanged footer renders and updates after
   const getEntries = vi.spyOn(host.manager, "getEntries");
   host.emit("session_start");
   expect(host.render()).toContain("~$0.000");
+
   for (let i = 0; i < 200; i++) expect(host.render()).toContain("~$0.000");
   expect(getEntries).toHaveBeenCalledTimes(1);
   host.manager.appendUsage("response", "p", "m", {
@@ -156,6 +132,7 @@ it("refreshes live context across responses, unknown compaction, and the next re
   const host = session();
   host.emit("session_start");
   expect(host.render()).toContain("──────────────────── --");
+
   for (const [type, usage, expected] of [
     ["message_end", { tokens: 76000, contextWindow: 200000, percent: 38 }, "76k/200k"],
     ["agent_end", { tokens: 24000, contextWindow: 200000, percent: 12 }, "24k/200k"],
@@ -202,6 +179,7 @@ it.each([
   ["max", "thinkingMax"],
 ] as const)("uses the editor border theme color for %s", (level, token) => {
   vi.stubEnv("NO_COLOR", "");
+
   try {
     const host = session();
     host.emit("session_start");

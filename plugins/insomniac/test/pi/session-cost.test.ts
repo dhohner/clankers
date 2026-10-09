@@ -3,9 +3,10 @@ import { expect, it, vi } from "vitest";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { createSessionCostReader, estimateSessionCost } from "../src/cost.ts";
+import { createSessionCostReader, estimateSessionCost } from "../../src/pi/session-cost.ts";
 
 type Usage = Parameters<SessionManager["appendUsage"]>[3];
+
 const usage = (total: number): Usage => ({
   input: 100,
   output: 20,
@@ -47,6 +48,7 @@ it("sums recorded session costs across models, tools, compaction, and abandoned 
 
 it("restores recorded costs after reopening a compacted session", () => {
   const directory = mkdtempSync(join(tmpdir(), "insomniac-cost-"));
+
   try {
     const manager = SessionManager.create(directory, directory);
     const root = manager.appendMessage({ role: "user", content: "Hello", timestamp: 0 });
@@ -87,10 +89,12 @@ it.each([
 ] as const)("avoids copying session entries on unchanged reads with cost %s", (cost, expected) => {
   const readCost = createSessionCostReader();
   const manager = SessionManager.inMemory();
+
   if (cost !== undefined) manager.appendUsage("first", "p", "m", usage(cost));
   const getEntries = vi.spyOn(manager, "getEntries");
   expect(readCost(manager)).toBe(expected);
   expect(getEntries).toHaveBeenCalledTimes(1);
+
   for (let i = 0; i < 200; i++) expect(readCost(manager)).toBe(expected);
   expect(getEntries).toHaveBeenCalledTimes(1);
 });
@@ -108,6 +112,21 @@ it.each([undefined, 42])("falls back safely when the entry count method is %s", 
   expect(getEntries).toHaveBeenCalledTimes(3);
 });
 
+it.each([0, 1, 42])("uses entry arrays instead of an overridden count returning %i", (count) => {
+  const readCost = createSessionCostReader();
+  const manager = SessionManager.inMemory();
+  const getEntryCount = vi.fn(() => count);
+  Object.defineProperty(manager, "getEntryCount", { value: getEntryCount });
+  manager.appendUsage("first", "p", "m", usage(0.1));
+  const getEntries = vi.spyOn(manager, "getEntries");
+  expect(readCost(manager)).toBe(0.1);
+  expect(readCost(manager)).toBe(0.1);
+  manager.appendUsage("second", "p", "m", usage(0.2));
+  expect(readCost(manager)).toBeCloseTo(0.3);
+  expect(getEntryCount).not.toHaveBeenCalled();
+  expect(getEntries).toHaveBeenCalledTimes(3);
+});
+
 it("refreshes the cached total on appends and session replacement", () => {
   const readCost = createSessionCostReader();
   const manager = SessionManager.inMemory();
@@ -115,6 +134,7 @@ it("refreshes the cached total on appends and session replacement", () => {
   expect(readCost(manager)).toBe(0.1);
   const entries = manager.getEntries();
   const total = vi.fn(() => 0.1);
+
   if (entries[0].type === "usage") Object.defineProperty(entries[0].usage.cost, "total", { get: total });
   expect(readCost(manager)).toBe(0.1);
   expect(total).not.toHaveBeenCalled();

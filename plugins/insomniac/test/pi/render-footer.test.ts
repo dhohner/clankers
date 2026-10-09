@@ -1,8 +1,9 @@
 import { TuiMainScreen, visibleWidth, stripTerminalSequences, type Terminal } from "@earendil-works/pi-tui";
 import { describe, expect, it, vi } from "vitest";
-import { renderFooter } from "../src/footer.ts";
+import { renderFooter } from "../../src/pi/render-footer.ts";
 
 const plain = (rows: string[]) => rows.map(stripTerminalSequences).join("\n");
+
 const noop = () => {};
 
 describe("Pi footer", () => {
@@ -28,6 +29,7 @@ describe("Pi footer", () => {
   it.each([0, 1, 2, 8, 20, 40, 60, 100])("fits the price and sleep state at width %i", (width) => {
     const rows = renderFooter({ model: { id: "Opus", reasoning: false }, sessionCost: 1.234 }, width);
     expect(rows.every((row) => visibleWidth(row) <= width)).toBe(true);
+
     if (width >= 40) {
       expect(plain(rows)).toContain("~$1.234");
       expect(
@@ -38,13 +40,16 @@ describe("Pi footer", () => {
 
   it.each([0, 1, 2, 8, 40, 100])("sanitizes themed thinking and fits width %i", (width) => {
     const thinkingColor = vi.fn((text: string) => `\u001b[38;2;10;20;30m${text}\u001b[39m`);
+
     const snapshot = {
       model: { id: "model", reasoning: true },
       thinkingLevel: "hi\u001b]52;c;payload\u0007gh",
     };
+
     const rows = renderFooter(snapshot, width, false, thinkingColor);
     expect(thinkingColor).toHaveBeenCalledWith("high");
     expect(rows.join("\n")).not.toContain("payload");
+
     for (const row of rows) expect(visibleWidth(row)).toBeLessThanOrEqual(width);
     thinkingColor.mockClear();
     const unstyled = renderFooter(snapshot, width, true, thinkingColor);
@@ -61,6 +66,7 @@ describe("Pi footer", () => {
   ])("removes supplied controls %j from actual terminal output with colors enabled", (sequence) => {
     const text = `prefix${sequence}suffix`;
     const write = vi.fn();
+
     const terminal: Terminal = {
       columns: 160,
       rows: 24,
@@ -78,6 +84,7 @@ describe("Pi footer", () => {
       setTitle: noop,
       setProgress: noop,
     };
+
     const tui = new TuiMainScreen(terminal);
     tui.addChild({
       render: (width) =>
@@ -105,6 +112,7 @@ describe("Pi footer", () => {
 
   it("allows numeric SGR styling only in extension statuses", () => {
     const styled = "\u001b[1;38;2;10;20;30mactive\u001b[0m";
+
     const rows = renderFooter(
       {
         model: { name: styled, id: "model", reasoning: false },
@@ -112,6 +120,7 @@ describe("Pi footer", () => {
       },
       100,
     );
+
     expect(rows[0]).toContain("\u001b[1mactive\u001b[0m");
     expect(rows.at(-1)).toBe(styled);
     expect(renderFooter({ statuses: [styled] }, 100, true).at(-1)).toBe("active");
@@ -126,6 +135,7 @@ describe("Pi footer", () => {
     "\u0090data\u009c",
   ])("strips terminal control %j in NO_COLOR before measuring rows", (sequence) => {
     const text = `prefix${sequence}suffix`;
+
     const rows = renderFooter(
       {
         model: { name: text, id: "model", reasoning: true },
@@ -138,6 +148,7 @@ describe("Pi footer", () => {
       100,
       true,
     );
+
     expect(rows.at(-1)).toBe("prefixsuffix");
     // eslint-disable-next-line no-control-regex -- Prove terminal control bytes are absent.
     expect(rows.every((row) => !/[\u001b\u0080-\u009f]/u.test(row))).toBe(true);
@@ -156,7 +167,9 @@ describe("Pi footer", () => {
         },
         width,
       );
+
       expect(rows.every((row) => !/[\r\n\t]/u.test(row) && visibleWidth(row) <= width)).toBe(true);
+
       for (const expected of [
         "model name",
         "thinking high",
@@ -167,6 +180,7 @@ describe("Pi footer", () => {
       ]) {
         expect(plain(rows)).toContain(expected);
       }
+
       const fallback = renderFooter({ model: { id: `fallback${control}id`, reasoning: false } }, width);
       expect(plain(fallback)).toContain("fallback id");
     }
@@ -182,11 +196,13 @@ describe("Pi footer", () => {
       100,
       true,
     );
+
     expect(rows.join("\n")).not.toContain("\u001b");
     expect(plain(rows)).toContain("guard active");
   });
   it.each([0, 1, 2, 8, 40])("keeps truncated NO_COLOR rows free of controls at width %i", (width) => {
     const long = "模型 🧠 long segment ".repeat(15);
+
     const rows = renderFooter(
       {
         model: { name: long, id: "model", reasoning: true },
@@ -199,7 +215,9 @@ describe("Pi footer", () => {
       width,
       true,
     );
+
     expect(rows.length).toBeGreaterThan(0);
+
     for (const row of rows) {
       // eslint-disable-next-line no-control-regex -- Completed NO_COLOR rows must contain no terminal controls.
       expect(row).not.toMatch(/[\u0000-\u001f\u007f-\u009f]/u);
@@ -221,7 +239,9 @@ describe("Pi footer", () => {
         },
         width,
       );
+
       expect(rows.every((row) => visibleWidth(row) <= width)).toBe(true);
+
       if (width >= 40) {
         expect(plain(rows)).toContain("/code/模型 · feat/🧠 · Review");
         expect(plain(rows)).toContain("guard: active · style: concise");

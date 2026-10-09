@@ -7,20 +7,31 @@ import { once } from "node:events";
 import { resolve } from "node:path";
 
 const realSpawn = childProcess.spawn;
+
 const children = [];
+
 childProcess.spawn = (command, args, options) => {
   if (command !== "/usr/bin/caffeinate") return realSpawn(command, args, options);
   const child = realSpawn(process.env.INSOMNIAC_TEST_EXECUTABLE, args, options);
   children.push(child);
+
   return child;
 };
+
 syncBuiltinESMExports();
+
 const host = await import(process.env.INSOMNIAC_TEST_PI ?? "@earendil-works/pi-coding-agent");
+
 const plugin = resolve(import.meta.dirname, "../../index.ts");
+
 const loaded = await host.discoverAndLoadExtensions([plugin], process.cwd(), process.env.PI_CODING_AGENT_DIR);
+
 assert.deepEqual(loaded.errors, []);
+
 assert.equal(children.length, 0, "loading the factory must not start resources");
+
 loaded.runtime.getThinkingLevel = () => "high";
+
 const models = await host.ModelRuntime.create({
   authPath: resolve(process.env.PI_CODING_AGENT_DIR, "auth.json"),
   modelsPath: null,
@@ -28,7 +39,9 @@ const models = await host.ModelRuntime.create({
   allowModelNetwork: false,
   refreshOnCreate: false,
 });
+
 const sessionManager = host.SessionManager.inMemory();
+
 const runner = new host.ExtensionRunner(
   loaded.extensions,
   loaded.runtime,
@@ -36,10 +49,15 @@ const runner = new host.ExtensionRunner(
   sessionManager,
   new host.ModelRegistry(models),
 );
+
 const errors = [];
+
 runner.onError((error) => errors.push(error));
+
 let footer;
+
 let renders = 0;
+
 runner.setUIContext(
   {
     setFooter(factory) {
@@ -58,19 +76,24 @@ runner.setUIContext(
   },
   "tui",
 );
+
 const render = () => footer.render(100).join("\n");
+
 const live = (pid) => {
   try {
     process.kill(pid, 0);
+
     return true;
   } catch {
     return false;
   }
 };
+
 const gone = async (child) => {
   if (child.exitCode === null && child.signalCode === null) await once(child, "exit");
   assert.equal(live(child.pid), false);
 };
+
 try {
   await runner.emit({ type: "session_start" });
   assert.match(render(), /can sleep/u);

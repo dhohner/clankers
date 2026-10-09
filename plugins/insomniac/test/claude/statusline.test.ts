@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-const SCRIPT = join(dirname(fileURLToPath(import.meta.url)), "../scripts/statusline.sh");
+const SCRIPT = join(dirname(fileURLToPath(import.meta.url)), "../../scripts/statusline.sh");
 
 // This compiled binary stands in for caffeinate, so tests hold no real power assertion.
 // It uses the name caffeinate because the status line matches the executable name.
@@ -54,20 +54,31 @@ echo "exit $?" >>"$OUT.tmp"
 mv "$OUT.tmp" "$OUT"
 `;
 
-// Claude Code sends more fields; the status line ignores them.
-function session(fields: object = {}): string {
+interface ClaudeSessionFields {
+  model?: { id: string; display_name?: string };
+  effort?: { level: string };
+  context_window?: {
+    context_window_size: number;
+    total_input_tokens: number;
+    used_percentage: number | null;
+  };
+}
+
+function session(fields: ClaudeSessionFields = {}): string {
   return JSON.stringify({ session_id: "session-a", ...fields });
 }
 
 // Claude Code computes used_percentage from input tokens and the window size.
-function contextUsed(percentage: number | null, windowSize = 200000): object {
+function contextUsed(percentage: number | null, windowSize = 200000) {
   const inputTokens = percentage === null ? 0 : (windowSize * percentage) / 100;
+
   return {
     context_window: { context_window_size: windowSize, total_input_tokens: inputTokens, used_percentage: percentage },
   };
 }
 
 const ESC = "\u001b";
+
 const ANSI = new RegExp(`${ESC}\\[[0-9;]*m`, "g");
 
 function plain(text: string): string {
@@ -79,17 +90,22 @@ function painted(code: string, text: string): string {
 }
 
 let buildDir: string;
+
 let stubBinary: string;
+
 let root: string;
+
 let stubLog: string;
 
 function stubPids(): number[] {
   if (!existsSync(stubLog)) return [];
+
   return readFileSync(stubLog, "utf8").trim().split("\n").filter(Boolean).map(Number);
 }
 
 async function waitFor(condition: () => boolean): Promise<void> {
   const deadline = Date.now() + 3000;
+
   while (!condition()) {
     if (Date.now() > deadline) throw new Error("condition not met within 3 seconds");
     await new Promise((resolve) => setTimeout(resolve, 20));
@@ -121,6 +137,7 @@ async function runStatusLine(
   await waitFor(() => existsSync(out));
   const lines = readFileSync(out, "utf8").trimEnd().split("\n");
   const raw = lines.slice(0, -1).join("\n");
+
   return { text: plain(raw), raw, status: Number(lines.at(-1)!.replace("exit ", "")) };
 }
 
@@ -129,6 +146,7 @@ beforeAll(() => {
   stubBinary = join(buildDir, "caffeinate");
   writeFileSync(`${stubBinary}.c`, STUB_CAFFEINATE_SOURCE);
   const build = spawnSync("cc", ["-o", stubBinary, `${stubBinary}.c`], { encoding: "utf8" });
+
   if (build.status !== 0) throw new Error(`building the caffeinate stub needs a C compiler: ${build.stderr}`);
   writeFileSync(join(buildDir, "harness.sh"), HARNESS_SOURCE);
   chmodSync(join(buildDir, "harness.sh"), 0o755);
@@ -151,6 +169,7 @@ afterEach(() => {
       // Already gone.
     }
   }
+
   rmSync(root, { recursive: true, force: true });
 });
 
@@ -328,6 +347,7 @@ describe("with the terminal width in COLUMNS", () => {
     effort: { level: "high" },
     ...contextUsed(38),
   });
+
   const details = "Opus 5 · high · ━━━━━━━╸──────────── 38% 76k/200k";
 
   // Claude Code indents the status line by 4 columns, so it ends 4 columns before terminal width.
