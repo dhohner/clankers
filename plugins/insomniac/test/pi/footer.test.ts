@@ -147,6 +147,40 @@ it("refreshes live context across responses, unknown compaction, and the next re
   }
 });
 
+it("changes context colors as responses accumulate and resets after compaction", () => {
+  vi.stubEnv("NO_COLOR", "");
+
+  try {
+    const host = session();
+    host.emit("session_start");
+
+    for (const [percent, color] of [
+      [10, "32"],
+      [25, "33"],
+      [50, "38;5;208"],
+      [75, "31"],
+    ] as const) {
+      host.setUsage({ tokens: percent * 2000, contextWindow: 200000, percent });
+      host.requestRender.mockClear();
+      host.emit("message_end");
+      expect(host.requestRender).toHaveBeenCalled();
+      expect(host.raw()).toContain(`\u001b[${color}m${"━".repeat(percent / 5)}\u001b[0m`);
+    }
+
+    host.setUsage({ tokens: null, contextWindow: 200000, percent: null });
+    host.emit("session_compact");
+    expect(host.render()).toContain("──────────────────── --");
+    expect(host.raw()).not.toContain("\u001b[31m");
+    host.setUsage({ tokens: 10000, contextWindow: 200000, percent: 5 });
+    host.emit("message_end");
+    expect(host.raw()).toContain("\u001b[32m━\u001b[0m");
+    vi.stubEnv("NO_COLOR", "1");
+    expect(host.raw()).toBe(host.render());
+  } finally {
+    vi.unstubAllEnvs();
+  }
+});
+
 // Omitting either selection event leaves the footer showing the previous model/effort.
 it("refreshes model and thinking selections, falls back to ID, and omits unsupported thinking", () => {
   const host = session();

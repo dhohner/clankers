@@ -278,7 +278,7 @@ describe("Pi footer", () => {
   it.each([
     [3.7349264705882352, "╸───────────────────", "32"],
     [2.4999, "────────────────────", "32"],
-    [49.9999, "━━━━━━━━━╸──────────", "32"],
+    [49.9999, "━━━━━━━━━╸──────────", "33"],
   ])("uses %s%% only for the bar and color without displaying a percentage", (percent, bar, color) => {
     const rows = renderFooter({ usage: { tokens: 10000, contextWindow: 272000, percent } }, 100);
     expect(plain(rows)).toContain(`${bar} 10k/272k`);
@@ -293,9 +293,13 @@ describe("Pi footer", () => {
     [2.5, "╸───────────────────", "32"],
     [4.99, "╸───────────────────", "32"],
     [5, "━───────────────────", "32"],
-    [49.99, "━━━━━━━━━╸──────────", "32"],
-    [50, "━━━━━━━━━━──────────", "33"],
-    [79.99, "━━━━━━━━━━━━━━━╸────", "33"],
+    [24.99, "━━━━╸───────────────", "32"],
+    [25, "━━━━━───────────────", "33"],
+    [49.99, "━━━━━━━━━╸──────────", "33"],
+    [50, "━━━━━━━━━━──────────", "38;5;208"],
+    [74.99, "━━━━━━━━━━━━━━╸─────", "38;5;208"],
+    [75, "━━━━━━━━━━━━━━━─────", "31"],
+    [79.99, "━━━━━━━━━━━━━━━╸────", "31"],
     [80, "━━━━━━━━━━━━━━━━────", "31"],
     [100, "━━━━━━━━━━━━━━━━━━━━", "31"],
     [105, "━━━━━━━━━━━━━━━━━━━━", "31"],
@@ -306,6 +310,17 @@ describe("Pi footer", () => {
     expect(plain(rows)).not.toContain("%");
     expect(rows.join("\n")).toContain(`\u001b[2m76k/200k\u001b[0m`);
     expect(rows.join("\n")).toContain(`\u001b[${color}m${bar.replace(/─/g, "")}\u001b[0m`);
+  });
+  it.each([25, 50, 75, 100])("fits colored usage at %i%% and honors NO_COLOR", (percent) => {
+    const snapshot = { usage: { tokens: percent * 2000, contextWindow: 200000, percent } };
+
+    for (const width of [0, 1, 8, 20, 40, 100]) {
+      const rows = renderFooter(snapshot, width);
+      expect(rows.every((row) => visibleWidth(row) <= width)).toBe(true);
+      const unstyled = renderFooter(snapshot, width, true);
+      expect(unstyled.join("\n")).toBe(plain(unstyled));
+      expect(plain(unstyled)).toBe(plain(rows));
+    }
   });
   // Removing initial unknown usage or the idle state hides the session's real state.
   it("shows the current model, thinking, unknown context, and idle sleep state", () => {

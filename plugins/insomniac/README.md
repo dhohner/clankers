@@ -29,13 +29,24 @@ Actual charges depend on provider pricing and subscriptions.
 ```text
 Opus 5 · high · ━━━━━━━╸──────────── 76k/200k · ~$0.123                 ☕ awake
 ```
-Its 20 cells use the notation and standard terminal colors described below.
+Its 20 cells represent 5% each, with a half cell for at least 2.5% more.
+The Pi bar changes color as context grows:
+
+| Context used | Color | Guidance |
+| --- | --- | --- |
+| Below 25% | Green | Plenty of context remains. |
+| 25% to below 50% | Yellow | Context is accumulating. |
+| 50% to below 75% | Orange | Plan a compaction or a new session. |
+| 75% and above | Red | Consider `/compact`, or `/new` for a fresh task. |
+
+These thresholds are visual guidance, rather than model quality guarantees.
 Usage is estimated current context, not cumulative session tokens; unknown usage shows `──────────────────── --`, including immediately after compaction.
 Model, thinking, responses, compaction, and branch changes refresh it.
 Directory, Git branch, session name, and other extension statuses appear on additional rows as needed.
 Narrow terminals truncate individual segments to terminal column widths.
 `NO_COLOR=1` disables color escapes.
-Standard ANSI colors follow both light and dark terminal palettes.
+Green, yellow, and red use the terminal's standard ANSI palette.
+Orange uses index 208 from the 256 color palette.
 
 ### Sleep ownership
 

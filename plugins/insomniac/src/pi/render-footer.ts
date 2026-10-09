@@ -78,7 +78,7 @@ export function renderFooter(
     const cells = Math.min(20, Math.max(0, usage.percent / 5));
     const full = Math.floor(cells);
     const half = full < 20 && cells - full >= 0.5 ? 1 : 0;
-    const color = usage.percent < 50 ? "32" : usage.percent < 80 ? "33" : "31";
+    const color = usage.percent < 25 ? "32" : usage.percent < 50 ? "33" : usage.percent < 75 ? "38;5;208" : "31";
     parts.push(
       paint(color, "━".repeat(full) + "╸".repeat(half)) +
         paint("2", "─".repeat(20 - full - half)) +
