@@ -13,19 +13,24 @@ describe("Pi footer", () => {
       outputStyle: "unslop",
       thinkingLevel: "medium",
     };
+
     const rows = renderFooter(snapshot, width);
     expect(rows.every((row) => visibleWidth(row) <= width)).toBe(true);
+
     if (width >= 100) {
       expect(plain(rows)).toContain("GPT-6.1 Sol · medium ·");
       expect(stripTerminalSequences(rows[0]).endsWith("💤 can sleep · [unslop]")).toBe(true);
       expect(visibleWidth(rows[0])).toBe(width);
     }
+
     if (width === 40) {
       const lastRow = rows.at(-1);
+
       if (lastRow === undefined) throw new Error("Expected a footer row");
       expect(stripTerminalSequences(lastRow).endsWith("💤 can sleep · [unslop]")).toBe(true);
       expect(visibleWidth(lastRow)).toBe(width);
     }
+
     expect(renderFooter(snapshot, width, true).join("\n")).toBe(plain(rows));
   });
 
@@ -34,16 +39,19 @@ describe("Pi footer", () => {
       { model: { id: "gpt", reasoning: false }, outputStyle: "unslop", ownsAssertion: true },
       100,
     );
+
     expect(stripTerminalSequences(rows[0]).endsWith("☕ awake · [unslop]")).toBe(true);
     expect(visibleWidth(rows[0])).toBe(100);
   });
 
   it("sanitizes and colors the style and honors NO_COLOR", () => {
     const accentColor = vi.fn((text: string) => `\u001b[38;5;99m${text}\u001b[39m`);
+
     const snapshot = {
       model: { id: "gpt", reasoning: false },
       outputStyle: "un\u001b]52;c;payload\u0007slop\n",
     };
+
     const rows = renderFooter(snapshot, 100, false, undefined, accentColor);
     expect(rows.join("\n")).toContain("[\u001b[38;5;99munslop \u001b[39m]");
     expect(rows.join("\n")).not.toContain("payload");

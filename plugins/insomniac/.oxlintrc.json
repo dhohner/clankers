@@ -1,5 +1,7 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "extends": ["../../tools/oxlint/anti-slop.json"],
+  "jsPlugins": [{ "name": "anti-slop", "specifier": "../../tools/oxlint/anti-slop/index.ts" }],
   "plugins": ["typescript", "unicorn", "oxc", "import", "promise"],
   "categories": {
     "correctness": "error",
@@ -7,7 +9,6 @@
     "perf": "error"
   },
   "rules": {
-    "oxc/no-accumulating-spread": "error",
     "no-await-in-loop": "off"
   }
 }

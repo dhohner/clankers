@@ -271,6 +271,7 @@ it("places the output style after the sleep state and omits its separate status 
 
 it("renders the style with the current theme accent and respects NO_COLOR", () => {
   vi.stubEnv("NO_COLOR", "");
+
   try {
     const host = session();
     host.setStatuses(new Map([["output-style", "\u001b[2mstyle\u001b[0m \u001b[38;5;42munslop\u001b[39m"]]));

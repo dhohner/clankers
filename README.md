@@ -102,6 +102,29 @@ Add `-l` to any Pi install command to write a project-local entry to `.pi/settin
 pi install -l ./
 ```
 
+## Development
+
+Run the TypeScript checks used by CI:
+
+```bash
+pnpm lint:ts
+```
+
+Run the optional anti-slop checks for plugins still being migrated:
+
+```bash
+pnpm lint:anti-slop
+```
+
+Check one plugin while migrating its violations:
+
+```bash
+pnpm --filter ./plugins/output-styles lint:anti-slop
+```
+
+After a plugin passes, merge its anti-slop configuration into `.oxlintrc.json` to require anti-slop in CI and include the rules in `lint:fix`.
+Remove the plugin's separate `lint:anti-slop` command after merging.
+
 ## Marketplace files
 
 - [`.claude-plugin/marketplace.json`](./.claude-plugin/marketplace.json) defines the Claude Code marketplace.

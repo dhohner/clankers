@@ -16,10 +16,12 @@
     "test:py": "python3 plugins/project-advisor/skills/to-prd/tests/run_parallel.py",
     "test:py:fast": "python3 plugins/project-advisor/skills/to-prd/tests/run_parallel.py --fast",
     "lint:ts": "pnpm --recursive run lint && pnpm --recursive run format:check && pnpm --recursive run typecheck",
+    "lint:anti-slop": "pnpm --recursive --no-bail run lint:anti-slop",
     "lint:py": "cd plugins/project-advisor/skills/to-prd && uvx ruff@0.16.9 check . && uvx ruff@0.16.9 format --check .",
     "lint:workflows": "uvx --from actionlint-py==1.7.12.25 actionlint && uvx zizmor@1.30.1 .github"
   },
   "devDependencies": {
+    "@oxlint/plugins": "1.86.0",
     "vitest": "^5.0.2"
   },
   "peerDependencies": {

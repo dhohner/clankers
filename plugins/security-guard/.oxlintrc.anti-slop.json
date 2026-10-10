@@ -1,0 +1,5 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "extends": [".oxlintrc.json", "../../tools/oxlint/anti-slop.json"],
+  "jsPlugins": [{ "name": "anti-slop", "specifier": "../../tools/oxlint/anti-slop/index.ts" }]
+}

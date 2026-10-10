@@ -122,6 +122,9 @@ importers:
         specifier: ^2.9.1
         version: 2.9.1
     devDependencies:
+      '@oxlint/plugins':
+        specifier: 1.86.0
+        version: 1.86.0
       vitest:
         specifier: ^5.0.2
         version: 5.0.2(@types/node@26.6.3)(@vitest/coverage-istanbul@5.0.2)(vite@8.3.1(@types/node@26.6.3)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
@@ -141,7 +144,7 @@ importers:
         specifier: ^0.71.0
         version: 0.71.0
       oxlint:
-        specifier: ^1.86.0
+        specifier: 1.86.0
         version: 1.86.0
       typescript:
         specifier: ^7.0.2
@@ -175,7 +178,7 @@ importers:
         specifier: ^0.71.0
         version: 0.71.0
       oxlint:
-        specifier: ^1.86.0
+        specifier: 1.86.0
         version: 1.86.0
       typescript:
         specifier: ^7.0.2
@@ -197,7 +200,7 @@ importers:
         specifier: ^0.71.0
         version: 0.71.0
       oxlint:
-        specifier: ^1.86.0
+        specifier: 1.86.0
         version: 1.86.0
       typescript:
         specifier: ^7.0.2
@@ -875,6 +878,10 @@ packages:
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [x64]
     os: [win32]
+
+  '@oxlint/plugins@1.86.0':
+    resolution: {integrity: sha512-JeAiaaRMyUiUEQHQ7zBsJn1aEdbLyt1HJsOs4XKIIlATNxcvWRrRxneZA+RF4G03cQobq3IhTqSfyLhOFv03qA==}
+    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
 
   '@protobufjs/aspromise@1.1.2':
     resolution: {integrity: sha512-j+gKExEuLmKwvz3OgROXtrJ2UG2x8Ch2YZUxahh+s1F2HZ+wAceUNLkvy6zKCPVRkU++ZWQrdxsUeQXmcg4uoQ==}
@@ -2575,6 +2582,8 @@ snapshots:
 
   '@oxlint/binding-win32-x64-msvc@1.86.0':
     optional: true
+
+  '@oxlint/plugins@1.86.0': {}
 
   '@protobufjs/aspromise@1.1.2': {}
 
