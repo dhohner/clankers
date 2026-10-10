@@ -49,6 +49,8 @@ The fallback never changes the persisted selection, so a temporarily broken styl
 A switch replaces the flag selection for the rest of the session and takes effect from the next agent turn on.
 Answers already produced are unchanged and the session is not restarted.
 The footer status line shows the active style as a dim `style` label followed by the style name in the theme accent color, and every switch updates it immediately.
+When Insomniac supplies the footer, it displays this entry in square brackets after the sleep state on the right, with a dot separator.
+It uses the current theme's accent color and omits the separate style status row.
 While the built-in `default` style is active, the plugin writes no footer entry at all: no style instructions are in effect, so the shared status line stays free for other extensions.
 The colors follow the active Pi theme, and every agent turn renders the entry again, so a theme switched during a session takes effect from the next turn on.
 Switching to the already active style is allowed, changes nothing, and is not an error.

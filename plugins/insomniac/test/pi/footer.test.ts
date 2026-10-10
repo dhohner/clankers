@@ -245,6 +245,66 @@ it("preserves directory, branch, session name and statuses and refreshes changed
   expect(host.unsubscribe).toHaveBeenCalled();
 });
 
+it("places the output style after the sleep state and omits its separate status entry", () => {
+  const host = session();
+  host.setStatuses(
+    new Map([
+      ["guard", "guard active"],
+      ["output-style", "\u001b[2mstyle\u001b[0m \u001b[36munslop\u001b[0m"],
+    ]),
+  );
+  host.emit("session_start");
+  expect(host.render()).toContain("💤 can sleep · [unslop]");
+  host.controller.setOwnsAssertion(true);
+  expect(host.render()).toContain("☕ awake · [unslop]");
+  expect(host.render()).toContain("guard active");
+  expect(host.render()?.match(/unslop/g)).toHaveLength(1);
+
+  host.setStatuses(new Map([["output-style", "style explanatory"]]));
+  expect(host.render()).toContain("☕ awake · [explanatory]");
+  expect(host.render()).not.toContain("unslop");
+
+  host.setStatuses(new Map());
+  expect(host.render()).not.toContain("[explanatory]");
+  expect(host.render()).toContain("☕ awake");
+});
+
+it("renders the style with the current theme accent and respects NO_COLOR", () => {
+  vi.stubEnv("NO_COLOR", "");
+  try {
+    const host = session();
+    host.setStatuses(new Map([["output-style", "\u001b[2mstyle\u001b[0m \u001b[38;5;42munslop\u001b[39m"]]));
+    host.emit("session_start");
+    expect(host.raw()).toContain("[\u001b[38;5;42munslop\u001b[39m]");
+    expect(host.theme.fg).toHaveBeenCalledWith("accent", "unslop");
+
+    host.theme.fg.mockImplementation((_token, text) => `\u001b[38;5;99m${text}\u001b[39m`);
+    expect(host.raw()).toContain("[\u001b[38;5;99munslop\u001b[39m]");
+
+    vi.stubEnv("NO_COLOR", "1");
+    expect(host.raw()).toBe(host.render());
+    expect(host.render()).toContain("💤 can sleep · [unslop]");
+  } finally {
+    vi.unstubAllEnvs();
+  }
+});
+
+it("places the output style after the sleep state when no model is selected", () => {
+  const host = session();
+  host.ctx.model = undefined;
+  host.setStatuses(new Map([["output-style", "style unslop"]]));
+  host.emit("session_start");
+  expect(host.render()).toContain("💤 can sleep · [unslop]");
+  expect(host.render()).not.toContain("style unslop");
+});
+
+it("preserves an output style entry with an unrecognized format", () => {
+  const host = session();
+  host.setStatuses(new Map([["output-style", "unslop"]]));
+  host.emit("session_start");
+  expect(host.render()?.split("\n").at(-1)).toBe("unslop");
+});
+
 // A global state or missing render request would misreport another session's ownership.
 it("updates assertion ownership only for this session and requests a render", () => {
   const first = session();

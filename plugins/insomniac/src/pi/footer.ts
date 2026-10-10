@@ -1,4 +1,5 @@
 import type { ExtensionAPI, ExtensionContext, ExtensionEvent } from "@earendil-works/pi-coding-agent";
+import { stripTerminalSequences } from "@earendil-works/pi-tui";
 import { renderFooter } from "./render-footer.ts";
 import { createSessionCostReader } from "./session-cost.ts";
 
@@ -40,8 +41,13 @@ export function createFooterController(pi: ExtensionAPI) {
             if (requestRender === render) requestRender = undefined;
           },
           invalidate() {},
-          render: (width) =>
-            renderFooter(
+          render: (width) => {
+            const statuses = footerData.getExtensionStatuses();
+            // Output Styles publishes a themed "style <name>" entry through Pi's shared status API.
+            const styleStatus = stripTerminalSequences(statuses.get("output-style") ?? "");
+            const outputStyle = styleStatus.startsWith("style ") ? styleStatus.slice(6) : undefined;
+
+            return renderFooter(
               {
                 model: current.model,
                 thinkingLevel: current.thinkingLevel ?? pi.getThinkingLevel(),
@@ -50,13 +56,18 @@ export function createFooterController(pi: ExtensionAPI) {
                 cwd: current.cwd,
                 sessionName: current.sessionManager.getSessionName(),
                 branch: footerData.getGitBranch() ?? undefined,
-                statuses: [...footerData.getExtensionStatuses().values()],
+                outputStyle,
+                statuses: [...statuses].flatMap(([key, value]) =>
+                  key === "output-style" && outputStyle ? [] : [value],
+                ),
                 ownsAssertion,
               },
               width,
               Boolean(process.env.NO_COLOR),
               (text) => theme.getThinkingBorderColor(current.thinkingLevel ?? pi.getThinkingLevel())(text),
-            ),
+              (text) => theme.fg("accent", text),
+            );
+          },
         };
       });
     },

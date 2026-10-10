@@ -4,6 +4,7 @@ import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
 export interface FooterSnapshot {
   model?: { name?: string; id: string; reasoning: boolean };
   thinkingLevel?: string;
+  outputStyle?: string;
   usage?: ContextUsage;
   sessionCost?: number | null;
   cwd?: string;
@@ -42,6 +43,7 @@ export function renderFooter(
   width: number,
   noColor = false,
   thinkingColor?: (text: string) => string,
+  accentColor?: (text: string) => string,
 ): string[] {
   width = Math.max(0, Math.floor(width));
 
@@ -116,11 +118,15 @@ export function renderFooter(
 
   pack(parts);
   const sleep = snapshot.ownsAssertion ? `☕ ${paint("33", "awake")}` : `💤 ${paint("2", "can sleep")}`;
+  const style = snapshot.outputStyle ? sanitize(snapshot.outputStyle) : undefined;
+  const styled = style && !noColor && accentColor ? accentColor(style) : style;
+  const styleLabel = styled ? `[${styled}]` : undefined;
+  const sleepStatus = styleLabel ? `${sleep}${separator}${styleLabel}` : sleep;
   const details = rows.at(-1) ?? "";
-  const gap = width - visibleWidth(details) - visibleWidth(sleep);
+  const gap = width - visibleWidth(details) - visibleWidth(sleepStatus);
 
-  if (gap >= 3) rows[rows.length - 1] = details + " ".repeat(gap) + sleep;
-  else rows.push(" ".repeat(Math.max(0, width - visibleWidth(sleep))) + truncateToWidth(sleep, width));
+  if (gap >= 3) rows[rows.length - 1] = details + " ".repeat(gap) + sleepStatus;
+  else rows.push(" ".repeat(Math.max(0, width - visibleWidth(sleepStatus))) + truncateToWidth(sleepStatus, width));
   pack([snapshot.cwd, snapshot.branch, snapshot.sessionName].flatMap((value) => (value ? [paint("2", value)] : [])));
   pack((snapshot.statuses ?? []).map((value) => sanitize(value, true)));
 

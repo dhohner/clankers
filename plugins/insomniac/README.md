@@ -21,6 +21,10 @@ Restart Pi, or run `/reload` in an existing TUI session, to load it automaticall
 ### Footer output
 
 The footer shows the model name (or identifier), thinking level for reasoning models, current context usage, and estimated session cost from Pi.
+When Output Styles is active, its style appears on the right after the sleep state, for example `💤 can sleep · [unslop]` or `☕ awake · [unslop]`.
+The style name uses the current theme's accent color.
+Insomniac reads the shared `output-style` status entry and omits it from the additional status rows.
+The built-in `default` style has no entry and adds no brackets.
 The dim `~$0.123` segment follows the context meter and uses USD with three decimal places.
 It sums recorded costs across the entire session, including other conversation branches, tool usage, compaction, branch summaries, and cache warming.
 The estimate starts at `~$0.000`, survives compaction and reload, and shows `~$--` if recorded costs are invalid.
