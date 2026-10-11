@@ -39,17 +39,21 @@ const ASSESSMENT_REFUSAL = "corpus harness: no assessor is available";
 // stay gated. `node_modules`, `dist`, `dist/cache`, `dist/app.js`, and `packages/a/node_modules` are the
 // regenerable entries; a missing one would gate its `rm` entry for the wrong reason.
 const WORKSPACE_DIRECTORIES = ["node_modules", "dist", "dist/cache", "packages/a/node_modules", "src"];
+
 // `build` is a regular file, so its `rm` entry proves that an exempt name alone exempts nothing.
 const WORKSPACE_FILES = ["dist/app.js", "src/a.ts", "README.md", "a.ts", "b.ts", "c.ts", "build"];
 
 let workspace: string;
 
+type RecordingPorts = { ports: DecisionPorts; calls: { assess: number; approval: number } };
+
 /**
  * The real host ports, so the temporary-root proof, the executable resolution, and the path inspection decide
  * the entry, paired with recording stubs for the two ports that would leave the process.
  */
-function makeRecordingPorts(): { ports: DecisionPorts; calls: { assess: number; approval: number } } {
+function makeRecordingPorts(): RecordingPorts {
   const calls = { assess: 0, approval: 0 };
+
   return {
     calls,
     ports: {
@@ -59,10 +63,12 @@ function makeRecordingPorts(): { ports: DecisionPorts; calls: { assess: number; 
       inspectPath,
       assessCommand: async () => {
         calls.assess += 1;
+
         return { ok: false, reason: ASSESSMENT_REFUSAL };
       },
       requestApproval: async () => {
         calls.approval += 1;
+
         return false;
       },
     },
@@ -71,12 +77,14 @@ function makeRecordingPorts(): { ports: DecisionPorts; calls: { assess: number; 
 
 async function decide(command: string): Promise<{ decision: ToolCallDecision; assess: number; approval: number }> {
   const { ports, calls } = makeRecordingPorts();
+
   const decision = await decideToolCall(
     // `approvalAvailable` is true so that a gated command reaches the assessment port, which is what
     // distinguishes it from a credential block that never gets there.
     { call: { kind: "bash", command }, workingDirectory: workspace, approvalAvailable: true },
     ports,
   );
+
   return { decision, assess: calls.assess, approval: calls.approval };
 }
 
@@ -86,6 +94,7 @@ beforeAll(async () => {
   // baseline. `mkdtemp` gives each run its own directory, so two runs in the same checkout share no path and
   // neither can remove the other's; `.gitignore` covers the prefix.
   workspace = await mkdtemp(join(PACKAGE_ROOT, ".corpus-workspace-"));
+
   for (const directory of WORKSPACE_DIRECTORIES) await mkdir(join(workspace, directory), { recursive: true });
   await Promise.all(WORKSPACE_FILES.map((file) => writeFile(join(workspace, file), "")));
 });
@@ -95,11 +104,13 @@ afterAll(async () => {
   // part of the workspace. Checking here rather than in a test keeps it after every entry, which the
   // shuffled test order inside a file would otherwise not guarantee.
   const expected = [...WORKSPACE_DIRECTORIES, ...WORKSPACE_FILES];
+
   const survivors = await Promise.all(
     expected.map(async (entry) =>
       (await lstat(join(workspace, entry)).catch(() => undefined)) ? entry : `missing: ${entry}`,
     ),
   );
+
   try {
     expect(survivors, "a corpus command was executed").toEqual(expected);
   } finally {
@@ -114,6 +125,7 @@ describe("command corpus", () => {
     if (entry.expect === "allow") {
       expect(decision, `${entry.label} must run unattended`).toEqual({ kind: "allow" });
       expect(assess + approval, `${entry.label} must reach no port`).toBe(0);
+
       return;
     }
 
@@ -124,6 +136,7 @@ describe("command corpus", () => {
         ? `${entry.label} must keep asking for approval`
         : `${entry.label} now allows; promote it to "allow" in test/fixtures/command-corpus.json and drop ` +
           `its promotedBy note for ${entry.promotedBy}`;
+
     expect(decision.kind, message).toBe("block");
     expect(assess, message).toBeGreaterThan(0);
   });
@@ -133,6 +146,7 @@ describe("command corpus shape", () => {
   it("gives every entry exactly one well-formed expectation", () => {
     const commands = corpus.map((entry) => entry.command);
     expect(new Set(commands).size, "a duplicate command hides one of its two expectations").toBe(commands.length);
+
     for (const entry of corpus) {
       expect(["allow", "gate", "pending"], entry.command).toContain(entry.expect);
       expect(entry.command.length, "an empty command decides nothing").toBeGreaterThan(0);
@@ -143,6 +157,7 @@ describe("command corpus shape", () => {
     const pending = corpus.filter((entry) => entry.expect === "pending");
     // Deleting a `pending` marker without a policy change has to fail here rather than pass quietly.
     expect(pending.length, "every accepted requirement has been implemented, so nothing is pending").toBe(0);
+
     for (const entry of corpus) {
       if (entry.expect === "pending") {
         expect(entry.promotedBy ?? "", `${entry.command} must name the policy change that promotes it`).not.toBe("");

@@ -144,6 +144,7 @@ describe("analyzeCommand", () => {
   it("passes the same retained command resolutions to classification and proof", () => {
     const parsed = parseShell("rm -rf build; echo done");
     expect(parsed.kind).toBe("parsed");
+
     if (parsed.kind !== "parsed") return;
 
     const resolutions = parsed.ast.commands.map((command) => command.resolved);
@@ -276,6 +277,7 @@ describe("analyzeCommand", () => {
   it("reads the command after `&&` when a reserved-looking word is only an argument", () => {
     const result = analyzeCommand("echo if [[ x && rm -rf build ]]");
     expect(result.kind).toBe("temporaryCleanup");
+
     if (result.kind !== "temporaryCleanup") return;
     expect(result.proof.targets.map((target) => target.path)).toEqual(["build", "]]"]);
   });

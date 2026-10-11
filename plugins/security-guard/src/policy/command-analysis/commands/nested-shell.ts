@@ -4,6 +4,7 @@ import type { ShellToken } from "../../../shell/types.ts";
 import { APPROVAL, SAFE, type ClassificationContext, type ClassifierRegistration } from "../classification.ts";
 
 const FLAG_LETTERS = "abefhiklmnprstuvxBCDEHPT";
+
 const FLAGS = new Set([
   "--debugger",
   "--dump-po-strings",
@@ -19,6 +20,7 @@ const FLAGS = new Set([
   "--verbose",
   "--version",
 ]);
+
 const VALUE_OPTIONS = new Set(["--rcfile", "--init-file"]);
 
 /**
@@ -37,26 +39,31 @@ function nestedShellIsDestructive(
 
   for (; index < argTexts.length; index += 1) {
     const arg = argTexts[index] ?? "";
+
     if (arg === "--") {
       index += 1;
       break;
     }
+
     if (arg === "-" || !(arg.startsWith("-") || arg.startsWith("+"))) {
       // The word ending the options is the script. Before `-c` names one, a word that rewrites could become
       // options of its own, `-c` among them.
       if (!commandMode && args[index] && rewritesCommandWord(args[index])) return true;
       break;
     }
+
     // An option word that rewrites could carry a `-c` whose text would run instead.
     if (args[index] && rewritesCommandWord(args[index])) return true;
 
     if (arg.startsWith("--")) {
       const inline = arg.indexOf("=");
       const base = inline < 0 ? arg : arg.slice(0, inline);
+
       if (VALUE_OPTIONS.has(base)) {
         if (inline < 0) index += 1;
         continue;
       }
+
       if (!FLAGS.has(base)) return true;
       continue;
     }
@@ -66,17 +73,22 @@ function nestedShellIsDestructive(
         commandMode = true;
         continue;
       }
+
       if (!FLAG_LETTERS.includes(letter)) return true;
     }
   }
 
   const script = args[index];
+
   // Without `-c` the shell runs a script file this policy cannot read, or, with no operand at all, whatever
   // arrives on standard input: a heredoc, a here-string, or the left side of a pipe.
   if (!commandMode) return script === undefined || script.text === "-";
+
   if (!script) return false;
+
   // The operands after the script become `$0` and the positional parameters, which cannot change what runs.
   if (expandsBeforeUse(script)) return true;
+
   return isDestructiveText(script.text);
 }
 

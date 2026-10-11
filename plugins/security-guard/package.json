@@ -34,7 +34,6 @@
     "typecheck": "tsc --noEmit",
     "test": "pnpm exec vitest run",
     "lint": "oxlint --max-warnings=0",
-    "lint:anti-slop": "oxlint --config .oxlintrc.anti-slop.json --max-warnings=0",
     "lint:fix": "oxlint --fix",
     "format": "oxfmt .",
     "format:check": "oxfmt --check .",

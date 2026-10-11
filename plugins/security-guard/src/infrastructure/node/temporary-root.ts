@@ -16,6 +16,7 @@ async function getDarwinUserTemporaryRoot(): Promise<string | undefined> {
 
   try {
     const { stdout } = await execFileAsync("/usr/bin/getconf", ["DARWIN_USER_TEMP_DIR"], { encoding: "utf8" });
+
     return stdout.trim() || undefined;
   } catch {
     return undefined;
@@ -30,11 +31,14 @@ function getCanonicalTemporaryRoots(): Promise<string[]> {
     const candidates = ["/tmp", "/private/tmp", await getDarwinUserTemporaryRoot()].filter(
       (root): root is string => root !== undefined,
     );
+
     const roots = await Promise.all(candidates.map((root) => realpath(root).catch(() => undefined)));
     const existingRoots = roots.filter((root): root is string => root !== undefined);
+
     // A filesystem root is its own parent; treating one as a temporary root would allow removing anything.
     return [...new Set(existingRoots.filter((root) => dirname(root) !== root))];
   })();
+
   return canonicalTemporaryRoots;
 }
 
@@ -46,11 +50,13 @@ function getCanonicalTemporaryRoots(): Promise<string[]> {
  */
 export function absolutePath(cwd: string, target: string): string {
   if (isAbsolute(target)) return target;
+
   return cwd.endsWith("/") ? `${cwd}${target}` : `${cwd}/${target}`;
 }
 
 export function isWithinRoot(path: string, root: string): boolean {
   const childPath = relative(root, path);
+
   return childPath !== "" && !childPath.startsWith("..") && !isAbsolute(childPath);
 }
 
@@ -67,12 +73,15 @@ function isInsideAnyRoot(path: string, roots: readonly string[]): boolean {
  */
 async function canonicalEntryAndTarget(path: string): Promise<{ entry: string; target: string } | undefined> {
   let entry: string;
+
   try {
     entry = join(await realpath(dirname(path)), basename(path));
   } catch {
     return undefined;
   }
+
   const target = await realpath(path).catch(() => entry);
+
   return { entry, target };
 }
 
@@ -84,7 +93,9 @@ async function canonicalEntryAndTarget(path: string): Promise<{ entry: string; t
  */
 function isOwnedUnsharedEntry(stats: Stats): boolean {
   const uid = process.getuid?.();
+
   if (uid === undefined || stats.uid !== uid) return false;
+
   return !(stats.isFile() && stats.nlink > 1);
 }
 
@@ -97,9 +108,12 @@ function isOwnedUnsharedEntry(stats: Stats): boolean {
  */
 async function isActionableEntry(absolute: string, followsLinks: boolean): Promise<boolean> {
   const entry = await lstat(absolute).catch(() => undefined);
+
   if (entry === undefined) return true;
+
   if (!followsLinks || !entry.isSymbolicLink()) return isOwnedUnsharedEntry(entry);
   const target = await stat(absolute).catch(() => undefined);
+
   return target !== undefined && isOwnedUnsharedEntry(target);
 }
 
@@ -120,10 +134,13 @@ export async function resolvesInsideQualifiedRoot(
   if (cwd === undefined || !isAbsolute(cwd) || target === "") return false;
 
   const globStart = target.search(GLOB_CHARACTERS);
+
   if (globStart < 0) {
     const absolute = absolutePath(cwd, target);
     const canonical = await canonicalEntryAndTarget(absolute);
+
     if (!canonical || !(await qualifies(canonical.entry)) || !(await qualifies(canonical.target))) return false;
+
     return isActionableEntry(absolute, followsLinks);
   }
 
@@ -133,12 +150,15 @@ export async function resolvesInsideQualifiedRoot(
   // letting a recursive glob through.
   // oxlint-disable-next-line unicorn/prefer-set-has
   const pattern = target.slice(directoryEnd);
+
   if (pattern.includes("/") || pattern.includes("**")) return false;
 
   const directory = absolutePath(cwd, target.slice(0, directoryEnd) || ".");
   const canonical = await realpath(directory).catch(() => undefined);
+
   if (canonical === undefined || !(await qualifies(canonical))) return false;
   const stats = await lstat(canonical).catch(() => undefined);
+
   return stats !== undefined && isOwnedUnsharedEntry(stats);
 }
 
@@ -152,6 +172,7 @@ export async function isInsideTemporaryRoot(
   followsLinks = false,
 ): Promise<boolean> {
   const roots = await getCanonicalTemporaryRoots();
+
   return resolvesInsideQualifiedRoot(target, cwd, followsLinks, async (canonical) => isInsideAnyRoot(canonical, roots));
 }
 
@@ -159,6 +180,7 @@ async function pathExists(path: string): Promise<boolean> {
   try {
     // A dangling symlink is still an entry `rm -rf` would remove, so the link itself counts.
     await lstat(path);
+
     return true;
   } catch {
     return false;
@@ -174,7 +196,9 @@ async function pathExists(path: string): Promise<boolean> {
  */
 async function isSafeMktempSuffix(suffix: string): Promise<boolean> {
   if (suffix === "") return true;
+
   if (!suffix.startsWith("/") || suffix.split("/").includes("..") || GLOB_CHARACTERS.test(suffix)) return false;
+
   return !(await pathExists(suffix));
 }
 
@@ -183,6 +207,7 @@ export async function allInsideTemporaryRoot(
   cwd: string | undefined,
 ): Promise<boolean> {
   if (targets.length === 0) return false;
+
   const results = await Promise.all(
     targets.map((target) =>
       target.insideMktempDirectory
@@ -190,5 +215,6 @@ export async function allInsideTemporaryRoot(
         : isInsideTemporaryRoot(target.path, cwd, target.followsLinks),
     ),
   );
+
   return results.every(Boolean);
 }

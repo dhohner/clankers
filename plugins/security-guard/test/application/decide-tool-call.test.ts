@@ -158,6 +158,7 @@ describe("decideToolCall", () => {
         verifyTemporaryPaths: vi.fn().mockResolvedValue(false),
         verifyRegenerablePaths: vi.fn().mockResolvedValue(false),
       });
+
       await expect(decideToolCall(request("rm -rf src", false), ports)).resolves.toEqual({
         kind: "block",
         reason: DESTRUCTIVE_APPROVAL_REASON,
@@ -202,6 +203,7 @@ describe("decideToolCall", () => {
         verifyTemporaryPaths: vi.fn().mockResolvedValue(false),
         verifyRegenerablePaths: vi.fn().mockResolvedValue("yes"),
       });
+
       expect((await decideToolCall(request("rm -rf dist", false), ports)).kind).toBe("block");
     });
 
@@ -211,6 +213,7 @@ describe("decideToolCall", () => {
         verifyTemporaryPaths: vi.fn().mockResolvedValue(false),
         verifyRegenerablePaths: vi.fn().mockResolvedValue(true),
       });
+
       await expect(decideToolCall(request("rm -rf dist", false), ports)).resolves.toEqual({
         kind: "block",
         reason: DESTRUCTIVE_APPROVAL_REASON,

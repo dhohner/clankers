@@ -8,8 +8,10 @@ import type { DestructiveTarget, ProvableCall } from "../../src/proof/types.js";
 // measure proveShellEffects against exactly the classification the extension feeds it.
 function provableCall(value: string): ProvableCall | undefined {
   const parsed = parseShell(value);
+
   if (parsed.kind === "unsupported") return undefined;
   const proof = proveShellEffects(parsed.ast, classifyShellAst(parsed.ast).destructiveStarts);
+
   return proof.kind === "proven" ? proof.value : undefined;
 }
 

@@ -1,4 +1,9 @@
-import type { ExtensionContext, ToolCallEvent, UserBashEvent } from "@earendil-works/pi-coding-agent";
+import type {
+  CustomToolCallEvent,
+  ExtensionContext,
+  ToolCallEvent,
+  UserBashEvent,
+} from "@earendil-works/pi-coding-agent";
 import { decideToolCall, type ToolCall } from "../../application/decide-tool-call.ts";
 import { decideUserBash } from "../../application/decide-user-bash.ts";
 import { formatSafetyAssessment } from "../../policy/assessment/assessment-codec.ts";
@@ -9,29 +14,38 @@ import { allInsideRegenerableDirectory as verifyRegenerablePaths } from "../node
 import { allInsideTemporaryRoot as verifyTemporaryPaths } from "../node/temporary-root.ts";
 import { evaluateCommandSafety, SAFETY_EVALUATION_WORKING_MESSAGE } from "./model-assessor.ts";
 
-function inputRecord(event: ToolCallEvent): Record<string, unknown> {
-  const compatible = event as ToolCallEvent & { args?: Record<string, unknown> };
-  return (compatible.input as Record<string, unknown> | undefined) ?? compatible.args ?? {};
+function inputRecord(event: ToolCallEvent): CustomToolCallEvent["input"] {
+  // SAFETY: Older hosts supply args with the same payload contract as input; this only declares that optional field.
+  const compatible = event as ToolCallEvent & { args?: ToolCallEvent["input"] };
+
+  return compatible.input ?? compatible.args ?? {};
 }
 
-function firstString(input: Record<string, unknown>, keys: readonly string[]): string {
+function firstString(input: CustomToolCallEvent["input"], keys: readonly string[]): string {
   for (const key of keys) {
     const value = input[key];
+
+    // oxlint-disable-next-line anti-slop/no-runtime-typeof -- Decode supported string fields at the Pi event boundary.
     if (typeof value === "string") return value;
   }
+
   return "";
 }
 
 export function translatePiToolCall(event: ToolCallEvent): ToolCall {
   const toolName = event.toolName.toLowerCase();
   const input = inputRecord(event);
+
   if (toolName === "bash") return { kind: "bash", command: firstString(input, ["command"]) };
+
   if (toolName === "read") return { kind: "read", path: firstString(input, ["path", "file", "filePath"]) };
+
   return { kind: "other" };
 }
 
 export async function handlePiToolCall(event: ToolCallEvent, ctx: ExtensionContext) {
-  const context = ctx as ExtensionContext | undefined;
+  const context = ctx;
+
   const decision = await decideToolCall(
     {
       call: translatePiToolCall(event),
@@ -47,6 +61,7 @@ export async function handlePiToolCall(event: ToolCallEvent, ctx: ExtensionConte
       assessCommand: async ({ command, workingDirectory, signal }) => {
         if (!context) throw new Error("Pi did not provide an extension context");
         context.ui.setWorkingMessage(SAFETY_EVALUATION_WORKING_MESSAGE);
+
         try {
           return await evaluateCommandSafety({
             command,
@@ -60,20 +75,24 @@ export async function handlePiToolCall(event: ToolCallEvent, ctx: ExtensionConte
       },
       requestApproval: ({ assessment, signal }) => {
         if (!context) throw new Error("Pi did not provide an extension context");
+
         if (assessment.verdict === "safe") {
           return Promise.resolve(true);
         }
+
         return context.ui.confirm("Approve command with possible side-effects?", formatSafetyAssessment(assessment), {
           signal,
         });
       },
     },
   );
+
   return decision.kind === "block" ? { block: true as const, reason: decision.reason } : undefined;
 }
 
 export function handlePiUserBash(event: UserBashEvent) {
   if (decideUserBash(event.command ?? "").kind === "allow") return undefined;
+
   return {
     result: {
       output: BLOCK_REASON,

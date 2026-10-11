@@ -10,6 +10,7 @@ describe("path operand extraction", () => {
     const result = extractPathOperands("mv", shellTokens("-t out a b"));
 
     expect(result.kind).toBe("proven");
+
     if (result.kind !== "proven") return;
     expect(result.value.map((word) => word.text)).toEqual(["out", "a", "b"]);
   });

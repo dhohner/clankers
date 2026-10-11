@@ -7,13 +7,17 @@ const SOURCE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../../src"
 
 async function typescriptFiles(directory: string): Promise<string[]> {
   const entries = await readdir(directory, { withFileTypes: true });
+
   const nested = await Promise.all(
     entries.map((entry) => {
       const path = join(directory, entry.name);
+
       if (entry.isDirectory()) return typescriptFiles(path);
+
       return entry.name.endsWith(".ts") ? [path] : [];
     }),
   );
+
   return nested.flat();
 }
 
@@ -48,11 +52,14 @@ describe("dependency boundaries", () => {
   it("lets each layer import only from the layers before it", async () => {
     for (const [rank, layer] of LAYERS.entries()) {
       const allowed = new Set(LAYERS.slice(0, rank + 1));
+
       for (const file of await typescriptFiles(join(SOURCE_ROOT, layer))) {
         const source = await readFile(file, "utf8");
+
         for (const specifier of relativeImports(source)) {
           const target = relative(SOURCE_ROOT, resolve(dirname(file), specifier));
           const targetLayer = target.split(sep)[0] ?? "";
+
           if (!LAYERS.includes(targetLayer)) continue;
           expect(allowed, `${relative(SOURCE_ROOT, file)} imports ${target}`).toContain(targetLayer);
         }
@@ -67,20 +74,25 @@ describe("dependency boundaries", () => {
 
     for (const file of files) {
       const source = await readFile(file, "utf8");
+
       const dependencies = relativeImports(source)
         .map((target) => resolve(dirname(file), target.replace(/\.js$/, ".ts")))
         .filter((target) => filesByPath.has(target));
+
       graph.set(file, dependencies);
     }
 
     const visiting = new Set<string>();
     const visited = new Set<string>();
+
     const visit = (file: string, chain: readonly string[]): void => {
       if (visiting.has(file)) {
         throw new Error([...chain, file].map((item) => relative(SOURCE_ROOT, item)).join(" -> "));
       }
+
       if (visited.has(file)) return;
       visiting.add(file);
+
       for (const dependency of graph.get(file) ?? []) visit(dependency, [...chain, file]);
       visiting.delete(file);
       visited.add(file);

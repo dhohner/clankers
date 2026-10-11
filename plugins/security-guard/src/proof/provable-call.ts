@@ -28,13 +28,18 @@ import {
 
 function isInertCommand(name: string, argTexts: readonly string[]): boolean {
   const effect = commandRule(name)?.effect;
+
   if (!effect || effect.kind !== "inert") return false;
   const unsafe = effect.unsafeOption;
+
   if (!unsafe) return true;
+
   for (const arg of argTexts) {
     if (arg === "--") break;
+
     if (arg.startsWith("-") && unsafe.test(arg)) return false;
   }
+
   return true;
 }
 
@@ -98,26 +103,36 @@ const SET_OPTION_LETTERS = "abefhkmnoptuvxBCEHPT";
  */
 function errexitAfterSet(argTexts: readonly string[], current: boolean): boolean | undefined {
   let errexit = current;
+
   for (let i = 0; i < argTexts.length; i += 1) {
     const arg = argTexts[i] ?? "";
+
     if (!/^[-+][a-zA-Z]+$/.test(arg)) return undefined;
     const enable = arg.startsWith("-");
     const letters = arg.slice(1);
+
     if ([...letters].some((letter) => !SET_OPTION_LETTERS.includes(letter))) return undefined;
+
     // xtrace expands PS4 before every traced command, command substitution included, so a PS4 inherited from
     // the host and out of this scan's sight would run once tracing is on. Enabling it is never cleanup, so the
     // call falls back to approval instead.
     if (enable && letters.includes("x")) return undefined;
+
     if (letters.includes("e")) errexit = enable;
+
     if (letters.includes("o")) {
       // `o` anywhere in a bundle takes the next word as the long option name.
       const option = argTexts[i + 1];
+
       if (option === undefined || !SET_OPTION_NAMES.has(option)) return undefined;
+
       if (enable && option === "xtrace") return undefined;
+
       if (option === "errexit") errexit = enable;
       i += 1;
     }
   }
+
   return errexit;
 }
 
@@ -146,9 +161,11 @@ function addPathResolvedCommands(commands: Set<string>, commandWords: readonly S
  */
 export function proveShellEffects(ast: ShellAst, destructiveStarts: ReadonlySet<number>): ProofResult<ProvableCall> {
   const tokens = ast.tokens;
+
   if (tokens.some((token) => !token.sep && SENSITIVE_VARIABLES.has(assignedName(token) ?? ""))) {
     return unprovable("sensitive shell variable assignment");
   }
+
   // The reader of a here-document only receives data, but this shell expands an unquoted body first, so a
   // substitution there runs unseen whatever the reader is.
   if (tokens.some((token) => token.heredoc && substitutionContents(token).length > 0)) {
@@ -163,23 +180,29 @@ export function proveShellEffects(ast: ShellAst, destructiveStarts: ReadonlySet<
     const { extent, parsed, resolved: command } = invocation;
 
     const written = extractRedirectionTargets(parsed.redirections, state);
+
     if (written.kind === "unprovable") return written;
     targets.push(...written.value);
+
     if (parsed.words.length === 0) continue;
 
     const assignment = assignmentAt(parsed.words);
+
     if (assignment) {
       if (runsSubstitution(assignment.value)) {
         // The substitution runs `mktemp` through the host's PATH like any other command, so a look-alike
         // there could return any directory at all.
         const mktempWords = mktempDirectoryCommandWords(assignment.value);
+
         if (!mktempWords) return unprovable("assignment substitution cannot be proven");
         addPathResolvedCommands(commands, mktempWords);
       }
+
       // `export NAME=$(...)` reports the builtin's exit status, so errexit never sees the substitution fail.
       const assignmentState = assignment.viaExport ? { ...state, errexit: false } : state;
       // A conditional or subshell assignment may leave the previous value in place, so neither value is known.
       const expanded = extent.unconditional ? expandWord(assignment.value, assignmentState) : undefined;
+
       if (expanded?.kind === "proven") state.variables.set(assignment.name, expanded.value);
       else state.variables.delete(assignment.name);
       continue;
@@ -188,15 +211,19 @@ export function proveShellEffects(ast: ShellAst, destructiveStarts: ReadonlySet<
     if (parsed.words.some(runsSubstitution)) {
       return unprovable("word contains a substitution");
     }
+
     // A test expression compares and runs nothing, and its substitutions were rejected just above.
     if (parsed.words.every((word) => word.testExpression)) continue;
 
     if (command.kind === "unresolved") return unprovable("command cannot be resolved");
     const { name, args, argTexts, commandWords, statefulWrapper } = command;
+
     // The operand rules below belong to the system tools; a look-alike executable obeys none of them.
     if (!commandWords.every(isTrustedCommandWord)) return unprovable("command executable is not trusted");
+
     if (escalatesPrivilege(commandWords)) return unprovable("command escalates privilege");
     addPathResolvedCommands(commands, commandWords);
+
     // A wrapper that moves the working directory or root, or writes a file of its own, puts paths outside the
     // operands the rules below read.
     if (statefulWrapper) return unprovable("wrapper has unmodeled effects");
@@ -204,10 +231,12 @@ export function proveShellEffects(ast: ShellAst, destructiveStarts: ReadonlySet<
     if (destructiveStarts.has(extent.start)) {
       if (!PATH_TARGET_COMMANDS.has(name)) return unprovable("destructive command is approval-only");
       const commandTargets = extractPathTargets(name, args, state);
+
       if (commandTargets.kind === "unprovable") return commandTargets;
       targets.push(...commandTargets.value);
     } else if (WRITE_TARGET_COMMANDS.has(name)) {
       const created = extractWriteTargets(name, args, state);
+
       if (created.kind === "unprovable") return created;
       targets.push(...created.value);
     } else if (name === "set") {
@@ -215,11 +244,13 @@ export function proveShellEffects(ast: ShellAst, destructiveStarts: ReadonlySet<
       // look for an executable that does not exist. A conditional `set` leaves the option state unknown too.
       const isBuiltin = commandWords.length === 1 && commandWords[0]?.text === "set";
       const errexit = isBuiltin && extent.unconditional ? errexitAfterSet(argTexts, state.errexit) : undefined;
+
       if (errexit === undefined) return unprovable("shell option state cannot be proven");
       state.errexit = errexit;
     } else if (!isInertCommand(name, argTexts)) {
       return unprovable("command has unmodeled effects");
     }
   }
+
   return proven({ targets, commands: [...commands] });
 }

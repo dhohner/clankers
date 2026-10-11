@@ -11,14 +11,9 @@ The nested ESLint Stylistic license and provenance remain in `vendor/eslint-styl
 ## Local configuration
 
 `../anti-slop.json` enables every generic rule and `oxc/no-accumulating-spread`.
-The `.oxlintrc.json` configurations in `plugins/insomniac/` and `plugins/output-styles/` extend the shared rules and register this directory's `index.ts`.
+The `.oxlintrc.json` configurations in `plugins/insomniac/`, `plugins/output-styles/`, and `plugins/security-guard/` extend the shared rules and register this directory's `index.ts`.
 Their `lint` and `lint:fix` commands use those configurations.
-The `plugins/security-guard/.oxlintrc.anti-slop.json` configuration extends its existing lint configuration and the shared rules, and registers this directory's `index.ts`.
-Its `lint:anti-slop` command selects that configuration.
-The root `pnpm lint:anti-slop` command checks plugins still being migrated, continuing after a plugin reports violations.
-CI uses `pnpm lint:ts`, which runs each plugin's ordinary `lint` command.
-`insomniac` and `output-styles` require anti-slop in CI through their default configurations.
-After another plugin's violations are fixed, merge its anti-slop configuration into `.oxlintrc.json` to require these rules in CI.
+CI requires these rules through `pnpm lint:ts`, which runs each plugin's `lint` command.
 The vendored files are outside those plugins' lint and format scopes.
 Effect rules are included but disabled because these plugins do not declare Effect as a dependency.
 
@@ -28,5 +23,4 @@ A local `package.json` declares this directory as an ES module to avoid Node's m
 The copied rule source has no local changes.
 
 Run `node tools/oxlint/verify-anti-slop.mjs` to verify each plugin's lint commands.
-It checks valid input and existing lint violations.
-It verifies that ordinary lint rejects anti-slop violations in `insomniac` and `output-styles` and accepts them in `security-guard`, which is still being migrated.
+It checks that `lint` and `lint:fix` accept valid input and reject both anti-slop violations and existing lint violations in every plugin.

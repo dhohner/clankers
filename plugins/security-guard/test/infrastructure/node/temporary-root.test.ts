@@ -8,10 +8,11 @@ import { allInsideTemporaryRoot, isInsideTemporaryRoot } from "../../../src/infr
 // outside the platform roots would build these fixtures where none of the assertions below hold.
 const TEMPORARY_ROOT = "/tmp";
 
-const cleanups: Array<() => Promise<unknown>> = [];
+const cleanups: Array<() => Promise<void>> = [];
 
 function cleanupLater(path: string): string {
   cleanups.push(() => rm(path, { recursive: true, force: true }));
+
   return path;
 }
 

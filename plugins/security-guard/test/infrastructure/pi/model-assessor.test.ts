@@ -14,7 +14,9 @@ const VALID_REPLY = JSON.stringify({
   reason: "The removal is not recoverable",
 });
 
-function assistantReply(overrides: Record<string, unknown> = {}) {
+type EvaluatorReply = Awaited<ReturnType<SafetyEvaluatorRegistry["complete"]>>;
+
+function assistantReply(overrides: Partial<EvaluatorReply> = {}) {
   return {
     role: "assistant",
     content: [{ type: "text", text: VALID_REPLY }],
@@ -23,17 +25,20 @@ function assistantReply(overrides: Record<string, unknown> = {}) {
   };
 }
 
-function makeRegistry(overrides: Record<string, unknown> = {}) {
+type RegistryMocks = {
+  find: ReturnType<typeof vi.fn>;
+  hasConfiguredAuth: ReturnType<typeof vi.fn>;
+  complete: ReturnType<typeof vi.fn>;
+};
+
+function makeRegistry(overrides: Partial<RegistryMocks> = {}) {
+  // SAFETY: Only these three registry methods are called; complete is mocked and never consumes other model fields.
   return {
     find: vi.fn((provider: string, modelId: string) => ({ provider, id: modelId })),
     hasConfiguredAuth: vi.fn().mockReturnValue(true),
     complete: vi.fn().mockResolvedValue(assistantReply()),
     ...overrides,
-  } as unknown as SafetyEvaluatorRegistry & {
-    find: ReturnType<typeof vi.fn>;
-    hasConfiguredAuth: ReturnType<typeof vi.fn>;
-    complete: ReturnType<typeof vi.fn>;
-  };
+  } as SafetyEvaluatorRegistry & RegistryMocks;
 }
 
 function makeRequest(registry = makeRegistry(), signal?: AbortSignal) {
@@ -64,7 +69,7 @@ describe("evaluateCommandSafety", () => {
 
     const [model, context, options] = registry.complete.mock.calls[0];
     expect(model).toBe(registry.find.mock.results[0]?.value);
-    expect(typeof context.systemPrompt).toBe("string");
+    expect(context.systemPrompt).toEqual(expect.any(String));
     expect(context.systemPrompt).not.toContain("rm -rf /workspace/build");
     expect(context.tools).toBeUndefined();
     expect(context.messages).toHaveLength(1);
@@ -100,6 +105,7 @@ describe("evaluateCommandSafety", () => {
   it("accepts every valid verdict", async () => {
     for (const verdict of ["safe", "unsafe", "uncertain"]) {
       const reply = JSON.stringify({ verdict, intent: "Does a thing", reason: "Because" });
+
       const registry = makeRegistry({
         complete: vi.fn().mockResolvedValue(assistantReply({ content: [{ type: "text", text: reply }] })),
       });
@@ -156,6 +162,7 @@ describe("evaluateCommandSafety", () => {
     const registry = makeRegistry({
       find: vi.fn((provider: string, modelId: string) => {
         if (provider === "openai") throw new Error("registry unavailable");
+
         return { provider, id: modelId };
       }),
     });
@@ -183,6 +190,7 @@ describe("evaluateCommandSafety", () => {
     const evaluation = await evaluateCommandSafety(makeRequest(registry));
 
     expect(evaluation.ok).toBe(false);
+
     if (!evaluation.ok) {
       expect(evaluation.reason).toContain(SAFETY_EVALUATION_BLOCK_PREFIX);
       expect(evaluation.reason).toContain("gpt-6-luna");
@@ -190,6 +198,7 @@ describe("evaluateCommandSafety", () => {
       expect(evaluation.reason).toContain("openai-codex");
       expect(evaluation.reason).toContain("github-copilot");
     }
+
     expect(registry.find.mock.calls).toEqual([
       ["openai", "gpt-6-luna"],
       ["openai-codex", "gpt-6-luna"],
@@ -217,11 +226,13 @@ describe("evaluateCommandSafety", () => {
     const evaluation = await evaluateCommandSafety(makeRequest(registry));
 
     expect(evaluation.ok).toBe(false);
+
     if (!evaluation.ok) {
       expect(evaluation.reason).toContain("openai: no authentication is configured");
       expect(evaluation.reason).toContain("openai-codex: no authentication is configured");
       expect(evaluation.reason).toContain("github-copilot: no authentication is configured");
     }
+
     expect(registry.complete).not.toHaveBeenCalled();
   });
 
@@ -235,11 +246,13 @@ describe("evaluateCommandSafety", () => {
     const evaluation = await evaluateCommandSafety(makeRequest(registry));
 
     expect(evaluation.ok).toBe(false);
+
     if (!evaluation.ok) {
       expect(evaluation.reason).toContain(SAFETY_EVALUATION_BLOCK_PREFIX);
       expect(evaluation.reason).toContain("authentication check");
       expect(evaluation.reason).toContain("auth registry unavailable");
     }
+
     expect(registry.complete).not.toHaveBeenCalled();
   });
 
@@ -249,6 +262,7 @@ describe("evaluateCommandSafety", () => {
     const evaluation = await evaluateCommandSafety(makeRequest(registry));
 
     expect(evaluation.ok).toBe(false);
+
     if (!evaluation.ok) {
       expect(evaluation.reason).toContain(SAFETY_EVALUATION_BLOCK_PREFIX);
       expect(evaluation.reason).toContain("connect ETIMEDOUT");
@@ -263,6 +277,7 @@ describe("evaluateCommandSafety", () => {
     const evaluation = await evaluateCommandSafety(makeRequest(registry, controller.signal));
 
     expect(evaluation.ok).toBe(false);
+
     if (!evaluation.ok) expect(evaluation.reason).toContain("cancelled");
   });
 
@@ -274,6 +289,7 @@ describe("evaluateCommandSafety", () => {
     const evaluation = await evaluateCommandSafety(makeRequest(registry));
 
     expect(evaluation.ok).toBe(false);
+
     if (!evaluation.ok) expect(evaluation.reason).toContain("cancelled");
   });
 
@@ -285,6 +301,7 @@ describe("evaluateCommandSafety", () => {
     const evaluation = await evaluateCommandSafety(makeRequest(registry));
 
     expect(evaluation.ok).toBe(false);
+
     if (!evaluation.ok) expect(evaluation.reason).toContain("rate limited");
   });
 
@@ -323,6 +340,7 @@ describe("evaluateCommandSafety", () => {
     const evaluation = await evaluateCommandSafety(makeRequest(registry));
 
     expect(evaluation.ok).toBe(false);
+
     if (!evaluation.ok) expect(evaluation.reason).toContain("not a valid assessment");
   });
 });

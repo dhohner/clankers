@@ -24,7 +24,13 @@ export const SHELL_BUILTINS: ReadonlySet<string> = new Set(
 
 /** The command words PATH resolves: a bare name that is not a builtin. A word with a slash names its file. */
 export function pathResolvedCommandNames(commandWords: readonly Word[]): string[] {
-  return commandWords.filter((word) => !word.text.includes("/") && !SHELL_BUILTINS.has(word.text)).map((w) => w.text);
+  const names: string[] = [];
+
+  for (const word of commandWords) {
+    if (!word.text.includes("/") && !SHELL_BUILTINS.has(word.text)) names.push(word.text);
+  }
+
+  return names;
 }
 
 export function escalatesPrivilege(commandWords: readonly Word[]): boolean {
@@ -33,6 +39,7 @@ export function escalatesPrivilege(commandWords: readonly Word[]): boolean {
 
 export function isTrustedCommandWord(word: Word): boolean {
   const slash = word.text.lastIndexOf("/");
+
   return slash < 0 || SYSTEM_EXECUTABLE_DIRECTORIES.has(word.text.slice(0, slash));
 }
 
@@ -84,19 +91,26 @@ export type Assignment = {
  */
 function assignmentInText(text: string): Assignment | undefined {
   const match = ASSIGNMENT_NAME.exec(text);
+
   if (!match) return undefined;
   let cursor = match[0].length;
   let subscript: string | undefined;
+
   if (text[cursor] === "[") {
     const close = subscriptEnd(text, cursor);
+
     if (close < 0) return undefined;
     subscript = text.slice(cursor + 1, close);
     cursor = close + 1;
   }
+
   const operatorStart = cursor;
   const appends = text[cursor] === "+";
+
   if (appends) cursor += 1;
+
   if (text[cursor] !== "=") return undefined;
+
   return { name: match[0], subscript, appends, operatorStart, valueStart: cursor + 1 };
 }
 
@@ -109,8 +123,10 @@ function assignmentInText(text: string): Assignment | undefined {
 export function assignmentOf(word: Word | undefined): Assignment | undefined {
   if (!word) return undefined;
   const assignment = assignmentInText(word.text);
+
   if (!assignment || !isUnquoted(word, assignment.name.length)) return undefined;
   const operator = word.quoting.slice(assignment.operatorStart, assignment.valueStart);
+
   return /[^ ]/.test(operator) ? undefined : assignment;
 }
 
@@ -124,6 +140,7 @@ export function assignedName(word: Word): string | undefined {
 
 function skipWrapperOptions(name: string, words: readonly Word[], start: number): OptionScan | undefined {
   const model = commandRule(name)?.wrapper;
+
   return model ? skipOptionsOf(model, words, start) : undefined;
 }
 
@@ -161,13 +178,16 @@ export function parseCommand(tokens: readonly ShellToken[], start: number): Pars
 
   for (let i = start; i < tokens.length; i += 1) {
     const token = tokens[i];
+
     if (!token) break;
+
     if (token.redirect) {
       const target = tokens[i + 1];
       redirections.push({ operator: token.text, target: target && !target.sep ? target : undefined });
       i += 1;
       continue;
     }
+
     if (token.sep) break;
     words.push(token);
     indices.push(i);
@@ -182,39 +202,50 @@ export function resolveCommand(parsed: ParsedCommand): SimpleCommand {
   const commandWords: ShellToken[] = [];
   let statefulWrapper = false;
   let i = 0;
+
   while (RESERVED_WORDS.has(words[i]?.text ?? "") || words[i]?.testExpression) i += 1;
+
   while (isAssignment(words[i])) i += 1;
 
   while (i < words.length) {
     const word = words[i];
+
     if (word?.testExpression) {
       i += 1;
       continue;
     }
+
     const name = commandName(word?.text ?? "");
     // `env` and `sudo` both take `NAME=value` words before the command they run.
     const wrapsEnvironment = name === "env" || name === "sudo";
+
     if (!commandRule(name)?.wrapper) break;
 
     if (word) commandWords.push(word);
     const next = skipWrapperOptions(name, words, i + 1);
+
     if (next === undefined) {
       return { kind: "unresolved", reason: "unknown-wrapper-option", commandWords, redirections };
     }
+
     // `command -v rm` reports where `rm` resolves and runs nothing, so `command` itself is the command that
     // runs and the words after it are its operands; the word is pushed again as the command word below.
     if (next.inspects) {
       commandWords.pop();
       break;
     }
+
     statefulWrapper ||= next.stateful;
     i = next.index;
+
     if (wrapsEnvironment) while (isAssignment(words[i])) i += 1;
   }
 
   const commandWord = words[i];
+
   if (commandWord) commandWords.push(commandWord);
   const args = words.slice(i + 1);
+
   return {
     kind: "resolved",
     name: commandName(commandWord?.text ?? ""),
@@ -241,9 +272,11 @@ export function simpleCommandExtents(tokens: readonly ShellToken[]): CommandExte
 
   for (let i = 0; i <= tokens.length; i += 1) {
     const token = tokens[i];
+
     if (token && (!token.sep || token.redirect)) continue;
 
     const control = token?.text;
+
     if (i > start) {
       extents.push({
         start,
@@ -253,6 +286,7 @@ export function simpleCommandExtents(tokens: readonly ShellToken[]): CommandExte
           (control === undefined || SEQUENTIAL_CONTROLS.has(control)),
       });
     }
+
     if (control === "(" || control === "{") depth += 1;
     else if (control === ")" || control === "}") depth = Math.max(0, depth - 1);
     preceding = control;

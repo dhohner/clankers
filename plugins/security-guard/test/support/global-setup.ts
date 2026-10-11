@@ -18,5 +18,6 @@ declare module "vitest" {
 export default function setup(project: TestProject): () => void {
   const agentDirectory = mkdtempSync(join("/tmp", "security-guard-test-agent-"));
   project.provide("securityGuardAgentDirectory", agentDirectory);
+
   return () => rmSync(agentDirectory, { recursive: true, force: true });
 }

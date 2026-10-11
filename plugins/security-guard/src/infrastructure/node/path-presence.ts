@@ -3,10 +3,6 @@ import { isAbsolute } from "node:path";
 import type { PathPresence } from "../../application/ports.ts";
 import { absolutePath } from "./temporary-root.ts";
 
-function errorCode(error: unknown): string | undefined {
-  return typeof error === "object" && error !== null && "code" in error ? String(error.code) : undefined;
-}
-
 /**
  * Reports what `path`, resolved against `cwd` the way the command will resolve it, names. The entry itself
  * decides between absent and present, so a dangling symlink is present, the way Git and `mv` see it; what
@@ -17,14 +13,19 @@ function errorCode(error: unknown): string | undefined {
  */
 export async function inspectPath(path: string, cwd: string): Promise<PathPresence> {
   if (!isAbsolute(cwd)) throw new Error(`working directory is not absolute: ${JSON.stringify(cwd)}`);
+
   if (path === "") throw new Error("path is empty");
   const absolute = absolutePath(cwd, path);
   let entry;
+
   try {
     entry = await lstat(absolute);
   } catch (error) {
-    const code = errorCode(error);
+    // oxlint-disable-next-line anti-slop/no-runtime-typeof -- Decode Node's optional errno code at the filesystem boundary.
+    const code = typeof error === "object" && error !== null && "code" in error ? String(error.code) : undefined;
+
     if (code === "ENOENT") return "absent";
+
     if (code === "ENOTDIR") return "other";
     throw new Error(
       `cannot inspect ${JSON.stringify(absolute)}: ${error instanceof Error ? error.message : String(error)}`,
@@ -33,7 +34,9 @@ export async function inspectPath(path: string, cwd: string): Promise<PathPresen
       },
     );
   }
+
   if (!entry.isSymbolicLink()) return entry.isDirectory() ? "directory" : "other";
   const target = await stat(absolute).catch(() => undefined);
+
   return target?.isDirectory() ? "directory" : "other";
 }

@@ -10,6 +10,7 @@ import type { CommandAnalysisResult } from "./result.ts";
  */
 export function analyzeCommand(command: string): CommandAnalysisResult {
   const parsed = parseShell(command);
+
   if (parsed.kind === "unsupported") {
     return {
       kind: "approvalRequired",
@@ -18,21 +19,26 @@ export function analyzeCommand(command: string): CommandAnalysisResult {
   }
 
   const classification = classifyShellAst(parsed.ast);
+
   if (!classification.destructive) return { kind: "notDestructive" };
+
   if (classification.hostCheck) return { kind: "hostPathCheck", ...classification.hostCheck };
 
   const proof = proveShellEffects(parsed.ast, classification.destructiveStarts);
+
   if (proof.kind === "unprovable") {
     return {
       kind: "approvalRequired",
       reason: { kind: "unprovable-effects", detail: proof.reason },
     };
   }
+
   if (proof.value.targets.length === 0) {
     return {
       kind: "approvalRequired",
       reason: { kind: "unprovable-effects", detail: "destructive command is approval-only" },
     };
   }
+
   return { kind: "temporaryCleanup", proof: proof.value };
 }

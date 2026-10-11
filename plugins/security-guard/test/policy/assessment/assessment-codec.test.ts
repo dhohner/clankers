@@ -11,6 +11,7 @@ describe("parseSafetyAssessment", () => {
     const parsed = parseSafetyAssessment(
       '{\n  "verdict": "safe",\n  "intent": "Lists files",\n  "reason": "Read-only"\n}',
     );
+
     expect(parsed).toEqual({ verdict: "safe", intent: "Lists files", reason: "Read-only" });
   });
 

@@ -27,8 +27,11 @@ function regenerableAncestor(canonical: string, canonicalCwd: string): string | 
   for (let path = canonical; isWithinRoot(path, canonicalCwd); path = dirname(path)) {
     if (REGENERABLE_DIRECTORY_NAMES.has(basename(path))) return path;
   }
+
   return undefined;
 }
+
+type DirectoryCheck = (path: string) => Promise<boolean>;
 
 /**
  * The working directory of one verification call, with the answer for each exempt directory it has already
@@ -36,10 +39,15 @@ function regenerableAncestor(canonical: string, canonicalCwd: string): string | 
  * its link target, so the answer is kept for the duration of the call and no longer: a later call must see
  * the filesystem as it is then.
  */
-type VerificationScope = { canonicalCwd: string; directoryChecks: Map<string, Promise<boolean>> };
+type VerificationScope = {
+  canonicalCwd: string;
+  directoryChecks: Map<string, Promise<boolean>>;
+  isDirectory: DirectoryCheck;
+};
 
 async function isExistingDirectory(path: string): Promise<boolean> {
   const stats = await stat(path).catch(() => undefined);
+
   return stats?.isDirectory() ?? false;
 }
 
@@ -51,12 +59,15 @@ async function isExistingDirectory(path: string): Promise<boolean> {
  */
 function isRegenerable(canonical: string, scope: VerificationScope): Promise<boolean> {
   const exempt = regenerableAncestor(canonical, scope.canonicalCwd);
+
   if (exempt === undefined) return Promise.resolve(false);
   let check = scope.directoryChecks.get(exempt);
+
   if (check === undefined) {
-    check = isExistingDirectory(exempt);
+    check = scope.isDirectory(exempt).catch(() => false);
     scope.directoryChecks.set(exempt, check);
   }
+
   return check;
 }
 
@@ -69,10 +80,14 @@ function isInsideResolvedRegenerableDirectory(
   return resolvesInsideQualifiedRoot(target, cwd, followsLinks, (canonical) => isRegenerable(canonical, scope));
 }
 
-async function verificationScope(cwd: string | undefined): Promise<VerificationScope | undefined> {
+async function verificationScope(
+  cwd: string | undefined,
+  isDirectory: DirectoryCheck = isExistingDirectory,
+): Promise<VerificationScope | undefined> {
   if (cwd === undefined || !isAbsolute(cwd)) return undefined;
   const canonicalCwd = await realpath(cwd).catch(() => undefined);
-  return canonicalCwd === undefined ? undefined : { canonicalCwd, directoryChecks: new Map() };
+
+  return canonicalCwd === undefined ? undefined : { canonicalCwd, directoryChecks: new Map(), isDirectory };
 }
 
 /**
@@ -87,23 +102,30 @@ export async function isInsideRegenerableDirectory(
   followsLinks = false,
 ): Promise<boolean> {
   const scope = await verificationScope(cwd);
+
   if (cwd === undefined || scope === undefined) return false;
+
   return isInsideResolvedRegenerableDirectory(target, cwd, scope, followsLinks);
 }
 
 /**
  * Whether every target of a call is inside a regenerable directory. A target derived from `mktemp -d` is the
  * temporary-root proof's business, so it does not qualify here.
+ * Directory checks are shared within this call only; a rejected check exempts nothing.
  */
 export async function allInsideRegenerableDirectory(
   targets: readonly DestructiveTarget[],
   cwd: string | undefined,
+  isDirectory: DirectoryCheck = isExistingDirectory,
 ): Promise<boolean> {
   if (targets.length === 0 || targets.some((target) => target.insideMktempDirectory)) return false;
-  const scope = await verificationScope(cwd);
+  const scope = await verificationScope(cwd, isDirectory);
+
   if (cwd === undefined || scope === undefined) return false;
+
   const results = await Promise.all(
     targets.map((target) => isInsideResolvedRegenerableDirectory(target.path, cwd, scope, target.followsLinks)),
   );
+
   return results.every(Boolean);
 }

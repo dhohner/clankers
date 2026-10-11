@@ -5,8 +5,10 @@ import {
   createBashToolDefinition,
   discoverAndLoadExtensions,
   ExtensionRunner,
+  type BashToolDetails,
   type ExtensionError,
   type ToolCallEventResult,
+  type ToolResultEvent,
 } from "@earendil-works/pi-coding-agent";
 import { describe, expect, it, vi } from "vitest";
 import { DESTRUCTIVE_APPROVAL_REASON } from "../../src/policy/command-analysis/result.js";
@@ -53,8 +55,10 @@ async function createHost({ approve = true } = {}) {
       stopReason: "stop",
     }),
   };
+
   const ui = { confirm: vi.fn().mockResolvedValue(approve), setWorkingMessage: vi.fn() };
 
+  // SAFETY: The guard reads only cwd, the three registry methods above, and UI; it never uses the session manager.
   const runner = new ExtensionRunner(
     loaded.extensions,
     loaded.runtime,
@@ -62,8 +66,10 @@ async function createHost({ approve = true } = {}) {
     {} as never,
     modelRegistry as never,
   );
+
   const extensionErrors: ExtensionError[] = [];
   runner.onError((error) => extensionErrors.push(error));
+  // SAFETY: The guard uses only confirm and setWorkingMessage; both are supplied above.
   runner.setUIContext(ui as never, "tui");
 
   const bashTool = createBashToolDefinition(workingDirectory);
@@ -83,16 +89,19 @@ async function createHost({ approve = true } = {}) {
       toolCallId,
       input,
     });
+
     if (callResult?.block) {
       return { blocked: true, blockReason: callResult.reason, isError: false, text: "" };
     }
 
-    let content: Array<{ type: string; text?: string }>;
-    let details: unknown;
+    let content: ToolResultEvent["content"];
+    let details: BashToolDetails | undefined;
     let isError = false;
+
     try {
-      const result = await bashTool.execute(toolCallId, input, undefined as never, undefined, undefined as never);
-      content = result.content as never;
+      // SAFETY: The built-in bash tool accepts an absent context and uses the working directory passed at creation.
+      const result = await bashTool.execute(toolCallId, input, undefined, undefined, undefined as never);
+      content = result.content;
       details = result.details;
     } catch (error) {
       content = [{ type: "text", text: error instanceof Error ? error.message : String(error) }];
@@ -108,12 +117,10 @@ async function createHost({ approve = true } = {}) {
       content,
       details,
       isError,
-    } as never);
+    });
 
-    const text = content
-      .filter((item) => item.type === "text" && typeof item.text === "string")
-      .map((item) => item.text)
-      .join("\n");
+    const text = content.flatMap((item) => (item.type === "text" ? [item.text] : [])).join("\n");
+
     return { blocked: false, blockReason: undefined, isError, text };
   }
 
@@ -129,6 +136,7 @@ async function createHost({ approve = true } = {}) {
 async function pathExists(path: string): Promise<boolean> {
   try {
     await access(path);
+
     return true;
   } catch {
     return false;
@@ -150,6 +158,7 @@ describe("reported host lifecycle", () => {
         'rm "$probe"',
         "exit 0",
       ].join("\n");
+
       const result = await host.runBash(command);
 
       expect(result.blocked).toBe(false);

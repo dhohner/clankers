@@ -1,3 +1,4 @@
+import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { mkdtemp, rm, symlink } from "node:fs/promises";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -14,7 +15,13 @@ import { SAFETY_EVALUATION_WORKING_MESSAGE } from "../../src/infrastructure/pi/m
 const TEMPORARY_ROOT = "/tmp";
 
 function makeMockPi() {
-  return { on: vi.fn() };
+  const pi = { on: vi.fn() };
+  const registration: Pick<ExtensionAPI, "on"> = pi;
+
+  // SAFETY: Registration uses only on, which records both handlers for these tests.
+  extension(registration as ExtensionAPI);
+
+  return pi;
 }
 
 function makeAssessmentReply(verdict = "unsafe") {
@@ -27,11 +34,9 @@ function makeAssessmentReply(verdict = "unsafe") {
   };
 }
 
-function makeApprovalContext({
-  approve = true,
-  verdict = "unsafe",
-  signal = undefined as AbortSignal | undefined,
-} = {}) {
+type ApprovalOptions = { approve?: boolean; verdict?: string; signal?: AbortSignal };
+
+function makeApprovalContext({ approve = true, verdict = "unsafe", signal }: ApprovalOptions = {}) {
   return {
     hasUI: true,
     cwd: "/workspace",
@@ -45,11 +50,12 @@ function makeApprovalContext({
   };
 }
 
-const cleanups: Array<() => Promise<unknown>> = [];
+const cleanups: Array<() => Promise<void>> = [];
 
 async function makeTemporaryDirectory(): Promise<string> {
   const directory = await mkdtemp(join(TEMPORARY_ROOT, "security-guard-test-"));
   cleanups.push(() => rm(directory, { recursive: true, force: true }));
+
   return directory;
 }
 
@@ -59,14 +65,13 @@ afterEach(async () => {
 
 function makeToolCallHandler() {
   const pi = makeMockPi();
-  extension(pi as never);
+
   return pi.on.mock.calls.find(([event]) => event === "tool_call")?.[1];
 }
 
 describe("extension entrypoint", () => {
   it("registers tool_call and user_bash handlers", () => {
     const pi = makeMockPi();
-    extension(pi as never);
 
     // The registration order carries no meaning, so only the set of handled events is asserted.
     const events = pi.on.mock.calls.map(([event]) => event);
@@ -75,17 +80,13 @@ describe("extension entrypoint", () => {
   });
 
   it("blocks Bash tool calls regardless of casing", async () => {
-    const pi = makeMockPi();
-    extension(pi as never);
-    const handler = pi.on.mock.calls.find(([event]) => event === "tool_call")?.[1];
+    const handler = makeToolCallHandler();
 
     await expect(handler({ toolName: "Bash", input: { command: "printenv" } })).resolves.toMatchObject({ block: true });
   });
 
   it("allows the PI environment pipeline", async () => {
-    const pi = makeMockPi();
-    extension(pi as never);
-    const handler = pi.on.mock.calls.find(([event]) => event === "tool_call")?.[1];
+    const handler = makeToolCallHandler();
 
     await expect(
       handler({ toolName: "bash", input: { command: "env | grep '^PI_' | sort" } }, { hasUI: false }),
@@ -93,9 +94,7 @@ describe("extension entrypoint", () => {
   });
 
   it("blocks read tool calls using args payloads", async () => {
-    const pi = makeMockPi();
-    extension(pi as never);
-    const handler = pi.on.mock.calls.find(([event]) => event === "tool_call")?.[1];
+    const handler = makeToolCallHandler();
 
     await expect(handler({ toolName: "read", args: { path: ".env" } }, { hasUI: false })).resolves.toMatchObject({
       block: true,
@@ -103,9 +102,7 @@ describe("extension entrypoint", () => {
   });
 
   it("requires approval for destructive Bash tool calls", async () => {
-    const pi = makeMockPi();
-    extension(pi as never);
-    const handler = pi.on.mock.calls.find(([event]) => event === "tool_call")?.[1];
+    const handler = makeToolCallHandler();
 
     await expect(handler({ toolName: "bash", input: { command: "rm file.txt" } }, { hasUI: false })).resolves.toEqual({
       block: true,
@@ -116,6 +113,7 @@ describe("extension entrypoint", () => {
   it("allows destructive Bash calls whose targets stay inside a temporary working directory", async () => {
     const handler = makeToolCallHandler();
     const ctx = { ...makeApprovalContext(), cwd: await makeTemporaryDirectory() };
+
     const command = [
       'probe="lint-parity-probe.tsx"',
       "printf '%s\\n' 'temporary probe' > \"$probe\"",
@@ -289,6 +287,7 @@ describe("extension entrypoint", () => {
     const ctx = makeApprovalContext({ signal: controller.signal });
     ctx.modelRegistry.complete = vi.fn().mockImplementation(async () => {
       controller.abort();
+
       return makeAssessmentReply();
     });
 
@@ -306,6 +305,7 @@ describe("extension entrypoint", () => {
     const ctx = makeApprovalContext({ signal: controller.signal });
     ctx.ui.confirm = vi.fn().mockImplementation(async () => {
       controller.abort();
+
       return true;
     });
 
@@ -337,6 +337,7 @@ describe("extension entrypoint", () => {
       (() => {
         const failing = makeApprovalContext();
         failing.modelRegistry.complete = vi.fn().mockRejectedValue(new Error("boom"));
+
         return failing;
       })(),
     ]) {

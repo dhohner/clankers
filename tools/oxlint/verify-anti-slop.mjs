@@ -11,37 +11,31 @@ const cases = [
   {
     name: "valid",
     source: "export function present(value: string): boolean {\n  return Boolean(value);\n}\n",
-    lint: [],
-    "lint:anti-slop": [],
+    codes: [],
   },
   {
     name: "anti-slop-violation",
     source: "export function present(value: unknown): boolean {\n  return Boolean(value);\n}\n",
-    lint: [],
-    "lint:anti-slop": ["anti-slop(no-unknown-parameters)"],
+    codes: ["anti-slop(no-unknown-parameters)"],
   },
   {
     name: "existing-rule-violation",
     source: "const unused = 1;\n",
-    lint: ["eslint(no-unused-vars)"],
-    "lint:anti-slop": ["eslint(no-unused-vars)"],
+    codes: ["eslint(no-unused-vars)"],
   },
 ];
 
 try {
   for (const plugin of ["insomniac", "output-styles", "security-guard"]) {
     const cwd = join(root, "plugins", plugin);
-    const commands = plugin === "security-guard" ? ["lint", "lint:anti-slop"] : ["lint"];
+    const commands = ["lint", "lint:fix"];
 
     for (const testCase of cases) {
       const fixture = join(temporary, `${testCase.name}.ts`);
       writeFileSync(fixture, testCase.source);
 
       for (const command of commands) {
-        const codes =
-          plugin !== "security-guard" && command === "lint"
-            ? testCase["lint:anti-slop"]
-            : testCase[command];
+        const { codes } = testCase;
         const label = `${plugin} ${command} ${testCase.name}`;
         const result = spawnSync(
           "pnpm",

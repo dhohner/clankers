@@ -21,6 +21,7 @@ describe("shell tokenizer", () => {
 
   it("links each heredoc body to the command that opened it, in operator order", () => {
     const tokens = shellTokens("cat <<'A' && >log psql <<B\nfirst\nA\nsecond $x\nB\necho done");
+
     const bodies = tokens
       .filter((token) => token.heredoc)
       .map(({ text, quoting, heredocOwner }) => ({
@@ -56,6 +57,13 @@ describe("shell tokenizer", () => {
     const text = tokens[0]?.text ?? "";
     const doubleQuoted = [...text].map((_, i) => (tokens[0]?.quoting[i] === DOUBLE ? text[i] : " ")).join("");
     expect(doubleQuoted).toBe("           $b    )]]                ");
+  });
+
+  it("marks only test expressions and omits the marker from ordinary words", () => {
+    const tokens = shellTokens("[[ -f a ]] && echo ok");
+
+    expect(tokens[0]?.testExpression).toBe(true);
+    expect(tokens.slice(1).every((token) => !Object.hasOwn(token, "testExpression"))).toBe(true);
   });
 
   it.each([

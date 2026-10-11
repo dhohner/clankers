@@ -385,6 +385,7 @@ const rules: readonly CommandRule[] = [
 ];
 
 const aliases = new Map<string, CommandRule>();
+
 for (const rule of rules) {
   for (const name of rule.names) {
     if (aliases.has(name)) throw new Error(`Duplicate command rule alias: ${name}`);

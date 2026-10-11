@@ -7,10 +7,13 @@ import { inject } from "vitest";
 const SYSTEM_PATH = "/usr/bin:/bin:/usr/sbin:/sbin";
 
 delete process.env.BASH_ENV;
+
 delete process.env.ENV;
+
 for (const name of Object.keys(process.env)) {
   if (name.startsWith("BASH_FUNC_")) delete process.env[name];
 }
+
 process.env.PATH = [SYSTEM_PATH, process.env.PATH ?? ""].filter(Boolean).join(":");
 
 process.env.PI_CODING_AGENT_DIR = inject("securityGuardAgentDirectory");

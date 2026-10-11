@@ -7,6 +7,7 @@ function matches(value: string, patterns: readonly RegExp[] = BLOCKED_PATTERNS):
 
 export function isBlockedText(value: string): boolean {
   if (!value || matches(value, ALLOWED_ENV_COMMANDS)) return false;
+
   return matches(value);
 }
 

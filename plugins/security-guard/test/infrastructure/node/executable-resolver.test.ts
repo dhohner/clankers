@@ -8,13 +8,15 @@ import {
 } from "../../../src/infrastructure/node/executable-resolver.js";
 
 const TEMPORARY_ROOT = "/tmp";
+
 const SYSTEM_PATH = "/usr/bin:/bin:/usr/sbin:/sbin";
 
-const cleanups: Array<() => Promise<unknown>> = [];
+const cleanups: Array<() => Promise<void>> = [];
 
 async function makeDirectory(): Promise<string> {
   const directory = await mkdtemp(join(TEMPORARY_ROOT, "security-guard-executables-"));
   cleanups.push(() => rm(directory, { recursive: true, force: true }));
+
   return directory;
 }
 

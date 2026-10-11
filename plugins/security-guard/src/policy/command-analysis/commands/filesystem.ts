@@ -12,9 +12,13 @@ import {
 } from "../classification.ts";
 
 const MOVE_FORCE_SHORT = "f";
+
 const MOVE_FORCE_LONG = ["--force"];
+
 const RECURSIVE_SHORT = "R";
+
 const RECURSIVE_LONG = ["--recursive"];
+
 const REFERENCE_LONG = ["--reference"];
 
 function hasRiskyPath(args: readonly string[]): boolean {
@@ -34,6 +38,7 @@ function filteredArgs(args: readonly string[]): string[] {
  */
 function modeGrantsWrite(mode: string): boolean {
   if (/^[0-7]+$/.test(mode)) return /[2367]$/.test(mode);
+
   return mode.split(",").some((clause) => /^[augo]*[+=][rwxXst]*w/.test(clause));
 }
 
@@ -52,15 +57,21 @@ function copiesFromReference(args: readonly string[]): boolean {
 function moveVerdict(argTexts: readonly string[], operands: readonly ShellToken[]): ClassificationVerdict {
   if (hasOption(argTexts, MOVE_FORCE_SHORT, MOVE_FORCE_LONG) || hasRiskyPath(argTexts)) return APPROVAL;
   const operandCount = filteredArgs(argTexts).length;
+
   if (operandCount === 2) return SAFE;
+
   // An option value among the non-option words (`-S .bak`, `--suffix .bak`) keeps today's verdict: only a
   // command whose non-option words are all path operands is judged by its last one.
   if (operandCount < 2 || operands.length !== operandCount) return APPROVAL;
+
   if (hasOption(argTexts, "t", ["--target-directory"]) || hasOption(argTexts, "T", ["--no-target-directory"])) {
     return APPROVAL;
   }
+
   const destination = operands.at(-1);
+
   if (destination === undefined || !namesOnePathLiterally(destination)) return APPROVAL;
+
   return hostCheck(destination.text, "directory");
 }
 
@@ -70,6 +81,7 @@ function moveVerdict(argTexts: readonly string[], operands: readonly ShellToken[
  */
 function pathOperands({ name, args }: ClassificationContext): readonly ShellToken[] | undefined {
   const extracted = extractPathOperands(name, args);
+
   return extracted.kind === "unprovable" ? undefined : extracted.value;
 }
 
@@ -80,6 +92,7 @@ function metadataChangeVerdict(
   if (!pathOperands(context)) return APPROVAL;
   const { argTexts } = context;
   const metadata = filteredArgs(argTexts)[0] ?? "";
+
   return hasOption(argTexts, RECURSIVE_SHORT, RECURSIVE_LONG) ||
     copiesFromReference(argTexts) ||
     changeIsRisky(metadata) ||
@@ -93,6 +106,7 @@ export const FILESYSTEM_CLASSIFIERS: readonly ClassifierRegistration[] = [
     names: ["mv"],
     classify: (context) => {
       const operands = pathOperands(context);
+
       return operands ? moveVerdict(context.argTexts, operands) : APPROVAL;
     },
   },

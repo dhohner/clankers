@@ -5,7 +5,9 @@ import { shellTokens } from "../../src/shell/tokenizer.js";
 
 function word(text: string) {
   const token = shellTokens(text)[0];
+
   if (!token) throw new Error(`Expected one token for ${text}`);
+
   return token;
 }
 

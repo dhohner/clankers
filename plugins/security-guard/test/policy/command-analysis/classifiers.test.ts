@@ -1,63 +1,52 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
-import type { CommandRule } from "../../../src/commands/registry.js";
+import { describe, expect, it } from "vitest";
+import { COMMAND_RULES, type CommandRule } from "../../../src/commands/registry.js";
+import { classifierFor, createClassifierTable } from "../../../src/policy/command-analysis/classifiers.js";
 
-const REGISTRY = "../../../src/commands/registry.js";
-const CLASSIFIERS = "../../../src/policy/command-analysis/classifiers.js";
-
-type Registry = typeof import("../../../src/commands/registry.js");
-type RuleTransform = (rules: readonly CommandRule[]) => readonly CommandRule[];
-
-/** Loads the classifier table after transforming its command registry. */
-async function loadWithRules(transform: RuleTransform): Promise<void> {
-  vi.doMock(REGISTRY, async () => {
-    const actual = await vi.importActual<Registry>(REGISTRY);
-    return { ...actual, COMMAND_RULES: transform(actual.COMMAND_RULES) };
-  });
-  await import(CLASSIFIERS);
-}
-
-afterEach(() => {
-  vi.doUnmock(REGISTRY);
-  vi.resetModules();
-});
-
-// A command the registry knows and the classifier table does not is read as harmless, so `wipefs -a /dev/sda`
-// would run unannounced. The table refuses to load instead of deciding that quietly.
+// Missing classifiers would allow destructive commands silently, so table construction must reject them.
 describe("classifier coverage", () => {
-  it.each(["unmodeled" as const, "path" as const])(
-    "refuses to load when a rule with %s has no classifier",
-    async (kind) => {
-      const effect: CommandRule["effect"] =
-        kind === "unmodeled"
-          ? { kind: "unmodeled" }
-          : {
-              kind: "path",
-              options: { kind: "standard", longFlags: [], longValues: [], shortFlags: "", shortValues: "" },
-              symlinkBehavior: "entry",
-              allowsShallowGlob: false,
-            };
-      await expect(loadWithRules((rules) => [...rules, { names: ["wipefs"], effect }])).rejects.toThrow(
-        "Command rules without a classifier: wipefs",
-      );
-    },
-  );
+  it.each(["unmodeled" as const, "path" as const])("rejects a rule with %s that has no classifier", (kind) => {
+    const effect: CommandRule["effect"] =
+      kind === "unmodeled"
+        ? { kind: "unmodeled" }
+        : {
+            kind: "path",
+            options: { kind: "standard", longFlags: [], longValues: [], shortFlags: "", shortValues: "" },
+            symlinkBehavior: "entry",
+            allowsShallowGlob: false,
+          };
 
-  it("refuses to load when a classified command loses its rule", async () => {
-    await expect(loadWithRules((rules) => rules.filter((rule) => !rule.names.includes("dd")))).rejects.toThrow(
+    expect(() => createClassifierTable([...COMMAND_RULES, { names: ["wipefs"], effect }])).toThrow(
+      "Command rules without a classifier: wipefs",
+    );
+  });
+
+  it("rejects a classified command that loses its rule", () => {
+    expect(() => createClassifierTable(COMMAND_RULES.filter((rule) => !rule.names.includes("dd")))).toThrow(
       "Classifiers for unregistered commands: dd",
     );
   });
 
-  it("refuses to load when a classified command becomes harmless", async () => {
-    await expect(
-      loadWithRules((rules) =>
-        rules.map((rule) => (rule.names.includes("dd") ? { ...rule, effect: { kind: "none" as const } } : rule)),
-      ),
-    ).rejects.toThrow("Classifiers for commands the registry calls harmless: dd");
+  it("rejects a classified command that becomes harmless", () => {
+    const rules = COMMAND_RULES.map((rule): CommandRule =>
+      rule.names.includes("dd") ? { ...rule, effect: { kind: "none" } } : rule,
+    );
+
+    expect(() => createClassifierTable(rules)).toThrow("Classifiers for commands the registry calls harmless: dd");
   });
 
-  it("loads the real tables without complaint", async () => {
-    const { classifierFor } = await import(CLASSIFIERS);
-    expect(classifierFor("dd")).toBeDefined();
+  it("rejects duplicate classifiers", () => {
+    const classify = classifierFor("dd")!;
+
+    expect(() => createClassifierTable(COMMAND_RULES, [{ names: ["dd", "dd"], classify }])).toThrow(
+      "Duplicate command classifier: dd",
+    );
+  });
+
+  it("loads the real tables and preserves classifier lookup", () => {
+    const table = createClassifierTable(COMMAND_RULES);
+
+    expect(table.get("dd")).toBeDefined();
+    expect(classifierFor("dd")).toBe(table.get("dd"));
+    expect(classifierFor("unregistered")).toBeUndefined();
   });
 });

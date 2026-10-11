@@ -3,17 +3,24 @@ import type { ShellToken, Word } from "./types.ts";
 // Quote marks used in `Word.quoting`. A LITERAL character never expands (single quote or backslash), a
 // DOUBLE one expands but is not split into several words, an UNQUOTED one does both.
 export const LITERAL = "'";
+
 export const DOUBLE = '"';
+
 export const UNQUOTED = " ";
 
 const CONTROL_OPERATORS = [";;", "&&", "||", "|&", ";", "&", "|", "(", ")", "{", "}", "\n"] as const;
+
 const REDIRECT_OPERATORS = ["&>>", "&>", "<<<", "<<-", "<<", "<&", "<>", ">>", ">|", ">&", ">", "<"] as const;
+
 // Longest first, so `&&` is not read as `&` and `>>` not as `>`.
 const OPERATORS: readonly string[] = [...CONTROL_OPERATORS, ...REDIRECT_OPERATORS].sort((a, b) => b.length - a.length);
+
 const REDIRECT_OPERATOR_SET: ReadonlySet<string> = new Set(REDIRECT_OPERATORS);
+
 // Only a list separator leaves the next command certain to run in this shell. After `&&`, `||`, `|`, or `&`,
 // and inside `(...)` or `{...}`, the command may be skipped or may run in a subshell.
 export const SEQUENTIAL_CONTROLS: ReadonlySet<string> = new Set([";", ";;", "\n"]);
+
 // Reserved words after which bash reads another command name, so `if [[ ...` and `! [[ ...` keep `[[` in
 // command position. `time` is one of them too; the registry models it as a wrapper. `coproc` is absent: bash
 // added it in 4.0, and bash 3.2, which macOS ships as `/bin/bash`, runs it as an ordinary command word, so
@@ -43,7 +50,9 @@ const TIME_OPTION = "-p";
 function standsAlone(value: string, i: number, text: string, atCommandStart: boolean): boolean {
   if (text !== "" || !atCommandStart) return false;
   const next = value[i + 1];
+
   if (next === undefined || /\s/.test(next)) return true;
+
   return OPERATORS.some((candidate) => value.startsWith(candidate, i + 1));
 }
 
@@ -56,14 +65,21 @@ function standsAlone(value: string, i: number, text: string, atCommandStart: boo
  */
 export function runsSubstitution(word: Word): boolean {
   const { text, quoting } = word;
+
   for (let i = 0; i < text.length; i += 1) {
     const char = text[i];
+
     if (quoting[i] === LITERAL) continue;
+
     if (char === "`") return true;
+
     if (text[i + 1] !== "(") continue;
+
     if (char === "$") return true;
+
     if ((char === "<" || char === ">") && quoting[i] === UNQUOTED) return true;
   }
+
   return false;
 }
 
@@ -89,14 +105,17 @@ function unsupportedShellSyntax(value: string): UnsupportedShellSyntax | undefin
     const char = value[index] ?? "";
     const next = value[index + 1] ?? "";
     unquoted += quote === "" ? char : " ";
+
     if (char === "\\") {
       index += 1;
       continue;
     }
+
     if (quote === "'") {
       if (char === "'") quote = "";
       continue;
     }
+
     if (quote === '"') {
       if (char === '"') {
         quote = "";
@@ -106,41 +125,54 @@ function unsupportedShellSyntax(value: string): UnsupportedShellSyntax | undefin
       quote = char;
       continue;
     }
+
     if (char === "`") {
       const end = value.indexOf("`", index + 1);
+
       if (end < 0) return "unterminated-backtick";
       index = end;
       continue;
     }
+
     // `$[ ... ]` is the deprecated arithmetic expansion, still live in bash 3.2 and readable inside double
     // quotes. It reads a variable's value as an expression the same way `$(( ... ))` does; rather than model a
     // second spelling of it, the policy refuses the whole call.
     if (char === "$" && next === "[") return "arithmetic";
+
     if (quote === "") {
       if (char === "$" && (next === "'" || next === '"')) return "ansi-c-quoting";
+
       // `((` outside a substitution is the arithmetic command, whose expression the policy cannot read; the
       // arithmetic expansion `$((` is a substitution and is accepted below.
       if (char === "(" && next === "(" && substitutionDepth === 0) return "arithmetic";
+
       if (char === ";" && next === "&") return "unsupported-control-operator";
     }
+
     // Process substitution is literal text inside double quotes; `$(` and `${` are not.
     const opensSubstitution =
       (char === "$" && (next === "(" || next === "{")) ||
       (quote === "" && (char === "<" || char === ">") && next === "(");
+
     if (opensSubstitution) {
       substitutionDepth += 1;
       index += 1;
       continue;
     }
+
     if (substitutionDepth > 0 && (char === "(" || char === "{")) substitutionDepth += 1;
+
     if (substitutionDepth > 0 && (char === ")" || char === "}")) substitutionDepth -= 1;
   }
 
   if (quote !== "") return "unterminated-quote";
+
   if (substitutionDepth !== 0) return "unterminated-substitution";
+
   if (/(^|[;&|(){}\n]\s*|\s)(function\s+[A-Za-z_][A-Za-z0-9_]*|[A-Za-z_][A-Za-z0-9_]*\s*\(\s*\))\s*\{/.test(unquoted)) {
     return "function-definition";
   }
+
   return undefined;
 }
 
@@ -155,27 +187,34 @@ export function substitutionEnd(value: string, start: number): number {
   const close = open === "(" ? ")" : "}";
   let depth = 0;
   let quote = "";
+
   for (let i = start + 1; i < value.length; i += 1) {
     const char = value[i] ?? "";
+
     if (quote === "'") {
       if (char === "'") quote = "";
       continue;
     }
+
     if (char === "\\" && i + 1 < value.length) {
       i += 1;
       continue;
     }
+
     if (quote === '"') {
       if (char === '"') quote = "";
       continue;
     }
+
     if (char === "'" || char === '"') {
       quote = char;
       continue;
     }
+
     if (char === open) depth += 1;
     else if (char === close && (depth -= 1) === 0) return i;
   }
+
   return value.length - 1;
 }
 
@@ -185,23 +224,28 @@ export function substitutionEnd(value: string, start: number): number {
  */
 export function subscriptEnd(value: string, open: number): number {
   let depth = 0;
+
   for (let i = open; i < value.length; i += 1) {
     const char = value[i];
+
     if (char === "[") depth += 1;
     else if (char === "]" && (depth -= 1) === 0) return i;
   }
+
   return -1;
 }
 
 /** Whether the character at `i` ends a word: nothing, whitespace, or an operator. */
 function endsWord(value: string, i: number): boolean {
   const char = value[i];
+
   return char === undefined || /\s/.test(char) || OPERATORS.some((candidate) => value.startsWith(candidate, i));
 }
 
 /** Tokenizes the deliberately accepted shell grammar or identifies syntax the security policy cannot model. */
 export function tokenizeShell(value: string): ShellTokenization {
   const unsupported = unsupportedShellSyntax(value);
+
   return unsupported ? { kind: "unsupported", reason: unsupported } : { kind: "tokens", tokens: shellTokens(value) };
 }
 
@@ -234,8 +278,12 @@ export function shellTokens(value: string): ShellToken[] {
 
   const push = () => {
     if (!text) return;
-    tokens.push({ text, quoting, sep: false, redirect: false, ...(testExpression ? { testExpression } : {}) });
+    const token: ShellToken = { text, quoting, sep: false, redirect: false };
+
+    if (testExpression) token.testExpression = true;
+    tokens.push(token);
     testExpression = false;
+
     if (heredocTarget) {
       pendingHeredocs.push({
         delimiter: text,
@@ -245,6 +293,7 @@ export function shellTokens(value: string): ShellToken[] {
       });
       heredocTarget = undefined;
     }
+
     // Only a word read in command position is reserved: `echo if` prints `if`.
     const unquoted = !/[^ ]/.test(quoting);
     const introduces = unquoted && (COMMAND_INTRODUCERS.has(text) || (timedPipeline && text === TIME_OPTION));
@@ -258,33 +307,42 @@ export function shellTokens(value: string): ShellToken[] {
     if (!expands) return { text: body, quoting: LITERAL.repeat(body.length) };
     let bodyText = "";
     let bodyQuoting = "";
+
     for (let position = 0; position < body.length; position += 1) {
       const char = body[position] ?? "";
       const next = body[position + 1] ?? "";
+
       if (char === "\\" && "\\$`\n".includes(next)) {
         position += 1;
+
         if (next !== "\n") {
           bodyText += next;
           bodyQuoting += LITERAL;
         }
+
         continue;
       }
+
       bodyText += char;
       bodyQuoting += UNQUOTED;
     }
+
     return { text: bodyText, quoting: bodyQuoting };
   };
 
   const consumeHeredocs = (start: number): number => {
     let cursor = start;
+
     for (const heredoc of pendingHeredocs) {
       const bodyStart = cursor;
       let terminated = false;
+
       while (cursor <= value.length) {
         const newline = value.indexOf("\n", cursor);
         const lineEnd = newline < 0 ? value.length : newline;
         const line = value.slice(cursor, lineEnd).replace(/\r$/, "");
         const comparable = heredoc.stripTabs ? line.replace(/^\t+/, "") : line;
+
         if (comparable === heredoc.delimiter) {
           const body = heredocWord(value.slice(bodyStart, cursor), heredoc.expands);
           tokens.push({ ...body, sep: true, redirect: false, heredoc: true, heredocOwner: heredoc.owner });
@@ -292,19 +350,24 @@ export function shellTokens(value: string): ShellToken[] {
           terminated = true;
           break;
         }
+
         if (newline < 0) {
           cursor = value.length;
           break;
         }
+
         cursor = newline + 1;
       }
+
       if (!terminated) {
         const body = heredocWord(value.slice(bodyStart), heredoc.expands);
         tokens.push({ ...body, sep: true, redirect: false, heredoc: true, heredocOwner: heredoc.owner });
         break;
       }
     }
+
     pendingHeredocs.length = 0;
+
     return cursor;
   };
 
@@ -314,6 +377,7 @@ export function shellTokens(value: string): ShellToken[] {
     // A `#` that starts a word begins a comment; the newline that ends it still separates commands.
     if (quote === "" && text === "" && char === "#") {
       const end = value.indexOf("\n", i);
+
       if (end < 0) break;
       i = end - 1;
       continue;
@@ -334,9 +398,11 @@ export function shellTokens(value: string): ShellToken[] {
 
     if (char === "\\" && i + 1 < value.length) {
       const next = value[i + 1] ?? "";
+
       // Inside double quotes a backslash escapes only these characters; elsewhere it escapes any one.
       if (quote !== DOUBLE || '"\\$`\n'.includes(next)) {
         i += 1;
+
         // A backslash before a newline is a line continuation: both characters disappear.
         if (next !== "\n") append(next, LITERAL);
         continue;
@@ -388,16 +454,19 @@ export function shellTokens(value: string): ShellToken[] {
       // belongs to its word, so `[[ -n $(c)]]` does not end, and neither does `[[ -f a]]`; bash rejects both
       // as syntax errors it runs nothing of, which is also what leaving the rest inside this word models.
       const previous = text.at(-1);
+
       const startsWord =
         quoting.at(-1) === UNQUOTED &&
         previous !== undefined &&
         (/\s/.test(previous) || (previous === ")" && i !== substitutionTail));
+
       if (value.startsWith("]]", i) && startsWord && endsWord(value, i + 2)) {
         append("]]", UNQUOTED);
         i += 1;
         push();
         continue;
       }
+
       append(char, UNQUOTED);
       continue;
     }
@@ -416,6 +485,7 @@ export function shellTokens(value: string): ShellToken[] {
     }
 
     const operator = OPERATORS.find((candidate) => value.startsWith(candidate, i));
+
     if (operator) {
       // `{` and `}` group commands only when each stands alone as a word. Touching a word on either side
       // they are brace expansion, which rewrites the word: `r{m,} -rf build` runs `rm`.
@@ -423,22 +493,29 @@ export function shellTokens(value: string): ShellToken[] {
         append(char, UNQUOTED);
         continue;
       }
+
       const redirect = REDIRECT_OPERATOR_SET.has(operator);
+
       // An unquoted digit run touching a redirection is the file descriptor, not a word.
       if (redirect && /^[0-9]+$/.test(text) && !/[^ ]/.test(quoting)) {
         text = "";
         quoting = "";
       }
+
       push();
       tokens.push({ text: operator, quoting: "", sep: true, redirect });
+
       if (operator === "<<" || operator === "<<-") heredocTarget = { stripTabs: operator === "<<-" };
       i += operator.length - 1;
+
       if (operator === "\n" && pendingHeredocs.length > 0) i = consumeHeredocs(i + 1) - 1;
       timedPipeline = false;
+
       if (!redirect) {
         atCommandStart = true;
         commandStart = tokens.length;
       }
+
       continue;
     }
 
@@ -446,6 +523,7 @@ export function shellTokens(value: string): ShellToken[] {
   }
 
   push();
+
   return tokens;
 }
 

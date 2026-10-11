@@ -4,8 +4,10 @@ import type { ShellToken, Word } from "./types.ts";
 function hasProcessSubstitution(word: Word): boolean {
   for (let i = 0; i < word.text.length; i += 1) {
     const char = word.text[i];
+
     if ((char === "<" || char === ">") && word.text[i + 1] === "(" && word.quoting[i] === UNQUOTED) return true;
   }
+
   return false;
 }
 
@@ -18,8 +20,10 @@ function hasProcessSubstitution(word: Word): boolean {
 export function expandsBeforeUse(word: Word): boolean {
   for (let i = 0; i < word.text.length; i += 1) {
     const char = word.text[i] ?? "";
+
     if ((char === "$" || char === "`") && word.quoting[i] !== LITERAL) return true;
   }
+
   return hasProcessSubstitution(word);
 }
 
@@ -42,11 +46,14 @@ export function scanSubstitutions(word: Word): SubstitutionScan {
   const contents: string[] = [];
   const arithmeticEnds: number[] = [];
   const { text, quoting } = word;
+
   for (let i = 0; i < text.length; i += 1) {
     while (arithmeticEnds.length > 0 && i >= (arithmeticEnds.at(-1) ?? 0)) arithmeticEnds.pop();
 
     const char = text[i];
+
     if (quoting[i] === LITERAL) continue;
+
     if (char === "`") {
       const end = text.indexOf("`", i + 1);
       const stop = end < 0 ? text.length : end;
@@ -54,22 +61,29 @@ export function scanSubstitutions(word: Word): SubstitutionScan {
       i = stop;
       continue;
     }
+
     if (text[i + 1] !== "(") continue;
     const command = char === "$";
     const process = (char === "<" || char === ">") && quoting[i] === UNQUOTED;
+
     if (!command && !process) continue;
     const end = substitutionEnd(text, i);
+
     if (command && text[i + 2] === "(" && text[end - 1] === ")") {
       arithmeticEnds.push(end);
+
       if (arithmeticEnds.length > MAX_ARITHMETIC_NESTING) {
         return { contents, nestingLimitExceeded: true };
       }
+
       i += 2;
       continue;
     }
+
     contents.push(text.slice(i + 2, end));
     i = end;
   }
+
   return { contents, nestingLimitExceeded: false };
 }
 
@@ -84,8 +98,10 @@ export function substitutionContents(word: Word): string[] {
 
 // Number forms bash arithmetic accepts that contain letters: hexadecimal and `base#digits`.
 const ARITHMETIC_NUMBER = /0[xX][0-9a-fA-F]+|[0-9]+#[0-9a-zA-Z@_]+/g;
+
 // The `[[ ... ]]` operators whose operands bash evaluates as arithmetic expressions.
 const ARITHMETIC_TEST_OPERATORS = new Set(["-eq", "-ne", "-lt", "-le", "-gt", "-ge"]);
+
 const INTEGER = /^[+-]?[0-9]+$/;
 
 /**
@@ -98,21 +114,28 @@ const INTEGER = /^[+-]?[0-9]+$/;
 function arithmeticReadsVariable(expression: string): boolean {
   let stripped = "";
   const arithmeticEnds: number[] = [];
+
   for (let i = 0; i < expression.length; i += 1) {
     while (arithmeticEnds.length > 0 && i >= (arithmeticEnds.at(-1) ?? 0)) arithmeticEnds.pop();
 
     const char = expression[i] ?? "";
+
     if (char === "`") return true;
+
     if (char === "$" && expression[i + 1] === "(") {
       const end = substitutionEnd(expression, i);
+
       if (expression[i + 2] !== "(" || expression[end - 1] !== ")") return true;
       arithmeticEnds.push(end);
+
       if (arithmeticEnds.length > MAX_ARITHMETIC_NESTING) return true;
       i += 2;
       continue;
     }
+
     stripped += char;
   }
+
   return /[A-Za-z_$]/.test(stripped.replace(ARITHMETIC_NUMBER, ""));
 }
 
@@ -123,20 +146,26 @@ function arithmeticReadsVariable(expression: string): boolean {
  */
 export function evaluatesUnreadableArithmetic(word: ShellToken): boolean {
   const { text, quoting } = word;
+
   for (let i = 0; i < text.length; i += 1) {
     if (quoting[i] === LITERAL) continue;
+
     if (text.startsWith("$((", i)) {
       const end = substitutionEnd(text, i);
+
       if (text[end - 1] !== ")") continue;
+
       if (arithmeticReadsVariable(text.slice(i + 3, end - 1))) return true;
       i = end;
       continue;
     }
   }
+
   if (!word.testExpression) return false;
   // Quotes are gone from the text, so a quoted operand holding a space splits here; every piece that is not an
   // integer fails closed, which is the safe direction.
   const operands = text.slice(2, -2).split(/\s+/);
+
   return operands.some(
     (operand, index) =>
       ARITHMETIC_TEST_OPERATORS.has(operand) &&

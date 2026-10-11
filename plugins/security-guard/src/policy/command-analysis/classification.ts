@@ -11,6 +11,7 @@ export type ClassificationVerdict =
   | { kind: "host-check"; check: HostPathCheck };
 
 export const SAFE: ClassificationVerdict = { kind: "safe" };
+
 export const APPROVAL: ClassificationVerdict = { kind: "approval" };
 
 export function hostCheck(path: string, expectation: HostPathCheck["expectation"]): ClassificationVerdict {

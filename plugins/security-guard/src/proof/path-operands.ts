@@ -17,6 +17,7 @@ export const PATH_TARGET_COMMANDS = new Set(
 );
 
 type MoveOptionModel = Extract<PathOptionModel, { kind: "move" }>;
+
 type ModeOptionModel = Extract<PathOptionModel, { kind: "mode" }>;
 
 /** The paths `mv` reads and writes, destination included, or undefined when an option was not recognized. */
@@ -26,12 +27,15 @@ function extractMoveCommandPaths(args: readonly ShellToken[], model: MoveOptionM
 
   for (let i = 0; i < args.length; i += 1) {
     const word = args[i];
+
     if (!word) continue;
     const arg = word.text;
+
     if (!optionsEnded && arg === "--") {
       optionsEnded = true;
       continue;
     }
+
     if (optionsEnded || !arg.startsWith("-") || arg === "-") {
       words.push(word);
       continue;
@@ -40,16 +44,20 @@ function extractMoveCommandPaths(args: readonly ShellToken[], model: MoveOptionM
     if (arg.startsWith("--")) {
       const inline = arg.indexOf("=");
       const base = inline < 0 ? arg : arg.slice(0, inline);
+
       if (model.longPathValues.has(base)) {
         const value = inline < 0 ? args[++i] : sliceWord(word, inline + 1);
+
         if (!value) return undefined;
         words.push(value);
         continue;
       }
+
       if (model.longValues.has(base)) {
         if (inline < 0) i += 1;
         continue;
       }
+
       if (!model.longFlags.has(base)) return undefined;
       continue;
     }
@@ -57,14 +65,19 @@ function extractMoveCommandPaths(args: readonly ShellToken[], model: MoveOptionM
     // A short-option bundle ends at the first option taking a value; the rest of that word is its value.
     for (let position = 1; position < arg.length; position += 1) {
       const letter = arg[position] ?? "";
+
       if (model.shortFlags.includes(letter)) continue;
+
       if (!model.shortValues.includes(letter)) return undefined;
       const value = position + 1 < arg.length ? sliceWord(word, position + 1) : args[++i];
+
       if (!value) return undefined;
+
       if (letter === "t") words.push(value);
       break;
     }
   }
+
   return words;
 }
 
@@ -81,18 +94,22 @@ function extractModeCommandPaths(args: readonly ShellToken[], model: ModeOptionM
 
   for (const word of args) {
     const arg = word.text;
+
     if (!optionsEnded && arg === "--") {
       optionsEnded = true;
       continue;
     }
+
     if (optionsEnded || !arg.startsWith("-") || arg === "-") {
       words.push(word);
       continue;
     }
+
     if (arg.startsWith("--")) {
       if (!model.longFlags.has(arg)) return undefined;
       continue;
     }
+
     // `arg` is a string, so `String#slice` returns a string and the spread is what makes `.some` valid.
     // oxlint reads any `.slice()` as an array clone, and its fix removes the spread, which throws.
     // oxlint-disable-next-line unicorn/no-useless-spread
@@ -101,26 +118,34 @@ function extractModeCommandPaths(args: readonly ShellToken[], model: ModeOptionM
 
   // The first operand is the mode or the owner, not a path.
   words.shift();
+
   return words;
 }
 
 function extractPathOperandsValue(name: string, args: readonly ShellToken[]): ShellToken[] | undefined {
   const effect = commandRule(name)?.effect;
+
   if (!effect || effect.kind !== "path") return undefined;
   const options = effect.options;
+
   if (options.kind === "move") return extractMoveCommandPaths(args, options);
+
   if (options.kind === "mode") return extractModeCommandPaths(args, options);
 
   const words: ShellToken[] = [];
   let optionsEnded = false;
+
   for (let i = 0; i < args.length; i += 1) {
     const word = args[i];
+
     if (!word) continue;
     const arg = word.text;
+
     if (!optionsEnded && arg === "--") {
       optionsEnded = true;
     } else if (!optionsEnded && arg.startsWith("--")) {
       if (options.rejectLong && spellsLongOption(arg, options.rejectLong)) return undefined;
+
       if (spellsLongOption(arg, options.longValues)) {
         if (!arg.includes("=")) i += 1;
       } else if (!spellsLongOption(arg, options.longFlags)) {
@@ -129,9 +154,13 @@ function extractPathOperandsValue(name: string, args: readonly ShellToken[]): Sh
     } else if (!optionsEnded && arg.startsWith("-") && arg !== "-") {
       for (let position = 1; position < arg.length; position += 1) {
         const letter = arg[position] ?? "";
+
         if (options.rejectShort?.includes(letter)) return undefined;
+
         if (options.shortFlags.includes(letter)) continue;
+
         if (!options.shortValues.includes(letter)) return undefined;
+
         if (position + 1 === arg.length) i += 1;
         break;
       }
@@ -139,6 +168,7 @@ function extractPathOperandsValue(name: string, args: readonly ShellToken[]): Sh
       words.push(word);
     }
   }
+
   return words;
 }
 
@@ -146,12 +176,15 @@ function extractPathOperandsValue(name: string, args: readonly ShellToken[]): Sh
 // wildcard, or a recursive `**`, would traverse through a matched link.
 function globStaysShallow(path: string): boolean {
   const globStart = path.search(/[*?[]/);
+
   if (globStart < 0) return true;
+
   return !path.slice(globStart).includes("/") && !path.includes("**");
 }
 
 export function extractPathOperands(name: string, args: readonly ShellToken[]): ProofResult<ShellToken[]> {
   const words = extractPathOperandsValue(name, args);
+
   return words && words.length > 0 ? proven(words) : unprovable("path operands cannot be identified");
 }
 
@@ -161,20 +194,27 @@ export function extractPathTargets(
   state: ShellState,
 ): ProofResult<DestructiveTarget[]> {
   const operands = extractPathOperands(name, args);
+
   if (operands.kind === "unprovable") return operands;
 
   const targets: DestructiveTarget[] = [];
+
   for (const word of operands.value) {
     const target = expandWord(word, state);
+
     if (target.kind === "unprovable") return target;
     const hasGlob = /[*?[]/.test(target.value.path);
     const effect = commandRule(name)?.effect;
+
     if (!effect || effect.kind !== "path") return unprovable("command has no path-target model");
+
     if (hasGlob && (!effect.allowsShallowGlob || !globStaysShallow(target.value.path))) {
       return unprovable("path glob can traverse outside the proven target");
     }
+
     targets.push(provenTarget(target.value, effect.symlinkBehavior === "target"));
   }
+
   return proven(targets);
 }
 
@@ -193,38 +233,51 @@ export function extractWriteTargets(
   state: ShellState,
 ): ProofResult<DestructiveTarget[]> {
   const model = commandRule(name)?.effect;
+
   if (!model || model.kind !== "write") return unprovable("command has no write-target model");
 
   const words: ShellToken[] = [];
   let optionsEnded = false;
+
   for (let i = 0; i < args.length; i += 1) {
     const word = args[i];
+
     if (!word) continue;
     const arg = word.text;
+
     if (!optionsEnded && arg === "--") {
       optionsEnded = true;
       continue;
     }
+
     if (!optionsEnded && arg.startsWith("-") && arg !== "-") {
       const inline = arg.indexOf("=");
       const flag = inline < 0 ? arg : arg.slice(0, inline);
+
       if (model.valueOptions.has(flag)) {
         if (inline < 0) i += 1;
         continue;
       }
+
       if (inline < 0 && model.flagOptions.has(flag)) continue;
+
       return unprovable("write-target option cannot be identified");
     }
+
     words.push(word);
   }
 
   const targets: DestructiveTarget[] = [];
+
   for (const word of words) {
     const target = expandWord(word, state);
+
     if (target.kind === "unprovable") return target;
+
     // A wildcard operand names paths that already exist, which these commands are not used to reach.
     if (/[*?[]/.test(target.value.path)) return unprovable("write target contains a wildcard");
     targets.push(provenTarget(target.value, model.symlinkBehavior === "target"));
   }
+
   return proven(targets);
 }

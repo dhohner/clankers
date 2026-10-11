@@ -47,8 +47,11 @@ const LEADING_OPTIONS: OptionModel = {
 };
 
 const CHECKOUT_BRANCH = new Set(["-b", "--orphan", "-t", "--track", "--detach"]);
+
 const CHECKOUT_BRANCH_VALUE = new Set(["-b", "--orphan"]);
+
 const CHECKOUT_DESTRUCTIVE = /^(--ours|--theirs|-p|--patch|--pathspec-from-file(=.*)?|-B|--force)$/;
+
 const FORCING_REFSPEC = /^\+|^:./;
 
 /**
@@ -62,22 +65,32 @@ const FORCING_REFSPEC = /^\+|^:./;
 function checkoutVerdict(args: readonly ShellToken[]): ClassificationVerdict {
   const operands: ShellToken[] = [];
   let namesBranch = false;
+
   for (let i = 0; i < args.length; i += 1) {
     const word = args[i];
     const arg = word?.text ?? "";
+
     if (arg === "--" || CHECKOUT_DESTRUCTIVE.test(arg) || /^-[A-Za-z]*[fB]/.test(arg)) return APPROVAL;
+
     if (word && (arg === "-" || !arg.startsWith("-"))) {
       operands.push(word);
       continue;
     }
+
     if (CHECKOUT_BRANCH.has(arg)) namesBranch = true;
+
     if (CHECKOUT_BRANCH_VALUE.has(arg)) i += 1;
   }
+
   if (namesBranch) return SAFE;
+
   if (operands.length > 1) return APPROVAL;
   const operand = operands[0];
+
   if (operand === undefined || operand.text === "-") return SAFE;
+
   if (!namesOnePathLiterally(operand)) return APPROVAL;
+
   return hostCheck(operand.text, "absent");
 }
 
@@ -89,44 +102,58 @@ function checkoutVerdict(args: readonly ShellToken[]): ClassificationVerdict {
 function movesGitDirectory(leading: readonly string[]): boolean {
   for (let i = 0; i < leading.length; i += 1) {
     const arg = leading[i] ?? "";
+
     if (arg.startsWith("-C") || /^--(git-dir|work-tree)(=|$)/.test(arg)) return true;
     const inline = arg.startsWith("--config-env=") ? arg.slice("--config-env=".length) : undefined;
     const value = inline ?? (arg === "-c" || arg === "--config-env" ? (leading[i + 1] ?? "") : undefined);
+
     if (value !== undefined && /^core\.worktree(=|$)/i.test(value)) return true;
   }
+
   return false;
 }
 
 function gitVerdict(argWords: readonly ShellToken[]): ClassificationVerdict {
   const argTexts = argWords.map((word) => word.text);
   const scan = skipOptionsOf(LEADING_OPTIONS, argWords, 0);
+
   if (!scan) return APPROVAL;
   const args = argTexts.slice(scan.index);
 
   if (args[0] === "reset") return args.includes("--hard") ? APPROVAL : SAFE;
+
   // `git clean` deletes untracked files whenever it runs for real: `-f` is only required while
   // `clean.requireForce` holds its default, and `git -c clean.requireForce=false clean` removes that guard.
   // Only a dry run is harmless.
   if (args[0] === "clean") return hasOption(args.slice(1), "n", ["--dry-run"]) ? SAFE : APPROVAL;
+
   if (args[0] === "push") {
     const pushArgs = args.slice(1);
+
     const forces =
       hasOption(pushArgs, "f", ["--force", "--force-with-lease", "--force-if-includes"]) ||
       hasOption(pushArgs, "d", ["--delete"]) ||
       // `--mirror` forces every ref and deletes those absent locally; `--prune` deletes absent remote refs.
       hasOption(pushArgs, undefined, ["--mirror", "--prune"]) ||
       pushArgs.some((arg) => !arg.startsWith("-") && FORCING_REFSPEC.test(arg));
+
     return forces ? APPROVAL : SAFE;
   }
+
   // `git rm` and `git restore` only ever act on working-tree files.
   if (args[0] === "rm" || args[0] === "restore") return APPROVAL;
+
   if (args[0] === "checkout") {
     const verdict = checkoutVerdict(argWords.slice(scan.index + 1));
+
     // The check would resolve the operand against a directory this text does not hold.
     if (verdict.kind === "host-check" && movesGitDirectory(argTexts.slice(0, scan.index))) return APPROVAL;
+
     return verdict;
   }
+
   if (args[0] === "worktree") return args[1] === "remove" ? APPROVAL : SAFE;
+
   return SAFE;
 }
 

@@ -1,4 +1,4 @@
-import { link, mkdir, mkdtemp, realpath, rm, symlink, writeFile } from "node:fs/promises";
+import { link, mkdir, mkdtemp, realpath, rm, stat, symlink, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -9,32 +9,30 @@ import {
 } from "../../../src/infrastructure/node/regenerable-directory.js";
 import { isInsideTemporaryRoot } from "../../../src/infrastructure/node/temporary-root.js";
 
-// `stat` stays the real one; the wrapper only counts calls, for the memoization test below.
-vi.mock("node:fs/promises", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("node:fs/promises")>();
-  return { ...actual, stat: vi.fn(actual.stat) };
-});
-
 // Under the package, never under `/tmp` or `os.tmpdir()`: a fixture inside a temporary root would make the
 // temporary-root proof accept every target, and these tests would pass without the regenerable rule doing
 // anything. `.gitignore` covers the prefix.
 const PACKAGE_ROOT = join(dirname(fileURLToPath(import.meta.url)), "../../..");
 
-const cleanups: Array<() => Promise<unknown>> = [];
+const cleanups: Array<() => Promise<void>> = [];
 
 function cleanupLater(path: string): string {
   cleanups.push(() => rm(path, { recursive: true, force: true }));
+
   return path;
 }
 
 /** A project directory holding the regenerable entries the acceptance criteria name, plus `src`. */
 async function makeProject(): Promise<string> {
   const project = cleanupLater(await mkdtemp(join(PACKAGE_ROOT, ".corpus-workspace-")));
+
   for (const directory of ["node_modules", "dist/cache", "packages/a/node_modules", "src", "dist-backup"]) {
     await mkdir(join(project, directory), { recursive: true });
   }
+
   await writeFile(join(project, "dist/app.js"), "");
   await writeFile(join(project, "src/a.ts"), "");
+
   return project;
 }
 
@@ -44,6 +42,7 @@ async function makeSibling(project: string, name: string): Promise<string> {
   cleanupLater(sibling);
   await mkdir(join(sibling, "node_modules"), { recursive: true });
   await writeFile(join(sibling, "node_modules/secret"), "");
+
   return sibling;
 }
 
@@ -261,16 +260,27 @@ describe("regenerable directory targets", () => {
     await expect(allInsideRegenerableDirectory([literal("dist"), mktemp("/x")], project)).resolves.toBe(false);
   });
 
-  it("stats each exempt directory once per call", async () => {
+  it("checks each exempt directory once per call and checks it again on the next call", async () => {
     const project = await makeProject();
     const files = Array.from({ length: 20 }, (_, index) => `dist/${index}.js`);
     await Promise.all(files.map((file) => writeFile(join(project, file), "")));
     const dist = join(await realpath(project), "dist");
-    const { stat } = await import("node:fs/promises");
-    vi.mocked(stat).mockClear();
+    const isDirectory = vi.fn(async (path: string) => (await stat(path)).isDirectory());
 
-    await expect(allInsideRegenerableDirectory(files.map(literal), project)).resolves.toBe(true);
-    expect(vi.mocked(stat).mock.calls.filter(([path]) => path === dist)).toHaveLength(1);
+    await expect(allInsideRegenerableDirectory(files.map(literal), project, isDirectory)).resolves.toBe(true);
+    expect(isDirectory.mock.calls).toEqual([[dist]]);
+
+    isDirectory.mockResolvedValue(false);
+    await expect(allInsideRegenerableDirectory(files.map(literal), project, isDirectory)).resolves.toBe(false);
+    expect(isDirectory.mock.calls).toEqual([[dist], [dist]]);
+  });
+
+  it("fails closed when the directory check rejects", async () => {
+    const project = await makeProject();
+    const isDirectory = vi.fn().mockRejectedValue(new Error("inspection failed"));
+
+    await expect(allInsideRegenerableDirectory([literal("dist")], project, isDirectory)).resolves.toBe(false);
+    expect(isDirectory).toHaveBeenCalledOnce();
   });
 
   it("resolves a working directory reached through a symlink", async () => {

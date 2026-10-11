@@ -10,6 +10,7 @@ function destructiveVerdict(destructive: boolean) {
 // bash joins `eval`'s operands with a space and parses the result, so one the outer shell expands hides it.
 function classifyEval({ args, argTexts, isDestructiveText }: ClassificationContext) {
   if (args.some(expandsBeforeUse)) return APPROVAL;
+
   return destructiveVerdict(isDestructiveText(argTexts.join(" ")));
 }
 
@@ -22,8 +23,10 @@ function classifyEval({ args, argTexts, isDestructiveText }: ClassificationConte
  */
 function classifyTrap({ args, argTexts, isDestructiveText }: ClassificationContext) {
   const handlerIndex = argTexts.findIndex((arg) => !arg.startsWith("-"));
+
   if (args.some((arg, index) => index !== handlerIndex && expandsBeforeUse(arg))) return APPROVAL;
   const handler = argTexts[handlerIndex];
+
   return destructiveVerdict(handler !== undefined && isDestructiveText(handler));
 }
 
@@ -65,13 +68,16 @@ const XARGS_OPTIONS: OptionModel = {
 function classifyXargs({ args, argIndices, isDestructiveCommandAt }: ClassificationContext) {
   // An option outside the table could take the command word as its value, hiding what actually runs.
   const scan = skipOptionsOf(XARGS_OPTIONS, args, 0);
+
   if (!scan) return APPROVAL;
   const index = argIndices[scan.index];
+
   return destructiveVerdict(index !== undefined && isDestructiveCommandAt(index));
 }
 
 // The `find` primaries that run another command, and those that write a file of their own.
 const FIND_COMMAND_PRIMARIES = new Set(["-exec", "-execdir", "-ok", "-okdir"]);
+
 const FIND_WRITE_PRIMARIES = new Set(["-delete", "-fprint", "-fprint0", "-fprintf", "-fls"]);
 
 function classifyFind({ args, argIndices, isDestructiveCommandAt }: ClassificationContext) {

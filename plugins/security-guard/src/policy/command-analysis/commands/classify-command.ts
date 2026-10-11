@@ -29,11 +29,14 @@ import { NESTED_SHELLS } from "./nested-shell.ts";
 type CommandVerdict = { destructive: false } | { destructive: true; hostCheck?: HostPathCheck };
 
 const NOT_DESTRUCTIVE: CommandVerdict = { destructive: false };
+
 const DESTRUCTIVE: CommandVerdict = { destructive: true };
 
 function toCommandVerdict(verdict: ClassificationVerdict): CommandVerdict {
   if (verdict.kind === "safe") return NOT_DESTRUCTIVE;
+
   if (verdict.kind === "approval") return DESTRUCTIVE;
+
   return { destructive: true, hostCheck: verdict.check };
 }
 
@@ -57,11 +60,14 @@ function simpleCommandVerdict(
   // An unrecognized wrapper option hides which command runs, so assume the one needing approval.
   if (command.kind === "unresolved") return failClosed ? DESTRUCTIVE : NOT_DESTRUCTIVE;
   const { name, args, argTexts, argIndices, commandWords } = command;
+
   // So does a command word the shell rewrites: `c='rm -rf /'; $c` runs a command this text never names.
   if (commandWords.some(rewritesCommandWord)) return failClosed ? DESTRUCTIVE : NOT_DESTRUCTIVE;
 
   const classify = classifierFor(name);
+
   if (!classify) return NOT_DESTRUCTIVE;
+
   return toCommandVerdict(
     classify({
       name,
@@ -78,13 +84,16 @@ function simpleCommandVerdict(
 function containsDestructiveText(value: string, failClosed: boolean): boolean {
   if (!value) return false;
   const tokenization = tokenizeShell(value);
+
   if (tokenization.kind === "unsupported") return failClosed;
   const { tokens } = tokenization;
+
   // Each extent is resolved through its own redirections and wrappers, so a leading `>file` cannot hide the
   // command word behind it.
   if (simpleCommandExtents(tokens).some((extent) => simpleCommandIsDestructive(tokens, extent.start, failClosed))) {
     return true;
   }
+
   return tokens.some((token) => nestedTextIsDestructive(tokens, token));
 }
 
@@ -96,8 +105,11 @@ function containsDestructiveText(value: string, failClosed: boolean): boolean {
 function heredocReaderIsShell(tokens: readonly ShellToken[], body: ShellToken): boolean {
   if (body.heredocOwner === undefined) return true;
   const owner = simpleCommandAt(tokens, body.heredocOwner);
+
   if (owner.kind === "unresolved") return true;
+
   if (owner.commandWords.some(rewritesCommandWord)) return true;
+
   return NESTED_SHELLS.has(owner.name);
 }
 
@@ -107,9 +119,11 @@ function heredocReaderIsShell(tokens: readonly ShellToken[], body: ShellToken): 
  */
 function nestedTextIsDestructive(tokens: readonly ShellToken[], token: ShellToken): boolean {
   if (token.heredoc && heredocReaderIsShell(tokens, token) && isDestructiveText(token.text)) return true;
+
   if (token.sep && !token.heredoc) return false;
 
   const substitutions = scanSubstitutions(token);
+
   return (
     substitutions.nestingLimitExceeded ||
     substitutions.contents.some(isDestructiveText) ||
@@ -146,9 +160,13 @@ const GIT_CONTEXT_ASSIGNMENT = /^(GIT_|DYLD_|LD_)|^(PATH|HOME|XDG_CONFIG_HOME)$/
 function hostCheckHolds(ast: ShellAst): boolean {
   if (ast.commands.length !== 1) return false;
   const resolved = ast.commands[0]?.resolved;
+
   if (!resolved || resolved.kind !== "resolved" || resolved.statefulWrapper) return false;
+
   if (resolved.redirections.length > 0) return false;
+
   if (!resolved.commandWords.every(isTrustedCommandWord) || escalatesPrivilege(resolved.commandWords)) return false;
+
   return !ast.tokens.some(
     (token) =>
       token.redirect ||
@@ -162,8 +180,10 @@ function hostCheckHolds(ast: ShellAst): boolean {
 export function classifyShellAst(ast: ShellAst): ShellDestructiveClassification {
   const destructiveStarts = new Set<number>();
   let hostCheck: HostPathCheck | undefined;
+
   for (const command of ast.commands) {
     const verdict = simpleCommandVerdict(ast.tokens, command.extent.start, true, command.resolved);
+
     if (!verdict.destructive) continue;
     destructiveStarts.add(command.extent.start);
     hostCheck = verdict.hostCheck;
@@ -171,10 +191,12 @@ export function classifyShellAst(ast: ShellAst): ShellDestructiveClassification 
 
   const nestedDestructive = ast.tokens.some((token) => nestedTextIsDestructive(ast.tokens, token));
   const command = ast.commands[0]?.resolved;
+
   const hostCheckResult =
     hostCheck && command?.kind === "resolved" && !nestedDestructive && hostCheckHolds(ast)
       ? { checks: [hostCheck], commands: pathResolvedCommandNames(command.commandWords) }
       : undefined;
+
   return {
     destructive: destructiveStarts.size > 0 || nestedDestructive,
     destructiveStarts,

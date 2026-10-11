@@ -10,11 +10,15 @@ import { SYSTEM_EXECUTABLE_DIRECTORIES } from "../../shell/command-parser.ts";
  */
 function spawnSearchPath(): string | undefined {
   const path = process.env.PATH;
+
   if (path === undefined) return undefined;
+
   const agentDirectory =
     process.env.PI_CODING_AGENT_DIR?.replace(/^~(?=\/|$)/, homedir()) || join(homedir(), ".pi", "agent");
+
   const binDirectory = join(agentDirectory, "bin");
   const entries = path.split(delimiter).filter(Boolean);
+
   return entries.includes(binDirectory) ? path : [binDirectory, path].join(delimiter);
 }
 
@@ -27,7 +31,9 @@ function spawnSearchPath(): string | undefined {
  */
 export function inheritedShellStartupIsInert(): boolean {
   const env = process.env;
+
   if (env.BASH_ENV !== undefined || env.ENV !== undefined) return false;
+
   return !Object.keys(env).some((name) => name.startsWith("BASH_FUNC_"));
 }
 
@@ -36,6 +42,7 @@ async function isExecutableFile(path: string): Promise<boolean> {
   try {
     if (!(await stat(path)).isFile()) return false;
     await access(path, constants.X_OK);
+
     return true;
   } catch {
     return false;
@@ -51,14 +58,18 @@ async function isExecutableFile(path: string): Promise<boolean> {
 export async function resolvesToSystemExecutable(name: string, cwd: string | undefined): Promise<boolean> {
   if (!inheritedShellStartupIsInert()) return false;
   const path = spawnSearchPath();
+
   if (path === undefined || cwd === undefined || !isAbsolute(cwd) || name === "" || name.includes("/")) return false;
 
   for (const entry of path.split(delimiter)) {
     const candidate = join(resolve(cwd, entry), name);
+
     if (!(await isExecutableFile(candidate))) continue;
     const canonical = await realpath(candidate).catch(() => undefined);
+
     return canonical !== undefined && SYSTEM_EXECUTABLE_DIRECTORIES.has(dirname(canonical));
   }
+
   return false;
 }
 
@@ -71,5 +82,6 @@ export async function resolvesToSystemExecutable(name: string, cwd: string | und
 export async function allSystemExecutables(names: readonly string[], cwd: string | undefined): Promise<boolean> {
   if (cwd === undefined || !inheritedShellStartupIsInert()) return false;
   const results = await Promise.all(names.map((name) => resolvesToSystemExecutable(name, cwd)));
+
   return results.every(Boolean);
 }

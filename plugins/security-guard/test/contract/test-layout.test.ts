@@ -4,7 +4,9 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 const PACKAGE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
+
 const SOURCE_ROOT = join(PACKAGE_ROOT, "src");
+
 const TEST_ROOT = join(PACKAGE_ROOT, "test");
 
 // A unit test is named for the module it covers and sits at the module's path, so a reader who opens a source
@@ -14,13 +16,17 @@ const UNMIRRORED_DIRECTORIES = new Set(["contract", "fixtures", "integration", "
 
 async function testFiles(directory: string): Promise<string[]> {
   const entries = await readdir(directory, { withFileTypes: true });
+
   const nested = await Promise.all(
     entries.map((entry) => {
       const path = join(directory, entry.name);
+
       if (entry.isDirectory()) return testFiles(path);
+
       return entry.name.endsWith(".test.ts") ? [path] : [];
     }),
   );
+
   return nested.flat();
 }
 

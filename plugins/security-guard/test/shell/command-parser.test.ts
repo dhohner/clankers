@@ -1,13 +1,29 @@
 import { describe, expect, it } from "vitest";
-import { assignedName, commandName, simpleCommandAt, simpleCommandExtents } from "../../src/shell/command-parser.js";
+import {
+  assignedName,
+  commandName,
+  pathResolvedCommandNames,
+  simpleCommandAt,
+  simpleCommandExtents,
+} from "../../src/shell/command-parser.js";
 import { shellTokens } from "../../src/shell/tokenizer.js";
-import type { ShellToken } from "../../src/shell/types.js";
 
 describe("command parser", () => {
+  it.each([
+    { words: [], expected: [] },
+    { words: ["/bin/rm", "./rm", "echo", "true"], expected: [] },
+    { words: ["rm", "/bin/rm", "echo", "git", "rm"], expected: ["rm", "git", "rm"] },
+  ])("keeps PATH lookup order and duplicates for $words", ({ words, expected }) => {
+    expect(pathResolvedCommandNames(words.map((text) => ({ text, quoting: " ".repeat(text.length) })))).toEqual(
+      expected,
+    );
+  });
+
   it("resolves assignments and wrappers to the command that runs", () => {
     const command = simpleCommandAt(shellTokens("sudo X=1 env -i rm -rf build"), 0);
 
     expect(command.kind).toBe("resolved");
+
     if (command.kind !== "resolved") return;
     expect(command.name).toBe("rm");
     expect(command.argTexts).toEqual(["-rf", "build"]);
@@ -28,11 +44,13 @@ describe("command parser", () => {
     const command = simpleCommandAt(tokens, 0);
 
     expect(command.kind).toBe("resolved");
+
     if (command.kind !== "resolved") return;
     expect(command.name).toBe("rm");
     expect(command.argTexts).toEqual(["-rf", "build"]);
     // The base name, subscript excluded, is what a sensitive-variable check has to compare against.
-    expect(assignedName(tokens[0] as ShellToken)).toBe(assigned);
+    expect(tokens[0]).toBeDefined();
+    expect(assignedName(tokens[0]!)).toBe(assigned);
   });
 
   it.each([
@@ -43,7 +61,8 @@ describe("command parser", () => {
     'arr[0]"="1 rm -rf build',
   ])("reads %s as a command word, because bash does not assign from it", (text) => {
     const tokens = shellTokens(text);
-    expect(assignedName(tokens[0] as ShellToken)).toBeUndefined();
+    expect(tokens[0]).toBeDefined();
+    expect(assignedName(tokens[0]!)).toBeUndefined();
     expect(simpleCommandAt(tokens, 0)).toMatchObject({ kind: "resolved", name: commandName(tokens[0]?.text ?? "") });
   });
 

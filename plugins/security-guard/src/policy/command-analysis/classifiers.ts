@@ -20,14 +20,6 @@ const REGISTRATIONS: readonly ClassifierRegistration[] = [
   ...INTERPRETER_CLASSIFIERS,
 ];
 
-const classifiers = new Map<string, Classifier>();
-for (const { names, classify } of REGISTRATIONS) {
-  for (const name of names) {
-    if (classifiers.has(name)) throw new Error(`Duplicate command classifier: ${name}`);
-    classifiers.set(name, classify);
-  }
-}
-
 /**
  * The commands policy has to judge, as the registry describes them: one acting on path operands, or one with
  * effects this package does not model. Anything else writes nothing, or runs another command that is judged
@@ -37,27 +29,48 @@ function needsClassifier(rule: CommandRule): boolean {
   return rule.effect.kind === "path" || rule.effect.kind === "unmodeled";
 }
 
-// The two tables are checked against each other here, once, at load. A classifier is what makes a command
-// destructive, and `classifierFor` reports a command it does not hold as harmless, so a rule that gained no
-// classifier would be allowed silently: the one failure this seam must not have. The reverse direction keeps
-// a classifier from outliving the rule that gives its operands meaning.
-const ruleByName = new Map(COMMAND_RULES.flatMap((rule) => rule.names.map((name) => [name, rule] as const)));
+/** Rejects tables that disagree about which commands need classification before any command can be allowed. */
+export function createClassifierTable(
+  rules: readonly CommandRule[],
+  registrations: readonly ClassifierRegistration[] = REGISTRATIONS,
+): ReadonlyMap<string, Classifier> {
+  const table = new Map<string, Classifier>();
 
-const unclassified = COMMAND_RULES.filter(needsClassifier)
-  .flatMap((rule) => rule.names)
-  .filter((name) => !classifiers.has(name));
-if (unclassified.length > 0) throw new Error(`Command rules without a classifier: ${unclassified.join(", ")}`);
+  for (const { names, classify } of registrations) {
+    for (const name of names) {
+      if (table.has(name)) throw new Error(`Duplicate command classifier: ${name}`);
+      table.set(name, classify);
+    }
+  }
 
-const unregistered = [...classifiers.keys()].filter((name) => !ruleByName.has(name));
-if (unregistered.length > 0) throw new Error(`Classifiers for unregistered commands: ${unregistered.join(", ")}`);
+  const ruleByName = new Map(rules.flatMap((rule) => rule.names.map((name) => [name, rule] as const)));
 
-const harmless = [...classifiers.keys()].filter((name) => {
-  const rule = ruleByName.get(name);
-  return rule !== undefined && !needsClassifier(rule);
-});
-if (harmless.length > 0) {
-  throw new Error(`Classifiers for commands the registry calls harmless: ${harmless.join(", ")}`);
+  const unclassified = rules
+    .filter(needsClassifier)
+    .flatMap((rule) => rule.names)
+    .filter((name) => !table.has(name));
+
+  if (unclassified.length > 0) throw new Error(`Command rules without a classifier: ${unclassified.join(", ")}`);
+
+  const unregistered = [...table.keys()].filter((name) => !ruleByName.has(name));
+
+  if (unregistered.length > 0) throw new Error(`Classifiers for unregistered commands: ${unregistered.join(", ")}`);
+
+  const harmless = [...table.keys()].filter((name) => {
+    const rule = ruleByName.get(name);
+
+    return rule !== undefined && !needsClassifier(rule);
+  });
+
+  if (harmless.length > 0) {
+    throw new Error(`Classifiers for commands the registry calls harmless: ${harmless.join(", ")}`);
+  }
+
+  return table;
 }
+
+// Validate at module load: a missing classifier would otherwise let a destructive command run silently.
+const classifiers = createClassifierTable(COMMAND_RULES);
 
 export function classifierFor(name: string): Classifier | undefined {
   return classifiers.get(name);
