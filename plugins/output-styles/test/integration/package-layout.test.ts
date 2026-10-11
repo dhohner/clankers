@@ -8,12 +8,9 @@ import { parseJsonObject } from "../../src/storage/json.ts";
 const pluginRoot = new URL("../../", import.meta.url);
 
 describe("package layout", () => {
-  it("exports the Pi implementation through the root entry point", async () => {
+  it("exports the Pi implementation through the root entry point", () => {
     expect(outputStyles).toBe(piOutputStyles);
     expect(registerOutputStyles).toBe(registerPiOutputStyles);
-    expect(await readFile(new URL("index.ts", pluginRoot), "utf8")).toBe(
-      'export { default, registerOutputStyles } from "./src/pi/extension.ts";\n',
-    );
   });
 
   it("includes source modules and assets in the plugin package", async () => {

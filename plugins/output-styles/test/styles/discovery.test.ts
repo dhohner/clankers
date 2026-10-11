@@ -8,7 +8,7 @@ import {
   readStyleDirectory as readBaseStyleDirectory,
 } from "../../src/styles/discovery.js";
 import { styleFileSystem, type StyleFileSystem } from "../../src/storage/filesystem.js";
-import { DEFAULT_STYLE_NAME } from "../../src/styles/types.js";
+import { DEFAULT_STYLE, DEFAULT_STYLE_NAME } from "../../src/styles/types.js";
 import { deferred } from "../support/deferred.ts";
 
 type ReadGate = {
@@ -216,6 +216,19 @@ describe("readStyleDirectory", () => {
 });
 
 describe("discoverStyles", () => {
+  it("offers only the built-in default when no styles are discovered", async () => {
+    expect(await discoverStyles({})).toEqual({
+      styles: [DEFAULT_STYLE],
+      problems: [],
+      unlistableDirectories: [],
+    });
+    expect(await discoverStyles({ bundledDir, userDir, projectDir })).toEqual({
+      styles: [DEFAULT_STYLE],
+      problems: [],
+      unlistableDirectories: [],
+    });
+  });
+
   it("offers the built-in default style first and orders the rest by name", async () => {
     await write(bundledDir, "zebra.md", styleFile("Last by name.", "Zebra text."));
     await write(userDir, "alpha.md", styleFile("First by name.", "Alpha text."));

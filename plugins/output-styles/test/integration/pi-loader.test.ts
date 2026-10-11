@@ -2,12 +2,18 @@ import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { discoverAndLoadExtensions } from "@earendil-works/pi-coding-agent";
+import {
+  discoverAndLoadExtensions,
+  ExtensionRunner,
+  ModelRegistry,
+  ModelRuntime,
+  SessionManager,
+  type ExtensionError,
+} from "@earendil-works/pi-coding-agent";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { COMMAND_NAME, FLAG_NAME } from "../../src/pi/registration.js";
 
-// The real Pi loader reads the pi.extensions key of package.json, so this suite proves the
-// published entry point and the manifest. The other suites drive the plugin through a fake API.
+// Pi reads pi.extensions from package.json and dispatches lifecycle events through its runner.
 const pluginRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
 describe("pi extension loader", () => {
@@ -32,6 +38,52 @@ describe("pi extension loader", () => {
 
     expect(result.errors).toEqual([]);
     expect(result.extensions.map((extension) => extension.path)).toEqual([join(pluginRoot, "index.ts")]);
+  });
+
+  it("applies the bundled flag selection through Pi's session and turn dispatch", async () => {
+    const diagnostics = vi.spyOn(process.stderr, "write").mockReturnValue(true);
+    const loaded = await discoverAndLoadExtensions([pluginRoot], cwd, agentDir);
+    expect(loaded.errors).toEqual([]);
+
+    // Explicit paths and disabled refresh keep model setup away from user credentials and the network.
+    const models = await ModelRuntime.create({
+      authPath: join(agentDir, "auth.json"),
+      modelsPath: null,
+      modelsStorePath: join(agentDir, "models-cache.json"),
+      allowModelNetwork: false,
+      refreshOnCreate: false,
+    });
+
+    const runner = new ExtensionRunner(
+      loaded.extensions,
+      loaded.runtime,
+      cwd,
+      SessionManager.inMemory(cwd),
+      new ModelRegistry(models),
+    );
+
+    const errors: ExtensionError[] = [];
+    runner.onError((error) => errors.push(error));
+    runner.setFlagValue(FLAG_NAME, "explanatory");
+    runner.setUIContext(undefined, "print");
+
+    await runner.emit({ type: "session_start", reason: "startup" });
+    // Supply the complete prompt so Pi does not discover context files from parent directories.
+    const systemPrompt = "Host guidance and an earlier extension's instructions.";
+
+    const turn = await runner.emitBeforeAgentStart("Explain this code.", undefined, {
+      cwd,
+      forceSystemPrompt: systemPrompt,
+      contextFiles: [],
+      skills: [],
+    });
+
+    const asset = await readFile(join(pluginRoot, "styles/explanatory.md"), "utf8");
+    const instructions = asset.split("\n---\n")[1].trim();
+    expect(instructions).toContain("add short insight notes along the way");
+    expect(turn.systemPromptOptions.forceSystemPrompt).toBe(`${systemPrompt}\n\n${instructions}`);
+    expect(errors).toEqual([]);
+    expect(diagnostics).not.toHaveBeenCalled();
   });
 
   it("declares the loaded entry point in the package manifest", async () => {

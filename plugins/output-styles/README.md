@@ -235,8 +235,52 @@ Pi's own `yaml` copy is not visible to a plugin, and a missing dependency stops 
 `src/storage/` contains filesystem operations, JSON parsing, settings storage, and the persistence contract.
 `src/errors.ts` formats errors shared by these modules.
 Tests mirror these directories, and `test/pi/` exercises registration through the harness.
-`test/integration/` checks dependency boundaries, package layout, and loading through Pi's extension loader.
+`test/integration/` checks dependency boundaries, package layout, and loading and lifecycle dispatch through Pi.
 `test/support/` contains shared fixtures, and `test/regressions/` covers specific fixed defects.
+
+### Invariants
+
+Keep these rules together when changing discovery, session state, or persistence.
+The paths below are relative to this plugin.
+
+- **Style sources:** project definitions take precedence over user definitions, then bundled definitions.
+  `src/styles/discovery.ts` owns source merging, reserved name rejection, filename ordering for collisions within a directory, and locale ordering with the built-in `default` first.
+  Coverage: `test/styles/discovery.test.ts` checks precedence, deterministic collisions, an empty catalogue, case ordering, and reserved names.
+- **Startup selection:** the flag takes precedence over trusted project settings, then global settings, then the built-in default.
+  Each consulted unknown name is reported and resolution continues to the next source.
+  `src/session/startup-selection.ts` owns resolution; `src/pi/registration.ts` reads settings and reports misses.
+  Coverage: `test/session/startup-selection.test.ts` and `test/pi/style-persistence.test.ts`.
+- **Project trust:** untrusted project style files and settings are never read, and settings writes target the project only when trusted; otherwise they target global settings.
+  `src/pi/registration.ts` owns directory selection and settings targets.
+  Coverage: `test/pi/style-application.test.ts`, `test/pi/style-persistence.test.ts`, and `test/pi/persistence-failures.test.ts`.
+- **Catalogue consumers:** commands rescan before acting, except `/output-style new` without a user interface, which refuses before scanning.
+  Completions and the cycle shortcut use the adopted catalogue without scanning.
+  `src/pi/registration.ts` owns these entry points.
+  Coverage: `test/pi/style-rescan.test.ts`, `test/pi/style-switching.test.ts`, and `test/pi/headless-modes.test.ts`.
+- **Scan adoption:** a directory that becomes unlistable causes the previous catalogue to be retained; a directory already unlistable in the adopted scan does not prevent adoption.
+  `src/session/style-session.ts` owns the comparison with the adopted scan.
+  Coverage: `test/session/style-session.test.ts` and `test/pi/style-rescan.test.ts`.
+- **Active definitions:** an adopted scan refreshes the active definition by name.
+  If that name is unavailable, the built-in default becomes active without rewriting persisted settings.
+  `src/session/style-session.ts` owns refresh and fallback; `src/pi/registration.ts` reports fallback without invoking persistence.
+  Coverage: `test/session/style-session.test.ts` and `test/pi/active-style-rescan.test.ts`.
+- **Selectors:** a selector retains the catalogue snapshot shown when its dialog opened, even if another command adopts a scan before the selection returns.
+  `src/session/style-session.ts` replaces catalogue arrays instead of mutating them; `src/pi/registration.ts` captures the offered array and labels.
+  Coverage: `test/session/style-session.test.ts` and the concurrent dialog test in `test/pi/style-rescan.test.ts`.
+- **Diagnostics:** skipped problems are reported once for each path and reason across session starts within a loaded extension instance.
+  Kept directories are reported once per command invocation, including creation commands that scan twice.
+  `src/session/style-session.ts` owns deduplication; `src/pi/registration.ts` shares the invocation's set with `src/pi/create-flow.ts`.
+  Coverage: `test/session/style-session.test.ts`, `test/pi/style-rescan.test.ts`, and `test/pi/create-flow.test.ts`.
+- **Serialization:** rescan discovery and adoption run in one queue, so an older scan cannot overwrite a newer catalogue.
+  Settings writes are serialized for each path and take the same file lock as Pi.
+  `src/session/style-session.ts` owns the scan queue; `src/storage/settings.ts` owns write queues and locks.
+  Coverage: the scan ordering test in `test/session/style-session.test.ts` and the concurrent write and lock tests in `test/storage/settings.test.ts`.
+- **Explicit switches:** selection takes effect before persistence finishes.
+  A failed save is reported without reverting the active selection, including when a later switch occurs while an earlier save is pending.
+  `src/pi/registration.ts` owns activation and save error reporting.
+  Coverage: `test/pi/persistence-failures.test.ts` and `test/pi/style-persistence.test.ts`.
+
+### Validation
 
 ```bash
 pnpm --filter output-styles test

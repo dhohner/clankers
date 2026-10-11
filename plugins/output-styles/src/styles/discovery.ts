@@ -139,19 +139,6 @@ export async function readStyleDirectory(
   return { styles: [...styles.values()], problems, unlistableDirectories: unlistable ? [directory] : [] };
 }
 
-function byListOrder(left: StyleDefinition, right: StyleDefinition): number {
-  // The list always starts with the built-in default, and a file claiming that name is refused
-  // above, so exactly one entry carries it and it never moves. V8 compares an element against the
-  // ones before it, so the default is always the right operand and this guard never runs. It stays
-  // as a guard against a future caller that sorts a differently built list.
-  /* istanbul ignore next -- unreachable through discoverStyles, see the comment above */
-  if (left.name === DEFAULT_STYLE_NAME) return right.name === DEFAULT_STYLE_NAME ? 0 : -1;
-
-  if (right.name === DEFAULT_STYLE_NAME) return 1;
-
-  return left.name.localeCompare(right.name, "en");
-}
-
 /**
  * Collects every offered style. A later source shadows an earlier one under the same name without a
  * message, so the returned list holds exactly the selectable definitions.
@@ -166,7 +153,7 @@ export async function discoverStyles(
     ["project", directories.projectDir],
   ];
 
-  const styles = new Map<string, StyleDefinition>([[DEFAULT_STYLE.name, DEFAULT_STYLE]]);
+  const styles = new Map<string, StyleDefinition>();
   const problems: StyleProblem[] = [];
   const unlistableDirectories: string[] = [];
 
@@ -179,5 +166,7 @@ export async function discoverStyles(
     unlistableDirectories.push(...found.unlistableDirectories);
   }
 
-  return { styles: [...styles.values()].sort(byListOrder), problems, unlistableDirectories };
+  const discovered = [...styles.values()].sort((left, right) => left.name.localeCompare(right.name, "en"));
+
+  return { styles: [DEFAULT_STYLE, ...discovered], problems, unlistableDirectories };
 }

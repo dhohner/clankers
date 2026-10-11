@@ -47,7 +47,8 @@ Prompt application and serialization belong in `prompt.test.ts` and `create-styl
 
 ### Package and dependencies
 
-`integration/pi-loader.test.ts` checks loading and registration through the real Pi loader.
+`integration/pi-loader.test.ts` checks loading and registration through the real Pi loader, then bundled style selection and prompt application through Pi's session and turn dispatch.
+It uses temporary project and agent directories, disables model discovery over the network, and emits events through `ExtensionRunner` without making a model request.
 `integration/package-layout.test.ts` checks exports and package contents declared by the manifests.
 `integration/dependency-boundaries.test.ts` checks the separation of Pi runtime imports and adapters from the other modules.
 
