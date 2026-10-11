@@ -1,7 +1,6 @@
 # Task executor plugin
 
 Implements coding-agent task files and standalone changes through TDD, and verifies each task result before reporting completion.
-The `orchestrate` skill runs a task set in parallel worktrees and commits each verified result to an integration branch.
 
 ## How it works
 
@@ -23,93 +22,9 @@ The `implement` skill executes one task file from `project-advisor:to-agent-task
 
 The verifier loop runs up to three passes by default.
 
-An orchestrator can run `implement` in delegated mode through a subagent that reads the skill file.
-The subagent prompt contains the lines `Mode: delegated`, `Task file: <path>`, and `Working directory: <path>`.
-In delegated mode, `implement` never asks you, starts no verifier, and leaves the task file unchanged.
-
-It returns a `stop`, `implemented`, or `ended` message and follows the orchestrator's `gaps`, `answer`, and `end` instructions.
-
 Run `/refactor-tools:review-changes` on the result when the change warrants a review.
 `implement` and `tdd` never commit.
 Review and commit their results yourself.
-
-### orchestrate
-
-The `orchestrate` skill implements a task set or prefix range with one command.
-It checks the current host's agent interface before creating branches or worktrees.
-Pi requires a configured integration that supports persistent task agents, fresh verifiers, and concurrent scheduling.
-Its built-in tools and bundled subagent example alone lack required capabilities.
-For host setup, see [Host mechanisms](./skills/orchestrate/references/host-mechanisms.md).
-
-- Runs each ready task in its own git worktree, with a fresh subagent that follows `implement` in delegated mode.
-  - A task is ready when each task in its `depends_on` list has `state: done`.
-- Starts independent tasks together, up to a concurrency limit of 3 by default.
-- Chooses each task's model and effort from its content, and records the choice and reason.
-- Verifies each result with fresh verifier subagents, up to three passes by default, and sends the gaps back to the task subagent.
-- Creates one integration branch commit per fully covered task or result whose remaining gaps you explicitly accept.
-  - Uses successful, nonblank `gmsg` stdout verbatim or falls back to bundled message rules.
-  - Records each task's `commit_message_source` as `gmsg` or `bundled_rules` in `run.json`.
-  - Sets `state: done` in the task file after landing.
-  - The run never pushes.
-  - The start branch stays unchanged, so you review the integration branch and merge it yourself.
-- Asks you when a subagent stops for a decision or gaps remain after the last pass.
-  - A stop question names the task, affected item, options, consequences, and recommendation.
-  - For final gaps, choose acceptance, continuation with an instruction, or ending the task.
-  - Sends continuations to the same subagent with its context.
-  - Continuing final gaps restarts verification with the full pass limit.
-  - A waiting task frees its concurrency slot while independent tasks keep starting and committing.
-  - Direct and transitive dependents wait.
-  - Ending the task leaves them `not_started`.
-  - Accepted gaps stay recorded in `run.json` with your decision.
-- Resolves task commit conflicts in a separate worktree and validates every affected task before landing.
-  - After failed validation, choose acceptance of displayed failures and the resolution, another resolution and validation, or ending the task.
-  - Independent tasks continue during the question while dependents wait.
-  - See [Resolve a landing conflict](./skills/orchestrate/references/landing-conflicts.md) for validation, retry, and recording rules.
-- Ends without landing when you choose end, a listed blocker prevents coverage, or landing fails without a conflict.
-  - The task stays `pending` and retains its worktree and branch.
-  - The summary names both and any retained resolution worktree.
-- Skips done tasks on reruns and continues the latest earlier run's integration branch while it contains commits absent from `HEAD`.
-  - After you merge the integration branch, a rerun starts a new one from `HEAD`.
-  - A squash or rebase merge leaves the branch commits absent from `HEAD`.
-  - Delete the integration branch after such a merge.
-- Writes `run.json` and a styled `report.html` in `<task directory>/runs/<timestamp>/` after each status change.
-  - The agent writes HTML from the saved run file, embedding CSS and escaping text for offline viewing.
-  - The report shows the run header and every selected task's status.
-  - For each task that ran, it shows the commit, coverage evidence, decisions, gaps, and blocked behavior.
-  - It also shows each task's selected and used model and effort, and the reason for the model choice.
-  - When `diagram-design` is available in the session, each committed task includes one diagram of its changed components and relations.
-  - The chat summary names task statuses, the integration branch, the merge command, and paths for both files.
-  - See [HTML run report](./skills/orchestrate/references/run-report.md) for required sections and recording rules.
-  - During a wait, it records `waiting` and the question or gaps in both files.
-  - If the session ends during the wait, the report remains and the task stays `pending`.
-  - A rerun starts it in a new worktree.
-
-The preflight starts no branch or worktree in these cases:
-
-- A selected task's file name contains characters outside letters, digits, `.`, `_`, and `-`, or its stem is invalid in a branch name.
-- A selected task file has no frontmatter.
-  - Regenerate the tasks with `project-advisor:to-agent-tasks`.
-- A selected task depends on a missing file or a task outside the range without `state: done`.
-- The selected tasks depend on each other in a cycle.
-- The start working tree holds uncommitted changes that a selected task could read or change.
-  - Commit or stash them.
-  - Changes under `action-items/` never block the run.
-
-Known limits:
-
-- Continuation requires the platform to deliver later instructions to the original subagent with its context.
-  - Scheduling must continue before the user answers.
-  - If either capability fails, the run records and reports the observed limit in `run.json` under `platform_limits`.
-  - A task whose context cannot be resumed stays `waiting` and `pending` for a rerun.
-  - Check these capabilities on the current host with the [waiting fixture](./skills/orchestrate/references/waiting-fixture.md).
-- Commits that apply cleanly without a landing conflict receive no additional integration validation.
-  - Run the task validation on the integration branch during your review.
-- If the session ends after landing but before the `state` write, the task stays `pending` with its commit on the integration branch.
-  - Before rerunning, check the integration branch's history:
-
-    ```sh
-    git log
-    ```
 
 ### tdd
 
@@ -124,13 +39,6 @@ The `tdd` skill runs the same red-green-refactor loop on its own for any feature
 ## Requirements
 
 - The `project-advisor` plugin produces the task files.
-- `diagram-design` is optional for `orchestrate` reports.
-  - Install and enable it in the session's skill catalog to include a change diagram for each committed task.
-  - Reports omit diagrams and placeholders when it is unavailable.
-- `gmsg` is optional for `orchestrate`.
-  - When available, `gmsg` sends the staged diff to its configured model.
-  - `gmsg` requires Pi and Scribe's `commit-message` skill.
-  - Fallback uses bundled rules and requires neither Pi nor Scribe.
 
 ## Usage
 
@@ -141,8 +49,6 @@ The selected model provider does not change that syntax or supply another host's
 
 ```text
 /task-executor:implement action-items/agent-tasks/01-short-task-title.md
-/task-executor:orchestrate
-/task-executor:orchestrate tasks 03 to 06 with a concurrency limit of 2 and 5 verifier passes
 /task-executor:tdd add a retryOperation helper that retries three times
 ```
 
@@ -151,7 +57,7 @@ The selected model provider does not change that syntax or supply another host's
 Use an explicit `$` mention with the plugin installed:
 
 ```text
-$task-executor:orchestrate tasks 03 to 06
+$task-executor:implement action-items/agent-tasks/01-short-task-title.md
 ```
 
 ### Pi coding agent
@@ -168,76 +74,11 @@ From a local checkout, install task executor:
 pi install ./plugins/task-executor
 ```
 
-The package exposes `implement`, `orchestrate`, and `tdd` through Pi's installed skill catalog.
-With pi-subagents installed, it also exposes two profiles:
-
-- [`orchestrate-worker`](./pi/agents/orchestrate-worker.md) implements tasks.
-- [`orchestrate-verifier`](./pi/agents/orchestrate-verifier.md) verifies requirements.
-
-The worker follows `implement`'s delegated mode and returns `stop`, `implemented`, or `ended`.
-The orchestrator owns subagent dispatch, final verification, task state, commits, and integration.
-The worker selects installed `implement` and `tdd` skills by name and reads their catalog entrypoints.
-Preflight stops before creating run resources if either skill is missing, disabled, or unavailable to children.
-
-The verifier uses `read` and `bash` to run safe validation commands.
-Its instructions require preserving the working tree, inspecting commands for side effects, and reporting unsafe validation as blocked.
-Before dispatch, check its resolved profile, overrides, effective tools, and fresh context through the integration's launch preflight.
-
-Disable bundled pi-subagents agents and prompts and configure model and effort in `~/.pi/agent/settings.json` or the project's `.pi/settings.json`:
-
-```json
-{
-  "subagents": {
-    "defaultThinking": "medium",
-    "agentOverrides": {
-      "orchestrate-worker": {
-        "model": "inherit"
-      }
-    },
-    "disableBuiltins": true
-  },
-  "packages": [
-    {
-      "source": "npm:pi-subagents",
-      "prompts": []
-    }
-  ]
-}
-```
-
-`inherit` selects the parent session's model.
-Omit that override to use `subagents.defaultModel` when configured, or the parent model otherwise.
-Set `agentOverrides.orchestrate-worker.thinking` to choose the worker's preferred effort.
-The orchestrator can override a task's model and effort through the launch `model` value, such as `provider/model-id:high`.
-It must use an available model permitted by its model policy.
-
-The fixture name `orchestrate-fixture-worker` remains a launch alias.
-Settings overrides use the canonical name `orchestrate-worker`.
-Move any existing fixture overrides to that key.
-After reload, inspect discovery:
-
-```js
-subagent({ action: "list", options: { capabilities: true } })
-```
-
-After reload, inspect model settings:
-
-```text
-/subagents-models orchestrate-worker
-```
-
-Confirm continuation and scheduling capabilities using [Host mechanisms](./skills/orchestrate/references/host-mechanisms.md#pi-subagents) and the [waiting fixture](./skills/orchestrate/references/waiting-fixture.md).
-Then invoke:
-
-```text
-/skill:orchestrate tasks 03 to 06
-```
-
-Pi also uses `/skill:implement` and `/skill:tdd` for the other skills.
+The package exposes `implement`, and `tdd` through Pi's installed skill catalog.
 
 ## Learn more
 
-The plugin bundles the [`implement`](./skills/implement/SKILL.md), [`orchestrate`](./skills/orchestrate/SKILL.md), and [`tdd`](./skills/tdd/SKILL.md) skills.
+The plugin bundles the [`implement`](./skills/implement/SKILL.md), and [`tdd`](./skills/tdd/SKILL.md) skills.
 
 ## Authors
 

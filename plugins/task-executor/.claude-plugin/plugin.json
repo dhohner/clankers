@@ -1,11 +1,11 @@
 {
   "name": "task-executor",
-  "version": "0.5.1",
-  "description": "Implements agent task files and standalone changes through TDD with independent requirement verification. Runs a task set in parallel worktrees and integrates results on one branch.",
+  "version": "0.6.0",
+  "description": "Implements agent task files and standalone changes through TDD with independent requirement verification.",
   "author": {
     "name": "dhohner"
   },
   "repository": "https://github.com/dhohner/clankers",
   "license": "MIT",
-  "keywords": ["tdd", "orchestration", "testing", "implementation", "verification", "coding-agents"]
+  "keywords": ["tdd", "testing", "implementation", "verification", "coding-agents"]
 }
