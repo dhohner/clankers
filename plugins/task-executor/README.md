@@ -183,7 +183,7 @@ The verifier uses `read` and `bash` to run safe validation commands.
 Its instructions require preserving the working tree, inspecting commands for side effects, and reporting unsafe validation as blocked.
 Before dispatch, check its resolved profile, overrides, effective tools, and fresh context through the integration's launch preflight.
 
-Configure model and effort in `~/.pi/agent/settings.json` or the project's `.pi/settings.json`:
+Disable bundled pi-subagents agents and prompts and configure model and effort in `~/.pi/agent/settings.json` or the project's `.pi/settings.json`:
 
 ```json
 {
@@ -193,8 +193,15 @@ Configure model and effort in `~/.pi/agent/settings.json` or the project's `.pi/
       "orchestrate-worker": {
         "model": "inherit"
       }
+    },
+    "disableBuiltins": true
+  },
+  "packages": [
+    {
+      "source": "npm:pi-subagents",
+      "prompts": []
     }
-  }
+  ]
 }
 ```
 
