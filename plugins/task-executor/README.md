@@ -156,13 +156,71 @@ $task-executor:orchestrate tasks 03 to 06
 
 ### Pi coding agent
 
-Load the skill directories for this session:
+Install the repository's Pi bundle:
 
 ```sh
-pi --skill <repository>/plugins/task-executor/skills
+pi install git:github.com/dhohner/clankers
 ```
 
-Configure the persistent agent integration through its documented setup, then invoke:
+From a local checkout, install task executor:
+
+```sh
+pi install ./plugins/task-executor
+```
+
+The package exposes `implement`, `orchestrate`, and `tdd` through Pi's installed skill catalog.
+With pi-subagents installed, it also exposes two profiles:
+
+- [`orchestrate-worker`](./pi/agents/orchestrate-worker.md) implements tasks.
+- [`orchestrate-verifier`](./pi/agents/orchestrate-verifier.md) verifies requirements.
+
+The worker follows `implement`'s delegated mode and returns `stop`, `implemented`, or `ended`.
+The orchestrator owns subagent dispatch, final verification, task state, commits, and integration.
+The worker selects installed `implement` and `tdd` skills by name and reads their catalog entrypoints.
+Preflight stops before creating run resources if either skill is missing, disabled, or unavailable to children.
+
+The verifier uses `read` and `bash` to run safe validation commands.
+Its instructions require preserving the working tree, inspecting commands for side effects, and reporting unsafe validation as blocked.
+Before dispatch, check its resolved profile, overrides, effective tools, and fresh context through the integration's launch preflight.
+
+Configure model and effort in `~/.pi/agent/settings.json` or the project's `.pi/settings.json`:
+
+```json
+{
+  "subagents": {
+    "defaultThinking": "medium",
+    "agentOverrides": {
+      "orchestrate-worker": {
+        "model": "inherit"
+      }
+    }
+  }
+}
+```
+
+`inherit` selects the parent session's model.
+Omit that override to use `subagents.defaultModel` when configured, or the parent model otherwise.
+Set `agentOverrides.orchestrate-worker.thinking` to choose the worker's preferred effort.
+The orchestrator can override a task's model and effort through the launch `model` value, such as `provider/model-id:high`.
+It must use an available model permitted by its model policy.
+
+The fixture name `orchestrate-fixture-worker` remains a launch alias.
+Settings overrides use the canonical name `orchestrate-worker`.
+Move any existing fixture overrides to that key.
+After reload, inspect discovery:
+
+```js
+subagent({ action: "list", options: { capabilities: true } })
+```
+
+After reload, inspect model settings:
+
+```text
+/subagents-models orchestrate-worker
+```
+
+Confirm continuation and scheduling capabilities using [Host mechanisms](./skills/orchestrate/references/host-mechanisms.md#pi-subagents) and the [waiting fixture](./skills/orchestrate/references/waiting-fixture.md).
+Then invoke:
 
 ```text
 /skill:orchestrate tasks 03 to 06

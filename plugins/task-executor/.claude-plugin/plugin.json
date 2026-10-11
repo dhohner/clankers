@@ -7,12 +7,5 @@
   },
   "repository": "https://github.com/dhohner/clankers",
   "license": "MIT",
-  "keywords": [
-    "tdd",
-    "orchestration",
-    "testing",
-    "implementation",
-    "verification",
-    "coding-agents"
-  ]
+  "keywords": ["tdd", "orchestration", "testing", "implementation", "verification", "coding-agents"]
 }

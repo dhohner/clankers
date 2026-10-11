@@ -1,0 +1,30 @@
+{
+  "name": "task-executor",
+  "version": "0.5.1",
+  "private": true,
+  "description": "Implements tasks through TDD and orchestrates them with independent requirement verification.",
+  "keywords": [
+    "pi-package"
+  ],
+  "license": "MIT",
+  "files": [
+    "README.md",
+    "assets/workflow.svg",
+    "pi/agents/**",
+    "skills/**"
+  ],
+  "type": "module",
+  "devDependencies": {
+    "pi-subagents": "0.77.0"
+  },
+  "pi": {
+    "skills": [
+      "./skills"
+    ],
+    "subagents": {
+      "agents": [
+        "./pi/agents"
+      ]
+    }
+  }
+}

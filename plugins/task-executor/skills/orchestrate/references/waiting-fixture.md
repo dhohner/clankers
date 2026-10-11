@@ -23,10 +23,8 @@ After preparing the repository below, launch the selected host there:
 | --- | --- | --- |
 | Claude Code | `claude --plugin-dir <repository>/plugins/task-executor` | `/task-executor:orchestrate with concurrency limit 1` |
 | Codex | `codex`, with this plugin installed through the local marketplace | `$task-executor:orchestrate with concurrency limit 1` |
-| Pi coding agent | `pi --skill <repository>/plugins/task-executor/skills`, with an integration providing persistent task agents | `/skill:orchestrate with concurrency limit 1` |
+| Pi coding agent | `pi`, with task executor installed as a Pi package and an integration providing persistent task agents | `/skill:orchestrate with concurrency limit 1` |
 
-For pi, configure the integration through its documented setup.
-The skill flag only loads instructions.
 
 With pi's built-in tools alone or bundled subagent example alone, verify that preflight reports the missing agent capability.
 Verify that it creates no run folder, branch, or worktree.

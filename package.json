@@ -40,7 +40,15 @@
       "./plugins/output-styles/index.ts",
       "./plugins/security-guard/index.ts",
       "./plugins/insomniac/index.ts"
-    ]
+    ],
+    "skills": [
+      "./plugins/task-executor/skills"
+    ],
+    "subagents": {
+      "agents": [
+        "./plugins/task-executor/pi/agents"
+      ]
+    }
   },
   "files": [
     "README.md",
@@ -61,9 +69,14 @@
     "plugins/insomniac/index.ts",
     "plugins/insomniac/src/**",
     "plugins/insomniac/package.json",
-    "plugins/insomniac/README.md"
+    "plugins/insomniac/README.md",
+    "plugins/task-executor/package.json",
+    "plugins/task-executor/README.md",
+    "plugins/task-executor/assets/workflow.svg",
+    "plugins/task-executor/pi/agents/**",
+    "plugins/task-executor/skills/**"
   ],
-  "packageManager": "pnpm@12.3.4+sha512.961aa41fb077da3a04a441d9f8e15ebc0c96da8ef710b2eb67bf9ee7cb0610eabd48f1fd85f51cffe73846785fa0f87c56a3a872a1d893f8446741b5cce45457",
+  "packageManager": "pnpm@12.12.0+sha512.2ee06ac86db554cf384421461220f0e336a487bfd41b2acd04e17a86b1487832fe45e8d1743f7fc52acc77de12d2356b536fedf8229fc483239e40b13d474449",
   "dependencies": {
     "proper-lockfile": "^4.1.2",
     "yaml": "^2.9.1"

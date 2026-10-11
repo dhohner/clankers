@@ -41,6 +41,73 @@ Use the selected host's interface after confirming its required capabilities.
   - Otherwise, record inherited values.
 - Ask questions through visible conversation text unless an extension's question tool lets scheduling continue.
 
+### pi-subagents
+
+Install task executor as a Pi package so both parent and child sessions can discover its skills.
+The package declares `orchestrate-worker` for pi-subagents and selects the installed `implement` and `tdd` skills by name.
+Before dispatch, inspect capabilities:
+
+```js
+subagent({ action: "list", options: { capabilities: true } })
+```
+
+A capabilities listing establishes declared configuration.
+Test continuation and scheduling with the waiting fixture before treating them as supported.
+
+For launch preflight, use `resolveSubagentLaunchContract` from the installed integration's `pi-subagents/preflight` API, following its documented inputs.
+Pass these inputs:
+
+- The intended agent, task prompt, and working directory.
+- Explicit fresh context and the selected model.
+- Applicable host model and capability restrictions.
+- `intercomBridge: { mode: "off" }`, matching the launch's `options.intercomBridge` value for both workers and verifiers.
+
+Inspect `contract.agent`, `contract.skills.resolved`, and `contract.tools.effectiveAllowlist`.
+`ok: true` alone does not prove this workflow's requirements.
+Require `contract.intercomBridge.mode === "off"` and `contract.intercomBridge.active === false`.
+Exclude `contact_supervisor` from the effective tool allowlist.
+Stop before dispatch if the resolved bridge state or tools violate these requirements.
+
+An active bridge instructs children to ask the supervisor and remain alive.
+This prevents a worker's final `stop` reply from releasing its scheduler slot and keeps verifier questions out of the final report.
+If the host cannot expose that API or an equivalent resolved contract, stop and report the missing preflight capability.
+
+- Dispatch task prompts to `orchestrate-worker`.
+  - Set `async: true`, `cwd` to the task worktree, `options.context: "fresh"`, and `options.intercomBridge: { mode: "off" }`.
+  - Omit managed worktree isolation from the launch because the orchestrator creates the worktree.
+  - Use launch preflight to require both selected skills to resolve for the child's working directory.
+  - pi-subagents otherwise warns about missing skills and continues.
+  - Stop before creating run resources if either skill is missing, disabled, or unavailable to children.
+- Dispatch each canonical verifier prompt to a fresh `orchestrate-verifier`.
+  - Set `async: true`, `cwd` to the task worktree, `options.context: "fresh"`, and `options.intercomBridge: { mode: "off" }`.
+  - Before dispatch, use the integration's launch preflight for the selected model and working directory.
+  - Confirm the resolved agent source, effective tools, context, and skill dependencies.
+  - Require `read` and `bash`, and exclude `edit`, `write`, and `subagent`.
+  - Require instructions to run safe validation while preserving the working tree.
+  - Inspect the resolved profile and any user or project overrides.
+  - A capabilities listing alone cannot establish that its instructions permit validation.
+  - Stop and report a missing, disabled, shadowed, or incompatible verifier before dispatch.
+  - Follow the verifier prompt's instruction to preserve the working tree and make no edits.
+  - Inspect validation commands for side effects and report unsafe commands as blocked because shell access does not enforce preservation.
+  - Task workers and verifiers start no subagents.
+- Select the exact permitted model through the extension's model catalog.
+  - Set effort through the launch's `model` suffix, such as `provider/model-id:high`.
+  - A separate dispatch `thinking` field does not set native child effort.
+  - The launch selection overrides defaults from settings and agent overrides.
+- Record the original task run identifier as `agent_id`.
+  - After a completed task reply, inspect that run's status.
+  - Send `gaps`, `answer`, or `end` with `action: "resume"`, the retained run identifier, and `message` containing the instruction.
+  - Resume restores the stored conversation and contract and can return a new run identifier.
+  - Track the latest continuation identifier separately and use it for the next resume.
+  - Preserve the original `agent_id` in `run.json`.
+  - Check the retained model against the model permission policy before every continuation.
+  - Resume does not accept a replacement model.
+  - Treat a failed resume as a platform limit and follow the waiting rules.
+  - Do not start a fresh worker for that answer.
+- Handle each final `Message: stop` reply through the orchestrator's waiting rules.
+  - Keep scheduling independent tasks while the user decides.
+  - Use the extension's async completion notifications to handle subsequent replies.
+
 ## Invocation examples
 
 After loading or installing the skill, use the current host's command:
@@ -50,14 +117,5 @@ After loading or installing the skill, use the current host's command:
 | Claude Code | `/task-executor:orchestrate with concurrency limit 1` |
 | Codex | `$task-executor:orchestrate with concurrency limit 1` |
 | Pi coding agent | `/skill:orchestrate with concurrency limit 1` |
-
-On Pi, load the skills:
-
-```sh
-pi --skill <repository>/plugins/task-executor/skills
-```
-
-Configure the agent integration through its documented setup.
-Loading the skills does not supply subagent tools.
 
 For evals, invoke the named skill through the current host and preserve the scenario arguments.
