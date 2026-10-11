@@ -21,7 +21,7 @@
   "files": [
     "README.md",
     "index.ts",
-    "lib/**",
+    "src/**",
     "styles/**",
     "examples/**",
     "tsconfig.json",
@@ -36,7 +36,6 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "lint": "oxlint --max-warnings=0",
-    "lint:anti-slop": "oxlint --config .oxlintrc.anti-slop.json --max-warnings=0",
     "lint:fix": "oxlint --fix",
     "format": "oxfmt .",
     "format:check": "oxfmt --check .",

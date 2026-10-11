@@ -1,54 +1,62 @@
 # Test layout
 
+Tests mirror the source responsibilities.
 Each test file covers one concern.
-A reader who looks for a behavior opens one file, and an author who writes a test has one correct place to put it.
 
 ## Where a test belongs
 
-Ask which concern the test proves, then use the table.
+### Pi adapters
 
-### Extension behavior through the harness
+`pi/` covers the bootstrap, registration, dialogs, and footer formatting in `src/pi/`.
+Extension behavior uses the fake Pi surface in `support/extension-harness.ts`.
 
-These files drive the registered extension through the fake Pi surface in `support/extension-harness.ts`.
+| File | Concern |
+| --- | --- |
+| `pi/extension.test.ts` | Default bootstrap, bundled asset paths, and host agent directory. |
+| `pi/style-application.test.ts` | Flag registration and prompt application. |
+| `pi/style-switching.test.ts` | Commands, selector, completions, cycle shortcut, and footer entry. |
+| `pi/style-rescan.test.ts` | Rescans initiated by command invocations. |
+| `pi/active-style-rescan.test.ts` | Active selection refresh and fallback. |
+| `pi/style-persistence.test.ts` | Registration connected to real settings files. |
+| `pi/persistence-failures.test.ts` | Registration connected to controlled persistence failures and pending writes. |
+| `pi/create-flow.test.ts` | Dialogs, validation, and creation through `/output-style new`. |
+| `pi/headless-modes.test.ts` | Print and remote modes without a user interface. |
+| `pi/status.test.ts` | Footer formatting. |
 
-| File                          | Concern                                                                       |
-| ----------------------------- | ----------------------------------------------------------------------------- |
-| `style-application.test.ts`   | The flag registration, and the style the extension applies to the turn prompt. |
-| `style-switching.test.ts`     | The command, the selector, the argument completions, the cycle shortcut, and the footer entry. |
-| `style-rescan.test.ts`        | The rescan of the style directories that each command invocation starts.       |
-| `active-style-rescan.test.ts` | The re-resolution of the active style after a rescan, and the fallback to `default`. |
-| `style-persistence.test.ts`   | The read and the write of the settings file, and the startup style it selects. |
-| `create-flow.test.ts`         | The dialogs, the validation, and the file write of `/output-style new`.        |
-| `headless-modes.test.ts`      | The print mode and the remote mode, which have no user interface.              |
+### Styles
 
-### Single module behavior
+`styles/` tests `src/styles/` without Pi registration.
+Parser tests belong in `frontmatter.test.ts` and `style-file.test.ts`.
+Discovery tests belong in `discovery.test.ts` and control concurrent reads with promises.
+Prompt application and serialization belong in `prompt.test.ts` and `create-style.test.ts`.
+`bundled-styles.test.ts` checks the shipped `styles/` assets and their README table.
+`example-style.test.ts` checks `examples/terse.md`.
 
-These files call one module of `lib/` directly.
-A test belongs here when it needs no extension harness.
+### Session logic
 
-| File                    | Module under test                                             |
-| ----------------------- | ------------------------------------------------------------- |
-| `frontmatter.test.ts`   | `lib/frontmatter.ts`                                          |
-| `style-file.test.ts`    | `lib/style-file.ts`                                           |
-| `discovery.test.ts`     | `lib/discovery.ts`                                            |
-| `prompt.test.ts`        | `lib/prompt.ts`                                               |
-| `settings.test.ts`      | `lib/settings.ts`                                             |
-| `status.test.ts`        | `lib/status.ts`                                               |
-| `create-style.test.ts`  | `lib/create-style.ts`                                         |
-| `support/matchers.test.ts` | The shared matcher in `support/matchers.ts`                |
+`session/` tests `src/session/` without Pi or filesystem effects.
+`startup-selection.test.ts` covers startup precedence and unknown names.
+`style-session.test.ts` covers catalogue adoption, active selection, fallback, diagnostic deduplication, selector snapshots, and scan ordering.
 
-### Package and asset checks
+### Storage
 
-| File                     | Concern                                                             |
-| ------------------------ | -------------------------------------------------------------------- |
-| `bundled-styles.test.ts` | The style files this package ships in `styles/`.                     |
-| `example-style.test.ts`  | The style file in `examples/`.                                       |
-| `loader.test.ts`         | The extension entry point that Pi loads.                             |
+`storage/` tests `src/storage/`.
+`settings.test.ts` uses real temporary files and locks to check persistence, permissions, replacement, and concurrent writes.
+`filesystem.test.ts` checks filesystem error decoding.
+`json.test.ts` checks JSON object parsing.
 
-No test compares the produced prompt against Pi's own prompt builder.
-The extension only appends to the chained prompt, so Pi's prompt rendering cannot affect the result and needs no parity guard.
+### Package and dependencies
 
-### A regression test
+`integration/pi-loader.test.ts` checks loading and registration through the real Pi loader.
+`integration/package-layout.test.ts` checks exports and package contents declared by the manifests.
+`integration/dependency-boundaries.test.ts` checks the separation of Pi runtime imports and adapters from the other modules.
+
+### Shared code
+
+`errors.test.ts` covers `src/errors.ts`.
+`support/matchers.test.ts` and `support/offline-guard.test.ts` cover their corresponding helpers.
+
+### Regression tests
 
 A test that locks down a fixed defect belongs in `regressions/`.
 Use the file name pattern `<short-slug>.test.ts`, and start the file with a comment that states the defect.
@@ -58,13 +66,14 @@ A test that states normal behavior belongs in the concern file above, even when 
 
 ## Rules for shared code
 
-- A fixture that more than one file needs belongs in `support/`.
-  No test file re-implements a fixture that `support/extension-harness.ts` already offers.
-  That module owns the harness factory, the temporary directory variables `root`, `bundledDir`, `agentDir`, and `cwd`, the helpers `writeStyle`, `styleFile`, and `styleStatus`, and the `beforeEach` and `afterEach` hooks that rebuild and remove the temporary root.
-- A `vi.mock` block belongs in the test file that needs it.
-  Vitest hoists `vi.mock` and `vi.hoisted` per test file, so a shared module cannot register a module mock for another file.
-  A file that injects a filesystem failure therefore declares its own mock block, and clears the failure record in its own `afterEach`.
-- The vitest configuration shuffles both the file order and the test order.
-  A test must therefore not depend on state that another test or another file created.
-  The shared hooks give every test a fresh temporary root, which keeps that property.
+- Shared fixtures belong in `support/`.
+  Reuse the harness factory, temporary directory variables, style helpers, and cleanup hooks from `support/extension-harness.ts`.
+- Inject filesystem failures through `support/filesystem.ts`.
+  Each test file owns its failure records and clears them in its own `afterEach`.
+- Use `support/persistence.ts` for controlled persistence failures and delayed writes.
+  Its memory implementation preserves write ordering for each path.
+  Real settings tests remain responsible for filesystem locking and replacement.
+- Use `support/deferred.ts` to control asynchronous completion without elapsed time delays.
+- The Vitest configuration shuffles file and test order.
+  Tests must not depend on state created by another file or test.
 - `expect.requireAssertions` is active, so every test must assert.

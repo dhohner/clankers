@@ -14,6 +14,12 @@ describe("offline guard", () => {
     );
   });
 
+  it("names the target of a Request instance", () => {
+    expect(() => fetch(new Request("https://example.com/from-request"))).toThrow(
+      "fetch tried to reach https://example.com/from-request",
+    );
+  });
+
   it("fails an http request and names the target", () => {
     expect(() => http.request("http://example.com/plain")).toThrow(
       "http.request tried to reach http://example.com/plain",
@@ -38,6 +44,18 @@ describe("offline guard", () => {
     );
   });
 
+  it("keeps URL fields when a callback follows the URL", () => {
+    expect(() => http.request(new URL("http://example.com:8080/status?full=1"), () => {})).toThrow(
+      "http.request tried to reach http://example.com:8080/status?full=1",
+    );
+  });
+
+  it("uses the fallback path for an explicit undefined override", () => {
+    expect(() => http.request("http://example.com/from-url", { path: undefined })).toThrow(
+      "http.request tried to reach http://example.com/",
+    );
+  });
+
   it("names a Unix domain socket instead of a host", () => {
     expect(() => http.request({ socketPath: "/tmp/service.sock", path: "/status" })).toThrow(
       "http.request tried to reach http://unix:/tmp/service.sock:/status",
@@ -58,6 +76,15 @@ describe("offline guard", () => {
     );
     expect(() => net.createConnection(9999, "example.com")).toThrow(
       "A socket connection tried to reach example.com:9999",
+    );
+  });
+
+  it("names a direct Unix socket connection", () => {
+    expect(() => net.createConnection("/tmp/service.sock")).toThrow(
+      "A socket connection tried to reach /tmp/service.sock",
+    );
+    expect(() => net.createConnection({ path: "/tmp/service.sock" })).toThrow(
+      "A socket connection tried to reach /tmp/service.sock",
     );
   });
 

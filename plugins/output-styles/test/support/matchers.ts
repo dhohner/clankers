@@ -1,6 +1,6 @@
 import { expect } from "vitest";
 
-type EqualityCheck = (left: unknown, right: unknown) => boolean;
+type EqualityCheck = <Left, Right>(left: Left, right: Right) => boolean;
 
 /** Pairs each expected item with one received item, including overlapping asymmetric matchers. */
 function pairsExactly(received: readonly unknown[], expected: readonly unknown[], equals: EqualityCheck): boolean {
@@ -11,15 +11,19 @@ function pairsExactly(received: readonly unknown[], expected: readonly unknown[]
   function pair(expectedIndex: number, visitedReceivedIndexes: Set<number>): boolean {
     for (let receivedIndex = 0; receivedIndex < received.length; receivedIndex += 1) {
       if (visitedReceivedIndexes.has(receivedIndex)) continue;
+
       if (!equals(received[receivedIndex], expected[expectedIndex])) continue;
 
       visitedReceivedIndexes.add(receivedIndex);
       const previousExpectedIndex = expectedIndexByReceivedIndex[receivedIndex];
+
       if (previousExpectedIndex === -1 || pair(previousExpectedIndex, visitedReceivedIndexes)) {
         expectedIndexByReceivedIndex[receivedIndex] = expectedIndex;
+
         return true;
       }
     }
+
     return false;
   }
 
@@ -32,7 +36,7 @@ expect.extend({
    * production code makes no ordering promise, so a changed order is not a test failure. Assert
    * with toEqual where the order itself is the contract under test.
    */
-  toEqualUnordered(received: unknown, expected: readonly unknown[]) {
+  toEqualUnordered<Received>(received: Received, expected: readonly unknown[]) {
     if (!Array.isArray(received)) {
       return {
         pass: false,

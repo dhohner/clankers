@@ -47,7 +47,7 @@
     "README.md",
     "LICENSE",
     "plugins/output-styles/index.ts",
-    "plugins/output-styles/lib/**",
+    "plugins/output-styles/src/**",
     "plugins/output-styles/styles/**",
     "plugins/output-styles/examples/**",
     "plugins/output-styles/tsconfig.json",

@@ -9,11 +9,11 @@ import {
   FLAG_NAME,
   registerOutputStyles,
   STATUS_KEY,
-  type StyleAutocompleteItem,
-  type StyleExtensionApi,
-  type StyleExtensionContext,
-} from "../../lib/extension.js";
-import { STATUS_LABEL } from "../../lib/status.js";
+} from "../../src/pi/registration.js";
+import type { StyleAutocompleteItem, StyleExtensionApi, StyleExtensionContext } from "../../src/pi/host-contracts.js";
+import { STATUS_LABEL } from "../../src/pi/status.js";
+import type { StyleFileSystem } from "../../src/storage/filesystem.js";
+import type { StylePersistence } from "../../src/storage/style-persistence.js";
 
 export const CONFIG_DIR_NAME = ".pi";
 
@@ -60,7 +60,7 @@ export type EditorAnswer = string | undefined | (() => Promise<string | undefine
 export type Harness = {
   start(): Promise<void>;
   turn(systemPrompt?: string): Promise<string>;
-  turnResult(options?: BuildSystemPromptOptions): Promise<Record<string, unknown> | undefined>;
+  turnResult(options?: BuildSystemPromptOptions): Promise<{ systemPrompt?: string } | undefined>;
   runCommand(args: string): Promise<void>;
   completions(prefix: string): Promise<StyleAutocompleteItem[] | null>;
   pressCycleShortcut(): Promise<void>;
@@ -85,8 +85,11 @@ export type Harness = {
 // The hooks below rebuild these per test, and an ES live binding carries the new value into every
 // importing test file, so a test reads them as plain names.
 export let root = "";
+
 export let bundledDir = "";
+
 export let agentDir = "";
+
 export let cwd = "";
 
 /**
@@ -108,17 +111,51 @@ export async function writeStyle(directory: string, file: string, content: strin
   await mkdir(directory, { recursive: true });
   const path = join(directory, file);
   await writeFile(path, content, "utf8");
+
   return path;
 }
 
 export function styleFile(description: string, instructions: string, mode?: string): string {
   const modeLine = mode === undefined ? "" : `mode: ${mode}\n`;
+
   return `---\ndescription: ${description}\n${modeLine}---\n${instructions}\n`;
 }
 
-export function createHarness(options: { flag?: string; trusted?: boolean; hasUI?: boolean } = {}): Harness {
+export function createHarness(
+  options: {
+    flag?: string;
+    trusted?: boolean;
+    hasUI?: boolean;
+    filesystem?: StyleFileSystem;
+    persistence?: StylePersistence;
+    install?: (pi: StyleExtensionApi) => void;
+  } = {},
+): Harness {
   const notifications: Notification[] = [];
-  const handlers: Record<string, (event: never, ctx: StyleExtensionContext) => unknown> = {};
+
+  type StartHandler = (event: { type: "session_start" }, ctx: StyleExtensionContext) => Promise<void> | void;
+
+  type TurnHandler = (
+    event: { systemPrompt: string },
+    ctx: StyleExtensionContext,
+  ) => Promise<{ systemPrompt?: string } | undefined>;
+
+  let startHandler: StartHandler | undefined;
+  let turnHandler: TurnHandler | undefined;
+
+  function on(event: "session_start", handler: StartHandler): void;
+  function on(event: "before_agent_start", handler: TurnHandler): void;
+  function on(event: "session_start" | "before_agent_start", handler: StartHandler | TurnHandler): void {
+    if (event === "session_start") {
+      // SAFETY: The overload pairs session_start with StartHandler.
+      startHandler = handler as StartHandler;
+
+      return;
+    }
+
+    // SAFETY: The remaining overload pairs before_agent_start with TurnHandler.
+    turnHandler = handler as TurnHandler;
+  }
 
   const selectCalls: SelectCall[] = [];
   const selectAnswers: SelectAnswer[] = [];
@@ -138,15 +175,20 @@ export function createHarness(options: { flag?: string; trusted?: boolean; hasUI
       select: async (title, selectOptions) => {
         selectCalls.push({ title, options: selectOptions });
         const answer = selectAnswers.shift();
+
+        // oxlint-disable-next-line anti-slop/no-runtime-typeof -- The harness accepts either a dialog result or a deferred answer callback.
         return typeof answer === "function" ? await answer() : answer;
       },
       input: async (title, placeholder) => {
         inputCalls.push({ title, placeholder });
+
         return inputAnswers.shift();
       },
       editor: async (title, prefill) => {
         editorCalls.push({ title, prefill });
         const answer = editorAnswers.shift();
+
+        // oxlint-disable-next-line anti-slop/no-runtime-typeof -- The harness accepts either a dialog result or a deferred answer callback.
         return typeof answer === "function" ? await answer() : answer;
       },
       theme: { fg: (color, text) => `[${color}:${text}]` },
@@ -181,16 +223,26 @@ export function createHarness(options: { flag?: string; trusted?: boolean; hasUI
     registerShortcut: (shortcut: string, shortcutOptions: ShortcutRegistration["options"]) => {
       registeredShortcuts.push({ shortcut, options: shortcutOptions });
     },
-    on: (event: string, handler: (event: never, ctx: StyleExtensionContext) => unknown) => {
-      handlers[event] = handler;
-    },
-  } as unknown as StyleExtensionApi;
+    on,
+  };
 
-  registerOutputStyles(pi, { bundledDir, agentDir, configDirName: CONFIG_DIR_NAME });
+  if (options.install) {
+    options.install(pi);
+  } else {
+    registerOutputStyles(pi, {
+      bundledDir,
+      agentDir,
+      configDirName: CONFIG_DIR_NAME,
+      filesystem: options.filesystem,
+      persistence: options.persistence,
+    });
+  }
 
   function outputStyleCommand(): CommandRegistration {
     const command = registeredCommands.find((entry) => entry.name === COMMAND_NAME);
+
     if (!command) throw new Error(`command "${COMMAND_NAME}" is not registered`);
+
     return command;
   }
 
@@ -205,7 +257,7 @@ export function createHarness(options: { flag?: string; trusted?: boolean; hasUI
     statusCalls,
     activeTools: () => [...activeTools],
     async start() {
-      await handlers.session_start?.({ type: "session_start" } as never, ctx);
+      await startHandler?.({ type: "session_start" }, ctx);
     },
     async runCommand(args) {
       await outputStyleCommand().options.handler(args, ctx);
@@ -215,6 +267,7 @@ export function createHarness(options: { flag?: string; trusted?: boolean; hasUI
     },
     async pressCycleShortcut() {
       const shortcut = registeredShortcuts.find((entry) => entry.shortcut === CYCLE_SHORTCUT);
+
       if (!shortcut) throw new Error(`shortcut "${CYCLE_SHORTCUT}" is not registered`);
       await shortcut.options.handler(ctx);
     },
@@ -231,17 +284,15 @@ export function createHarness(options: { flag?: string; trusted?: boolean; hasUI
       return statuses.get(STATUS_KEY);
     },
     async turn(systemPrompt = CHAINED_PROMPT) {
-      const result = (await handlers.before_agent_start?.(
-        { systemPrompt, systemPromptOptions: promptOptions() } as never,
-        ctx,
-      )) as { systemPrompt?: string } | undefined;
+      const event = { systemPrompt, systemPromptOptions: promptOptions() };
+      const result = await turnHandler?.(event, ctx);
+
       return result?.systemPrompt ?? systemPrompt;
     },
     async turnResult() {
-      return (await handlers.before_agent_start?.(
-        { systemPrompt: CHAINED_PROMPT, systemPromptOptions: promptOptions() } as never,
-        ctx,
-      )) as Record<string, unknown> | undefined;
+      const event = { systemPrompt: CHAINED_PROMPT, systemPromptOptions: promptOptions() };
+
+      return await turnHandler?.(event, ctx);
     },
   };
 }

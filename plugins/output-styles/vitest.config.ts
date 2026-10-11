@@ -24,11 +24,8 @@ export default defineConfig({
       reportsDirectory: "./coverage",
       // The gate measures the plugin sources only. Build output, tests, and the
       // entry point never raise or lower the measured value.
-      include: ["lib/**"],
-      // Vitest matches these with picomatch `contains`, so a bare `styles/**` would also
-      // match the package directory `output-styles/`. The leading slash anchors each
-      // pattern to a whole path segment.
-      exclude: ["/test/**", "/dist/**", "/node_modules/**", "/styles/**", "/examples/**", "/index.ts"],
+      include: ["src/**"],
+      exclude: ["/test/**", "/dist/**", "/node_modules/**", "/index.ts"],
       // The gate reads the whole suite in one run. `perFile` makes a shortfall name the file that
       // caused it, not only the metric.
       thresholds: { perFile: true, lines: 90, branches: 90 },

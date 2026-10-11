@@ -119,7 +119,7 @@ pnpm lint:anti-slop
 Check one plugin while migrating its violations:
 
 ```bash
-pnpm --filter ./plugins/output-styles lint:anti-slop
+pnpm --filter ./plugins/security-guard lint:anti-slop
 ```
 
 After a plugin passes, merge its anti-slop configuration into `.oxlintrc.json` to require anti-slop in CI and include the rules in `lint:fix`.

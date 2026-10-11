@@ -31,7 +31,7 @@ const cases = [
 try {
   for (const plugin of ["insomniac", "output-styles", "security-guard"]) {
     const cwd = join(root, "plugins", plugin);
-    const commands = plugin === "insomniac" ? ["lint"] : ["lint", "lint:anti-slop"];
+    const commands = plugin === "security-guard" ? ["lint", "lint:anti-slop"] : ["lint"];
 
     for (const testCase of cases) {
       const fixture = join(temporary, `${testCase.name}.ts`);
@@ -39,7 +39,7 @@ try {
 
       for (const command of commands) {
         const codes =
-          plugin === "insomniac" && command === "lint"
+          plugin !== "security-guard" && command === "lint"
             ? testCase["lint:anti-slop"]
             : testCase[command];
         const label = `${plugin} ${command} ${testCase.name}`;

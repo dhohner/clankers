@@ -6,8 +6,8 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import lockfile from "proper-lockfile";
 import { expect, it } from "vitest";
-import { STYLES_DIR_NAME } from "../../lib/extension.js";
-import { OUTPUT_STYLE_KEY, SETTINGS_FILE_NAME } from "../../lib/settings.js";
+import { STYLES_DIR_NAME } from "../../src/pi/registration.js";
+import { OUTPUT_STYLE_KEY, SETTINGS_FILE_NAME } from "../../src/storage/settings.js";
 import { agentDir, createHarness, styleFile, writeStyle } from "../support/extension-harness.js";
 
 it("reports the settings file instead of starting silently as a fresh installation", async () => {
@@ -20,6 +20,7 @@ it("reports the settings file instead of starting silently as a fresh installati
   // concurrent Pi settings write does not do.
   const release = await lockfile.lock(settingsPath, { realpath: false });
   const harness = createHarness({ trusted: false });
+
   try {
     await harness.start();
   } finally {

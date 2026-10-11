@@ -35,7 +35,7 @@ Switch the style inside a running session:
 - `Ctrl+Shift+Y` activates the next style in the list and wraps from the last entry to the first.
   The shortcut is a convenience: some terminals do not deliver this key combination, and the command reaches every switch the shortcut can perform.
   Pi's `~/.pi/agent/keybindings.json` rebinds Pi's own actions by their keybinding id, but an extension shortcut is registered under its literal key and has no id in that file, so this shortcut cannot be rebound there; verified against Pi 0.87.1.
-  To use a different key, change the `CYCLE_SHORTCUT` constant in the installed copy of `lib/extension.ts` to a combination in Pi's `modifier+key` format, such as `ctrl+shift+x`.
+  To use a different key, change the `CYCLE_SHORTCUT` constant in the installed copy of `src/pi/registration.ts` to a combination in Pi's `modifier+key` format, such as `ctrl+shift+x`.
 
 Every `/output-style` invocation, with or without an argument, rescans the three style directories first, so a style file added or edited while the session runs is selectable without a restart.
 The one exception is `/output-style new` without a user interface: it refuses before the rescan, so the invocation produces exactly one explanatory message and changes nothing.
@@ -228,6 +228,16 @@ Pi's own `yaml` copy is not visible to a plugin, and a missing dependency stops 
 
 ## Development
 
+`index.ts` re-exports the host bootstrap from `src/pi/extension.ts`.
+`src/pi/` contains registration, host contracts, dialogs, and footer formatting.
+`src/styles/` contains style definitions, parsing, discovery, serialization, and prompt application.
+`src/session/` owns the catalogue, active selection, scan adoption, and startup selection rules.
+`src/storage/` contains filesystem operations, JSON parsing, settings storage, and the persistence contract.
+`src/errors.ts` formats errors shared by these modules.
+Tests mirror these directories, and `test/pi/` exercises registration through the harness.
+`test/integration/` checks dependency boundaries, package layout, and loading through Pi's extension loader.
+`test/support/` contains shared fixtures, and `test/regressions/` covers specific fixed defects.
+
 ```bash
 pnpm --filter output-styles test
 pnpm --filter output-styles typecheck
@@ -238,4 +248,4 @@ Vitest rejects focused tests and tests without assertions.
 Vitest also restores spies, environment stubs, and global stubs before each test.
 Assert a list with `toEqualUnordered`, the custom matcher in `test/support/matchers.ts`, wherever the code promises no order.
 Use `toEqual` only where order is the contract, such as the style list order and a sequence of reported messages.
-The shipped styles are listed once, in `BUNDLED_STYLES` of `test/bundled-styles.test.ts`, and a test compares that list with the README table above, so a renamed style needs one edit in the tests and one in the README.
+The shipped styles are listed once, in `BUNDLED_STYLES` of `test/styles/bundled-styles.test.ts`, and a test compares that list with the README table above, so a renamed style needs one edit in the tests and one in the README.
