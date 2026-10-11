@@ -129,7 +129,9 @@ The test suite does not need `playwright-cli` or a browser.
 
 ## Test
 
-Run the suite from the repository root.
+Run the suite from the repository root with [uv](https://docs.astral.sh/uv/) installed.
+The test commands use uv to select Python 3.14, downloading it if needed.
+They run in a temporary virtual environment so child commands also use that Python version.
 `pnpm test:py:fast` skips the harness self-tests of the time limits and the watchdog.
 
 ```sh
@@ -143,17 +145,17 @@ It also runs single modules or tests, each in its own process:
 
 ```sh
 cd plugins/project-advisor/skills/to-prd
-python3 tests/run_parallel.py
-python3 tests/run_parallel.py test_prd_bundle_interview_toon
-python3 tests/run_parallel.py test_prd_bundle_interview_toon.ToonWriterTests.test_prints_scalars_as_key_value_lines
+uv run --no-project --isolated --python 3.14 python tests/run_parallel.py
+uv run --no-project --isolated --python 3.14 python tests/run_parallel.py test_prd_bundle_interview_toon
+uv run --no-project --isolated --python 3.14 python tests/run_parallel.py test_prd_bundle_interview_toon.ToonWriterTests.test_prints_scalars_as_key_value_lines
 ```
 
 The tests import their helpers as top-level modules, so plain `unittest` needs the tests directory on `PYTHONPATH`, or `discover` for the whole suite:
 
 ```sh
 cd plugins/project-advisor/skills/to-prd
-PYTHONPATH=tests python3 -m unittest --durations 10 test_prd_bundle_interview_toon
-python3 -m unittest discover --durations 10 tests 'test_prd_bundle_*.py'
+PYTHONPATH=tests uv run --no-project --isolated --python 3.14 python -m unittest --durations 10 test_prd_bundle_interview_toon
+uv run --no-project --isolated --python 3.14 python -m unittest discover --durations 10 tests 'test_prd_bundle_*.py'
 ```
 
 The interview tests fail any test that runs longer than about a second.
