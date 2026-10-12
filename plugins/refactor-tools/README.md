@@ -1,6 +1,6 @@
-# Refactor Tools plugin
+# Refactor tools plugin
 
-Refactor Tools packages safe cleanup that preserves behavior and review workflows for existing code.
+Refactor Tools simplifies existing code while preserving behavior and reviews code changes.
 
 ## How it works
 
@@ -13,10 +13,10 @@ Each skill runs only when you invoke it directly.
 `simplify` applies safe simplifications to changed code.
 
 - It targets named files, directories, commits, or ranges.
-- It limits edits to the function, test, or block around each changed hunk unless you request a whole-file pass.
+- It limits edits to the function, test, or block around each changed hunk unless you request a pass over the whole file.
 - It runs three review passes for code reuse, code quality, and efficiency.
 - It applies safe findings with high confidence, or with medium confidence and targeted test coverage.
-- It reports low-confidence, caution, and risky findings without applying them.
+- It reports findings rated as low confidence, caution, or risky without applying them.
 - It keeps its edits unstaged and preserves existing changes.
 - It runs the narrowest relevant tests, type checks, and linters.
 
@@ -28,7 +28,7 @@ Each skill runs only when you invoke it directly.
 - It classifies each finding as a blocker, follow-up, or nit, with location, evidence, and fix.
 - It checks the change against applicable `AGENTS.md`, `CLAUDE.md`, and similar guides, and against requirements you supply.
 - It runs checks that may write files inside a temporary snapshot.
-- It skips commands whose side effects it cannot bound.
+- It skips commands whose side effects it cannot limit.
 - It reports executed checks, skipped checks with reasons, the negative control outcome, and remaining risk.
 
 ## Usage

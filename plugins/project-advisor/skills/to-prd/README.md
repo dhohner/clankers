@@ -1,8 +1,8 @@
 # Write a PRD
 
 The `to-prd` skill turns a product idea or PRD review note into a validated local review bundle.
-The agent owns product judgment, repository grounding, uncertainty, and block selection.
-The generator owns schema validation, escaping, canonical rendering, asset copying, structural validation, and atomic publication.
+The agent makes product decisions, checks repository evidence, records uncertainty, and selects blocks.
+The generator validates the schema and structure, escapes content, renders the canonical output, copies assets, and publishes the bundle atomically.
 
 ## Output
 
@@ -18,19 +18,19 @@ action-items/PRD-<slug>/
 ```
 
 `prd.yaml` is the normalized planning source and records the interview design tree beside the decisions.
-`index.html` is the human review surface.
-The bundle copies its assets, including the OFL-licensed Manrope font and its license text.
-A reviewer therefore needs no plugin and sees identical typography on every machine.
+Reviewers open `index.html` to review the PRD.
+The bundle includes its assets, including the Manrope font under the OFL license and its license text.
+Reviewers need no plugin and see identical typography on every machine.
 
-The bundle is a screen artifact and does not support printing.
+The bundle is for viewing on screen and does not support printing.
 Diagrams load Mermaid from `cdn.jsdelivr.net` at review time and fall back to their text source without a network.
 
 ## Workflow
 
-`SKILL.md` holds the loop: ground the decision, author the manifest, publish and inspect, hold the review gate.
-The agent asks each interview round in the local browser with `interview ask`, and holds the review gate in the chat.
+`SKILL.md` defines the loop: check evidence for the decision, write the manifest, publish and inspect the bundle, and wait for review.
+The agent asks each interview round in the local browser with `interview ask` and waits for review in the chat.
 Acceptance sets `status: Accepted` in the published `prd.yaml`, which `to-issues` and `to-agent-tasks` read.
-Review feedback on an existing PRD re-enters the loop as a revision of a scratch copy of `prd.yaml`.
+For feedback on an existing PRD, the agent revises a scratch copy of `prd.yaml` and repeats the loop.
 [references/manifest-contract.md](references/manifest-contract.md) describes the manifest versions and the rules the CLI does not print.
 
 ## CLI
@@ -67,7 +67,7 @@ Only `interview ask` and `interview open` use a browser, and they open the local
 
 ## Interview
 
-The `interview` commands ask the rounds of one session on a local page.
+The `interview` commands present each round of a session on a local page.
 A session directory is a scratch directory outside `action-items/`.
 It holds the scratch `prd.yaml`, the round files, and the `interview/` directory with the answers and the server state.
 Each PRD and each revision starts a new session.
@@ -82,16 +82,16 @@ python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py interview end 
 - `interview ask <session-dir> <round-file>` validates the round file and starts the session server when none runs.
   - It opens the page when the session gets its first server or a new port, so a closed tab needs `interview open`.
   - It blocks until the round has a result, and prints `answered`, `browser_disconnected`, or `ended`.
-  - An `answered` result holds each answer with its design tree `record` and the `instructions` to write it.
-  - An ask for an answered round prints the stored answers at once.
+  - An `answered` result includes each answer with its design tree `record` and the `instructions` for recording it.
+  - Asking an already answered round prints the stored answers immediately.
   - `interview ask --help` prints the round file fields and an example.
 - `interview open <session-dir>` opens the page again, and starts the server again when it has stopped.
 - `interview status <session-dir>` prints the session state, whether the server runs, and the counts of asked rounds, answered rounds, and deferred questions.
 - `interview end <session-dir>` ends the session and stops its server.
   - A second `interview end` on the same session succeeds.
 
-Each `interview` command prints TOON to stdout, for a result and for an error.
-Each result and error holds `next` lines with the commands that can follow.
+Each `interview` command prints results and errors to stdout in TOON format.
+Both include `next` lines listing the commands that can follow.
 
 Exit codes:
 
@@ -100,7 +100,7 @@ Exit codes:
 - `2`: unknown flag or usage error.
 
 `status` lists the live interview sessions of the current workspace under `interview_sessions`, with the session directory and state of each.
-A live session has a running server that a command started from the current directory.
+A live session has a running server started by a command in the current directory.
 
 With `TO_PRD_INTERVIEW_BROWSER_LOG` set to a file path, the commands append the page link to that file and open no browser.
 

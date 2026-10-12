@@ -1,17 +1,13 @@
-# Project Advisor Plugin
+# Project Advisor plugin
 
-Packages product-planning workflows grounded in repository evidence.
+Project Advisor uses repository evidence to help plan product work.
 
-## What It Does
+## Skills
 
-This plugin currently bundles four connected skills:
-
-- `next-thing` identifies the single highest-leverage next product addition and presents it as a crisp Senior Product Manager recommendation.
-- `to-prd` turns a feature idea into a structured English PRD through user interview, codebase exploration, and an automatic review loop.
-- `to-issues` converts an approved PRD into German or English Jira-ready vertical-slice work items using the bundled Jira template and example tickets.
-- `to-agent-tasks` converts an accepted `prd.yaml` into dependency-ordered, self-contained Markdown tasks for coding agents such as Codex or Pi.
-
-Together they support a natural workflow from product bet to approved PRD to implementation-ready work items.
+- `next-thing` recommends the next product addition with the greatest benefit, in the voice of a senior product manager.
+- `to-prd` turns a feature idea into a structured English PRD by interviewing the user, inspecting the codebase, and running an automatic review loop.
+- `to-issues` converts an approved PRD into German or English work items for Jira, each covering a vertical slice, using the bundled Jira template and example tickets.
+- `to-agent-tasks` converts an accepted `prd.yaml` into standalone Markdown tasks for coding agents such as Codex or Pi, ordered by dependency.
 
 ## Workflow
 
@@ -33,7 +29,7 @@ Example prompts:
 - "Convert this PRD into Jira-ready vertical slices."
 - "Break this PRD into Jira issues in English."
 
-## Learn More
+## Learn more
 
 Bundled skills:
 

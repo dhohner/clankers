@@ -1,7 +1,6 @@
 # Test layout
 
-Tests mirror the source responsibilities.
-Each test file covers one concern.
+Tests follow the source structure, with each test file covering one concern.
 
 ## Where a test belongs
 
@@ -17,8 +16,8 @@ Extension behavior uses the fake Pi surface in `support/extension-harness.ts`.
 | `pi/style-switching.test.ts` | Commands, selector, completions, cycle shortcut, and footer entry. |
 | `pi/style-rescan.test.ts` | Rescans initiated by command invocations. |
 | `pi/active-style-rescan.test.ts` | Active selection refresh and fallback. |
-| `pi/style-persistence.test.ts` | Registration connected to real settings files. |
-| `pi/persistence-failures.test.ts` | Registration connected to controlled persistence failures and pending writes. |
+| `pi/style-persistence.test.ts` | Registration using real settings files. |
+| `pi/persistence-failures.test.ts` | Registration with controlled persistence failures and pending writes. |
 | `pi/create-flow.test.ts` | Dialogs, validation, and creation through `/output-style new`. |
 | `pi/headless-modes.test.ts` | Print and remote modes without a user interface. |
 | `pi/status.test.ts` | Footer formatting. |
@@ -59,9 +58,9 @@ It uses temporary project and agent directories, disables model discovery over t
 
 ### Regression tests
 
-A test that locks down a fixed defect belongs in `regressions/`.
+A test that prevents a specific fixed defect from recurring belongs in `regressions/`.
 Use the file name pattern `<short-slug>.test.ts`, and start the file with a comment that states the defect.
-The name carries no issue number, because the GitHub repository `dhohner/clankers` has issues disabled.
+Omit issue numbers from the name because the GitHub repository `dhohner/clankers` has issues disabled.
 Put a test there only when it proves the absence of one specific defect.
 A test that states normal behavior belongs in the concern file above, even when a defect prompted it.
 

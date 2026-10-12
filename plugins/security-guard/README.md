@@ -5,14 +5,14 @@ It also requires approval for destructive shell commands.
 
 ## Install
 
-Pi requires version 0.87.1 or later.
+The extension requires Pi 0.87.1 or later.
 Install from a local checkout:
 
 ```bash
 pi install ./plugins/security-guard
 ```
 
-Use `-l` for a project-local install in `.pi/settings.json`:
+Use `-l` to record the installation in the project's `.pi/settings.json`:
 
 ```bash
 pi install -l ./plugins/security-guard
@@ -24,28 +24,29 @@ Run the extension once without installing it:
 pi -e ./plugins/security-guard/index.ts
 ```
 
-Security Guard supports macOS and Linux, not Windows.
+Security Guard supports macOS and Linux.
+Windows is unsupported.
 
 ## How it works
 
 ![Security Guard decision flow: the Pi extension checks agent Bash calls, agent Read paths, and user shell commands against the credential rules, then analyzes destructive Bash commands, verifies eligible temporary, build-output, and path-presence questions against the host, requests an advisory model assessment, and asks for approval unless the verdict is safe.](./assets/decision-flow.svg)
 
-The extension checks tool calls before execution and returns a blocked tool call.
+The extension checks tool calls before execution and blocks calls that violate its rules.
 
 ### Environment and credentials
 
 Security Guard blocks:
 
 - Environment dumps such as `printenv`, standalone `env`, `export -p`, `declare -x`, and standalone `set`.
-- Dotenv files, SSH private keys, non-certificate `.pem` files, shell history, and credential helpers.
+- Dotenv files, SSH private keys, `.pem` files other than certificates, shell history, and credential helpers.
 - AWS, gcloud, Azure, Kubernetes, Docker, and npm credential stores.
-- Token commands such as `gh auth token`, `gcloud auth print-access-token`, and selected password-manager reads.
+- Token commands such as `gh auth token`, `gcloud auth print-access-token`, and selected reads from password managers.
 
 The exact command `env | grep '^PI_' | sort` remains available for Pi runtime metadata.
 Do not store credentials in custom `PI_*` variables because this command prints every matching value.
 
 The `.pem` rule allows public certificate names such as `cert.pem`, `fullchain.pem`, `chain.pem`, `ca.pem`, `cacert.pem`, and names ending in `-cert.pem`.
-Files under `.ssh/` remain blocked, and the certificate-name match is case-sensitive.
+Files under `.ssh/` remain blocked, and certificate names must match case exactly.
 
 ### Destructive commands in Pi
 
@@ -53,7 +54,7 @@ The Pi extension asks for approval before commands that can discard work:
 
 - File removal or overwrite through `rm`, `rmdir`, `unlink`, `shred`, `truncate`, `dd`, or `mkfs`.
 - Risky `mv`, `chmod`, or `chown` calls.
-- Destructive Git operations such as `git reset --hard`, non-dry-run `git clean`, forced or deleting pushes, and working-tree overwrites.
+- Destructive Git operations such as `git reset --hard`, `git clean` without a dry run, forced or deleting pushes, and overwrites of the working tree.
 
 The analyzer follows wrappers such as `sudo`, `env`, `xargs`, `find -exec`, and `bash -c`.
 It also inspects command substitutions, process substitutions, and unquoted here-document expansions.
@@ -61,7 +62,8 @@ Unknown syntax, unresolved commands, and unproven operands require approval.
 
 Non-interactive Pi sessions block commands that require approval.
 The exact analysis rules are in [`analyze-command.ts`](./src/policy/command-analysis/analyze-command.ts) and [`classifiers.ts`](./src/policy/command-analysis/classifiers.ts).
-Each command's classifier sits beside that table in [`src/policy/command-analysis/commands/`](./src/policy/command-analysis/commands/), and what its words mean to the parser and the proof is in [`registry.ts`](./src/commands/registry.ts).
+Each command's classifier is beside that table in [`src/policy/command-analysis/commands/`](./src/policy/command-analysis/commands/).
+[`registry.ts`](./src/commands/registry.ts) defines how the parser and safety proof interpret command words.
 
 ### Safety assessment in Pi
 
@@ -76,14 +78,14 @@ It blocks the command without a dialog when no provider is authenticated or the 
 
 Security Guard skips assessment and approval when it can prove either exception:
 
-- Temporary paths are inside `/tmp`, `/private/tmp`, or the macOS per-user temporary directory.
+- Temporary paths are inside `/tmp`, `/private/tmp`, or the macOS temporary directory for the current user.
 - `rm` or `rmdir` targets are inside an existing `node_modules`, `dist`, `build`, `target`, `.next`, `out`, or `coverage` directory within the working directory.
 
-The temporary-path exception applies to `rm`, `rmdir`, `unlink`, `truncate`, `mv`, `chmod`, and `chown`.
+The exception for temporary paths applies to `rm`, `rmdir`, `unlink`, `truncate`, `mv`, `chmod`, and `chown`.
 It checks command resolution, path operands, redirections, links, variables, and `mktemp` results.
 
-The build-output exception applies only to `rm` and `rmdir`.
-Calls that mix temporary and build-output targets qualify for neither exception.
+The exception for build output applies only to `rm` and `rmdir`.
+Calls that mix temporary paths and build output targets qualify for neither exception.
 Credential rules always apply.
 
 The full proof rules are in [`decide-tool-call.ts`](./src/application/decide-tool-call.ts), [`regenerable-directory.ts`](./src/infrastructure/node/regenerable-directory.ts), and [`src/proof/`](./src/proof/).

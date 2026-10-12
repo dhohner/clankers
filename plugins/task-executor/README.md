@@ -1,6 +1,6 @@
 # Task executor plugin
 
-Implements coding-agent task files and standalone changes through TDD, and verifies each task result before reporting completion.
+Task executor implements task files for coding agents and standalone changes using TDD, and verifies each task result before reporting completion.
 
 ## How it works
 
@@ -13,8 +13,8 @@ The `implement` skill executes one task file from `project-advisor:to-agent-task
 - Rejects tasks missing required sections and excludes only the behavior each listed blocker names.
 - Settles routine, reversible choices from repository evidence and records material choices in a decision ledger.
 - Stops only for decisions that would change required behavior, a public or persisted contract, security, external state, or scope.
-- Implements every required behavior through red-green TDD.
-- Uses verifier subagents to map every requirement and acceptance item to evidence, then confirm each gap's disposition.
+- Implements every required behavior by first writing a failing test, then making it pass.
+- Uses verifier subagents to map every requirement and acceptance item to evidence, then confirm how each gap was handled.
 - Reports coverage, blocked behavior, the decision ledger, and unresolved gaps.
 - Sets `state: done` in the task frontmatter after full coverage or your acceptance of uncovered items, such as remaining gaps or blocked behavior.
   - A refused task stays `pending` for a later bulk run.
@@ -28,12 +28,12 @@ Review and commit their results yourself.
 
 ### tdd
 
-The `tdd` skill runs the same red-green-refactor loop on its own for any feature, bug fix, or untested code.
+The `tdd` skill can run on its own for any feature, bug fix, or untested code, using the same loop of failing tests, passing changes, and refactoring.
 
-- Splits the change into single-behavior checks with their boundary and failure cases.
+- Splits the change into checks for individual behaviors, including boundary and failure cases.
 - Counts a test as red only when its own assertion fails for the absent behavior.
 - Writes the smallest passing change, reruns the affected suite, and refactors while green.
-- Applies test quality rules on hand-derived expectations, real components, and mock boundaries.
+- Applies test quality rules for independently calculated expectations, real components, and mock boundaries.
 - Finishes with a mutation check that names a failing test for each realistic break.
 
 ## Requirements
@@ -74,11 +74,11 @@ From a local checkout, install task executor:
 pi install ./plugins/task-executor
 ```
 
-The package exposes `implement`, and `tdd` through Pi's installed skill catalog.
+The package exposes `implement` and `tdd` through Pi's installed skill catalog.
 
 ## Learn more
 
-The plugin bundles the [`implement`](./skills/implement/SKILL.md), and [`tdd`](./skills/tdd/SKILL.md) skills.
+The plugin bundles the [`implement`](./skills/implement/SKILL.md) and [`tdd`](./skills/tdd/SKILL.md) skills.
 
 ## Authors
 

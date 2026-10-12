@@ -2,7 +2,7 @@
 
 ## Pi footer
 
-Supported with Homebrew Pi 1.0.4.
+The plugin supports Homebrew Pi 1.0.4.
 
 ### Install Pi
 
@@ -12,10 +12,10 @@ Install only this plugin from a repository checkout:
 pi install /absolute/path/to/clankers/plugins/insomniac
 ```
 
-This is a personal installation in `~/.pi/agent/settings.json`, available across working directories.
+Pi records this installation in `~/.pi/agent/settings.json`, making it available across working directories.
 Pi loads the local source directly; keep the checkout at that path.
 No Homebrew package files change, and unrelated Pi packages and settings remain in place.
-Install the plugin directory rather than the repository root to avoid installing other plugins.
+Installing the plugin directory installs only Insomniac; installing the repository root also installs other plugins.
 Restart Pi, or run `/reload` in an existing TUI session, to load it automatically.
 
 ### Footer output
@@ -43,9 +43,10 @@ The Pi bar changes color as context grows:
 | 50% to below 75% | Orange | Plan a compaction or a new session. |
 | 75% and above | Red | Consider `/compact`, or `/new` for a fresh task. |
 
-These thresholds are visual guidance, rather than model quality guarantees.
-Usage is estimated current context, not cumulative session tokens; unknown usage shows `──────────────────── --`, including immediately after compaction.
-Model, thinking, responses, compaction, and branch changes refresh it.
+These thresholds provide visual guidance and do not guarantee model quality.
+Usage estimates only the current context and excludes cumulative session token totals.
+Unknown usage shows `──────────────────── --`, including immediately after compaction.
+The footer refreshes when the model, thinking level, or branch changes, and after responses or compaction.
 Directory, Git branch, session name, and other extension statuses appear on additional rows as needed.
 Narrow terminals truncate individual segments to terminal column widths.
 `NO_COLOR=1` disables color escapes.
@@ -57,8 +58,8 @@ Orange uses index 208 from the 256 color palette.
 In macOS interactive TUI sessions, Insomniac starts one owned `caffeinate -i -w <Pi PID>` process when active work begins.
 `☕ awake` appears after that process starts.
 The idle-sleep assertion remains through retries, recovery, compaction, and automatic or queued continuations; a turn ending alone does not release it.
-Final settlement, including a completed abort, releases it and immediately renders `💤 can sleep`.
-Requesting an abort keeps the assertion until the work actually stops.
+When all work finishes, including after a completed abort, Insomniac releases the assertion and immediately shows `💤 can sleep`.
+Requesting an abort keeps the assertion until the work stops.
 Reload, footer disposal, and session shutdown also release the owned process.
 The `-w` option ties its lifetime to Pi, including forced Pi process exit.
 This prevents idle sleep only: it does not keep the display on or override lid-close sleep.
@@ -116,7 +117,7 @@ With invalid session JSON, the line shows only the sleep state.
 The line uses the terminal theme's standard ANSI colors, so it follows light and dark themes.
 Set `NO_COLOR` to print the line without colors.
 
-The script right-aligns the sleep state to the width in `COLUMNS`.
+The script uses the width in `COLUMNS` to align the sleep state on the right.
 It stops 4 columns short to leave room for Claude Code's indent.
 If the terminal is too narrow or `COLUMNS` is missing, the sleep state follows the other segments after a ` · ` separator.
 
@@ -173,8 +174,8 @@ Claude Code reruns the script when the model, effort level, or token usage chang
 
 ## Development
 
-`index.ts` exposes the Pi extension factory and installation functions.
-`src/pi/extension.ts` owns session lifecycle and connects the footer to the sleep assertion.
+`index.ts` exports the Pi extension factory and installation functions.
+`src/pi/extension.ts` manages the session lifecycle and connects the footer to the sleep assertion.
 `src/pi/footer.ts` installs the component and collects current session data.
 `src/pi/render-footer.ts`, `session-cost.ts`, and `sleep-assertion.ts` handle rendering, cost estimation, and process ownership.
 `scripts/statusline.sh` renders Claude Code status and observes its existing sleep assertion.

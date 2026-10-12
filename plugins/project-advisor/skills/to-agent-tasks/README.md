@@ -1,11 +1,11 @@
 # PRD to agent tasks
 
-Turn an accepted `to-prd` `prd.yaml` bundle into autonomous Markdown implementation tasks in dependency order.
+Turn an accepted `to-prd` `prd.yaml` bundle into Markdown implementation tasks that agents can execute autonomously, in dependency order.
 
 ## Input and output
 
 The source must have `status: Accepted`, or you must accept it in the conversation.
-The skill reads `prd.yaml` as the source of truth and grounds each task in repository evidence.
+The skill uses `prd.yaml` as the authoritative source and checks repository evidence for each task.
 It writes tasks to `action-items/agent-tasks/` by default:
 
 ```text
@@ -39,14 +39,14 @@ Existing task files stay in place unless you ask for a regeneration.
 
 - Each task defines one observable outcome.
 - Each task states source behavior and acceptance checks.
-- Each Boundary names what may change, what must be preserved, excluded work, open choices, assumptions, blockers, and prerequisites.
+- Each task's Boundary section names what may change, what must be preserved, excluded work, open choices, assumptions, blockers, and prerequisites.
 - Repository notes identify verified entry points and contracts that require more than a quick search.
 - Dependencies state prerequisite capability contracts inline, and `depends_on` names the tasks that provide them.
 - Validation names local checks and expected evidence.
 
-Every task carries the same executor boundary from `references/agent-task-template.md`.
-It tells the executor to settle routine, reversible choices from repository evidence and record the material ones.
-It stops the executor only at a decision that would change required behavior, a public or persisted contract, security, external state, or scope.
+Every task includes the executor rules from `references/agent-task-template.md`.
+The executor uses repository evidence to settle routine, reversible choices and records material choices.
+It asks the user only when a decision would change required behavior, a public or persisted contract, security, external state, or scope.
 
 ## Usage
 
@@ -59,9 +59,9 @@ It stops the executor only at a decision that would change required behavior, a 
 ## References
 
 - `references/agent-task-template.md` fixes the task file structure and the executor boundary text.
-- `references/slice-design-checklist.md` settles how to split, combine, and order slices.
-- `references/contract-precision.md` settles contract decisions for slices with contract risks.
-- `references/task-writing-checklist.md` is the audit gate for the drafted set.
+- `references/slice-design-checklist.md` defines how to split, combine, and order slices.
+- `references/contract-precision.md` guides contract decisions for slices that could affect contracts.
+- `references/task-writing-checklist.md` lists the checks required to audit the drafted tasks.
 
 ## Author
 
