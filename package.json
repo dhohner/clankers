@@ -20,8 +20,8 @@
     "lint:workflows": "uvx --from actionlint-py==1.7.12.25 actionlint && uvx zizmor@1.30.1 .github"
   },
   "devDependencies": {
-    "@oxlint/plugins": "1.86.0",
-    "vitest": "^5.0.2"
+    "@oxlint/plugins": "1.87.0",
+    "vitest": "^5.0.3"
   },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*",
