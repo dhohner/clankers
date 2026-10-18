@@ -1,86 +1,61 @@
 ---
 name: to-issues
 description: >-
-  Create Jira-ready tracer-bullet issues in German or English from product requirements and planning material.
-  Use when the user wants a PRD or accepted to-prd bundle converted into tickets, or a feature brief, rough planning prose, or Gherkin scenarios converted into engineer-facing backlog items.
-  Writes German tickets unless the user asks for English ones.
-  Produces copyable Markdown rather than creating live tracker items.
+  Converts PRDs, feature briefs, and Gherkin scenarios into local Jira ticket files in German or English.
+  Use when requirements or an accepted to-prd bundle need Jira stories or backlog items.
 argument-hint: "[default|brief] [de|en]"
 ---
 
 # To Issues
 
-Convert settled product planning into independently demoable Jira stories for experienced human developers.
-Write local Markdown files to `action-items/jira-issues/` unless the user chooses another location.
-Compose tickets in the selected ticket language, in the register of a product team that speaks it.
-Load references only for the current phase, selected mode, selected language, and unresolved writing question.
+Write independently demoable Jira stories for experienced developers in `action-items/jira-issues/`, unless the user chooses another location.
+Write German by default; `en` or an explicit request selects English, regardless of the source language.
 
-## Process
+## Workflow
 
-### 1. Resolve the run and build the source ledger
+1. Resolve the source, mode, and language; build the source ledger.
+2. Map the ledger to demoable slices and resolve the applicable approval gate.
+3. Read the drafting references and write one ticket per approved slice.
+4. Validate against the source and format; fix violations and repeat before completion.
 
-Treat an argument as the mode only when it is `default` or `brief`.
-Treat an argument as the ticket language only when it is `de` or `en`.
-Otherwise use `default` for a full PRD or accepted `to-prd` bundle and `brief` for feature briefs, rough planning prose, feature descriptions, or other unpackaged requirements.
+Read references only for the current step and selected language.
 
-Write German tickets unless an `en` argument or an explicit request in the conversation selects English.
-The PRD, brief, and repository language never select the ticket language.
-Tickets are written for the team that reads them.
+## Intake and slicing
 
-Load the intake reference for the selected mode before extracting requirements:
+Recognize `default` and `brief` as mode arguments, and `de` and `en` as language arguments.
+Otherwise infer `default` for a full PRD or accepted `to-prd` bundle and `brief` for unpackaged requirements.
 
-- In `default` mode, read [`references/default-source-intake.md`](references/default-source-intake.md).
-- In `brief` mode, read [`references/brief-mode-intake.md`](references/brief-mode-intake.md) before asking questions.
+Use the reference for the selected source:
 
-If intake changes the mode, load the new mode's reference before continuing.
+- [Default intake](references/default-source-intake.md) for a PRD or accepted bundle.
+- [Brief intake](references/brief-mode-intake.md) for a feature brief, rough planning prose, or scenarios.
 
-Build a source ledger of behavior, constraints, non-goals, dependencies, assumptions, risks, open questions, success measures, and traceability.
-Treat Gherkin scenarios as the functional source of truth when present.
-Inspect repository context only to resolve source-backed terminology, workflow names, roles, labels, system boundaries, or non-obvious constraints, and keep that inspection bounded to the ambiguity.
+Maintain a source ledger covering behavior, constraints, exclusions, dependencies, uncertainty, success measures, and traceability.
+Keep the requested input as the requirements source; templates, examples, evaluation fixtures, and previous output supply no additional product requirements.
+Treat supplied Gherkin scenarios as the functional source of truth.
+Consult repository context when it resolves terminology or constraints grounded in the source.
 
-**Complete when:** the mode, ticket language, and source are resolved, and the ledger accounts for every source item that can affect ticket behavior, acceptance boundaries, slicing, or delivery order.
+Use [slice design](references/slice-design-checklist.md) to define outcomes, dependencies, planning classifications, and any required approval.
+Proceed once the requirements support stable slices and the applicable approval is resolved.
 
-### 2. Design tracer bullets
+## Drafting
 
-Read [`references/slice-design-checklist.md`](references/slice-design-checklist.md), then map the source ledger into thin vertical slices.
-Each slice must produce one user-visible or system-verifiable outcome across the system boundaries needed to demonstrate it.
-Classify slices as `AFK` or `HITL` for planning, and add only prerequisite dependencies.
-Follow the checklist's mode-specific approval gate.
+Read these references before drafting the approved slices:
 
-**Complete when:** every deliverable requirement maps to at least one slice, every slice is independently demoable or names a real predecessor, all material uncertainty is surfaced, and any required breakdown approval has been received.
+- [Ticket content](references/ticket-writing-checklist.md): outcomes, acceptance cases, inherited behavior, success measures, and notes.
+- [Ticket prose](references/ticket-prose.md): wording and preservation of source meaning.
+- [Jira structure](references/jira-issue-template.md): panels, styles, and section order.
+- For German: [language](references/language-de.md) and [raw template](references/jira-template-de.md).
+- For English: [language](references/language-en.md) and [raw template](references/jira-template-en.md).
 
-### 3. Draft every approved issue
+Consult the selected language's example only when phrasing or ticket shape remains uncertain: [German](references/example-ticket-de.md) or [English](references/example-ticket-en.md).
+Create one file per approved slice in dependency order, using names such as `01-short-slice-title.md`.
 
-Before drafting, read:
+## Validate and complete
 
-- [`references/ticket-writing-checklist.md`](references/ticket-writing-checklist.md)
-- the reference for the selected ticket language, [`references/language-de.md`](references/language-de.md) or [`references/language-en.md`](references/language-en.md)
-- the shared structural rules in [`references/jira-issue-template.md`](references/jira-issue-template.md)
-- the raw template for the selected language, [`references/jira-template-de.md`](references/jira-template-de.md) or [`references/jira-template-en.md`](references/jira-template-en.md)
-
-Consult [`references/example-ticket-de.md`](references/example-ticket-de.md) or [`references/example-ticket-en.md`](references/example-ticket-en.md) for the selected language only when phrasing, note density, or ticket shape remains uncertain.
-
-Read only the selected language's references to keep drafts in that language.
-Create one file per approved slice in dependency order with predictable names such as `01-short-slice-title.md`.
-The template is the authoritative structure, the writing checklist the content standard, and the language reference the wording standard.
-
-**Complete when:** every approved slice has a complete draft and every ledger item is represented in an acceptance scenario, a decision-relevant note, another mapped slice, or an explicit exclusion.
-
-### 4. Validate, then save
-
-Check each complete draft against:
-
-- every structural rule in the Jira template
-- every final-gate rule in the ticket-writing checklist
-- every gate item in the selected language reference
-
-Fix each violation before saving the files.
-
-**Complete when:** every generated file has been checked against every applicable rule, all checks pass, and the files exist in dependency order at the chosen destination.
-
-### 5. Report the result
-
-Summarize the created filenames, intended slice order, material assumptions, and open questions.
-If the process paused for clarification or approval, state the single pending decision instead of claiming files were created.
-
-**Complete when:** the response accurately distinguishes created output from pending work.
+Compare each draft with the source ledger: every behavior and boundary must be covered by acceptance, relevant notes, another mapped ticket, or an explicit exclusion.
+Check in both directions for omitted requirements and claims absent from the source.
+Check each ticket against the content checklist, prose rules, Jira structure, raw template, and selected language gate.
+Fix violations and repeat these checks until none remain, then save the complete ticket set.
+Report filenames, delivery order, material assumptions, and open questions.
+If a decision blocks progress, ask for that decision.

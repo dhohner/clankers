@@ -268,6 +268,133 @@
         "The generated work items describe desired outcomes and constraints rather than instructing developers to add specific endpoints, schemas, tables, components, or methods.",
         "Technical notes only contain non-obvious, decision-relevant information - no tech stack, no standard auth rules, and no restatement of a rule that an acceptance scenario in the same ticket already proves."
       ]
+    },
+    {
+      "id": 12,
+      "prompt": "Use brief mode and write German tickets directly from this settled brief. Der Export ist nicht nur eine Funktion, sondern ein entscheidender Beitrag zur Transparenz. Tauchen wir ein: Im Delivery Log exportiere ich die gefilterten Einträge als CSV. Die CSV enthält Event ID, Status und Timestamp. Pro Export sind höchstens 500 Einträge erlaubt; bei 501 Einträgen lehnt das System den Export ab und fordert mich auf, den Filter einzugrenzen. Ich kann nur Einträge meines Workspace exportieren, nicht die anderer Workspaces. Der Download Link läuft nach 15 Minuten ab; ein abgelaufener Link zeigt exakt den Text \"Bitte erneut exportieren – dieser Link ist abgelaufen\". Danach kann ich einen neuen Export starten. Ob ein Export protokolliert wird, bleibt offen. Der Export verbindet Übersicht, Vertrauen und Effizienz. Das ist der eigentliche Gewinn. Assume the brief is sufficient, preserve its open question, and write the Markdown files directly.",
+      "expected_output": "German tickets omit rhetorical padding and preserve export boundaries, recovery, names, quoted interface text, and Jira formatting.",
+      "files": [],
+      "expectations": [
+        "Compose all ticket prose in German.",
+        "Keep the names Delivery Log, Event ID, Status, Timestamp, Workspace, and Download Link wherever mentioned.",
+        "Omit the empty nicht nur contrast, Tauchen wir ein opener, and inflated transparency claim.",
+        "Omit the Übersicht/Vertrauen/Effizienz triad and repeated Gewinn closer without inventing replacement benefits.",
+        "Preserve the three distinct CSV fields Event ID, Status, and Timestamp in acceptance scenarios.",
+        "Cover exports of 500 entries and rejection at 501 entries, including the request to narrow the filter.",
+        "Preserve the workspace restriction, expiry after 15 minutes, expired link response, and option to restart the export in acceptance scenarios.",
+        "Keep the interface text Bitte erneut exportieren – dieser Link ist abgelaufen verbatim, including its dash.",
+        "Use no em dash or en dash connectors in ordinary prose.",
+        "Keep the logging decision unresolved in an Offene Fragen entry.",
+        "Preserve the required German Jira panels, styles, bold note labels, Gherkin keywords, and notes list.",
+        "Exclude decorative formatting, chat wrappers, intermediate rewrites, and prose reviews from ticket files."
+      ]
+    },
+    {
+      "id": 13,
+      "prompt": "Use brief mode and write English tickets directly from this settled brief. This is not just an export; it is a pivotal step toward transparency. Let's dive in: In Delivery Log I export filtered entries as CSV. The CSV contains Event ID, Status, and Timestamp. Each export allows at most 500 entries; at 501 entries the system refuses the export and asks me to narrow the filter. I can export entries from my Workspace, not other Workspaces. The Download Link expires after 15 minutes; an expired link displays exactly \"Export again – this link has expired\". I can then start another export. Whether exports are logged remains undecided. The export brings clarity, confidence, and efficiency. That is the real win. Assume the brief is sufficient, preserve its open question, and write the Markdown files directly.",
+      "expected_output": "English tickets omit rhetorical padding and preserve export boundaries, recovery, names, quoted interface text, and Jira formatting.",
+      "files": [],
+      "expectations": [
+        "Compose all ticket prose in English.",
+        "Keep the names Delivery Log, Event ID, Status, Timestamp, Workspace, and Download Link wherever mentioned.",
+        "Omit the empty not just contrast, Let's dive in opener, and inflated transparency claim.",
+        "Omit the clarity/confidence/efficiency triad and repeated real win closer without inventing replacement benefits.",
+        "Preserve the three distinct CSV fields Event ID, Status, and Timestamp in acceptance scenarios.",
+        "Cover exports of 500 entries and rejection at 501 entries, including the request to narrow the filter.",
+        "Preserve the workspace restriction, expiry after 15 minutes, expired link response, and option to restart the export in acceptance scenarios.",
+        "Keep the interface text Export again – this link has expired verbatim, including its dash.",
+        "Use no em dash or en dash connectors in ordinary prose.",
+        "Keep the logging decision unresolved in an Open questions entry.",
+        "Preserve the required English Jira panels, styles, bold note labels, Gherkin keywords, and notes list.",
+        "Exclude decorative formatting, chat wrappers, intermediate rewrites, and prose reviews from ticket files."
+      ]
+    },
+    {
+      "id": 14,
+      "prompt": "Use brief mode and write German tickets from plugins/project-advisor/skills/to-issues/evals/inputs/brief-reservation-export-recovery.md for senior software engineers. The breakdown is approved: write exactly two tickets, export and download followed by recovery after CSV creation fails. Write the Markdown files directly.",
+      "expected_output": "Two concise German tickets group cases by product rule and preserve every boundary. They distinguish product evaluation from release conditions and test recovery against state changes and failures.",
+      "files": [
+        "plugins/project-advisor/skills/to-issues/evals/inputs/brief-reservation-export-recovery.md"
+      ],
+      "expectations": [
+        "Generate exactly two German tickets in dependency order, naming the export and download ticket as the recovery ticket's predecessor.",
+        "The export ticket specifies exactly Reservation ID, Guest Name, and Start Time, in order, with no extra column for Highlight. It covers 0, 1, 500, and 501 matches, current filters, Workspace isolation, and creator access. Expiration starts at completion, with access at 14:59 and refusal at 15:00.",
+        "The recovery ticket summarizes retries as new exports using current filters, current permissions, and the same limits. It states relevant permission and size boundaries without copying the complete export and download acceptance suite.",
+        "Recovery scenarios cover the failure message, retry option, no new Download Link, changed filters, lost permission, and zero or 501 current matches. They preserve access to earlier downloads until their original expiration.",
+        "Recovery acceptance does not repeat unchanged CSV columns, Highlight behavior, or the two expiration translations solely to reproduce the predecessor's contract.",
+        "The export ticket groups Viewer denial through the interface and direct requests in one named scenario. Retry scenarios likewise group changed permissions, keeping denial explicit for both paths.",
+        "The export ticket groups download authorization cases. Results are explicit for the creator in the original Workspace, another user, and the creator after switching Workspace.",
+        "Expiration acceptance groups access at 14:59 and refusal at 15:00, measured from completion. It preserves both exact messages and their language mapping without separate narratives solely for German and English.",
+        "The case for 500 reservations includes reservations with and without Highlight and verifies no extra column. One reservation, feedback for zero matches, and refusal at 501 matches remain explicit.",
+        "Recovery acceptance covers distinct rules and transitions: failure feedback without a new link, attempts using current state, renewed permission and limit checks, and preserved earlier downloads. Compact cases state every condition and result without duplicating the predecessor's scenarios.",
+        "Scenario panels group related cases with concise Gherkin steps, avoiding separate panels for every variation and ambiguous combinations of unrelated rules. The output introduces no scenario outlines, tables, arbitrary scenario count limits, or extra tickets to reduce panel count.",
+        "Technische Hinweise identifies exporting 500 reservations without assistance in a usability session as a usability measure. Functional acceptance requires all 500 reservations in the CSV; unassisted session completion remains outside acceptance criteria.",
+        "The recovery ticket preserves retry using only the keyboard as an explicit acceptance or release condition, including its manual keyboard validation method.",
+        "The title names the outcome, the user story explains the benefit, and Was umgesetzt werden soll concisely summarizes scope and important limits. These entries avoid repeating detailed scenarios.",
+        "Both tickets are understandable without the planning source and preserve all required German Jira panels and labels. Engineering chooses storage and transport.",
+        "Keep OQ-01 unresolved with the compliance owner and state that it does not block delivery. Preserve the stated exclusions without adding product rules."
+      ]
+    },
+    {
+      "id": 15,
+      "prompt": "Use brief mode and write English tickets from plugins/project-advisor/skills/to-issues/evals/inputs/brief-reservation-export-recovery.md for senior software engineers. The breakdown is approved: write exactly two tickets, export and download followed by recovery after CSV creation fails. Write the Markdown files directly.",
+      "expected_output": "Two concise English tickets group cases by product rule and preserve every boundary. They distinguish product evaluation from release conditions and test recovery against state changes and failures.",
+      "files": [
+        "plugins/project-advisor/skills/to-issues/evals/inputs/brief-reservation-export-recovery.md"
+      ],
+      "expectations": [
+        "Generate exactly two English tickets in dependency order, naming the export and download ticket as the recovery ticket's predecessor.",
+        "The export ticket specifies exactly Reservation ID, Guest Name, and Start Time, in order, with no extra column for Highlight. It covers 0, 1, 500, and 501 matches, current filters, Workspace isolation, and creator access. Expiration starts at completion, with access at 14:59 and refusal at 15:00.",
+        "The recovery ticket summarizes retries as new exports using current filters, current permissions, and the same limits. It states relevant permission and size boundaries without copying the complete export and download acceptance suite.",
+        "Recovery scenarios cover the failure message, retry option, no new Download Link, changed filters, lost permission, and zero or 501 current matches. They preserve access to earlier downloads until their original expiration.",
+        "Recovery acceptance does not repeat unchanged CSV columns, Highlight behavior, or the two expiration translations solely to reproduce the predecessor's contract.",
+        "The export ticket groups Viewer denial through the interface and direct requests in one named scenario. Retry scenarios likewise group changed permissions, keeping denial explicit for both paths.",
+        "The export ticket groups download authorization cases. Results are explicit for the creator in the original Workspace, another user, and the creator after switching Workspace.",
+        "Expiration acceptance groups access at 14:59 and refusal at 15:00, measured from completion. It preserves both exact messages and their language mapping without separate narratives solely for German and English.",
+        "The case for 500 reservations includes reservations with and without Highlight and verifies no extra column. One reservation, feedback for zero matches, and refusal at 501 matches remain explicit.",
+        "Recovery acceptance covers distinct rules and transitions: failure feedback without a new link, attempts using current state, renewed permission and limit checks, and preserved earlier downloads. Compact cases state every condition and result without duplicating the predecessor's scenarios.",
+        "Scenario panels group related cases with concise Gherkin steps, avoiding separate panels for every variation and ambiguous combinations of unrelated rules. The output introduces no scenario outlines, tables, arbitrary scenario count limits, or extra tickets to reduce panel count.",
+        "Technical notes identifies exporting 500 reservations without assistance in a usability session as a usability measure. Functional acceptance requires all 500 reservations in the CSV; unassisted session completion remains outside acceptance criteria.",
+        "The recovery ticket preserves retry using only the keyboard as an explicit acceptance or release condition, including its manual keyboard validation method.",
+        "The title names the outcome, the user story explains the benefit, and What to build concisely summarizes scope and important limits. These entries avoid repeating detailed scenarios.",
+        "Both tickets are understandable without the planning source and preserve all required English Jira panels and labels. Engineering chooses storage and transport.",
+        "Keep OQ-01 unresolved with the compliance owner and state that it does not block delivery. Preserve the stated exclusions without adding product rules."
+      ]
+    },
+    {
+      "id": 16,
+      "prompt": "Convert plugins/project-advisor/skills/to-issues/evals/inputs/prd-reservation-export.md into German Jira tickets. Regenerate the approved two tickets: export and download, followed by recovery. Write the files directly. Existing tickets and the reservation recovery evaluation fixture may contain requirements absent from this input.",
+      "expected_output": "Two German tickets preserve the dummy PRD without importing the keyboard release condition from another fixture.",
+      "files": ["plugins/project-advisor/skills/to-issues/evals/inputs/prd-reservation-export.md"],
+      "expectations": [
+        "Create exactly two tickets in dependency order, preserving all REQ-01, REQ-02, and REQ-03 boundaries and both exact expiration messages.",
+        "Include the usability session as a success measure in notes and OQ-01 as a nonblocking compliance question.",
+        "Add no keyboard acceptance or release condition, manual keyboard session, audit requirement, storage choice, or transport choice.",
+        "Preserve the Jira panels, German labels, and HTML entities while omitting stakeholder rhetoric."
+      ]
+    },
+    {
+      "id": 17,
+      "prompt": "Write English Jira tickets directly from this settled brief: In Booking Desk, a venue manager exports 1 to 500 filtered reservations from their Workspace as CSV. Viewers cannot export through the interface or a direct request. Reject zero matches with a no-matches message and 501 matches with a request to narrow the filter. Use the existing filters. The CSV contains Reservation ID, Guest Name, and Start Time, in that order. Storage and transport are engineering choices. No download expiration or retry behavior has been specified.",
+      "expected_output": "English tickets use only this brief, grouping explicit cases without importing the reservation example's expiration or recovery rules.",
+      "files": [],
+      "expectations": [
+        "Preserve CSV ordering, Workspace isolation, the 0/1/500/501 boundaries, and denial through both permission paths.",
+        "Keep each grouped case's condition and result explicit within the required Jira panels.",
+        "Add no 15-minute expiration, quoted expiration message, Highlight behavior, retry flow, or keyboard release condition.",
+        "Use English labels and leave storage and transport to engineering."
+      ]
+    },
+    {
+      "id": 18,
+      "prompt": "Use default mode to propose Jira tickets from plugins/project-advisor/skills/to-issues/evals/inputs/prd-order-history.yaml. Show the breakdown for approval before writing files. Do not assume approval.",
+      "expected_output": "A proposed breakdown awaits approval with no ticket files created.",
+      "files": ["plugins/project-advisor/skills/to-issues/evals/inputs/prd-order-history.yaml"],
+      "expectations": [
+        "Read the manifest and map its requirements and constraints to demoable slices.",
+        "Present titles, AFK or HITL classifications, genuine predecessors, and requirements covered.",
+        "Ask for breakdown approval and pause before drafting or saving tickets."
+      ]
     }
   ]
 }
