@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "@oxlint/plugins": "1.87.0",
-    "vitest": "^5.0.3"
+    "vitest": "^5.0.4"
   },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*",
