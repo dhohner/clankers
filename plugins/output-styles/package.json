@@ -47,13 +47,13 @@
     "yaml": "^2.9.1"
   },
   "devDependencies": {
-    "@types/node": "^26.6.4",
+    "@types/node": "^26.6.5",
     "@types/proper-lockfile": "^4.1.4",
-    "@vitest/coverage-istanbul": "^5.0.3",
+    "@vitest/coverage-istanbul": "^5.0.4",
     "oxfmt": "^0.72.0",
     "oxlint": "1.87.0",
     "typescript": "^7.0.2",
-    "vitest": "^5.0.3"
+    "vitest": "^5.0.4"
   },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*"
