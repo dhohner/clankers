@@ -134,6 +134,7 @@ describe("Pi footer", () => {
       clearScreen: noop,
       setTitle: noop,
       setProgress: noop,
+      setProgramStatus: noop,
     };
 
     const tui = new TuiMainScreen(terminal);
