@@ -14,8 +14,8 @@ Create one file per slice in dependency order, using names such as `01-short-sli
 
 Mode, language, and profile arguments are independent:
 
-- `default`: full PRD or accepted `to-prd` bundle; follow [default intake](references/default-source-intake.md).
-- `brief`: unpackaged requirements or scenarios; follow [brief intake](references/brief-mode-intake.md).
+- `default`: full PRD or accepted `to-prd` bundle; follow [default intake](references/intake-default.md).
+- `brief`: unpackaged requirements or scenarios; follow [brief intake](references/intake-brief.md).
 - `de` (default) or `en`: ticket language, regardless of source language.
 - `product` or `infrastructure`: ticket profile, independent of Jira issue type.
 
@@ -31,8 +31,8 @@ Use the requested input as the requirements source; references and examples supp
 Treat supplied Gherkin scenarios as the functional source of truth.
 Consult repository context when it resolves terminology or constraints grounded in the source.
 
-Use [slice design](references/slice-design-checklist.md) for outcomes, dependencies, planning classifications, and approval gates.
-For infrastructure work, also use [infrastructure tickets](references/infrastructure-tickets.md) for prerequisite contracts, decision boundaries, and acceptance evidence.
+Use [slice design](references/slice-design.md) for outcomes, dependencies, planning classifications, and approval gates.
+For infrastructure work, also use [infrastructure tickets](references/infrastructure.md) for prerequisite contracts, decision boundaries, and acceptance evidence.
 Once slices are stable and the applicable approval is resolved, write and validate the complete ticket set.
 Ask only for decisions that block progress.
 
@@ -40,17 +40,16 @@ Ask only for decisions that block progress.
 
 Use the shared content and formatting references, then the language and template for each slice:
 
-- [Ticket content](references/ticket-writing-checklist.md): source fidelity, acceptance, inherited behavior, and success measures.
-- [Ticket prose](references/ticket-prose.md): wording.
-- [Jira structure](references/jira-issue-template.md): shared formatting and profile differences.
-- German: [language](references/language-de.md) and the [product template](references/jira-template-de.md) or [infrastructure template](references/jira-infrastructure-template-de.md).
-- English: [language](references/language-en.md) and the [product template](references/jira-template-en.md) or [infrastructure template](references/jira-infrastructure-template-en.md).
+- [Ticket content and prose](references/ticket-content.md): wording, source fidelity, acceptance, inherited behavior, and success measures.
+- [Jira structure](references/jira-format.md): shared formatting and profile differences.
+- German: [language](references/language-de.md) and the [product template](templates/product-de.md) or [infrastructure template](templates/infrastructure-de.md).
+- English: [language](references/language-en.md) and the [product template](templates/product-en.md) or [infrastructure template](templates/infrastructure-en.md).
 
 Load only the languages and profiles used by the ticket set.
 Consult examples only when phrasing or ticket shape remains uncertain:
 
-- Uncertain product phrasing or shape: [German example](references/example-ticket-de.md) or [English example](references/example-ticket-en.md).
-- Uncertain infrastructure phrasing or shape: [German example](references/example-infrastructure-de.md) or [English example](references/example-infrastructure-en.md).
+- Uncertain product phrasing or shape: [German example](examples/product-de.md) or [English example](examples/product-en.md).
+- Uncertain infrastructure phrasing or shape: [German example](examples/infrastructure-de.md) or [English example](examples/infrastructure-en.md).
 
 ## Complete
 

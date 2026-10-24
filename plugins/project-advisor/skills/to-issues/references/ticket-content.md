@@ -1,7 +1,31 @@
-# Ticket writing checklist
+# Ticket content and prose
 
 Specify the intended outcome, binding constraints, and acceptance evidence concisely for an experienced engineer.
-The selected language reference defines register and terminology; the Jira template defines structure and fixed labels.
+Apply the wording rules below to titles, openings, criteria, verification methods, evidence, scenarios, and notes.
+The selected language reference defines terminology and language conventions; the Jira template defines structure and fixed labels.
+
+## Wording
+
+Use plain, neutral German or English customary for an engineering or product team.
+Name the actor, action, and observable result with concrete nouns and plain verbs.
+State relationships precisely: who owns a record, what triggers an action, or which service supplies a document.
+Use active voice when the actor matters and is known.
+
+Remove rhetorical openings, invented objections, empty contrasts, repeated conclusions, inflated claims, sales language, and commentary about writing the ticket.
+Keep sentences that add behavior, boundaries, reasons, or necessary context.
+Rewrite awkward passages from their meaning instead of substituting flagged words.
+Judge phrases in the selected language and context, including German patterns such as `nicht nur …, sondern auch` or `von entscheidender Bedeutung`.
+For example, write `Ich exportiere die gefilterten Bestellungen als CSV.` or `I export the filtered orders as CSV.`
+
+Preserve facts, actors, quantities, units, thresholds, ordering, concurrency, permissions, recovery rules, and uncertainty when editing.
+Keep meaningful negatives such as denials and exclusions, and preserve quoted interface text verbatim.
+Keep assumptions distinct from requirements and leave missing decisions unresolved.
+
+Let requirements determine sentence and list structure, including lists with three distinct requirements and repeated Gherkin openings.
+Prefer periods, commas, colons, or parentheses to sentence dashes unless the user's writing sample calls for them.
+Preserve punctuation in names, code, paths, URLs, and quoted interface text, and hyphens required by spelling.
+Use sentence case with normal German noun capitalization and exact product name spelling.
+Omit decorative formatting and chat wrappers, and save only the final ticket text.
 
 ## Outcomes and source fidelity
 
@@ -69,6 +93,8 @@ Include *assumptions*, *dependencies*, *risks*, and *open questions* only when t
 Omit empty entries.
 
 ## Completion criteria
+
+After editing, compare the ticket with the source ledger for added or lost claims and check the selected language and template's HTML, panels, labels, colors, tables, lists, and Gherkin keywords.
 
 - Every source ledger item is represented by acceptance, relevant notes, another mapped ticket, or an explicit exclusion.
 - Acceptance covers each slice's happy path and assigned boundaries with explicit conditions and results.
