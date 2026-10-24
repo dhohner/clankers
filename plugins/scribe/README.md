@@ -1,3 +1,6 @@
+> This repository contains generated distribution files.
+> For development instructions, tests, and contributions, use [clankers-dev](https://github.com/dhohner/clankers-dev).
+
 # Scribe plugin
 
 Scribe writes commit messages that explain why staged changes were made and shortens AI prose.

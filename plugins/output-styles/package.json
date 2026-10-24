@@ -19,41 +19,36 @@
     "directory": "plugins/output-styles"
   },
   "files": [
+    "LICENSE",
     "README.md",
+    "examples/terse.md",
     "index.ts",
-    "src/**",
-    "styles/**",
-    "examples/**",
-    "tsconfig.json",
-    "tsconfig.build.json",
-    "package.json",
-    "LICENSE"
+    "src/errors.ts",
+    "src/pi/create-flow.ts",
+    "src/pi/extension.ts",
+    "src/pi/host-contracts.ts",
+    "src/pi/registration.ts",
+    "src/pi/status.ts",
+    "src/session/startup-selection.ts",
+    "src/session/style-session.ts",
+    "src/storage/filesystem.ts",
+    "src/storage/json.ts",
+    "src/storage/settings.ts",
+    "src/storage/style-persistence.ts",
+    "src/styles/create-style.ts",
+    "src/styles/discovery.ts",
+    "src/styles/frontmatter.ts",
+    "src/styles/prompt.ts",
+    "src/styles/style-file.ts",
+    "src/styles/types.ts",
+    "styles/explanatory.md",
+    "styles/learning.md",
+    "styles/unslop.md"
   ],
   "type": "module",
-  "scripts": {
-    "clean": "rm -rf dist",
-    "build": "pnpm run clean && tsc -p tsconfig.build.json",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "lint": "oxlint --max-warnings=0",
-    "lint:fix": "oxlint --fix",
-    "format": "oxfmt .",
-    "format:check": "oxfmt --check .",
-    "coverage": "vitest run --coverage",
-    "check": "pnpm run lint && pnpm run format:check && pnpm run coverage && pnpm run typecheck"
-  },
   "dependencies": {
     "proper-lockfile": "^4.1.2",
     "yaml": "^2.9.1"
-  },
-  "devDependencies": {
-    "@types/node": "^26.6.5",
-    "@types/proper-lockfile": "^4.1.4",
-    "@vitest/coverage-istanbul": "^5.0.4",
-    "oxfmt": "^0.72.0",
-    "oxlint": "1.87.0",
-    "typescript": "^7.0.2",
-    "vitest": "^5.0.4"
   },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*"

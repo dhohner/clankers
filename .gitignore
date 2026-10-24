@@ -1,9 +1,0 @@
-node_modules/
-__pycache__/
-dist/
-coverage/
-.playwright/
-.pi/
-.claude/
-.corpus-workspace-*/
-**/.ruff_cache/

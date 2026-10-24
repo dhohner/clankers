@@ -1,3 +1,6 @@
+> This repository contains generated distribution files.
+> For development instructions, tests, and contributions, use [clankers-dev](https://github.com/dhohner/clankers-dev).
+
 # next-thing
 
 Recommend the next addition that would benefit the project most, in the voice of a senior product manager.

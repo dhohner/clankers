@@ -1,7 +1,14 @@
+> This repository contains generated distribution files.
+> For development instructions, tests, and contributions, use [clankers-dev](https://github.com/dhohner/clankers-dev).
+
 # Clankers
 
 Clankers provides plugins for coding agents that help with product planning, task implementation, code refactoring, commit messages, prose editing, command safety, sleep status, and Pi response styles.
 The plugins support Claude Code, Codex App and CLI, and Pi Coding Agent.
+
+Development happens in [`clankers-dev`](https://github.com/dhohner/clankers-dev).
+The public `clankers` repository contains generated distributions.
+See the [release instructions](https://github.com/dhohner/clankers-dev/blob/main/docs/releases.md) for setup, local previews, and publishing.
 
 > Review each plugin before installation.
 > A plugin can add prompts, skills, hooks, extensions, and shell scripts that run on your machine.

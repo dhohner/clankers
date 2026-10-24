@@ -3,24 +3,6 @@
   "private": true,
   "description": "Pi footer and Claude Code status line with model, thinking, current context usage, and session sleep state.",
   "type": "module",
-  "scripts": {
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "lint": "oxlint --max-warnings=0",
-    "lint:fix": "oxlint --fix",
-    "format": "oxfmt .",
-    "format:check": "oxfmt --check .",
-    "check": "pnpm run lint && pnpm run format:check && pnpm test && pnpm run typecheck"
-  },
-  "devDependencies": {
-    "@earendil-works/pi-coding-agent": "1.1.0",
-    "@earendil-works/pi-tui": "1.1.0",
-    "@types/node": "^26.6.5",
-    "oxfmt": "^0.72.0",
-    "oxlint": "1.87.0",
-    "typescript": "^7.0.2",
-    "vitest": "^5.0.4"
-  },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*",
     "@earendil-works/pi-tui": "*"
@@ -37,5 +19,16 @@
     "extensions": [
       "./index.ts"
     ]
-  }
+  },
+  "files": [
+    ".claude-plugin/plugin.json",
+    "README.md",
+    "index.ts",
+    "scripts/statusline.sh",
+    "src/pi/extension.ts",
+    "src/pi/footer.ts",
+    "src/pi/render-footer.ts",
+    "src/pi/session-cost.ts",
+    "src/pi/sleep-assertion.ts"
+  ]
 }
