@@ -1,6 +1,7 @@
 # English Jira template
 
-Use this block for ticket language `en` and apply every shared structural rule.
+Use this block for `en` product tickets, with the shared Jira structure.
+Repeat scenario panels as needed and omit notes without relevant content.
 
 ## English block (`en`)
 

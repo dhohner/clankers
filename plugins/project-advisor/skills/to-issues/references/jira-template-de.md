@@ -1,6 +1,7 @@
 # German Jira template
 
-Use this block for ticket language `de` and apply every shared structural rule.
+Use this block for `de` product tickets, with the shared Jira structure.
+Repeat scenario panels as needed and omit notes without relevant content.
 
 ## German block (`de`)
 

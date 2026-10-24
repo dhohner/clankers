@@ -1,6 +1,7 @@
 # Ticket prose
 
-Use plain, neutral German or English customary for a product team in titles, user stories, scenarios, and notes.
+Use plain, neutral German or English customary for an engineering or product team.
+Apply this register to titles, openings, criteria, verification methods, evidence, scenarios, and notes.
 
 ## Wording
 
@@ -31,7 +32,7 @@ Let the requirements determine sentence and list structure, including lists with
 Prefer periods, commas, colons, or parentheses to sentence dashes unless the user's writing sample calls for them.
 Preserve punctuation in names, code, paths, URLs, and quoted interface text, and hyphens required by spelling.
 
-Follow the Jira template's HTML, panels, labels, colors, lists, and Gherkin keywords.
+Use the selected profile's Jira template for HTML, panels, labels, colors, tables, lists, and Gherkin keywords.
 Use sentence case with normal German noun capitalization and exact product name spelling.
 Omit decorative formatting and chat wrappers.
 

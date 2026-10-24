@@ -1,15 +1,20 @@
 # Ticket writing checklist
 
-Write a concise product specification for an experienced engineer.
+Specify the intended outcome, binding constraints, and acceptance evidence concisely for an experienced engineer.
 The selected language reference defines register and terminology; the Jira template defines structure and fixed labels.
 
 ## Outcomes and source fidelity
 
-Use the title to name the outcome, the user story to explain the benefit, and the *what to build* entry to summarize scope and important limits.
+Use the title to name the outcome.
+For product tickets, explain the benefit in the user story.
+Summarize scope and important limits under *what to build*.
+For infrastructure tickets, explain the capability and its consumer in the opening paragraph.
+State covered systems and limits under *scope*.
 Keep these concise without repeating detailed acceptance criteria.
 Describe observable behavior, data outcomes, constraints, and acceptance boundaries.
-Express internal implementation terms as domain behavior unless they are names users see or binding source constraints.
-Leave implementation choices with engineering.
+Express internal implementation terms as domain behavior unless they name a relevant system interface or are binding source constraints.
+Preserve required technologies, resource types, trust relationships, and architecture decisions explicitly.
+Leave choices the source does not settle with engineering.
 
 Each ticket must be understandable without the planning source.
 Use only requirements explicit or directly implied by the source ledger.
@@ -29,10 +34,14 @@ Inherited behavior needs enough context to understand the dependent outcome; cop
 
 Distinguish functional acceptance, product success measures, and explicit release conditions in the source ledger.
 Put observable functional outcomes in acceptance scenarios.
-Record usability goals and other success measures as validation context in *technical notes*, identifying their purpose and preserving the source's participant, method, target, and timing where stated.
+Record usability goals and other success measures as validation context in product *technical notes* or infrastructure *operations* notes.
+Identify their purpose and preserve the source's participant, method, target, and timing where stated.
 Preserve explicit release or acceptance conditions and their validation methods as binding requirements.
 
 ## Acceptance scenarios
+
+Apply these scenario rules to both profiles.
+Preserve all supplied Gherkin scenarios and their conditions and results.
 
 Write named Gherkin scenarios in the selected language.
 Use natural first-person phrasing when a person acts; for system behavior, name the observer or boundary that verifies it.
@@ -44,9 +53,13 @@ For example, one download authorization scenario can grant access to the creator
 Split cases when grouping would make the behavior ambiguous.
 Preserve boundary values, time origins, exact interface messages, permission paths, and failure results.
 Let requirements determine scenario count.
-Keep the template's panels and colored steps; use compact Gherkin cases within them without introducing tables or scenario outlines.
+Use the selected template's scenario panels and compact Gherkin cases without scenario outlines.
 
 ## Notes
+
+Use the selected template's note structure and fixed labels.
+For infrastructure tickets, apply the evidence and operations rules in the infrastructure reference.
+For product tickets:
 
 Always include *what to build* as a compact description of the outcome and important boundaries.
 Include *blocked by* only for a genuine prerequisite.
@@ -58,7 +71,8 @@ Omit empty entries.
 ## Completion criteria
 
 - Every source ledger item is represented by acceptance, relevant notes, another mapped ticket, or an explicit exclusion.
-- Scenarios cover each slice's happy path and assigned boundaries, with explicit conditions and results for grouped cases.
+- Acceptance covers each slice's happy path and assigned boundaries with explicit conditions and results.
+  - It includes verification evidence where the profile requires it.
 - Dependencies reflect real prerequisites and filenames follow their order.
 - Each ticket is understandable independently and inherits only the necessary predecessor context.
 - Success measures remain visible and explicit acceptance or release conditions retain their force.

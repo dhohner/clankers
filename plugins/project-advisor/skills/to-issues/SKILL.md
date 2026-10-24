@@ -1,61 +1,60 @@
 ---
 name: to-issues
 description: >-
-  Converts PRDs, feature briefs, and Gherkin scenarios into local Jira ticket files in German or English.
-  Use when requirements or an accepted to-prd bundle need Jira stories or backlog items.
-argument-hint: "[default|brief] [de|en]"
+  Creates local Jira tickets when converting PRDs, briefs, technical requirements, or Gherkin scenarios into backlog items.
+argument-hint: "[default|brief] [de|en] [product|infrastructure]"
 ---
 
-# To Issues
+# To issues
 
-Write independently demoable Jira stories for experienced developers in `action-items/jira-issues/`, unless the user chooses another location.
-Write German by default; `en` or an explicit request selects English, regardless of the source language.
+Write independently verifiable tickets for experienced engineers in `action-items/jira-issues/`, unless the user chooses another location.
+Create one file per slice in dependency order, using names such as `01-short-slice-title.md`.
 
-## Workflow
+## Select the workflow
 
-1. Resolve the source, mode, and language; build the source ledger.
-2. Map the ledger to demoable slices and resolve the applicable approval gate.
-3. Read the drafting references and write one ticket per approved slice.
-4. Validate against the source and format; fix violations and repeat before completion.
+Mode, language, and profile arguments are independent:
 
-Read references only for the current step and selected language.
+- `default`: full PRD or accepted `to-prd` bundle; follow [default intake](references/default-source-intake.md).
+- `brief`: unpackaged requirements or scenarios; follow [brief intake](references/brief-mode-intake.md).
+- `de` (default) or `en`: ticket language, regardless of source language.
+- `product` or `infrastructure`: ticket profile, independent of Jira issue type.
 
-## Intake and slicing
+Infer mode from the source when omitted.
+An explicit language request also selects the ticket language.
+Infer `infrastructure` for platform, DevOps, security, deployment, or operational capabilities; otherwise use `product` for application behavior.
+An explicit profile applies to the requested set; for mixed sources, select and show each slice's profile in the breakdown.
 
-Recognize `default` and `brief` as mode arguments, and `de` and `en` as language arguments.
-Otherwise infer `default` for a full PRD or accepted `to-prd` bundle and `brief` for unpackaged requirements.
+## Define the slices
 
-Use the reference for the selected source:
-
-- [Default intake](references/default-source-intake.md) for a PRD or accepted bundle.
-- [Brief intake](references/brief-mode-intake.md) for a feature brief, rough planning prose, or scenarios.
-
-Maintain a source ledger covering behavior, constraints, exclusions, dependencies, uncertainty, success measures, and traceability.
-Keep the requested input as the requirements source; templates, examples, evaluation fixtures, and previous output supply no additional product requirements.
+Build a source ledger covering behavior, constraints, exclusions, dependencies, uncertainty, success measures, and traceability.
+Use the requested input as the requirements source; references and examples supply no additional requirements.
 Treat supplied Gherkin scenarios as the functional source of truth.
 Consult repository context when it resolves terminology or constraints grounded in the source.
 
-Use [slice design](references/slice-design-checklist.md) to define outcomes, dependencies, planning classifications, and any required approval.
-Proceed once the requirements support stable slices and the applicable approval is resolved.
+Use [slice design](references/slice-design-checklist.md) for outcomes, dependencies, planning classifications, and approval gates.
+For infrastructure work, also use [infrastructure tickets](references/infrastructure-tickets.md) for prerequisite contracts, decision boundaries, and acceptance evidence.
+Once slices are stable and the applicable approval is resolved, write and validate the complete ticket set.
+Ask only for decisions that block progress.
 
-## Drafting
+## Draft the tickets
 
-Read these references before drafting the approved slices:
+Use the shared content and formatting references, then the language and template for each slice:
 
-- [Ticket content](references/ticket-writing-checklist.md): outcomes, acceptance cases, inherited behavior, success measures, and notes.
-- [Ticket prose](references/ticket-prose.md): wording and preservation of source meaning.
-- [Jira structure](references/jira-issue-template.md): panels, styles, and section order.
-- For German: [language](references/language-de.md) and [raw template](references/jira-template-de.md).
-- For English: [language](references/language-en.md) and [raw template](references/jira-template-en.md).
+- [Ticket content](references/ticket-writing-checklist.md): source fidelity, acceptance, inherited behavior, and success measures.
+- [Ticket prose](references/ticket-prose.md): wording.
+- [Jira structure](references/jira-issue-template.md): shared formatting and profile differences.
+- German: [language](references/language-de.md) and the [product template](references/jira-template-de.md) or [infrastructure template](references/jira-infrastructure-template-de.md).
+- English: [language](references/language-en.md) and the [product template](references/jira-template-en.md) or [infrastructure template](references/jira-infrastructure-template-en.md).
 
-Consult the selected language's example only when phrasing or ticket shape remains uncertain: [German](references/example-ticket-de.md) or [English](references/example-ticket-en.md).
-Create one file per approved slice in dependency order, using names such as `01-short-slice-title.md`.
+Load only the languages and profiles used by the ticket set.
+Consult examples only when phrasing or ticket shape remains uncertain:
 
-## Validate and complete
+- Uncertain product phrasing or shape: [German example](references/example-ticket-de.md) or [English example](references/example-ticket-en.md).
+- Uncertain infrastructure phrasing or shape: [German example](references/example-infrastructure-de.md) or [English example](references/example-infrastructure-en.md).
 
-Compare each draft with the source ledger: every behavior and boundary must be covered by acceptance, relevant notes, another mapped ticket, or an explicit exclusion.
-Check in both directions for omitted requirements and claims absent from the source.
-Check each ticket against the content checklist, prose rules, Jira structure, raw template, and selected language gate.
-Fix violations and repeat these checks until none remain, then save the complete ticket set.
+## Complete
+
+Compare drafts with the source ledger in both directions for omissions and unsupported claims.
+Every behavior and boundary must appear in acceptance, relevant notes, another mapped ticket, or an explicit exclusion.
+Correct source, content, language, and formatting violations before completing the set.
 Report filenames, delivery order, material assumptions, and open questions.
-If a decision blocks progress, ask for that decision.
