@@ -1,6 +1,3 @@
-> This repository contains generated distribution files.
-> For development instructions, tests, and contributions, use [clankers-dev](https://github.com/dhohner/clankers-dev).
-
 # PRD to agent tasks
 
 Turn an accepted `to-prd` `prd.yaml` bundle into Markdown implementation tasks that agents can execute autonomously, in dependency order.

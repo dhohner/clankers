@@ -1,6 +1,3 @@
-> This repository contains generated distribution files.
-> For development instructions, tests, and contributions, use [clankers-dev](https://github.com/dhohner/clankers-dev).
-
 # Security Guard
 
 Security Guard is a Pi extension that blocks agent commands which dump the user environment or read common local credentials.

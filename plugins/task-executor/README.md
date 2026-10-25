@@ -1,6 +1,3 @@
-> This repository contains generated distribution files.
-> For development instructions, tests, and contributions, use [clankers-dev](https://github.com/dhohner/clankers-dev).
-
 # Task executor plugin
 
 Task executor implements task files for coding agents and standalone changes using TDD, and verifies each task result before reporting completion.

@@ -1,6 +1,3 @@
-> This repository contains generated distribution files.
-> For development instructions, tests, and contributions, use [clankers-dev](https://github.com/dhohner/clankers-dev).
-
 # Refactor tools plugin
 
 Refactor Tools simplifies existing code while preserving behavior and reviews code changes.

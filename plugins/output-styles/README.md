@@ -1,6 +1,3 @@
-> This repository contains generated distribution files.
-> For development instructions, tests, and contributions, use [clankers-dev](https://github.com/dhohner/clankers-dev).
-
 # Output Styles plugin
 
 Output Styles is a Pi extension that selects a named response style at session start and adds its instructions to the agent system prompt.

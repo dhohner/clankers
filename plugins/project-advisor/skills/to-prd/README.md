@@ -1,6 +1,3 @@
-> This repository contains generated distribution files.
-> For development instructions, tests, and contributions, use [clankers-dev](https://github.com/dhohner/clankers-dev).
-
 # Write a PRD
 
 The `to-prd` skill turns a product idea or PRD review note into a validated local review bundle.

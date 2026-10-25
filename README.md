@@ -1,6 +1,3 @@
-> This repository contains generated distribution files.
-> For development instructions, tests, and contributions, use [clankers-dev](https://github.com/dhohner/clankers-dev).
-
 # Clankers
 
 Clankers provides plugins for coding agents that help with product planning, task implementation, code refactoring, commit messages, prose editing, command safety, sleep status, and Pi response styles.

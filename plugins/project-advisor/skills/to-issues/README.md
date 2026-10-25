@@ -1,6 +1,3 @@
-> This repository contains generated distribution files.
-> For development instructions, tests, and contributions, use [clankers-dev](https://github.com/dhohner/clankers-dev).
-
 # To issues
 
 Turn PRDs, feature briefs, technical requirements, and Gherkin scenarios into Jira work items that experienced engineers can verify independently.
