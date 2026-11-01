@@ -36,13 +36,10 @@ It excludes full paths, prompts, responses, tool output, and error details.
 
 Insomniac discovers an executable for each qualifying run, in this order:
 
-1. The optional Pi helper at `<agent-dir>/notifications/Pi Notifier.app/Contents/MacOS/terminal-notifier`.
-   `<agent-dir>` comes from `getAgentDir()` and respects `PI_CODING_AGENT_DIR`.
-   This is the location contract for a separately supplied helper app; this plugin does not supply or build that bundle.
-2. Standard `terminal-notifier` in the first absolute `PATH` directory containing an executable file of that name.
+1. `terminal-notifier` in the first absolute `PATH` directory containing an executable file of that name.
    Empty and relative `PATH` entries are ignored.
    Standard `terminal-notifier` uses its own app icon.
-3. macOS `/usr/bin/osascript`, which requires no optional installation.
+2. macOS `/usr/bin/osascript`, which requires no optional installation.
    This fallback lacks Pi’s logo and custom activation.
 
 Discovery checks executable files without posting a probe notification and has a one second deadline.
@@ -50,10 +47,9 @@ Submission has a ten second process timeout and a 16 KiB output limit.
 A missing optional tool is normal: successful fallback submission produces no warning.
 A selected tool that fails, times out, or disappears does not trigger another transport attempt for that run.
 The next qualifying run discovers tools again.
-Both native notifiers use the `terminal-notifier` argument contract: `-title` and `-message`, with each display value prefixed by one backslash that the notifier removes after parsing.
+The notifier uses the `terminal-notifier` argument contract: `-title` and `-message`, with each display value prefixed by one backslash that the notifier removes after parsing.
 This keeps option syntax, property list syntax, quotes, and leading backslashes inert.
 The fallback passes labels as arguments to a fixed script.
-Version 3 of `terminal-notifier` does not support an `-appIcon` override; a Pi icon requires a separate helper app bundle.
 
 To install the standard notifier explicitly, you can run:
 
@@ -64,7 +60,7 @@ brew install terminal-notifier
 Installation is optional.
 Insomniac never downloads, installs, or modifies apps, resets permissions, or changes settings automatically.
 It requests no sound and applies no foreground app gate.
-With either native notifier, clicking a notice requests activation of the originating app when its bundle identifier is known.
+With `terminal-notifier`, clicking a notice requests activation of the originating app when its bundle identifier is known.
 For fallback notices and notices without a target, return to the terminal manually to inspect the result.
 macOS controls permission, presentation, click behavior, and dismissal; Insomniac does not change those settings.
 A successful process exit confirms submission only.
@@ -168,12 +164,12 @@ Repeat after removing the override to check detection.
 Record the notifier version, source app, override value or absence, notification permission state, and observed activation.
 A successful submission or an argument test does not verify that macOS displayed the notice or activated an app.
 
-Both native notifiers use [`-activate BUNDLE_ID`](https://github.com/julienXX/terminal-notifier/blob/3.1.0/README.markdown#-activate-bundle_id).
+`terminal-notifier` uses [`-activate BUNDLE_ID`](https://github.com/julienXX/terminal-notifier/blob/3.1.0/README.markdown#-activate-bundle_id).
 The bundle identifier is an inert argument; Insomniac never builds a shell click command or uses `-execute`.
 Activation brings the app forward and does not select a window, tab, project, or Pi session.
 Clicking never starts or repeats Pi work.
 The `osascript` fallback always keeps normal macOS click behavior, even with an override.
-Notification permissions belong to the selected sender, which may be the Pi helper, standard notifier, or fallback host.
+Notification permissions belong to the selected sender, either `terminal-notifier` or the fallback host.
 Check that sender's permission in macOS settings if a notice is missing; Insomniac does not change permissions, request accessibility access, or automate terminal contents.
 
 ### Footer output

@@ -1,4 +1,3 @@
-import { getAgentDir } from "@earendil-works/pi-coding-agent";
 import { execFile } from "node:child_process";
 import { constants } from "node:fs";
 import { access, stat } from "node:fs/promises";
@@ -35,17 +34,13 @@ async function executable(file: string): Promise<boolean> {
 
 export function createNotifierDiscovery(
   options: {
-    helperPath?: string;
     searchPath?: string;
     isExecutable?: (file: string) => Promise<boolean>;
   } = {},
 ): () => Promise<string | undefined> {
   return async () => {
-    const helper =
-      options.helperPath ?? join(getAgentDir(), "notifications/Pi Notifier.app/Contents/MacOS/terminal-notifier");
-
     const paths = (options.searchPath ?? process.env.PATH ?? "").split(":").filter(isAbsolute);
-    const candidates = [helper, ...paths.map((path) => join(path, "terminal-notifier"))];
+    const candidates = paths.map((path) => join(path, "terminal-notifier"));
 
     for (const file of candidates) {
       if (await (options.isExecutable ?? executable)(file)) return file;
