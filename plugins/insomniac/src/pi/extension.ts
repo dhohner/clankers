@@ -1,4 +1,5 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { installNotifications, type NotificationDependencies } from "./notifications.ts";
 import { createFooterController } from "./footer.ts";
 import { SleepAssertion, type SleepDependencies } from "./sleep-assertion.ts";
 
@@ -6,7 +7,12 @@ export default function insomniac(pi: ExtensionAPI): void {
   installInsomniac(pi);
 }
 
-export function installInsomniac(pi: ExtensionAPI, dependencies: SleepDependencies = {}): void {
+export function installInsomniac(
+  pi: ExtensionAPI,
+  dependencies: SleepDependencies = {},
+  notifications: NotificationDependencies = {},
+): void {
+  installNotifications(pi, undefined, { platform: dependencies.platform, ...notifications });
   let runtime: SleepAssertion | undefined;
   const footer = createFooterController(pi);
   pi.on("session_start", (_event, ctx) => {

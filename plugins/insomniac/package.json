@@ -25,8 +25,12 @@
     "README.md",
     "index.ts",
     "scripts/statusline.sh",
+    "src/pi/desktop-notification.ts",
     "src/pi/extension.ts",
     "src/pi/footer.ts",
+    "src/pi/notification-preference.ts",
+    "src/pi/notification-source.ts",
+    "src/pi/notifications.ts",
     "src/pi/render-footer.ts",
     "src/pi/session-cost.ts",
     "src/pi/sleep-assertion.ts"
