@@ -2,7 +2,7 @@
 
 ## Pi footer
 
-The plugin supports Pi 1.4.0.
+The plugin supports Pi 1.5.0.
 
 ### Install Pi
 
