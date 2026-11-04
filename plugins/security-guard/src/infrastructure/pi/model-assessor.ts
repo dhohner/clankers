@@ -9,8 +9,6 @@ import { EVALUATOR_SYSTEM_PROMPT, evaluatorInput } from "../../policy/assessment
 
 export const SAFETY_EVALUATOR_PROVIDERS = ["openai", "openai-codex", "github-copilot"] as const;
 
-export const SAFETY_EVALUATOR_PROVIDER = SAFETY_EVALUATOR_PROVIDERS[0];
-
 export const SAFETY_EVALUATOR_MODEL_ID = "gpt-6-luna";
 
 export const SAFETY_EVALUATION_WORKING_MESSAGE = "Evaluating command safety...";

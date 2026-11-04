@@ -91,24 +91,6 @@ async function verificationScope(
 }
 
 /**
- * Reports whether a target, resolved against `cwd` the way the removal will resolve it, can only affect a
- * regenerable directory inside the working directory. Entry location, link target, wildcard directory, and
- * ownership are resolved by the same rules as the temporary-root proof. A working directory that cannot be
- * resolved fails closed.
- */
-export async function isInsideRegenerableDirectory(
-  target: string,
-  cwd: string | undefined,
-  followsLinks = false,
-): Promise<boolean> {
-  const scope = await verificationScope(cwd);
-
-  if (cwd === undefined || scope === undefined) return false;
-
-  return isInsideResolvedRegenerableDirectory(target, cwd, scope, followsLinks);
-}
-
-/**
  * Whether every target of a call is inside a regenerable directory. A target derived from `mktemp -d` is the
  * temporary-root proof's business, so it does not qualify here.
  * Directory checks are shared within this call only; a rejected check exempts nothing.
