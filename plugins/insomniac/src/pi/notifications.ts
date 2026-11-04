@@ -1,9 +1,22 @@
-import { getAgentDir, type ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { getAgentDir, type ExtensionAPI, type ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { stripTerminalSequences } from "@earendil-works/pi-tui";
 import { basename, join } from "node:path";
 import { createDesktopDelivery, type NotificationExecutor } from "./desktop-notification.ts";
 import { NotificationPreference, type PreferenceFileSystem } from "./notification-preference.ts";
 import { resolveSourceApp, type SourceApp } from "./notification-source.ts";
+
+interface Confirmation {
+  state: "waiting" | "attempted" | "canceled";
+  timer?: ReturnType<typeof setTimeout>;
+}
+
+function cancelConfirmation(session: NotificationSession | undefined) {
+  const confirmation = session?.confirmation;
+
+  if (!confirmation) return;
+  confirmation.state = "canceled";
+  clearTimeout(confirmation.timer);
+}
 
 interface NotificationSession {
   source: SourceApp;
@@ -11,6 +24,7 @@ interface NotificationSession {
   store: NotificationPreference;
   tail: Promise<void>;
   started?: number;
+  confirmation?: Confirmation;
   warned?: boolean;
 }
 
@@ -43,7 +57,92 @@ export function installNotifications(
   const now = dependencies.now ?? (() => performance.now());
   const deliver = createDesktopDelivery(dependencies.execute, dependencies.discover);
   let current: NotificationSession | undefined;
+
+  function submit(
+    session: NotificationSession,
+    ctx: ExtensionContext,
+    title: string,
+    isCurrent: () => boolean,
+    defer = false,
+  ) {
+    const name = ctx.sessionManager.getSessionName();
+
+    const labels = [basename(ctx.cwd), name].flatMap((value) => {
+      const label = value === undefined ? "" : displayLabel(value);
+
+      return label ? [label] : [];
+    });
+
+    const notice: DesktopNotice = { title, body: labels.join(" · ") };
+
+    if (session.source.bundleIdentifier) notice.activationTarget = session.source.bundleIdentifier;
+
+    const dispatch = () =>
+      void Promise.resolve()
+        .then(() => {
+          if (!isCurrent()) return;
+
+          return dependencies.deliver ? dependencies.deliver(notice) : deliver(notice, isCurrent);
+        })
+        .catch(() => {
+          if (!isCurrent() || session.warned) return;
+          session.warned = true;
+          ctx.ui.notify("Could not submit Insomniac notification.", "warning");
+        });
+
+    if (defer) setImmediate(dispatch);
+    else dispatch();
+  }
+
+  pi.on("ui_prompt_start", (event, ctx) => {
+    const session = current;
+
+    if (
+      !session ||
+      session.started === undefined ||
+      !session.enabled ||
+      event.kind !== "confirm" ||
+      (dependencies.platform ?? process.platform) !== "darwin" ||
+      ctx.mode !== "tui" ||
+      session.confirmation
+    )
+      return;
+    const confirmation: Confirmation = { state: "waiting" };
+    session.confirmation = confirmation;
+
+    const isCurrent = () =>
+      current === session &&
+      session.confirmation === confirmation &&
+      session.started !== undefined &&
+      session.enabled &&
+      confirmation.state !== "canceled";
+
+    const opened = now();
+
+    const attempt = () => {
+      if (!isCurrent() || confirmation.state !== "waiting") return;
+      const remaining = 10_000 - (now() - opened);
+
+      if (remaining > 0) {
+        confirmation.timer = setTimeout(attempt, remaining);
+
+        return;
+      }
+
+      confirmation.state = "attempted";
+      submit(session, ctx, "Pi needs your attention", isCurrent);
+    };
+
+    confirmation.timer = setTimeout(attempt, 10_000);
+  });
+  pi.on("ui_prompt_end", (event) => {
+    if (event.kind !== "confirm" || !current) return;
+    cancelConfirmation(current);
+    current.confirmation = undefined;
+  });
   pi.on("session_start", async (_event, ctx) => {
+    cancelConfirmation(current);
+
     const session: NotificationSession = {
       source: resolveSourceApp(dependencies.environment ?? process.env),
       enabled: true,
@@ -81,6 +180,8 @@ export function installNotifications(
     if (!session || session.started === undefined) return;
     const started = session.started;
     session.started = undefined;
+    cancelConfirmation(session);
+    session.confirmation = undefined;
 
     if (
       (dependencies.platform ?? process.platform) !== "darwin" ||
@@ -90,32 +191,10 @@ export function installNotifications(
       now() - started < 30_000
     )
       return;
-    const name = ctx.sessionManager.getSessionName();
-
-    const labels = [basename(ctx.cwd), name].flatMap((value) => {
-      const label = value === undefined ? "" : displayLabel(value);
-
-      return label ? [label] : [];
-    });
-
-    const notice: DesktopNotice = { title: "Pi run ended", body: labels.join(" · ") };
-
-    if (session.source.bundleIdentifier) notice.activationTarget = session.source.bundleIdentifier;
-    setImmediate(() => {
-      void Promise.resolve()
-        .then(() => {
-          if (current !== session) return;
-
-          return dependencies.deliver ? dependencies.deliver(notice) : deliver(notice, () => current === session);
-        })
-        .catch(() => {
-          if (current !== session || session.warned) return;
-          session.warned = true;
-          ctx.ui.notify("Could not submit Insomniac notification.", "warning");
-        });
-    });
+    submit(session, ctx, "Pi run ended", () => current === session, true);
   });
   pi.on("session_shutdown", () => {
+    cancelConfirmation(current);
     current = undefined;
   });
   pi.registerCommand("insomniac-notifications", {
@@ -143,6 +222,8 @@ export function installNotifications(
 
             if (current !== session) return;
             session.enabled = value;
+
+            if (!value) cancelConfirmation(session);
 
             if (warning) ctx.ui.notify(warning.message, "warning");
           } catch (error) {

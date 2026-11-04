@@ -21,20 +21,34 @@ Restart Pi, or run `/reload` in an existing TUI session, to load it automaticall
 ### Notification preference
 
 Notifications default to enabled when no preference has been saved.
-Notification labels can expose the project folder name and optional session name.
+Completion and attention notices share this preference.
+Notification labels can expose the project folder name and optional session name, including on a locked screen.
 In macOS interactive TUI sessions, an enabled run that lasts at least 30 seconds submits one standard desktop notification after final settlement.
-Exactly 30 seconds qualifies; shorter runs and cancelled runs produce no notice.
+Exactly 30 seconds qualifies; shorter runs and cancelled runs produce no completion notice.
 Timing includes waiting, retries, recovery, compaction, and queued continuations from the first start.
 The effective preference at settlement applies, including a successful change during a run.
 Print, JSON, RPC, Linux, and Windows sessions submit no desktop requests.
 
-The title is `Pi run ended`.
+During active macOS TUI work, a confirmation that remains unanswered for at least ten seconds submits one attention notice titled `Pi needs your attention`.
+Exactly ten seconds qualifies, even when the run is shorter than the completion threshold.
+Other prompt kinds and confirmations opened while idle do not qualify, including when work starts later.
+Pi's outer blocking prompt defines the confirmation lifecycle; nested prompts do not receive separate reminders.
+Each later confirmation has its own full delay and at most one submission attempt.
+An unanswered confirmation never receives recurring reminders, including after a failed attempt.
+Resolving, dismissing, aborting, or rejecting a confirmation cancels its pending attention dispatch.
+Settlement, successful disablement, reload, shutdown, and session replacement also cancel pending attention dispatch, including during tool discovery.
+A notice already submitted to macOS may remain visible after its confirmation becomes obsolete.
+It cannot be recalled; return to Pi to inspect the current state.
+Confirmation detection and delivery do not delay answers or agent work.
+Sleep protection remains held during confirmation waits and releases at settlement without waiting for notification delivery.
+
+The completion title is `Pi run ended`.
 The body contains only the project folder name and, when present, the session name, separated by ` · `.
 Control characters are removed or rendered as spaces.
-The notice describes settlement and makes no claim that the task succeeded.
-It excludes full paths, prompts, responses, tool output, and error details.
+The completion notice describes settlement and makes no claim that the task succeeded.
+Both notice types use these same sanitized labels and exclude dialog titles, command text, full paths, prompts, responses, tool output, and error details.
 
-Insomniac discovers an executable for each qualifying run, in this order:
+Insomniac discovers an executable for each qualifying notice, in this order:
 
 1. `terminal-notifier` in the first absolute `PATH` directory containing an executable file of that name.
    Empty and relative `PATH` entries are ignored.
@@ -45,8 +59,8 @@ Insomniac discovers an executable for each qualifying run, in this order:
 Discovery checks executable files without posting a probe notification and has a one second deadline.
 Submission has a ten second process timeout and a 16 KiB output limit.
 A missing optional tool is normal: successful fallback submission produces no warning.
-A selected tool that fails, times out, or disappears does not trigger another transport attempt for that run.
-The next qualifying run discovers tools again.
+A selected tool that fails, times out, or disappears does not trigger another transport attempt for that completion or confirmation.
+The next qualifying run or confirmation discovers tools again.
 The notifier uses the `terminal-notifier` argument contract: `-title` and `-message`, with each display value prefixed by one backslash that the notifier removes after parsing.
 This keeps option syntax, property list syntax, quotes, and leading backslashes inert.
 The fallback passes labels as arguments to a fixed script.
@@ -65,8 +79,8 @@ For fallback notices and notices without a target, return to the terminal manual
 macOS controls permission, presentation, click behavior, and dismissal; Insomniac does not change those settings.
 A successful process exit confirms submission only.
 A submitted request does not guarantee visible presentation: permission settings, Focus, or other macOS suppression may hide it without reporting an error.
-Detectable submission failures produce at most one terminal warning per session, with no automatic retry for that run.
-Later qualifying runs can attempt submission again.
+Attention and completion delivery failures share at most one terminal warning per extension session, with no automatic retry for that notice.
+Later qualifying runs and confirmations can attempt submission again.
 Sleep protection releases at settlement without waiting for discovery or delivery.
 Reload, shutdown, and session replacement discard pending application dispatch; accepted requests belong to macOS and cannot be retracted by Insomniac.
 Delivery history remains in memory and is never replayed after restart.
@@ -83,7 +97,8 @@ Use these commands in Pi:
 The first two commands report the current session's effective setting without writing a preference.
 The output reports whether notifications are enabled or disabled for this session.
 Enable and disable assign a value, so repeating either command keeps the same setting.
-A successful save changes this session before its next settlement and persists for future sessions.
+A successful save changes this session's effective setting for both notice types and persists for future sessions.
+Disabling cancels pending attention dispatch; reenabling permits later confirmations without reviving the canceled dispatch for a current confirmation.
 Other running sessions keep their own values until they restart or change the setting themselves.
 Commands within a session finish in invocation order.
 A failed save reports an error and retains the previous effective and saved values.
@@ -167,7 +182,7 @@ A successful submission or an argument test does not verify that macOS displayed
 `terminal-notifier` uses [`-activate BUNDLE_ID`](https://github.com/julienXX/terminal-notifier/blob/3.1.0/README.markdown#-activate-bundle_id).
 The bundle identifier is an inert argument; Insomniac never builds a shell click command or uses `-execute`.
 Activation brings the app forward and does not select a window, tab, project, or Pi session.
-Clicking never starts or repeats Pi work.
+Clicking never approves or rejects a confirmation, starts or repeats Pi work, or selects a specific terminal tab or pane.
 The `osascript` fallback always keeps normal macOS click behavior, even with an override.
 Notification permissions belong to the selected sender, either `terminal-notifier` or the fallback host.
 Check that sender's permission in macOS settings if a notice is missing; Insomniac does not change permissions, request accessibility access, or automate terminal contents.
