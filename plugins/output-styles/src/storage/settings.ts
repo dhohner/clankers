@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { chmod, mkdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
+import filesystem from "node:fs/promises";
 import { dirname } from "node:path";
 import lockfile from "proper-lockfile";
 import { describeError } from "../errors.ts";
@@ -36,7 +36,7 @@ async function withSettingsLock<T>(path: string, action: () => Promise<T>): Prom
  */
 async function settingsFileExistsOrThrowOnUnknown(path: string): Promise<boolean> {
   try {
-    await stat(path);
+    await filesystem.stat(path);
 
     return true;
   } catch (error) {
@@ -76,7 +76,7 @@ async function readSettingsObject(path: string): Promise<JsonObject> {
   let content: string;
 
   try {
-    content = await readFile(path, "utf8");
+    content = await filesystem.readFile(path, "utf8");
   } catch (error) {
     if (fileErrorCode(error) === "ENOENT") return {};
     throw error;
@@ -147,7 +147,7 @@ export async function writePersistedStyleName(path: string, name: string): Promi
   return enqueueSettingsWrite(path, async () => {
     // The parent directory must exist before locking, because the lock directory lives next to the
     // settings file.
-    await mkdir(dirname(path), { recursive: true });
+    await filesystem.mkdir(dirname(path), { recursive: true });
     await withSettingsLock(path, async () => {
       const settings = await readSettingsObject(path);
       settings[OUTPUT_STYLE_KEY] = name;
@@ -158,7 +158,7 @@ export async function writePersistedStyleName(path: string, name: string): Promi
       let mode: number | undefined;
 
       try {
-        mode = (await stat(path)).mode & 0o777;
+        mode = (await filesystem.stat(path)).mode & 0o777;
       } catch {
         mode = undefined;
       }
@@ -167,12 +167,12 @@ export async function writePersistedStyleName(path: string, name: string): Promi
 
       try {
         // The same format Pi writes: two-space indentation, no trailing newline.
-        await writeFile(temporaryPath, JSON.stringify(settings, null, 2), "utf8");
+        await filesystem.writeFile(temporaryPath, JSON.stringify(settings, null, 2), "utf8");
 
-        if (mode !== undefined) await chmod(temporaryPath, mode);
-        await rename(temporaryPath, path);
+        if (mode !== undefined) await filesystem.chmod(temporaryPath, mode);
+        await filesystem.rename(temporaryPath, path);
       } catch (error) {
-        await rm(temporaryPath, { force: true });
+        await filesystem.rm(temporaryPath, { force: true });
         throw error;
       }
     });

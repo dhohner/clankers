@@ -352,6 +352,10 @@ Claude Code reruns the script when the model, effort level, or token usage chang
 Tests follow the host boundaries in `test/pi/` and `test/claude/`.
 `test/integration/` checks real child termination and loading through Pi's extension runner.
 Shared simulated hosts and process fixtures live in `test/support/`.
+Tests that read or write notification preferences call `registerAgentDirectoryHooks()` to create a fresh agent directory per test.
+Other tests use a path beneath an existing file so accidental agent access fails without reaching user settings.
+Status line formatting cases run the real shell script with a fixed process table.
+Process ownership cases use real child processes.
 Process tests compile fake executables with `cc` and create no power assertions.
 The complete suite requires macOS because Claude Code tests rely on launchd adopting orphaned processes.
 
