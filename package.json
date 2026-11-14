@@ -133,6 +133,7 @@
     "plugins/project-advisor/skills/to-prd/references/review-checklist.md",
     "plugins/project-advisor/skills/to-prd/scripts/__init__.py",
     "plugins/project-advisor/skills/to-prd/scripts/__main__.py",
+    "plugins/project-advisor/skills/to-prd/scripts/advisories.py",
     "plugins/project-advisor/skills/to-prd/scripts/bundle.py",
     "plugins/project-advisor/skills/to-prd/scripts/cli/__init__.py",
     "plugins/project-advisor/skills/to-prd/scripts/cli/bundle_commands.py",

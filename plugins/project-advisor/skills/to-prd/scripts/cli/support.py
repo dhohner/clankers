@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import re
 import shlex
+import shutil
 import sys
 from pathlib import Path
 from typing import Any
 
+from ..advisories import iter_strings, manifest_warnings
 from ..manifest_types import NormalizedManifest
 from ..spec import CURRENT_SCHEMA_VERSION
 from ..validation import ManifestError, validate_manifest
@@ -41,8 +43,19 @@ def next_command(command: str) -> str:
 def _cli_name() -> str:
     entrypoint = Path(sys.argv[0])
     if entrypoint.suffix == ".py":
-        return f"python3 {shlex.quote(display_path(entrypoint))}"
+        return f"{_interpreter()} {shlex.quote(display_path(entrypoint))}"
     return shlex.quote(display_path(entrypoint))
+
+
+def _interpreter() -> str:
+    """Name the running interpreter, because `python3` on PATH can be too old to run the CLI."""
+    on_path = shutil.which("python3")
+    try:
+        if on_path and Path(on_path).resolve() == Path(sys.executable).resolve():
+            return "python3"
+    except OSError:
+        pass
+    return shlex.quote(sys.executable)
 
 
 def load_manifest(path: Path, full: bool = False) -> NormalizedManifest:
@@ -119,13 +132,17 @@ def load_manifest(path: Path, full: bool = False) -> NormalizedManifest:
         raise CliFailure(payload) from error
 
 
-def validation_payload(manifest: NormalizedManifest, manifest_path: Path) -> dict[str, Any]:
+def validation_payload(
+    manifest: NormalizedManifest, manifest_path: Path, full: bool = False
+) -> dict[str, Any]:
     manifest_summary = summary(manifest)
     german_candidates = manifest_summary["untranslated_german_candidates"]
     warnings = []
     if german_candidates:
         warnings.append(f"review {german_candidates} possible untranslated German string(s)")
-    return {
+    warnings.extend(manifest_warnings(manifest, Path.cwd()))
+    shown_warnings, warnings_truncated = truncate(warnings, full)
+    payload: dict[str, Any] = {
         "status": "ok",
         "manifest": display_path(manifest_path),
         "manifest_version": manifest["schema_version"],
@@ -134,12 +151,17 @@ def validation_payload(manifest: NormalizedManifest, manifest_path: Path) -> dic
         "selected_blocks": list(manifest["blocks"]),
         "missing_traceability": [],
         "summary": manifest_summary,
-        "warnings": warnings,
+        "total_warnings": len(warnings),
+        "warnings": shown_warnings,
         "next": [
             next_command(f"generate {display_path(manifest_path)}"),
             next_command("schema requirements"),
         ],
     }
+    if warnings_truncated:
+        payload["warnings_truncated"] = True
+        payload["next"].insert(0, next_command(f"validate {display_path(manifest_path)} --full"))
+    return payload
 
 
 def summary(manifest: NormalizedManifest) -> dict[str, int]:
@@ -205,13 +227,7 @@ def _fix_for(message: str) -> str:
 
 
 def _count_german_candidates(value: Any) -> int:
-    if isinstance(value, str):
-        return int(bool(GERMAN_CANDIDATE.search(value)))
-    if isinstance(value, dict):
-        return sum(_count_german_candidates(item) for item in value.values())
-    if isinstance(value, list):
-        return sum(_count_german_candidates(item) for item in value)
-    return 0
+    return sum(bool(GERMAN_CANDIDATE.search(text)) for _, text in iter_strings(value))
 
 
 __all__ = [

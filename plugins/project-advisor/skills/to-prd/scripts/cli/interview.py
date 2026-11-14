@@ -67,6 +67,8 @@ The round file is YAML or JSON:
   questions:
     # node: NODE-<digits>, unique in the round
     - node: NODE-03
+      # parent: optional, the NODE id of the prerequisite decision; leave it out for a root
+      parent: NODE-01
       label: Storage
       question: Where does the session keep answers?
       # multi_select: true or false

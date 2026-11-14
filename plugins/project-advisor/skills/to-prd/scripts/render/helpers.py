@@ -30,11 +30,12 @@ def escape_html(value: str) -> str:
     return html.escape(value, quote=True)
 
 
-def render_list(items: list[str]) -> str:
+def render_list(items: list[str], ordered: bool = False) -> str:
+    tag = "ol" if ordered else "ul"
     return (
-        '<ul class="content-list">'
+        f'<{tag} class="content-list">'
         + "".join(f"<li>{escape_html(item)}</li>" for item in items)
-        + "</ul>"
+        + f"</{tag}>"
     )
 
 

@@ -35,7 +35,8 @@ For feedback on an existing PRD, the agent revises a scratch copy of `prd.yaml` 
 
 ## CLI
 
-From the repository root, publish a bundle with:
+From the root of this repository, publish a bundle with the commands below.
+In another repository, replace `plugins/project-advisor/skills/to-prd` with the directory that holds `SKILL.md`.
 
 ```sh
 python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py validate plugins/project-advisor/skills/to-prd/examples/minimal-prd.yaml
@@ -63,6 +64,9 @@ Options:
 - `--full` expands large `validate` and `inspect` output.
 
 The CLI needs Python 3.14 or newer, without a virtual environment, package installation, or Node.js.
+An older interpreter stops with a message that names a `uv run` command to use instead.
+The `next` lines name the interpreter that ran the CLI.
+`validate` and `inspect` print `warnings` for sentences over twenty words and for research evidence they cannot find.
 Only `interview ask` and `interview open` use a browser, and they open the local default browser.
 
 ## Interview
@@ -82,7 +86,8 @@ python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py interview end 
 - `interview ask <session-dir> <round-file>` validates the round file and starts the session server when none runs.
   - It opens the page when the session gets its first server or a new port, so a closed tab needs `interview open`.
   - It blocks until the round has a result, and prints `answered`, `browser_disconnected`, or `ended`.
-  - An `answered` result includes each answer with its design tree `record` and the `instructions` for recording it.
+  - An `answered` result includes each answer with its `parent` node and its design tree `record`.
+    It also gives the `instructions` for recording the answers.
   - Asking an already answered round prints the stored answers immediately.
   - `interview ask --help` prints the round file fields and an example.
 - `interview open <session-dir>` opens the page again, and starts the server again when it has stopped.

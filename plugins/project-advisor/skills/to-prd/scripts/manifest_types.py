@@ -138,7 +138,8 @@ class DesignTreeNode(TypedDict, total=False):
     children: list[DesignTreeNode]
 
 
-type CardItem = dict[str, str]
+# Card fields are strings, except the list-shaped detail fields of CARD_DETAIL_FIELDS_BY_BLOCK.
+type CardItem = dict[str, str | list[str]]
 type CardBlock = list[CardItem]
 type StringBlock = list[str]
 type WireframesBlock = list[WireframeItem]

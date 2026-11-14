@@ -17,11 +17,21 @@ Write questions, manifest prose, and the report in ASD-STE100 Simplified Technic
 
 Reproduce repository-backed identifiers, labels, and quoted strings verbatim.
 
-Run every CLI command from the repository root:
+## Run the CLI
+
+`<skill-dir>` is the directory that holds this `SKILL.md`.
+In an installed plugin, it is in the plugin cache and not in the user repository.
+Run every CLI command from the repository root, so that evidence paths and `action-items/` resolve there:
 
 ```sh
-python3 plugins/project-advisor/skills/to-prd/scripts/__main__.py <command> [options]
+python3 <skill-dir>/scripts/__main__.py <command> [options]
 ```
+
+The CLI needs Python 3.14 or newer.
+Before the first command, run `python3 --version`.
+When the version is older, use `uv run --no-project --python 3.14 python` in place of `python3` for every command.
+An older interpreter stops with a message that names this replacement.
+The `next` lines name the interpreter that ran the CLI, so you can run them as they are.
 
 ## Ground the decision
 
@@ -32,14 +42,24 @@ Structure the interview as a design tree, with dependent decisions branching fro
 A decision belongs in the tree when a wrong answer changes scope, a requirement, an acceptance criterion, a risk, or a review surface.
 A decision that only changes how, in what order, or with which defaults a requirement is built belongs to implementation, so prune it.
 
+For an API, the tree includes request fields, check order, error results, request replay, and concurrent requests.
+A wrong answer on each of them changes acceptance.
+
 Put only decisions to the user, and find facts yourself in the repository or through sub-agents.
+Settle a node with `source: research` only from a fact search in this session.
+Do not settle a node from memory or from an earlier session.
 Put a question in `open_questions` only when it waits on a fact nobody can find today.
 
 ### Keep the session
 
 Start a new interview session for a new PRD and for each revision.
 The session directory is one new scratch directory outside `action-items/`, and it holds the scratch `prd.yaml` and the round files.
-For a new PRD, write the scratch `prd.yaml` from `template --blocks design_tree`, and replace every placeholder node.
+The session directory is not durable.
+The published `action-items/PRD-<slug>/prd.yaml` is the only durable copy, and each revision starts from it.
+For a new PRD, write the scratch `prd.yaml` when you record the first round.
+Start it from `template --blocks design_tree`, and replace every placeholder node with the recorded nodes.
+Before the first round, nothing is decided, so the scratch manifest does not exist yet.
+Do not add a node only to make a manifest validate.
 For a revision, copy the published `prd.yaml` into the session directory.
 
 ### Ask each round in the browser
@@ -48,6 +68,7 @@ Ask each round with `interview ask <session-dir> <round-file>`.
 Each round asks the whole frontier, the decisions whose prerequisites are settled.
 Write the round to a new round file in the session directory, such as `round-01.yaml`.
 Give each question the `NODE-*` id of its design tree node and a recommended answer.
+Give each dependent question the `parent` id of its prerequisite node.
 `interview ask --help` prints the round file fields and an example.
 
 Before each `interview ask`, send one progress message saying the browser round is open and you await answers.
@@ -72,9 +93,20 @@ When the user delegates the answers, skip the browser round, and record your rec
 
 After each round, write its nodes to `blocks.design_tree` with explicit `NODE-*` ids, verbatim questions, and a `settled`, `pruned`, or `deferred` status.
 Write each answer as the `instructions` line of the `answered` result says.
-Record a decision that a fact search settles as `settled` with `source: research` and its evidence.
+Put each node in the `children` of the node that its `parent` names.
+When `parent` is null, put the node at the root.
+Do not write the nodes flat and nest them later.
 Use the notes and the round comment to write the rationale and to find new decisions.
-Nest dependent decisions under their prerequisite's `children`.
+When the record gives a rationale without a `Write it from` instruction, copy that rationale as it is.
+Do not invent a reason that the user did not give.
+A written answer can add scope or a choice that the question did not offer.
+Confirm the added part in the next round.
+
+Record a decision that a fact search settles as `settled` with `source: research`.
+Each `evidence` entry names a repository path, with an optional line or symbol, or a URL.
+Record a decision that the original request states as `settled` with `source: request`.
+Its `question` is the decision as a question, and its `evidence` quotes the request word for word.
+Ask the decision in a round when the request does not state it clearly.
 `schema design_tree` prints the fields each status requires.
 
 ### End the interview
@@ -104,11 +136,26 @@ In both cases:
 - Keep German only for exact repository-backed identifiers, filenames, API names, product labels, or domain idioms, with evidence where the field supports it.
 - Give requirements, decisions, risks, questions, and tests stable IDs, and link every requirement to a validation outcome or an explicit exception.
 - Add repository evidence only when it supports a product statement.
+- Record the API request, checks, response, errors, replay, and concurrency in the `api_contract` detail fields.
 - Add a diagram only when it shows a workflow, state, boundary, contract, or data relationship better than prose.
   - Give it a description and readable Mermaid `source` whose labels name the nodes and edges.
   - Include the failure, fallback, decision, or boundary paths that affect scope or acceptance.
 
 Authoring is complete when every selected block follows its schema, every requirement is traceable, and every remaining open question waits on a fact nobody can find today and states what blocks it and who owns it.
+
+## Check consistency
+
+Before you publish, compare the decisions, requirements, risks, and constraints with each other and with the repository facts.
+Look for two kinds of defect:
+
+- A contradiction, such as a transport rule that the deployment target cannot meet.
+- A combined choice that does not say how its parts combine, such as "both methods" without a rule for each.
+
+Fix each defect that a recorded answer settles.
+When the fix changes or adds a decision, ask it in a new round.
+When the tool allows a sub-agent, give it only the manifest.
+Ask it to list contradictions and unclear combinations.
+Report the defects that the check found and how you fixed them.
 
 ## Publish and inspect
 
@@ -116,7 +163,13 @@ Run `validate`, `generate`, and `inspect action-items/PRD-<slug>/` on the scratc
 Pass `--force` only to replace the published copy of a revision.
 Read [references/review-checklist.md](references/review-checklist.md) when inspection fails or the bundle needs a full audit.
 
-Publication is complete when validation and inspection pass for the intended manifest, including local assets, links, traceability, and English-only ASD-STE100 prose.
+`validate` and `inspect` print `warnings` for sentences over twenty words.
+They also warn on research evidence that names no URL and no existing path inside the repository.
+Fix each warning, or state in the report why it stays.
+The CLI does not check voice, tense, or word choice, so read the prose against the ASD-STE100 rules yourself.
+
+Publication is complete when validation and inspection pass and every warning is fixed or explained.
+The prose must also follow ASD-STE100.
 
 ### Check interview behavior when requested
 
@@ -134,8 +187,10 @@ Run policy checks before ending the session, while the server runs.
 
 ## Hold the review gate
 
-Open `action-items/PRD-<slug>/index.html` when the environment allows it.
-Otherwise give its absolute path and list the visual checks left to the human.
+Open `action-items/PRD-<slug>/index.html` when the environment allows it, and give its absolute path.
+Opening the page is not a visual check.
+Inspect the rendered page yourself when your tool can show it, such as with a screenshot.
+In the report, list each [visual check](references/review-checklist.md#visual-checks) that you did not do, so the human does it.
 Offer `Accept PRD` and `Request changes` with the interactive question tool.
 Requested changes and answered questions re-enter the interview as a revision.
 
@@ -145,7 +200,7 @@ On acceptance:
 
 1. Set `status: Accepted` in the working manifest and change nothing else.
 2. Rerun `validate`, `generate --force`, and `inspect` with the same `--output-root`, so the published bundle carries the accepted source.
-3. Report the published `action-items/PRD-<slug>/prd.yaml` path.
+3. Report the published `action-items/PRD-<slug>/prd.yaml` path as the durable source, and say that the session directory is scratch.
 
 Then offer `to-issues` for Jira-ready tickets, `to-agent-tasks` for coding-agent work packages, or no handoff, and invoke the chosen skill with the published `prd.yaml`.
 Run a handoff before acceptance only when the user asks for a combined flow.

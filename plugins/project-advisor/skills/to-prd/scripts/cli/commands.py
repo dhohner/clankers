@@ -15,7 +15,7 @@ from .support import load_manifest, validation_payload
 
 def command_validate(args: argparse.Namespace) -> dict[str, Any]:
     manifest = load_manifest(args.manifest, args.full)
-    return validation_payload(manifest, args.manifest)
+    return validation_payload(manifest, args.manifest, args.full)
 
 
 COMMANDS: dict[str, Callable[[argparse.Namespace], dict[str, Any]]] = {

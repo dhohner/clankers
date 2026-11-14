@@ -6,12 +6,12 @@
 from __future__ import annotations
 
 import re
-from typing import Any, TypedDict
+from typing import Any, NotRequired, TypedDict
 
 ROUND_ID_PATTERN = re.compile(r"ROUND-[0-9]+")
 NODE_ID_PATTERN = re.compile(r"NODE-[0-9]+")
 ROUND_FIELDS = ("id", "questions")
-QUESTION_FIELDS = ("node", "label", "question", "multi_select", "options")
+QUESTION_FIELDS = ("node", "parent", "label", "question", "multi_select", "options")
 OPTION_FIELDS = ("label", "description", "recommended")
 
 
@@ -23,6 +23,8 @@ class Option(TypedDict):
 
 class Question(TypedDict):
     node: str
+    # The prerequisite node whose children hold this node; a root node has no parent.
+    parent: NotRequired[str]
     label: str
     question: str
     multi_select: bool
@@ -91,6 +93,11 @@ def _questions(value: Any, faults: list[Fault]) -> list[Question]:
         return []
     questions: list[Question] = []
     seen_nodes: set[str] = set()
+    round_nodes = {
+        node
+        for item in value
+        if isinstance(item, dict) and isinstance(node := item.get("node"), str)
+    }
     for index, item in enumerate(value):
         path = f"questions[{index}]"
         if not isinstance(item, dict):
@@ -104,19 +111,21 @@ def _questions(value: Any, faults: list[Fault]) -> list[Question]:
             continue
         _unknown_fields(item, QUESTION_FIELDS, f"{path}.", faults)
         node = _node_id(item.get("node"), f"{path}.node", seen_nodes, faults)
+        parent = _parent_id(item, round_nodes, f"{path}.parent", faults)
         label = _text(item.get("label"), f"{path}.label", "question label", faults)
         question = _text(item.get("question"), f"{path}.question", "question text", faults)
         multi_select = _multi_select(item.get("multi_select"), f"{path}.multi_select", faults)
         options = _options(item.get("options"), f"{path}.options", multi_select, faults)
-        questions.append(
-            {
-                "node": node,
-                "label": label,
-                "question": question,
-                "multi_select": bool(multi_select),
-                "options": options,
-            }
-        )
+        normalized: Question = {
+            "node": node,
+            "label": label,
+            "question": question,
+            "multi_select": bool(multi_select),
+            "options": options,
+        }
+        if parent:
+            normalized["parent"] = parent
+        questions.append(normalized)
     return questions
 
 
@@ -129,13 +138,9 @@ def _node_id(value: Any, path: str, seen: set[str], faults: list[Fault]) -> str:
             "Add node with the design tree NODE id this question settles, such as NODE-03.",
         )
         return ""
-    if not isinstance(value, str) or not NODE_ID_PATTERN.fullmatch(value):
-        _fault(
-            faults,
-            path,
-            f"NODE id {value!r} is not in the form NODE-<digits>",
-            "Use the design tree NODE id, such as NODE-03.",
-        )
+    if not _node_format(
+        value, path, "NODE id", "Use the design tree NODE id, such as NODE-03.", faults
+    ):
         return ""
     if value in seen:
         _fault(
@@ -147,6 +152,33 @@ def _node_id(value: Any, path: str, seen: set[str], faults: list[Fault]) -> str:
         return value
     seen.add(value)
     return value
+
+
+def _parent_id(item: dict[str, Any], round_nodes: set[str], path: str, faults: list[Fault]) -> str:
+    if "parent" not in item:
+        return ""
+    value = item["parent"]
+    fix = "Set parent to the NODE id of the prerequisite decision, or leave it out for a root."
+    if not _node_format(value, path, "parent", fix, faults):
+        return ""
+    # A round asks only decisions whose prerequisites are settled, so a parent in the same
+    # round, including the question's own node, is an authoring error; this also rules out cycles.
+    if value in round_nodes:
+        _fault(
+            faults,
+            path,
+            f"parent {value} is asked in the same round",
+            "Settle the prerequisite decision in an earlier round, then ask this question.",
+        )
+        return ""
+    return value
+
+
+def _node_format(value: Any, path: str, name: str, fix: str, faults: list[Fault]) -> bool:
+    if isinstance(value, str) and NODE_ID_PATTERN.fullmatch(value):
+        return True
+    _fault(faults, path, f"{name} {value!r} is not in the form NODE-<digits>", fix)
+    return False
 
 
 def _text(value: Any, path: str, name: str, faults: list[Fault]) -> str:

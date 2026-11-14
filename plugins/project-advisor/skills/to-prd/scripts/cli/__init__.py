@@ -17,12 +17,18 @@ def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="to-prd",
         description="Validate, generate, inspect, and template YAML PRD review bundles.",
-        epilog=(
-            "Run browser interview rounds with `interview`, which prints TOON; "
-            "see interview --help. The other commands print YAML."
-        ),
+        epilog="The interview commands print TOON; the other commands print YAML.",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
+
+    # `main` hands interview arguments to their own parser before this one runs, so this
+    # entry only lists the command group in the top-level help and rejects any parse.
+    interview_group = subparsers.add_parser(
+        "interview",
+        help="ask browser interview rounds; see interview --help",
+        add_help=False,
+    )
+    interview_group.add_argument("arguments", nargs="+", type=_parsed_by_interview_group)
 
     status = subparsers.add_parser("status", help="show the workspace dashboard")
     status.add_argument("--output-root", type=Path, default=Path("action-items"))
@@ -79,6 +85,10 @@ def _build_parser() -> argparse.ArgumentParser:
     examples.add_argument("--format", choices=("yaml", "text"), default="yaml")
 
     return parser
+
+
+def _parsed_by_interview_group(value: str) -> str:
+    raise argparse.ArgumentTypeError("the interview command group has its own parser")
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:

@@ -7,6 +7,7 @@ from typing import Any
 
 from ..spec import (
     BLOCK_SPECS,
+    CARD_DETAIL_FIELDS_BY_BLOCK,
     CURRENT_SCHEMA_VERSION,
     DESIGN_TREE_SOURCES,
     DESIGN_TREE_STATUSES,
@@ -18,6 +19,12 @@ from ..spec import (
 )
 from .catalog_blocks import example_block
 from .support import CliFailure, next_command
+
+DETAIL_FIELD_SHAPES = {
+    "text": "optional non-empty string",
+    "list": "optional non-empty array of non-empty strings",
+    "steps": "optional non-empty array of non-empty strings, in the order they run",
+}
 
 
 def command_schema(args: argparse.Namespace) -> dict[str, Any]:
@@ -125,7 +132,10 @@ def _block_schema(block: str, compact: bool = False) -> dict[str, Any]:
         "review_area": spec.review_area,
         "kind": spec.kind,
         "fields": list(spec.fields),
-        "optional_fields": sorted(ENTITY_OPTIONAL_FIELDS_BY_BLOCK.get(block, set())),
+        "optional_fields": sorted(
+            ENTITY_OPTIONAL_FIELDS_BY_BLOCK.get(block, set())
+            | set(CARD_DETAIL_FIELDS_BY_BLOCK.get(block, {}))
+        ),
         "field_shapes": _field_shapes(block),
         "id_prefix": spec.id_prefix,
         "label_prefix": spec.label_prefix,
@@ -166,6 +176,8 @@ def _field_shapes(block: str) -> dict[str, str]:
                 if field in {"relates_to", "validates", "validation", "evidence"}
                 else "non-empty string"
             )
+        for field, shape in CARD_DETAIL_FIELDS_BY_BLOCK.get(block, {}).items():
+            shapes[field] = DETAIL_FIELD_SHAPES[shape]
         return shapes
     if spec.kind == "diagram":
         return {
@@ -209,7 +221,10 @@ def _field_shapes(block: str) -> dict[str, str]:
             block: "non-empty array of design tree nodes",
             "id": "required non-empty string using the node prefix, such as NODE-01",
             "label": "required non-empty string naming the decision in a few words",
-            "question": "required non-empty string holding the verbatim interview question",
+            "question": (
+                "required non-empty string holding the verbatim interview question; "
+                "for source request, the decision the request settles, phrased as a question"
+            ),
             "status": "required, one of: " + ", ".join(DESIGN_TREE_STATUSES),
             "answer": "non-empty string, required for a settled node",
             "source": "required for a settled node, one of: " + ", ".join(DESIGN_TREE_SOURCES),
@@ -219,7 +234,11 @@ def _field_shapes(block: str) -> dict[str, str]:
             "relates_to": (
                 "array of non-empty entity ids; a deferred node must name an open question id"
             ),
-            "evidence": "array of non-empty strings; required when source is research",
+            "evidence": (
+                "array of non-empty strings; required when source is research, "
+                "as repository paths or URLs, or when source is request, "
+                "as verbatim quotes of the original request"
+            ),
             "children": "optional non-empty array of design tree nodes",
         }
     return {}

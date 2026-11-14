@@ -53,8 +53,33 @@ A reference to a `NODE-*` id links to that graph.
 
 - Write every node id explicitly, because a revision that inserts a branch must not renumber nodes an earlier review already read.
 - A `settled` node carries `superseded_answer` when a revision replaced its answer.
-- `source` is `user` for an interview answer and `research` for an agent finding backed by `evidence`.
+- `source` is `user` for an interview answer and `research` for an agent finding.
+- `source` is `request` for a decision that the original request states.
+- A `request` node has no interview question, so its `question` phrases the decision as a question.
+  Its `evidence` quotes the request word for word.
+- Each `evidence` entry of a `research` node names a URL or a repository path, with an optional line or symbol.
+  `validate` and `inspect` warn when an entry names no path or URL.
+  They also warn when the path does not exist under the working directory.
 - Tree nodes stay off the coverage board, because they record how the PRD was reasoned out rather than a claim that needs validation.
+
+## API contract details
+
+An `api_contract` card can carry optional detail fields beside `contract` and `behavior`:
+
+- `request`: the fields the consumer sends.
+- `checks`: the checks in the order they run.
+- `response`: the fields the consumer receives.
+- `errors`: the error results.
+- `idempotency`: what a repeated request does.
+- `concurrency`: what parallel requests do.
+
+Record a detail when a wrong value changes acceptance, and leave it out otherwise.
+
+## Prose warnings
+
+`validate` and `inspect` warn on each sentence over twenty words.
+The check skips identifiers, references, evidence, code, and diagram source.
+It does not check other ASD-STE100 rules.
 
 ## Visuals
 

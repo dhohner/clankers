@@ -20,8 +20,24 @@
 - Mermaid source is readable and shows the decision, failure, fallback, or boundary paths that affect acceptance.
 - `validate` reports zero `untranslated_german_candidates`, or every remaining German string is exact repository terminology with evidence where its field supports it.
 
+## Consistency
+
+- No two decisions, requirements, or constraints contradict each other or the repository facts.
+- Each combined choice, such as "both methods", states how its parts combine.
+
 ## Human review
 
 - User-visible prose follows ASD-STE100, with repository-backed terminology reproduced verbatim.
+- `validate` and `inspect` check only sentence length, so voice, tense, and word choice need a reader.
+
+## Visual checks
+
+Do these checks on the rendered page, or list each one that you did not do in the report:
+
+- Each Mermaid diagram renders, and its labels are readable.
+- The design tree graph shows every node with its id, label, and status.
+- The page has no horizontal scroll at a narrow window width.
+- Long text in cards and tables wraps and stays inside its container.
+- Each link in the page navigation and each reference link goes to its target.
 
 The review is complete when every deterministic check passes, and prose register, responsive layout, and rendered accessibility have been previewed or assigned to human review.

@@ -57,7 +57,9 @@ GENERATED_METADATA_LABELS = {"initiative", "review surfaces", "output"}
 
 
 DESIGN_TREE_STATUSES = ("settled", "pruned", "deferred")
-DESIGN_TREE_SOURCES = ("user", "research")
+# `request` marks a decision the original request already states, so no interview question
+# was asked and the evidence quotes the request instead.
+DESIGN_TREE_SOURCES = ("user", "request", "research")
 DESIGN_TREE_NODE_FIELDS = ("id", "label", "question", "status")
 DESIGN_TREE_NODE_OPTIONAL_FIELDS = ("children", "relates_to", "evidence")
 # Each status owns the fields that record why the branch ended the way it did,
@@ -395,6 +397,20 @@ ENTITY_OPTIONAL_FIELDS_BY_BLOCK = {
     "testing_strategy": {"id", "relates_to", "validates", "evidence"},
 }
 
+# Optional detail fields of a card block that carries no ids, mapped to their shape: `text`
+# for one string, `list` for strings in any order, and `steps` for strings in a fixed order.
+# The renderer shows them in this order after the required fields.
+CARD_DETAIL_FIELDS_BY_BLOCK: dict[str, dict[str, str]] = {
+    "api_contract": {
+        "request": "text",
+        "checks": "steps",
+        "response": "text",
+        "errors": "list",
+        "idempotency": "text",
+        "concurrency": "text",
+    },
+}
+
 ENTITY_ID_PATTERN = re.compile(r"^(req|dec|risk|question|test|node)-[a-z0-9][a-z0-9-]*$")
 
 
@@ -461,6 +477,7 @@ def iter_tree_nodes(nodes: Sequence[DesignTreeNode]) -> Iterator[DesignTreeNode]
 
 __all__ = [
     "BLOCK_SPECS",
+    "CARD_DETAIL_FIELDS_BY_BLOCK",
     "CURRENT_SCHEMA_VERSION",
     "DESIGN_TREE_EXTRA_FIELDS_BY_STATUS",
     "DESIGN_TREE_NODE_FIELDS",

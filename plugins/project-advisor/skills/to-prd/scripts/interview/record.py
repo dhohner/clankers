@@ -13,10 +13,14 @@ from .rounds import Question, Round
 from .session import QuestionAnswer, RoundAnswers
 
 INSTRUCTIONS = (
-    "Write each answer record to the design_tree node with the same NODE id. "
+    "Write each answer record as the design_tree node with the same NODE id. "
+    "Put the node in the children of the parent node, or at the root when parent is null. "
     "For a deferred node, add the open_question text as a new open_questions entry with a "
-    "new id, and list that id in the node relates_to."
+    "new id, and list that id in the node relates_to. "
+    "When a written answer adds scope that no option offered, confirm it in the next round."
 )
+# A rationale the agent copies as it stands, because the user gave no reason to write from.
+NO_REASON_RATIONALE = "The user wrote this answer and gave no reason."
 MULTI_SELECT_SEPARATOR = "; "
 
 
@@ -32,6 +36,7 @@ def answered_fields(round_: Round, answers: RoundAnswers) -> dict[str, Any]:
 def _answer(question: Question, answer: QuestionAnswer) -> dict[str, Any]:
     return {
         "node": answer["node"],
+        "parent": question.get("parent"),
         "label": question["label"],
         "choice": answer["choice"],
         "selected": answer["selected"],
@@ -50,7 +55,8 @@ def _record(question: Question, answer: QuestionAnswer) -> dict[str, str]:
                 _rationale(_option_descriptions(question, answer["selected"]), answer["note"]),
             )
         case "written":
-            return _settled(answer["written"], _rationale("the written answer", answer["note"]))
+            rationale = "Write it from the note." if answer["note"] else NO_REASON_RATIONALE
+            return _settled(answer["written"], rationale)
         case "decide_later":
             return {
                 "status": "deferred",

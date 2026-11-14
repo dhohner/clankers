@@ -7,6 +7,23 @@ package or run the bundled CLI from the skill root.
 
 from __future__ import annotations
 
+import sys
+
+# This check runs before any submodule is compiled, because the submodules use syntax
+# that an older interpreter rejects with a bare SyntaxError. Keep this file parseable
+# by Python 3.9, the oldest python3 still common on macOS.
+MINIMUM_PYTHON = (3, 14)
+if sys.version_info < MINIMUM_PYTHON:
+    _found = ".".join(str(part) for part in sys.version_info[:3])
+    _needed = ".".join(str(part) for part in MINIMUM_PYTHON)
+    _entrypoint = __file__.rsplit("__init__.py", 1)[0] + "__main__.py"
+    sys.stderr.write(
+        f"to-prd needs Python {_needed} or newer, but {sys.executable} is Python {_found}.\n"
+        f"Run the CLI with a newer interpreter, for example:\n"
+        f"  uv run --no-project --python {_needed} python {_entrypoint} <command>\n"
+    )
+    raise SystemExit(2)
+
 from .bundle import generate_bundle
 from .manifest_types import NormalizedBlocks, NormalizedManifest
 from .output_validation import BundleValidationError, validate_generated_bundle

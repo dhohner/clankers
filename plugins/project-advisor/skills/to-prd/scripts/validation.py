@@ -8,6 +8,7 @@ from .manifest_types import NormalizedBlocks, NormalizedManifest
 from .mermaid import mermaid_label
 from .spec import (
     BLOCK_SPECS,
+    CARD_DETAIL_FIELDS_BY_BLOCK,
     DESIGN_TREE_EXTRA_FIELDS_BY_STATUS,
     DESIGN_TREE_NODE_FIELDS,
     DESIGN_TREE_NODE_OPTIONAL_FIELDS,
@@ -28,6 +29,12 @@ from .spec import (
     entity_label,
     normalize_entity_id,
 )
+
+# Design tree sources whose answers must carry evidence, mapped to what the evidence must hold.
+EVIDENCE_REQUIRED_BY_SOURCE = {
+    "research": "name at least one finding for a research answer",
+    "request": "quote the original request for a request answer",
+}
 
 
 def _readable_mermaid_source(source: str) -> str:
@@ -101,21 +108,23 @@ def _object_list(
     fields: tuple[str, ...],
     errors: list[str],
     optional_fields: set[str] | None = None,
+    detail_fields: dict[str, str] | None = None,
 ) -> list[dict[str, Any]]:
     if not isinstance(value, list) or not value:
         errors.append(f"{path} must be a non-empty array")
         return []
     result: list[dict[str, Any]] = []
     optional_fields = optional_fields or set()
+    detail_fields = detail_fields or {}
+    allowed_fields = set(fields) | optional_fields | set(detail_fields)
+    if "id" in optional_fields:
+        allowed_fields.add("label")
     for index, item in enumerate(value):
         item_path = f"{path}[{index}]"
         if not isinstance(item, dict):
             errors.append(f"{item_path} must be an object")
             continue
-        allowed_labels = {"label"} if "id" in optional_fields else set()
-        _reject_unknown_fields(
-            item, set(fields) | optional_fields | allowed_labels, item_path, errors
-        )
+        _reject_unknown_fields(item, allowed_fields, item_path, errors)
         normalized: dict[str, Any] = {
             field: _non_empty_string(item.get(field), f"{item_path}.{field}", errors)
             for field in fields
@@ -139,6 +148,15 @@ def _object_list(
                 item.get("exception"),
                 f"{item_path}.exception",
                 errors,
+            )
+        for field, shape in detail_fields.items():
+            if field not in item:
+                continue
+            field_path = f"{item_path}.{field}"
+            normalized[field] = (
+                _non_empty_string(item[field], field_path, errors)
+                if shape == "text"
+                else _string_list(item[field], field_path, errors)
             )
         result.append(normalized)
     return result
@@ -279,8 +297,8 @@ def _validate_tree_node(item: Any, path: str, errors: list[str]) -> dict[str, An
                     errors,
                 )
             )
-    if node.get("source") == "research" and not node.get("evidence"):
-        errors.append(f"{path}.evidence must name at least one finding for a research answer")
+    if (need := EVIDENCE_REQUIRED_BY_SOURCE.get(node.get("source"))) and not node.get("evidence"):
+        errors.append(f"{path}.evidence must {need}")
     return node
 
 
@@ -353,7 +371,8 @@ def _validate_block(name: str, value: Any, errors: list[str]) -> Any:
         }
     if spec.kind == "cards":
         optional_fields = ENTITY_OPTIONAL_FIELDS_BY_BLOCK.get(name)
-        return _object_list(value, path, spec.fields, errors, optional_fields)
+        detail_fields = CARD_DETAIL_FIELDS_BY_BLOCK.get(name)
+        return _object_list(value, path, spec.fields, errors, optional_fields, detail_fields)
     if spec.kind == "frames":
         return _validate_frames(value, path, spec.fields, errors)
     if spec.kind == "list":

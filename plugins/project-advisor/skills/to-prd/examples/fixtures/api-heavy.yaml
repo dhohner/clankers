@@ -23,6 +23,17 @@ blocks:
   api_contract:
     - contract: Readiness evaluation response
       behavior: "Returns stable product-level fields and actionable errors without exposing internal implementation details."
+      request: The client sends the planning source and the readiness profile name.
+      checks:
+        - Reject a request that names an unknown readiness profile.
+        - Reject a planning source that does not parse.
+        - Evaluate the source against the profile.
+      response: The service returns a status, the blocking gaps, the cautions, and one next step.
+      errors:
+        - An unknown profile returns a profile error with the known profile names.
+        - A source that does not parse returns a validation error with the failed line.
+      idempotency: The same source and profile always return the same result.
+      concurrency: Evaluations do not share state, so parallel requests do not affect each other.
   failure_paths:
     - scenario: The submitted planning source is invalid.
       fallback: Return a concise validation failure and do not publish a partial result.

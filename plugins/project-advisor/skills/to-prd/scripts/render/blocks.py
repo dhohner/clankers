@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..spec import BlockSpec, entity_label
+from ..spec import CARD_DETAIL_FIELDS_BY_BLOCK, BlockSpec, entity_label
 from .helpers import (
     escape_html,
     field_label,
@@ -36,6 +36,19 @@ def render_requirements(items: list[dict[str, Any]], spec: BlockSpec, aspects: d
             f"{render_plate_rows(item)}</div></article>"
         )
     return '<div class="requirement-list">' + "".join(plates) + "</div>"
+
+
+def _detail_rows(name: str, item: dict[str, Any]) -> str:
+    rows: list[str] = []
+    for field, shape in CARD_DETAIL_FIELDS_BY_BLOCK.get(name, {}).items():
+        if field not in item:
+            continue
+        value = item[field]
+        content = (
+            escape_html(value) if shape == "text" else render_list(value, ordered=shape == "steps")
+        )
+        rows.append(render_row(field_label(field), content))
+    return "".join(rows)
 
 
 def render_cards(name: str, items: list[dict[str, Any]], spec: BlockSpec, aspects: dict) -> str:
@@ -104,7 +117,7 @@ def render_cards(name: str, items: list[dict[str, Any]], spec: BlockSpec, aspect
             head = ""
         rows = "".join(
             render_row(field_label(field), escape_html(item[field])) for field in secondary
-        )
+        ) + _detail_rows(name, item)
         relationships = render_plate_rows(item)
         body_rows = f'<dl class="plate-rows">{rows}</dl>{relationships}' if rows else relationships
         aspect_attribute = f' data-aspect="{escape_html(aspect["state"])}"' if aspect else ""

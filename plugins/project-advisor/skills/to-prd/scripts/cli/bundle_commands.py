@@ -6,6 +6,7 @@ import argparse
 from pathlib import Path
 from typing import Any
 
+from ..advisories import manifest_warnings
 from ..bundle import generate_bundle
 from ..interview.client import live_sessions
 from ..interview.session import summarize
@@ -183,8 +184,15 @@ def command_inspect(args: argparse.Namespace) -> dict[str, Any]:
         ) from error
 
     manifest = analysis.manifest
-    assets = sorted(
-        str(path.relative_to(bundle)) for path in (bundle / "assets").rglob("*") if path.is_file()
+    all_warnings = manifest_warnings(manifest, Path.cwd())
+    warnings, warnings_truncated = truncate(all_warnings, args.full)
+    assets, assets_truncated = truncate(
+        sorted(
+            str(path.relative_to(bundle))
+            for path in (bundle / "assets").rglob("*")
+            if path.is_file()
+        ),
+        args.full,
     )
     payload = {
         "status": "ok",
@@ -196,20 +204,25 @@ def command_inspect(args: argparse.Namespace) -> dict[str, Any]:
         },
         "sections": list(manifest["blocks"]),
         "ids": _entity_ids(manifest),
-        "assets": assets if args.full else assets[:20],
+        "assets": assets,
         "anchors": {
             "count": len(analysis.ids),
             "broken": sorted(set(analysis.fragment_links) - set(analysis.ids)),
         },
         "traceability": _traceability_summary(manifest),
         "validation": {"manifest": "ok", "bundle": "ok"},
+        "total_warnings": len(all_warnings),
+        "warnings": warnings,
         "next": [
             f"open {display_path(bundle / 'index.html')}",
             next_command(f"validate {display_path(bundle / 'prd.yaml')}"),
         ],
     }
-    if not args.full and len(assets) > 20:
+    if warnings_truncated:
+        payload["warnings_truncated"] = True
+    if assets_truncated:
         payload["assets_truncated"] = True
+    if warnings_truncated or assets_truncated:
         payload["next"].insert(
             0,
             next_command(f"inspect {display_path(bundle)} --full"),
