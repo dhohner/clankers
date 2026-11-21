@@ -4,8 +4,10 @@ depends_on:
 state: pending
 ---
 
-<Start the file with this block on line 1, and keep it free of other keys.
-List under `depends_on` the file name of each task whose capability a `Needs first` line requires, such as `01-short-task-title.md`, and no other task.
+<Start the file with this block on line 1, holding only these two keys.
+List under `depends_on` the file name of each direct predecessor, such as `01-short-task-title.md`.
+A direct predecessor is a task whose capability this task needs and that no other listed predecessor already requires, directly or through its own predecessors.
+Give each listed file exactly one `Needs first` line that starts with its file name, and list only these tasks.
 Name only task files in the destination directory with a lower numeric prefix, whether written in this run or kept from an earlier one.
 Write `depends_on: []` for a task without a `Needs first` line.
 Write `state: pending`, because only the tool that implements the task sets `state: done`.>
@@ -22,22 +24,29 @@ Write `state: pending`, because only the tool that implements the task sets `sta
 
 ## Contract
 
-<Keep this section only for a slice with contract risks.
+<Keep this section only for a slice with contract risks or a contract that other tasks share.
 State each applicable data, state, replay, concurrency, atomicity, failure, and authorization decision once.
-Put unresolved decisions under Blockers.>
+Write only decisions that the PRD or inspected repository evidence supports.
+Put unresolved decisions under Blockers.
+Write a contract that other tasks also state as a shared block, and copy the block unchanged into every task that states it:>
+
+### Shared: <Contract name>
+
+<State the shared contract, such as a file format, a response shape, or a command, in the same words in every task.>
 
 ## Boundary
 
 - May change: <Name owned artifacts, configuration, and behavior.>
 - Must preserve: <Name specific properties that callers or users require.>
 - Out of scope: <Name likely but excluded work.>
-- Executor choices: <Name material choices left open by the source and repository.>
-- Assumptions: <Name task decisions unsupported by source evidence.>
+- Executor choices: <Name routine, reversible choices that the source and repository leave open, when the executor might otherwise treat them as fixed.>
+- Assumptions: <Name facts the task relies on but nobody could verify, and minor task decisions without source evidence.>
 - Blockers: <Name the unresolved decision, required evidence, and affected behavior.>
-- Needs first: <State the prerequisite capability contract and why this task needs it.>
+- Needs first: `<NN-predecessor-task-title.md>` <State the prerequisite capability contract and why this task needs it.>
 
 <Keep only applicable Boundary lines.
-Keep the four sentences below in every task.>
+An Executor choices or Assumptions line never holds a decision that changes required behavior, a public or persisted contract, security, external state, or scope; put an unsettled one under Blockers.
+Keep the four sentences below unchanged in every task.>
 
 Use repository evidence for routine, reversible implementation choices.
 Complete the task and its safe local validation.
@@ -56,4 +65,6 @@ Label implementation suggestions as nonbinding.>
 
 ## Validation
 
-- <Name the exact command or manual check, expected evidence, and coverage type.>
+- <Name the exact command or manual check, its expected evidence, and its coverage type: new-behavior coverage, regression coverage, or manual verification.
+Use a command that exists now, or one that this task or a named predecessor creates.>
+- <Name the tool a check needs when it is not installed, and the manual check that replaces it until it is.>

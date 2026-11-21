@@ -1,52 +1,44 @@
 # Agent task quality gate
 
-Check every drafted task against each item, and fix every failure before saving the task.
+Read each task file against every item, and fix every failure before you report the task set.
+The validator already checks file names, frontmatter, sections, placeholders, the executor text, coverage types, shared block copies, and the source map format.
 
 ## Outcome and coverage
 
-- Follow the task template, keep required sections, remove unused optional content, and replace every placeholder.
 - Define one observable result and its value in the title and Outcome.
 - Map every assigned source item to required behavior, acceptance, validation, another slice, or a scoped blocker.
 - Preserve every source requirement and scenario across the complete task set.
-
-## Dependency frontmatter
-
-- Start the file with the template's YAML frontmatter block on line 1, before the title heading.
-- Keep only the keys `depends_on` and `state`, with `state: pending`.
-- List in `depends_on` only bare file names of task files in the destination directory with a lower numeric prefix.
-- Make `depends_on` name exactly the tasks whose capabilities the `Needs first` lines require, or write `depends_on: []` when the task has no `Needs first` line.
+- Make each source map row agree with the task text it names.
 
 ## Evidence and autonomy
 
 - Support each binding claim with the PRD or inspected repository evidence.
-- Label unsupported claims as assumptions or blockers.
+- Put each evidence-backed decision in Required behavior or Contract, once.
+- Limit Assumptions to facts nobody could verify and minor task decisions; an Assumptions line never holds a decision that changes required behavior, a public or persisted contract, security, external state, or scope, which belongs in Required behavior, Contract, or Blockers.
 - Include every product and contract decision needed for execution.
-- Make each task independent of the PRD and sibling tasks.
+- Make each task standalone, executable without the PRD and sibling tasks.
 - Limit repository notes to verified entry points, binding contracts, and hidden wiring that affects decisions.
-- State prerequisite capabilities and their required contracts inline.
-- Keep shared contracts consistent across tasks.
-- Keep `Must preserve` free of any contract the same task changes.
-- Leave routine, reversible implementation choices to the executor.
+- State prerequisite capabilities and their required contracts inline, including contracts from indirect predecessors.
+- Write each contract that several tasks state as an identical `### Shared:` block in each of them.
+- Limit `Must preserve` to contracts the same task leaves unchanged.
+- Leave routine, reversible implementation choices to the executor, and keep every material decision out of `Executor choices`.
 - Name each blocker's missing decision or evidence and affected behavior.
-- Copy the template's executor boundary text into every task unchanged.
 
 ## Acceptance and validation
 
 - State each check's action, result, boundaries, and relevant failure behavior.
 - Match each check's starting state to an inspected fixture, or have the check establish it.
 - Cover permissions, recovery, replay, and concurrency when applicable.
-- Name an existing local command or focused manual check and its expected evidence.
-- Classify validation as new behavior coverage or regression coverage.
-- Keep validation free of remote effects.
+- Name a command that exists now, or one that this task or a named predecessor creates, and its expected evidence.
+- Name each tool a check needs that is not installed, and the manual check that replaces it.
+- Keep validation local.
 
 ## Focus
 
 - Preserve exact identifiers, values, units, commands, and scenario details.
-- State each binding fact once in prose.
-- Repeat it in Acceptance only as observable evidence.
-- Remove generic engineering advice, repository tours, and unsupported implementation steps.
+- State each binding fact once in prose, and repeat it in Acceptance only as observable evidence.
 - Keep only sentences that add product meaning, a contract, a boundary, evidence, or a completion check.
 
 ## Contract checks
 
-For each slice with contract risks, confirm that every applicable contract check passes or has a scoped blocker.
+For each task with contract risks, confirm that every applicable item of [contract-precision.md](contract-precision.md) passes or has a scoped blocker.
