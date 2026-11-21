@@ -13,8 +13,8 @@ Models can invoke `commit-message` when relevant.
 - It reads recent commit messages for style, the full diffstat, and relevant staged changes, including generated files when needed.
 - It uses named files, such as a handoff, for context and includes only claims supported by the patch.
 - It uses a compact plain text view when logic, flow, or ownership is clearer than prose.
-- It limits the subject and body lines to 72 characters.
-- It prints the message without committing.
+- It writes plain ASCII text wrapped at 72 columns that pastes into the `git commit` editor unchanged, and checks the format before printing.
+- It adds no attribution trailers and prints the message without committing.
 
 ## tighten-prose
 
